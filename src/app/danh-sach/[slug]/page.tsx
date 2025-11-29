@@ -105,8 +105,8 @@ export async function generateMetadata({ params }: CategoryPageProps) {
   const { slug } = await params;
   const categoryName = CATEGORY_NAMES[slug] || "Danh sách phim";
   return {
-    title: `${categoryName} | CineVerse`,
-    description: `Xem ${categoryName.toLowerCase()} hay nhất tại CineVerse`,
+    title: `${categoryName} | Phim7.xyz`,
+    description: `Xem ${categoryName.toLowerCase()} hay nhất tại Phim7.xyz`,
   };
 }
 

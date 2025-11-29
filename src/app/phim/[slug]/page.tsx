@@ -291,14 +291,14 @@ export async function generateMetadata({ params }: MoviePageProps) {
     const response = await getFilmDetail(slug);
     const movie = response.movie;
     return {
-      title: `${movie.name} | CineVerse`,
+      title: `${movie.name} | Phim7.xyz`,
       description:
         movie.description?.replace(/<[^>]*>/g, "").slice(0, 160) ||
-        `Xem phim ${movie.name} tại CineVerse`,
+        `Xem phim ${movie.name} tại Phim7.xyz`,
     };
   } catch {
     return {
-      title: "Chi tiết phim | CineVerse",
+      title: "Chi tiết phim | Phim7.xyz",
     };
   }
 }

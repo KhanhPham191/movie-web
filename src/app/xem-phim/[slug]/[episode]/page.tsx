@@ -248,12 +248,12 @@ export async function generateMetadata({ params }: WatchPageProps) {
     }
 
     return {
-      title: `Xem ${movie.name}${episodeName} | CineVerse`,
-      description: `Xem phim ${movie.name} tập ${episodeName} tại CineVerse`,
+      title: `Xem ${movie.name}${episodeName} | Phim7.xyz`,
+      description: `Xem phim ${movie.name} tập ${episodeName} tại Phim7.xyz`,
     };
   } catch {
     return {
-      title: "Xem phim | CineVerse",
+      title: "Xem phim | Phim7.xyz",
     };
   }
 }

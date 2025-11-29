@@ -51,12 +51,12 @@ export function Footer() {
                 <Film className="w-5 h-5 text-white" />
               </div>
               <span className="text-2xl font-bold tracking-tight">
-                <span className="gradient-text">Cine</span>
-                <span>Verse</span>
+                <span className="gradient-text">Phim7</span>
+                <span>.xyz</span>
               </span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mb-6">
-              CineVerse - Nền tảng xem phim trực tuyến hàng đầu với kho phim
+              Phim7.xyz - Nền tảng xem phim trực tuyến hàng đầu với kho phim
               khổng lồ, chất lượng cao và cập nhật liên tục.
             </p>
 
@@ -64,7 +64,7 @@ export function Footer() {
             <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-primary" />
-                <span>contact@cineverse.vn</span>
+                <span>contact@phim7.xyz</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-primary" />
@@ -132,7 +132,7 @@ export function Footer() {
         {/* Bottom */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} CineVerse. Tất cả quyền được bảo lưu.
+            © {new Date().getFullYear()} Phim7.xyz. Tất cả quyền được bảo lưu.
           </p>
 
           {/* Social Links */}

@@ -83,8 +83,8 @@ export async function generateMetadata({ params }: CountryPageProps) {
   const country = COUNTRIES.find((c) => c.slug === slug);
   const countryName = country?.name || slug;
   return {
-    title: `Phim ${countryName} | CineVerse`,
-    description: `Xem phim ${countryName} hay nhất tại CineVerse`,
+    title: `Phim ${countryName} | Phim7.xyz`,
+    description: `Xem phim ${countryName} hay nhất tại Phim7.xyz`,
   };
 }
 

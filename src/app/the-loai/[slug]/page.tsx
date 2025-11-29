@@ -83,8 +83,8 @@ export async function generateMetadata({ params }: GenrePageProps) {
   const genre = GENRES.find((g) => g.slug === slug);
   const genreName = genre?.name || slug;
   return {
-    title: `Phim ${genreName} | CineVerse`,
-    description: `Xem phim ${genreName.toLowerCase()} hay nhất tại CineVerse`,
+    title: `Phim ${genreName} | Phim7.xyz`,
+    description: `Xem phim ${genreName.toLowerCase()} hay nhất tại Phim7.xyz`,
   };
 }
 

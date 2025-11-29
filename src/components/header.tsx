@@ -41,8 +41,8 @@ export function Header() {
               <Film className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl md:text-2xl font-bold tracking-tight">
-              <span className="gradient-text">Cine</span>
-              <span className="text-foreground">Verse</span>
+              <span className="gradient-text">Phim7</span>
+              <span className="text-foreground">.xyz</span>
             </span>
           </Link>
 

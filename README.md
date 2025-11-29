@@ -1,4 +1,4 @@
-# 🎬 CineVerse - Website Xem Phim Trực Tuyến
+# 🎬 Phim7.xyz - Website Xem Phim Trực Tuyến
 
 Dự án web phim được xây dựng với công nghệ hiện đại, giao diện đẹp mắt với chế độ tối/sáng.
 

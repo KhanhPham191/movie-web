@@ -16,7 +16,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CineVerse | Khám phá thế giới điện ảnh",
+  title: "Phim7.xyz | Xem phim online miễn phí",
   description: "Nền tảng xem phim trực tuyến với hàng nghìn bộ phim hấp dẫn",
 };
 
