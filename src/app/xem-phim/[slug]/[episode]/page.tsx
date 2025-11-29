@@ -9,12 +9,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { ChevronLeft, ChevronRight, Home, List } from "lucide-react";
 import { getFilmDetail } from "@/lib/api";
+import { WatchPlayer } from "./watch-player";
 
 interface WatchPageProps {
   params: Promise<{ slug: string; episode: string }>;
 }
 
-async function VideoPlayer({
+async function VideoContent({
   slug,
   episodeSlug,
 }: {
@@ -69,26 +70,12 @@ async function VideoPlayer({
     return (
       <div className="space-y-6">
         {/* Video Player */}
-        <div className="relative w-full bg-black rounded-lg overflow-hidden">
-          <div className="relative" style={{ paddingBottom: "56.25%" }}>
-            <iframe
-              src={currentEpisode.embed}
-              className="absolute top-0 left-0 w-full h-full border-0"
-              allowFullScreen
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-              referrerPolicy="no-referrer-when-downgrade"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-top-navigation"
-              loading="lazy"
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-              }}
-            />
-          </div>
-        </div>
+        <WatchPlayer
+          embedUrl={currentEpisode.embed}
+          m3u8Url={currentEpisode.m3u8}
+          poster={movie.poster_url || movie.thumb_url}
+          title={`${movie.name} - ${currentEpisode.name}`}
+        />
 
         {/* Movie Info & Navigation */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -231,7 +218,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
       <div className="pt-20 md:pt-24 pb-12">
         <div className="container mx-auto px-4 max-w-6xl">
           <Suspense fallback={<VideoPlayerSkeleton />}>
-            <VideoPlayer slug={slug} episodeSlug={episode} />
+            <VideoContent slug={slug} episodeSlug={episode} />
           </Suspense>
         </div>
       </div>
@@ -266,4 +253,3 @@ export async function generateMetadata({ params }: WatchPageProps) {
     };
   }
 }
-
