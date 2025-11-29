@@ -36,7 +36,7 @@ export function MovieCard({ movie, index = 0 }: MovieCardProps) {
 
           {/* Quality Badge */}
           {movie.quality && (
-            <Badge className="absolute top-2 left-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0 text-xs font-semibold">
+            <Badge className="absolute top-2 left-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 text-xs font-semibold">
               {movie.quality}
             </Badge>
           )}
@@ -59,7 +59,7 @@ export function MovieCard({ movie, index = 0 }: MovieCardProps) {
           <div className="movie-overlay absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col items-center justify-center gap-3 p-4">
             <Button
               size="lg"
-              className="rounded-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg shadow-amber-500/30 animate-pulse-glow"
+              className="rounded-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/30 animate-pulse-glow"
             >
               <Play className="w-5 h-5 mr-1 fill-white" />
               Xem ngay

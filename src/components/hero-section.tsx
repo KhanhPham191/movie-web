@@ -38,7 +38,7 @@ export function HeroSection({ movie }: HeroSectionProps) {
         <div className="max-w-2xl animate-fade-in">
           {/* Badges */}
           <div className="flex flex-wrap items-center gap-2 mb-4">
-            <Badge className="bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0 px-3 py-1">
+            <Badge className="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 px-3 py-1">
               🔥 Mới cập nhật
             </Badge>
             {movie.quality && (
@@ -127,7 +127,7 @@ export function HeroSection({ movie }: HeroSectionProps) {
             <Link href={`/phim/${movie.slug}`}>
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white border-0 shadow-lg shadow-amber-500/30 px-8"
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 shadow-lg shadow-blue-500/30 px-8"
               >
                 <Play className="w-5 h-5 mr-2 fill-white" />
                 Xem phim

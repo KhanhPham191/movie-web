@@ -127,7 +127,7 @@ async function VideoPlayer({
 
           {nextEpisode ? (
             <Button
-              className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
               asChild
             >
               <Link href={`/xem-phim/${slug}/${nextEpisode.slug}`}>
@@ -158,7 +158,7 @@ async function VideoPlayer({
                     size="sm"
                     className={
                       ep.slug === episodeSlug
-                        ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white"
+                        ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
                         : "hover:bg-primary hover:text-primary-foreground"
                     }
                     asChild

@@ -63,7 +63,7 @@ async function MovieDetail({ slug }: { slug: string }) {
                     unoptimized
                   />
                   {movie.quality && (
-                    <Badge className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0">
+                    <Badge className="absolute top-3 left-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0">
                       {movie.quality}
                     </Badge>
                   )}
@@ -215,7 +215,7 @@ async function MovieDetail({ slug }: { slug: string }) {
                 <div className="pt-4">
                   <Button
                     size="lg"
-                    className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg shadow-amber-500/30"
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/30"
                     asChild
                   >
                     <Link
