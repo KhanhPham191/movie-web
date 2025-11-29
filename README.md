@@ -1,36 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎬 CineVerse - Website Xem Phim Trực Tuyến
 
-## Getting Started
+Dự án web phim được xây dựng với công nghệ hiện đại, giao diện đẹp mắt với chế độ tối/sáng.
 
-First, run the development server:
+![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-38B2AC?style=for-the-badge&logo=tailwind-css)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)
+![shadcn/ui](https://img.shields.io/badge/shadcn/ui-latest-000000?style=for-the-badge)
+
+## ✨ Tính năng
+
+- 🌙 **Dark/Light Mode** - Chuyển đổi chế độ tối/sáng mượt mà
+- 🎨 **UI hiện đại** - Giao diện được thiết kế theo phong cách cinema
+- 📱 **Responsive** - Tương thích với mọi kích thước màn hình
+- ⚡ **Hiệu năng cao** - Được tối ưu với Next.js 16 và Turbopack
+- 🎭 **Animation đẹp** - Hiệu ứng hover và chuyển động mượt mà
+
+## 🚀 Công nghệ sử dụng
+
+- **Framework:** Next.js 16 (App Router)
+- **Styling:** Tailwind CSS 4
+- **UI Components:** shadcn/ui
+- **Icons:** Lucide React
+- **Theme:** next-themes
+- **Package Manager:** pnpm
+- **Language:** TypeScript
+
+## 📦 Cài đặt
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Clone repository
+git clone <repository-url>
+cd movie-web
+
+# Cài đặt dependencies
+pnpm install
+
+# Chạy development server
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Mở [http://localhost:3000](http://localhost:3000) trong trình duyệt.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 Cấu trúc thư mục
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/
+│   ├── globals.css      # Global styles & theme variables
+│   ├── layout.tsx       # Root layout với ThemeProvider
+│   └── page.tsx         # Trang chủ
+├── components/
+│   ├── ui/              # shadcn/ui components
+│   ├── header.tsx       # Navigation header
+│   ├── footer.tsx       # Footer
+│   ├── hero-section.tsx # Hero section với phim nổi bật
+│   ├── movie-card.tsx   # Card hiển thị phim
+│   ├── movie-section.tsx # Section chứa danh sách phim
+│   ├── genre-section.tsx # Bộ lọc thể loại
+│   ├── theme-provider.tsx # Provider cho dark mode
+│   └── theme-toggle.tsx  # Nút chuyển đổi theme
+└── lib/
+    ├── movies.ts        # Dữ liệu phim mẫu
+    └── utils.ts         # Utility functions
+```
 
-## Learn More
+## 🎨 Tùy chỉnh Theme
 
-To learn more about Next.js, take a look at the following resources:
+Theme được định nghĩa trong `src/app/globals.css` sử dụng CSS variables. Bạn có thể dễ dàng tùy chỉnh màu sắc:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```css
+:root {
+  --primary: oklch(0.55 0.2 30); /* Màu chủ đạo */
+  --background: oklch(0.98 0.005 250); /* Màu nền */
+  /* ... các biến khác */
+}
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+.dark {
+  --primary: oklch(0.7 0.18 50); /* Màu chủ đạo trong dark mode */
+  --background: oklch(0.12 0.015 260); /* Màu nền dark */
+  /* ... các biến khác */
+}
+```
 
-## Deploy on Vercel
+## 📝 Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+pnpm dev      # Chạy development server
+pnpm build    # Build production
+pnpm start    # Chạy production server
+pnpm lint     # Kiểm tra linting
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🖼️ Screenshots
+
+### Dark Mode
+Giao diện mặc định với theme tối, màu accent amber/orange tạo cảm giác ấm áp như rạp chiếu phim.
+
+### Light Mode
+Chế độ sáng với giao diện clean, dễ đọc trong môi trường sáng.
+
+## 📄 License
+
+MIT License - Thoải mái sử dụng cho mục đích học tập và phát triển.
+
+---
+
+Made with ❤️ using Next.js & shadcn/ui
