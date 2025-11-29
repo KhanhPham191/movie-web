@@ -5,7 +5,6 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { ChevronLeft, ChevronRight, Home, List } from "lucide-react";
@@ -68,21 +67,19 @@ async function VideoPlayer({
       episodeIndex < allEpisodes.length - 1 ? allEpisodes[episodeIndex + 1] : null;
 
     return (
-      <div className="space-y-4 md:space-y-6">
+      <div className="space-y-6">
         {/* Video Player */}
-        <div className="-mx-4 md:mx-0">
-          <div 
-            className="relative w-full bg-black"
-            style={{ paddingBottom: "56.25%" }}
-          >
+        <div className="relative w-full bg-black rounded-lg overflow-hidden">
+          <div className="relative" style={{ paddingBottom: "56.25%" }}>
             <iframe
               src={currentEpisode.embed}
               className="absolute top-0 left-0 w-full h-full border-0"
               allowFullScreen
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-              referrerPolicy="no-referrer"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
-              style={{ 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+              referrerPolicy="no-referrer-when-downgrade"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-top-navigation"
+              loading="lazy"
+              style={{
                 position: "absolute",
                 top: 0,
                 left: 0,
@@ -94,14 +91,14 @@ async function VideoPlayer({
         </div>
 
         {/* Movie Info & Navigation */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-lg md:text-2xl font-bold line-clamp-2">
+            <h1 className="text-xl md:text-2xl font-bold">
               <span className="gradient-text">{movie.name}</span>
             </h1>
-            <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-muted-foreground">
-              <Badge variant="secondary" className="text-xs">{currentServer?.server_name}</Badge>
-              <span>•</span>
+            <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+              <Badge variant="secondary">{currentServer?.server_name}</Badge>
+              <span>-</span>
               <span className="font-medium text-foreground">
                 {currentEpisode.name}
               </span>
@@ -109,14 +106,13 @@ async function VideoPlayer({
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="flex-1 md:flex-none" asChild>
+            <Button variant="outline" size="sm" asChild>
               <Link href="/">
                 <Home className="w-4 h-4 mr-1" />
-                <span className="hidden sm:inline">Trang chủ</span>
-                <span className="sm:hidden">Home</span>
+                Trang chủ
               </Link>
             </Button>
-            <Button variant="outline" size="sm" className="flex-1 md:flex-none" asChild>
+            <Button variant="outline" size="sm" asChild>
               <Link href={`/phim/${slug}`}>
                 <List className="w-4 h-4 mr-1" />
                 Chi tiết
@@ -126,31 +122,30 @@ async function VideoPlayer({
         </div>
 
         {/* Episode Navigation */}
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-4">
           {prevEpisode ? (
-            <Button variant="outline" size="sm" className="flex-1 md:flex-none" asChild>
+            <Button variant="outline" asChild>
               <Link href={`/xem-phim/${slug}/${prevEpisode.slug}`}>
-                <ChevronLeft className="w-4 h-4 mr-1 shrink-0" />
-                <span className="truncate">{prevEpisode.name}</span>
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                {prevEpisode.name}
               </Link>
             </Button>
           ) : (
-            <div className="flex-1 md:flex-none" />
+            <div />
           )}
 
           {nextEpisode ? (
             <Button
-              size="sm"
-              className="flex-1 md:flex-none bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
               asChild
             >
               <Link href={`/xem-phim/${slug}/${nextEpisode.slug}`}>
-                <span className="truncate">{nextEpisode.name}</span>
-                <ChevronRight className="w-4 h-4 ml-1 shrink-0" />
+                {nextEpisode.name}
+                <ChevronRight className="w-4 h-4 ml-1" />
               </Link>
             </Button>
           ) : (
-            <div className="flex-1 md:flex-none" />
+            <div />
           )}
         </div>
 
@@ -158,23 +153,23 @@ async function VideoPlayer({
 
         {/* All Episodes */}
         <div>
-          <h2 className="text-base md:text-lg font-semibold mb-3">Chọn tập phim</h2>
+          <h2 className="text-lg font-semibold mb-4">Chọn tập phim</h2>
           {movie.episodes?.map((server) => (
             <div key={server.server_name} className="mb-4">
-              <h3 className="text-xs md:text-sm text-muted-foreground mb-2">
+              <h3 className="text-sm text-muted-foreground mb-3">
                 {server.server_name}
               </h3>
-              <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {server.items.map((ep) => (
                   <Button
                     key={ep.slug}
                     variant={ep.slug === episodeSlug ? "default" : "outline"}
                     size="sm"
-                    className={`text-xs px-2 py-1 h-8 ${
+                    className={
                       ep.slug === episodeSlug
                         ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
                         : "hover:bg-primary hover:text-primary-foreground"
-                    }`}
+                    }
                     asChild
                   >
                     <Link href={`/xem-phim/${slug}/${ep.slug}`}>{ep.name}</Link>
@@ -190,9 +185,9 @@ async function VideoPlayer({
         {/* Description */}
         {movie.description && (
           <div>
-            <h2 className="text-base md:text-lg font-semibold mb-2">Nội dung phim</h2>
+            <h2 className="text-lg font-semibold mb-3">Nội dung phim</h2>
             <div
-              className="text-muted-foreground text-xs md:text-sm leading-relaxed line-clamp-4 md:line-clamp-none"
+              className="text-muted-foreground text-sm leading-relaxed"
               dangerouslySetInnerHTML={{
                 __html: movie.description,
               }}
@@ -233,8 +228,8 @@ export default async function WatchPage({ params }: WatchPageProps) {
     <main className="min-h-screen bg-background">
       <Header />
 
-      <div className="pt-16 md:pt-24 pb-12">
-        <div className="container mx-auto px-4 md:px-4 max-w-6xl">
+      <div className="pt-20 md:pt-24 pb-12">
+        <div className="container mx-auto px-4 max-w-6xl">
           <Suspense fallback={<VideoPlayerSkeleton />}>
             <VideoPlayer slug={slug} episodeSlug={episode} />
           </Suspense>
