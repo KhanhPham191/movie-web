@@ -3,19 +3,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { VideoPlayer } from "@/components/video-player";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { ChevronLeft, ChevronRight, Home, List } from "lucide-react";
 import { getFilmDetail } from "@/lib/api";
-import { WatchPlayer } from "./watch-player";
 
 interface WatchPageProps {
   params: Promise<{ slug: string; episode: string }>;
 }
 
-async function VideoContent({
+async function WatchContent({
   slug,
   episodeSlug,
 }: {
@@ -70,10 +70,9 @@ async function VideoContent({
     return (
       <div className="space-y-6">
         {/* Video Player */}
-        <WatchPlayer
+        <VideoPlayer
           embedUrl={currentEpisode.embed}
           m3u8Url={currentEpisode.m3u8}
-          poster={movie.poster_url || movie.thumb_url}
           title={`${movie.name} - ${currentEpisode.name}`}
         />
 
@@ -218,7 +217,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
       <div className="pt-20 md:pt-24 pb-12">
         <div className="container mx-auto px-4 max-w-6xl">
           <Suspense fallback={<VideoPlayerSkeleton />}>
-            <VideoContent slug={slug} episodeSlug={episode} />
+            <WatchContent slug={slug} episodeSlug={episode} />
           </Suspense>
         </div>
       </div>
@@ -253,3 +252,4 @@ export async function generateMetadata({ params }: WatchPageProps) {
     };
   }
 }
+
