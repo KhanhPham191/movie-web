@@ -70,15 +70,13 @@ async function VideoPlayer({
     return (
       <div className="space-y-6">
         {/* Video Player */}
-        <Card className="overflow-hidden bg-black rounded-xl">
+        <Card className="overflow-hidden bg-black">
           <div className="relative aspect-video">
             <iframe
               src={currentEpisode.embed}
-              className="absolute inset-0 w-full h-full border-0"
+              className="absolute inset-0 w-full h-full"
               allowFullScreen
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-              referrerPolicy="no-referrer"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             />
           </div>
         </Card>

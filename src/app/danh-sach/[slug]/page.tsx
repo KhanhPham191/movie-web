@@ -1,10 +1,13 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { GenreSection } from "@/components/genre-section";
 import { MovieCard } from "@/components/movie-card";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getFilmsByCategory, getNewlyUpdatedFilms } from "@/lib/api";
 
 const CATEGORY_NAMES: Record<string, string> = {
@@ -36,6 +39,7 @@ async function CategoryContent({
     }
 
     const movies = response.items || [];
+    const totalPages = response.paginate?.total_page || 1;
 
     if (movies.length === 0) {
       return (
@@ -48,11 +52,56 @@ async function CategoryContent({
     }
 
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-6">
-        {movies.map((movie, index) => (
-          <MovieCard key={movie.id || movie.slug} movie={movie} index={index} />
-        ))}
-      </div>
+      <>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-6">
+          {movies.map((movie, index) => (
+            <MovieCard key={`${movie.slug}-${index}`} movie={movie} index={index} />
+          ))}
+        </div>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-center gap-2 mt-8">
+          {page > 1 && (
+            <Link href={`/danh-sach/${slug}?page=${page - 1}`}>
+              <Button variant="outline" size="sm">
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                Trang trước
+              </Button>
+            </Link>
+          )}
+          
+          <div className="flex items-center gap-1">
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const pageNum = page <= 3 ? i + 1 : page - 2 + i;
+              if (pageNum > totalPages || pageNum < 1) return null;
+              return (
+                <Link key={pageNum} href={`/danh-sach/${slug}?page=${pageNum}`}>
+                  <Button
+                    variant={pageNum === page ? "default" : "outline"}
+                    size="sm"
+                    className={pageNum === page ? "bg-primary" : ""}
+                  >
+                    {pageNum}
+                  </Button>
+                </Link>
+              );
+            })}
+          </div>
+
+          {page < totalPages && (
+            <Link href={`/danh-sach/${slug}?page=${page + 1}`}>
+              <Button variant="outline" size="sm">
+                Trang sau
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </Link>
+          )}
+        </div>
+
+        <p className="text-center text-sm text-muted-foreground mt-4">
+          Trang {page} / {totalPages}
+        </p>
+      </>
     );
   } catch {
     return (

@@ -174,3 +174,42 @@ export function getImageUrl(path: string): string {
   return path;
 }
 
+// Fetch multiple pages and combine results
+export async function getMultiplePages(
+  fetchFn: (page: number) => Promise<FilmListResponse>,
+  pages: number = 3
+): Promise<FilmItem[]> {
+  const promises = Array.from({ length: pages }, (_, i) => fetchFn(i + 1));
+  const results = await Promise.all(promises);
+  return results.flatMap((r) => r.items || []);
+}
+
+// Get newly updated films - multiple pages
+export async function getNewlyUpdatedFilmsMultiple(pages: number = 3): Promise<FilmItem[]> {
+  return getMultiplePages(getNewlyUpdatedFilms, pages);
+}
+
+// Get films by category - multiple pages
+export async function getFilmsByCategoryMultiple(
+  slug: string,
+  pages: number = 3
+): Promise<FilmItem[]> {
+  return getMultiplePages((page) => getFilmsByCategory(slug, page), pages);
+}
+
+// Get films by genre - multiple pages
+export async function getFilmsByGenreMultiple(
+  slug: string,
+  pages: number = 3
+): Promise<FilmItem[]> {
+  return getMultiplePages((page) => getFilmsByGenre(slug, page), pages);
+}
+
+// Get films by country - multiple pages
+export async function getFilmsByCountryMultiple(
+  slug: string,
+  pages: number = 3
+): Promise<FilmItem[]> {
+  return getMultiplePages((page) => getFilmsByCountry(slug, page), pages);
+}
+

@@ -43,16 +43,16 @@ export function MovieSection({ title, movies, href, icon }: MovieSectionProps) {
 
         {/* Horizontal Scroll on Mobile, Grid on Desktop */}
         <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-6">
-          {movies.slice(0, 12).map((movie, index) => (
-            <MovieCard key={movie.id || movie.slug} movie={movie} index={index} />
+          {movies.slice(0, 24).map((movie, index) => (
+            <MovieCard key={`${movie.slug}-${index}`} movie={movie} index={index} />
           ))}
         </div>
 
         {/* Mobile Horizontal Scroll */}
         <ScrollArea className="md:hidden w-full">
           <div className="flex gap-4 pb-4">
-            {movies.slice(0, 12).map((movie, index) => (
-              <div key={movie.id || movie.slug} className="w-40 shrink-0">
+            {movies.slice(0, 20).map((movie, index) => (
+              <div key={`${movie.slug}-${index}`} className="w-40 shrink-0">
                 <MovieCard movie={movie} index={index} />
               </div>
             ))}

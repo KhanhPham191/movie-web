@@ -6,33 +6,33 @@ import { MovieSection } from "@/components/movie-section";
 import { Footer } from "@/components/footer";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import {
-  getNewlyUpdatedFilms,
-  getFilmsByCategory,
-  getFilmsByGenre,
-  getFilmsByCountry,
+  getNewlyUpdatedFilmsMultiple,
+  getFilmsByCategoryMultiple,
+  getFilmsByGenreMultiple,
+  getFilmsByCountryMultiple,
   CATEGORIES,
 } from "@/lib/api";
 
-// Fetch data functions
+// Fetch data functions - lấy 3 trang cho mỗi danh mục
 async function getHomePageData() {
   try {
     const [newlyUpdated, phimLe, phimBo, phimDangChieu, hanhDong, hanQuoc] =
       await Promise.all([
-        getNewlyUpdatedFilms(1),
-        getFilmsByCategory(CATEGORIES.PHIM_LE, 1),
-        getFilmsByCategory(CATEGORIES.PHIM_BO, 1),
-        getFilmsByCategory(CATEGORIES.PHIM_DANG_CHIEU, 1),
-        getFilmsByGenre("hanh-dong", 1),
-        getFilmsByCountry("han-quoc", 1),
+        getNewlyUpdatedFilmsMultiple(3),
+        getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 3),
+        getFilmsByCategoryMultiple(CATEGORIES.PHIM_BO, 3),
+        getFilmsByCategoryMultiple(CATEGORIES.PHIM_DANG_CHIEU, 2),
+        getFilmsByGenreMultiple("hanh-dong", 2),
+        getFilmsByCountryMultiple("han-quoc", 2),
       ]);
 
     return {
-      newlyUpdated: newlyUpdated.items || [],
-      phimLe: phimLe.items || [],
-      phimBo: phimBo.items || [],
-      phimDangChieu: phimDangChieu.items || [],
-      hanhDong: hanhDong.items || [],
-      hanQuoc: hanQuoc.items || [],
+      newlyUpdated,
+      phimLe,
+      phimBo,
+      phimDangChieu,
+      hanhDong,
+      hanQuoc,
     };
   } catch (error) {
     console.error("Error fetching home page data:", error);
