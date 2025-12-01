@@ -20,23 +20,13 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
   const [isHovered, setIsHovered] = useState(false);
   const imageUrl = getImageUrl(movie.poster_url || movie.thumb_url);
 
-  // Top 10 variant
+  // Top 10 variant - Netflix style with badge
   if (variant === "top10" && rank) {
     return (
-      <div className="flex items-center gap-0 group">
-        {/* Large Rank Number */}
-        <span 
-          className="text-[120px] md:text-[150px] font-black leading-none text-transparent select-none shrink-0"
-          style={{
-            WebkitTextStroke: "4px rgba(128,128,128,0.5)",
-          }}
-        >
-          {rank}
-        </span>
-        
-        {/* Poster */}
-        <Link href={`/phim/${movie.slug}`} className="-ml-8 md:-ml-10">
-          <div className="relative w-[100px] md:w-[120px] aspect-[2/3] rounded-md overflow-hidden transition-transform duration-300 group-hover:scale-105">
+      <Link href={`/phim/${movie.slug}`}>
+        <div className="group relative">
+          {/* Poster */}
+          <div className="relative aspect-[2/3] rounded-md overflow-hidden transition-transform duration-300 group-hover:scale-105 bg-muted">
             <Image
               src={imageUrl}
               alt={movie.name}
@@ -44,9 +34,29 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               className="object-cover"
               unoptimized
             />
+            
+            {/* Rank Badge - Top Left Corner */}
+            <div className="absolute top-0 left-0 w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center rounded-br-md shadow-lg">
+              <span className="text-white font-black text-xl md:text-2xl">{rank}</span>
+            </div>
+            
+            {/* Top 10 Badge - Bottom */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-2">
+              <div className="flex items-center gap-1">
+                <div className="w-6 h-6 bg-red-600 rounded flex items-center justify-center">
+                  <span className="text-white font-bold text-xs">T</span>
+                </div>
+                <span className="text-white text-xs font-semibold">Top 10</span>
+              </div>
+            </div>
           </div>
-        </Link>
-      </div>
+          
+          {/* Title below */}
+          <h3 className="mt-2 text-sm font-medium line-clamp-1 group-hover:text-white transition-colors">
+            {movie.name}
+          </h3>
+        </div>
+      </Link>
     );
   }
 
