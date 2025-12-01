@@ -4,21 +4,20 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { MovieSection } from "@/components/movie-section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 import {
   Play,
-  Clock,
-  Globe,
-  Calendar,
-  User,
-  Film,
-  ChevronRight,
+  Plus,
+  ThumbsUp,
+  ChevronDown,
+  Volume2,
+  VolumeX,
+  Info,
 } from "lucide-react";
-import { getFilmDetail, getImageUrl } from "@/lib/api";
+import { getFilmDetail, getImageUrl, getFilmsByGenre, getFilmsByCategory, CATEGORIES } from "@/lib/api";
 
 interface MoviePageProps {
   params: Promise<{ slug: string }>;
@@ -33,202 +32,276 @@ async function MovieDetail({ slug }: { slug: string }) {
       notFound();
     }
 
+    const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
+    const posterUrl = getImageUrl(movie.thumb_url || movie.poster_url);
+
+    // Get similar movies (same category or genre)
+    let similarMovies: any[] = [];
+    try {
+      if (movie.category && movie.category.length > 0) {
+        const similarResponse = await getFilmsByGenre(movie.category[0].slug, 1);
+        similarMovies = (similarResponse.items || []).filter((m) => m.slug !== slug).slice(0, 20);
+      }
+    } catch {
+      // Ignore error
+    }
+
     return (
       <>
-        {/* Hero Background */}
-        <div className="absolute inset-0 h-[60vh]">
-          <Image
-            src={movie.poster_url}
-            alt={movie.name}
-            fill
-            className="object-cover object-top"
-            priority
-            unoptimized
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
-        </div>
+        {/* Hero Section - Netflix 2024 Style */}
+        <section className="relative h-[85vh] min-h-[500px] flex items-end">
+          {/* Background Image */}
+          <div className="absolute inset-0">
+            <Image
+              src={backdropUrl}
+              alt={movie.name}
+              fill
+              className="object-cover object-center"
+              priority
+              sizes="100vw"
+              unoptimized
+            />
+            {/* Netflix-style Gradients */}
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,20,20,0)_0%,rgba(20,20,20,0.3)_40%,rgba(20,20,20,0.7)_70%,rgba(20,20,20,0.95)_85%,rgba(20,20,20,1)_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,20,20,0.8)_0%,rgba(20,20,20,0.4)_30%,rgba(20,20,20,0)_50%)]" />
+          </div>
 
-        {/* Content */}
-        <div className="container relative mx-auto px-4 pt-32 md:pt-40">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Poster */}
-            <div className="lg:col-span-1">
-              <Card className="overflow-hidden sticky top-24">
-                <div className="relative aspect-[2/3]">
-                  <Image
-                    src={movie.thumb_url}
-                    alt={movie.name}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                  {movie.quality && (
-                    <Badge className="absolute top-3 left-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0">
-                      {movie.quality}
-                    </Badge>
-                  )}
-                </div>
-              </Card>
-            </div>
-
-            {/* Info */}
-            <div className="lg:col-span-2 space-y-6">
+          {/* Content Overlay */}
+          <div className="container relative mx-auto px-4 md:px-12 pb-16 md:pb-24">
+            <div className="max-w-2xl">
               {/* Title */}
-              <div>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2">
-                  <span className="gradient-text">{movie.name}</span>
-                </h1>
-                {movie.original_name && movie.original_name !== movie.name && (
-                  <p className="text-xl text-muted-foreground">
-                    {movie.original_name}
-                  </p>
-                )}
-              </div>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white mb-3 drop-shadow-lg">
+                {movie.name}
+              </h1>
 
-              {/* Badges */}
-              <div className="flex flex-wrap gap-2">
+              {/* Original Title */}
+              {movie.original_name && movie.original_name !== movie.name && (
+                <p className="text-lg md:text-xl text-gray-300 mb-4">
+                  {movie.original_name}
+                </p>
+              )}
+
+              {/* Meta Row */}
+              <div className="flex flex-wrap items-center gap-3 mb-4 text-sm md:text-base">
+                <span className="text-green-500 font-semibold">98% Phù hợp</span>
+                {movie.quality && (
+                  <span className="px-2 py-0.5 border border-gray-400 text-xs font-medium">
+                    {movie.quality}
+                  </span>
+                )}
                 {movie.current_episode && (
-                  <Badge className="bg-blue-500/90 text-white border-0 px-3 py-1">
-                    {movie.current_episode}
-                  </Badge>
+                  <span className="text-gray-300">{movie.current_episode}</span>
                 )}
-                {movie.language && (
-                  <Badge variant="outline" className="px-3 py-1">
-                    {movie.language}
-                  </Badge>
-                )}
-              </div>
-
-              {/* Meta Info */}
-              <div className="flex flex-wrap gap-6 text-sm">
                 {movie.time && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Clock className="w-4 h-4 text-primary" />
-                    <span>{movie.time}</span>
-                  </div>
+                  <span className="text-gray-400">{movie.time}</span>
                 )}
                 {movie.country?.[0] && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Globe className="w-4 h-4 text-primary" />
-                    <span>{movie.country[0].name}</span>
-                  </div>
+                  <span className="text-gray-400">{movie.country[0].name}</span>
                 )}
-                {movie.created && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="w-4 h-4 text-primary" />
-                    <span>{new Date(movie.created).getFullYear()}</span>
-                  </div>
-                )}
+                <span className="px-2 py-0.5 border border-gray-400 text-xs">18+</span>
               </div>
 
-              {/* Categories */}
+              {/* Genres */}
               {movie.category && movie.category.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {movie.category.map((cat) => (
-                    <Link key={cat.id} href={`/the-loai/${cat.slug}`}>
-                      <Badge
-                        variant="secondary"
-                        className="px-3 py-1 hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer"
-                      >
-                        {cat.name}
-                      </Badge>
-                    </Link>
+                <div className="flex flex-wrap items-center gap-1.5 mb-5 text-sm text-gray-300">
+                  {movie.category.slice(0, 4).map((cat, i) => (
+                    <span key={cat.id}>
+                      {cat.name}
+                      {i < Math.min(movie.category.length, 4) - 1 && (
+                        <span className="mx-2 text-gray-600">•</span>
+                      )}
+                    </span>
                   ))}
                 </div>
               )}
-
-              <Separator />
-
-              {/* Director & Cast */}
-              <div className="space-y-3">
-                {movie.director && (
-                  <div className="flex items-start gap-2">
-                    <User className="w-4 h-4 mt-1 text-primary shrink-0" />
-                    <div>
-                      <span className="text-muted-foreground">Đạo diễn: </span>
-                      <span className="font-medium">{movie.director}</span>
-                    </div>
-                  </div>
-                )}
-                {movie.casts && (
-                  <div className="flex items-start gap-2">
-                    <Film className="w-4 h-4 mt-1 text-primary shrink-0" />
-                    <div>
-                      <span className="text-muted-foreground">Diễn viên: </span>
-                      <span className="font-medium">{movie.casts}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <Separator />
 
               {/* Description */}
               {movie.description && (
-                <div>
-                  <h2 className="text-lg font-semibold mb-3">Nội dung phim</h2>
-                  <div
-                    className="text-muted-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none"
-                    dangerouslySetInnerHTML={{
-                      __html: movie.description,
-                    }}
-                  />
-                </div>
+                <p
+                  className="text-sm md:text-base text-gray-200 line-clamp-3 md:line-clamp-4 mb-6 max-w-xl"
+                  dangerouslySetInnerHTML={{
+                    __html: movie.description.replace(/<[^>]*>/g, "").slice(0, 200) + "...",
+                  }}
+                />
               )}
 
-              <Separator />
-
-              {/* Episodes */}
-              {movie.episodes && movie.episodes.length > 0 && (
-                <div>
-                  <h2 className="text-lg font-semibold mb-4">Danh sách tập</h2>
-                  {movie.episodes.map((server) => (
-                    <div key={server.server_name} className="mb-6">
-                      <h3 className="text-sm text-muted-foreground mb-3 flex items-center gap-2">
-                        <Play className="w-4 h-4" />
-                        {server.server_name}
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {server.items.map((episode) => (
-                          <Button
-                            key={episode.slug}
-                            variant="outline"
-                            size="sm"
-                            className="hover:bg-primary hover:text-primary-foreground"
-                            asChild
-                          >
-                            <Link
-                              href={`/xem-phim/${movie.slug}/${episode.slug}`}
-                            >
-                              {episode.name}
-                            </Link>
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Watch Button */}
-              {movie.episodes?.[0]?.items?.[0] && (
-                <div className="pt-4">
-                  <Button
-                    size="lg"
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/30"
-                    asChild
-                  >
-                    <Link
-                      href={`/xem-phim/${movie.slug}/${movie.episodes[0].items[0].slug}`}
+              {/* Action Buttons - Netflix Style */}
+              <div className="flex items-center gap-3">
+                {movie.episodes?.[0]?.items?.[0] && (
+                  <Link href={`/xem-phim/${movie.slug}/${movie.episodes[0].items[0].slug}`}>
+                    <Button
+                      size="lg"
+                      className="bg-white hover:bg-white/90 text-black font-bold text-sm md:text-base px-6 md:px-8 h-11 md:h-12 rounded-md"
                     >
-                      <Play className="w-5 h-5 mr-2 fill-white" />
-                      Xem phim ngay
-                      <ChevronRight className="w-5 h-5 ml-1" />
-                    </Link>
-                  </Button>
-                </div>
-              )}
+                      <Play className="w-5 h-5 md:w-6 md:h-6 mr-2 fill-black" />
+                      Phát
+                    </Button>
+                  </Link>
+                )}
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-sm md:text-base px-6 md:px-8 h-11 md:h-12 rounded-md"
+                >
+                  <Plus className="w-5 h-5 md:w-6 md:h-6 mr-2" />
+                  Danh sách của tôi
+                </Button>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-sm md:text-base px-6 md:px-8 h-11 md:h-12 rounded-md"
+                >
+                  <ThumbsUp className="w-5 h-5 md:w-6 md:h-6 mr-2" />
+                  Thích
+                </Button>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-sm md:text-base px-6 md:px-8 h-11 md:h-12 rounded-md"
+                >
+                  <ChevronDown className="w-5 h-5 md:w-6 md:h-6" />
+                </Button>
+              </div>
             </div>
+          </div>
+        </section>
+
+        {/* Main Content */}
+        <div className="relative z-10 bg-[#141414] -mt-32 pt-40">
+          <div className="container mx-auto px-4 md:px-12">
+            {/* Episodes Section */}
+            {movie.episodes && movie.episodes.length > 0 && (
+              <div className="mb-12">
+                <h2 className="text-xl md:text-2xl font-bold text-white mb-4">
+                  Tập phim
+                </h2>
+                {movie.episodes.map((server) => (
+                  <div key={server.server_name} className="mb-8">
+                    <h3 className="text-sm text-gray-400 mb-3 font-medium">
+                      {server.server_name}
+                    </h3>
+                    <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-4">
+                      {server.items.map((episode) => (
+                        <Link
+                          key={episode.slug}
+                          href={`/xem-phim/${movie.slug}/${episode.slug}`}
+                        >
+                          <Button
+                            variant="outline"
+                            className="h-10 px-4 bg-[#2a2a2a] border-gray-700 hover:bg-[#3a3a3a] hover:border-white text-white whitespace-nowrap shrink-0"
+                          >
+                            {episode.name}
+                          </Button>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* About Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+              {/* Left Column - Info */}
+              <div className="md:col-span-2 space-y-4">
+                {/* Cast & Crew */}
+                <div className="space-y-3">
+                  {movie.director && (
+                    <div>
+                      <span className="text-gray-400 text-sm">Đạo diễn: </span>
+                      <span className="text-white font-medium">{movie.director}</span>
+                    </div>
+                  )}
+                  {movie.casts && (
+                    <div>
+                      <span className="text-gray-400 text-sm">Diễn viên: </span>
+                      <span className="text-white font-medium">{movie.casts}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Full Description */}
+                {movie.description && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-2">Về phim này</h3>
+                    <div
+                      className="text-gray-300 text-sm leading-relaxed"
+                      dangerouslySetInnerHTML={{
+                        __html: movie.description,
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column - Details */}
+              <div className="space-y-4">
+                <div>
+                  <span className="text-gray-400 text-sm block mb-1">Thể loại</span>
+                  <div className="flex flex-wrap gap-2">
+                    {movie.category?.map((cat) => (
+                      <Link key={cat.id} href={`/the-loai/${cat.slug}`}>
+                        <Badge
+                          variant="outline"
+                          className="bg-[#2a2a2a] border-gray-700 text-white hover:border-white cursor-pointer"
+                        >
+                          {cat.name}
+                        </Badge>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+
+                {movie.country && movie.country.length > 0 && (
+                  <div>
+                    <span className="text-gray-400 text-sm block mb-1">Quốc gia</span>
+                    <div className="flex flex-wrap gap-2">
+                      {movie.country.map((country) => (
+                        <Link key={country.id} href={`/quoc-gia/${country.slug}`}>
+                          <Badge
+                            variant="outline"
+                            className="bg-[#2a2a2a] border-gray-700 text-white hover:border-white cursor-pointer"
+                          >
+                            {country.name}
+                          </Badge>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {movie.created && (
+                  <div>
+                    <span className="text-gray-400 text-sm block mb-1">Năm phát hành</span>
+                    <span className="text-white">{new Date(movie.created).getFullYear()}</span>
+                  </div>
+                )}
+
+                {movie.time && (
+                  <div>
+                    <span className="text-gray-400 text-sm block mb-1">Thời lượng</span>
+                    <span className="text-white">{movie.time}</span>
+                  </div>
+                )}
+
+                {movie.language && (
+                  <div>
+                    <span className="text-gray-400 text-sm block mb-1">Ngôn ngữ</span>
+                    <span className="text-white">{movie.language}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Similar Movies */}
+            {similarMovies.length > 0 && (
+              <div className="mb-12">
+                <MovieSection
+                  title="Phim tương tự"
+                  movies={similarMovies}
+                />
+              </div>
+            )}
           </div>
         </div>
       </>
@@ -244,26 +317,44 @@ async function MovieDetail({ slug }: { slug: string }) {
 
 function MovieDetailSkeleton() {
   return (
-    <div className="container mx-auto px-4 pt-32">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1">
-          <Skeleton className="aspect-[2/3] rounded-lg" />
-        </div>
-        <div className="lg:col-span-2 space-y-6">
-          <Skeleton className="h-12 w-3/4" />
-          <Skeleton className="h-6 w-1/2" />
-          <div className="flex gap-2">
-            <Skeleton className="h-6 w-20" />
-            <Skeleton className="h-6 w-20" />
+    <>
+      {/* Hero Skeleton */}
+      <section className="relative h-[85vh] min-h-[500px] flex items-end bg-[#141414]">
+        <div className="container mx-auto px-4 md:px-12 pb-24">
+          <div className="max-w-2xl space-y-4">
+            <Skeleton className="h-12 w-3/4" />
+            <Skeleton className="h-6 w-1/2" />
+            <div className="flex gap-2">
+              <Skeleton className="h-12 w-32" />
+              <Skeleton className="h-12 w-32" />
+            </div>
           </div>
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-2/3" />
+        </div>
+      </section>
+
+      {/* Content Skeleton */}
+      <div className="bg-[#141414] -mt-32 pt-40">
+        <div className="container mx-auto px-4 md:px-12">
+          <Skeleton className="h-8 w-48 mb-6" />
+          <div className="flex gap-2 mb-12">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <Skeleton key={i} className="h-10 w-20 shrink-0" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-2 space-y-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+            <div className="space-y-4">
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-6 w-24" />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -271,16 +362,14 @@ export default async function MoviePage({ params }: MoviePageProps) {
   const { slug } = await params;
 
   return (
-    <main className="min-h-screen relative">
+    <main className="min-h-screen bg-[#141414]">
       <Header />
 
       <Suspense fallback={<MovieDetailSkeleton />}>
         <MovieDetail slug={slug} />
       </Suspense>
 
-      <div className="pt-16">
-        <Footer />
-      </div>
+      <Footer />
     </main>
   );
 }
@@ -302,4 +391,3 @@ export async function generateMetadata({ params }: MoviePageProps) {
     };
   }
 }
-
