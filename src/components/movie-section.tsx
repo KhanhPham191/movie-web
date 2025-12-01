@@ -49,11 +49,11 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
   const getCardWidth = () => {
     switch (variant) {
       case "top10":
-        return "w-[180px] md:w-[220px]";
+        return "w-[140px] sm:w-[160px] md:w-[180px] lg:w-[220px]";
       case "portrait":
-        return "w-[130px] md:w-[150px]";
+        return "w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px]";
       default:
-        return "w-[250px] md:w-[280px] lg:w-[300px]";
+        return "w-[180px] sm:w-[220px] md:w-[260px] lg:w-[280px] xl:w-[300px]";
     }
   };
 
@@ -64,17 +64,17 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
       onMouseLeave={() => setIsHovering(false)}
     >
       {/* Section Header */}
-      <div className="px-4 md:px-12 mb-2">
+      <div className="px-3 sm:px-4 md:px-12 mb-2">
         <Link 
           href={href || "#"} 
           className="group/title inline-flex items-center gap-1"
         >
-          <h2 className="text-base md:text-lg lg:text-xl font-bold text-white">
+          <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white">
             {title}
           </h2>
-          <span className="flex items-center text-blue-400 text-sm font-medium opacity-0 max-w-0 group-hover/title:opacity-100 group-hover/title:max-w-[120px] transition-all duration-300 overflow-hidden whitespace-nowrap">
+          <span className="hidden sm:flex items-center text-blue-400 text-xs sm:text-sm font-medium opacity-0 max-w-0 group-hover/title:opacity-100 group-hover/title:max-w-[120px] transition-all duration-300 overflow-hidden whitespace-nowrap">
             Xem tất cả
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
           </span>
         </Link>
       </div>
@@ -84,28 +84,28 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
         {/* Left Arrow */}
         <button
           onClick={() => scroll("left")}
-          className={`absolute left-0 top-0 bottom-0 z-40 w-12 md:w-16 flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
+          className={`absolute left-0 top-0 bottom-0 z-40 w-8 sm:w-12 md:w-16 flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
             showLeftArrow && isHovering ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          <ChevronLeft className="w-8 h-8 text-white" />
+          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white" />
         </button>
 
         {/* Right Arrow */}
         <button
           onClick={() => scroll("right")}
-          className={`absolute right-0 top-0 bottom-0 z-40 w-12 md:w-16 flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
+          className={`absolute right-0 top-0 bottom-0 z-40 w-8 sm:w-12 md:w-16 flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
             showRightArrow && isHovering ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          <ChevronRight className="w-8 h-8 text-white" />
+          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white" />
         </button>
 
         {/* Scrollable Row */}
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex gap-2 overflow-x-auto scrollbar-hide px-4 md:px-12 pb-16 pt-2 scroll-smooth"
+          className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 scroll-smooth"
         >
           {movies.slice(0, 20).map((movie, index) => (
             <div
@@ -159,14 +159,14 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
       onMouseLeave={() => setIsHovering(false)}
     >
       {/* Header */}
-      <div className="px-4 md:px-12 mb-2">
+      <div className="px-3 sm:px-4 md:px-12 mb-2">
         <Link href={href || "#"} className="group/title inline-flex items-center gap-1">
-          <h2 className="text-base md:text-lg lg:text-xl font-bold text-white">
+          <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white">
             {title}
           </h2>
-          <span className="flex items-center text-blue-400 text-sm font-medium opacity-0 max-w-0 group-hover/title:opacity-100 group-hover/title:max-w-[120px] transition-all duration-300 overflow-hidden whitespace-nowrap">
+          <span className="hidden sm:flex items-center text-blue-400 text-xs sm:text-sm font-medium opacity-0 max-w-0 group-hover/title:opacity-100 group-hover/title:max-w-[120px] transition-all duration-300 overflow-hidden whitespace-nowrap">
             Xem tất cả
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
           </span>
         </Link>
       </div>
@@ -176,30 +176,30 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
         {/* Arrows */}
         <button
           onClick={() => scroll("left")}
-          className={`absolute left-0 top-0 bottom-0 z-40 w-12 md:w-16 flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
+          className={`absolute left-0 top-0 bottom-0 z-40 w-8 sm:w-12 md:w-16 flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
             showLeftArrow && isHovering ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          <ChevronLeft className="w-8 h-8 text-white" />
+          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white" />
         </button>
 
         <button
           onClick={() => scroll("right")}
-          className={`absolute right-0 top-0 bottom-0 z-40 w-12 md:w-16 flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
+          className={`absolute right-0 top-0 bottom-0 z-40 w-8 sm:w-12 md:w-16 flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
             showRightArrow && isHovering ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          <ChevronRight className="w-8 h-8 text-white" />
+          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white" />
         </button>
 
         {/* Top 10 Cards */}
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide px-4 md:px-12 pb-16 pt-2 scroll-smooth"
+          className="flex gap-2 sm:gap-3 md:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 scroll-smooth"
         >
           {movies.slice(0, 10).map((movie, index) => (
-            <div key={`${movie.slug}-${index}`} className="shrink-0 w-[140px] md:w-[160px] lg:w-[180px]">
+            <div key={`${movie.slug}-${index}`} className="shrink-0 w-[120px] sm:w-[140px] md:w-[160px] lg:w-[180px]">
               <MovieCard movie={movie} index={index} variant="top10" rank={index + 1} />
             </div>
           ))}

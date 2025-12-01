@@ -107,7 +107,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
         <div
           className={`relative rounded-md overflow-hidden bg-muted transition-all duration-300 ease-out ${
             isHovered
-              ? "scale-[1.4] z-50 shadow-2xl shadow-black/80 rounded-t-md rounded-b-none"
+              ? "scale-[1.25] sm:scale-[1.35] md:scale-[1.4] z-50 shadow-2xl shadow-black/80 rounded-t-md rounded-b-none"
               : "scale-100 z-10"
           }`}
           style={{

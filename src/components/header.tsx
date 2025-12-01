@@ -53,15 +53,15 @@ export function Header() {
           : "bg-gradient-to-b from-black/80 via-black/40 to-transparent"
       }`}
     >
-      <div className="flex items-center justify-between h-16 lg:h-[68px] px-4 md:px-12">
+      <div className="flex items-center justify-between h-14 sm:h-16 lg:h-[68px] px-3 sm:px-4 md:px-12">
         {/* Left Side */}
-        <div className="flex items-center gap-6 lg:gap-10">
+        <div className="flex items-center gap-2 sm:gap-4 lg:gap-10 min-w-0">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-1.5 shrink-0">
-            <div className="w-8 h-8 rounded bg-blue-600 flex items-center justify-center">
-              <Film className="w-5 h-5 text-white" />
+          <Link href="/" className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-blue-600 flex items-center justify-center">
+              <Film className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-blue-500 hidden sm:block">
+            <span className="text-lg sm:text-xl font-bold text-blue-500 hidden sm:block">
               Phim7
             </span>
           </Link>
@@ -83,9 +83,9 @@ export function Header() {
           <div className="lg:hidden">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-sm font-medium gap-1 px-2">
-                  Duyệt
-                  <ChevronDown className="w-4 h-4" />
+                <Button variant="ghost" className="text-xs sm:text-sm font-medium gap-1 px-1.5 sm:px-2 h-8">
+                  <span className="hidden xs:inline">Duyệt</span>
+                  <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56 bg-[#141414]/95 backdrop-blur border-gray-800">
@@ -102,19 +102,19 @@ export function Header() {
         </div>
 
         {/* Right Side */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4 shrink-0">
           {/* Search */}
           <div className="flex items-center">
             {isSearchOpen ? (
               <form 
                 onSubmit={handleSearch}
-                className="flex items-center bg-black/80 border border-white/50 animate-in slide-in-from-right-5"
+                className="flex items-center bg-black/80 border border-white/50 animate-in slide-in-from-right-5 rounded"
               >
-                <Search className="w-5 h-5 text-gray-400 ml-2" />
+                <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 ml-2 shrink-0" />
                 <Input
                   type="search"
-                  placeholder="Phim, diễn viên, thể loại..."
-                  className="w-48 md:w-64 border-0 bg-transparent text-sm focus-visible:ring-0 placeholder:text-gray-500"
+                  placeholder="Tìm phim..."
+                  className="w-32 sm:w-48 md:w-64 border-0 bg-transparent text-xs sm:text-sm focus-visible:ring-0 placeholder:text-gray-500 py-1.5"
                   autoFocus
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -123,18 +123,18 @@ export function Header() {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-7 w-7 sm:h-8 sm:w-8 shrink-0"
                   onClick={() => setIsSearchOpen(false)}
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
               </form>
             ) : (
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className="p-2 hover:text-gray-300 transition-colors"
+                className="p-1.5 sm:p-2 hover:text-gray-300 transition-colors"
               >
-                <Search className="w-5 h-5" />
+                <Search className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             )}
           </div>
@@ -148,11 +148,11 @@ export function Header() {
           {/* Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 group">
-                <div className="w-8 h-8 rounded bg-blue-600 flex items-center justify-center">
-                  <span className="text-sm font-bold">P</span>
+              <button className="flex items-center gap-1 sm:gap-2 group shrink-0">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-blue-600 flex items-center justify-center">
+                  <span className="text-xs sm:text-sm font-bold">P</span>
                 </div>
-                <ChevronDown className="w-4 h-4 text-white group-hover:rotate-180 transition-transform hidden md:block" />
+                <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-white group-hover:rotate-180 transition-transform hidden md:block" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 bg-[#141414]/95 backdrop-blur border-gray-800">
