@@ -13,11 +13,8 @@ import {
   Plus,
   ThumbsUp,
   ChevronDown,
-  Volume2,
-  VolumeX,
-  Info,
 } from "lucide-react";
-import { getFilmDetail, getImageUrl, getFilmsByGenre, getFilmsByCategory, CATEGORIES } from "@/lib/api";
+import { getFilmDetail, getImageUrl, getFilmsByGenre, type FilmItem } from "@/lib/api";
 
 interface MoviePageProps {
   params: Promise<{ slug: string }>;
@@ -33,17 +30,19 @@ async function MovieDetail({ slug }: { slug: string }) {
     }
 
     const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
-    const posterUrl = getImageUrl(movie.thumb_url || movie.poster_url);
 
     // Get similar movies (same category or genre)
-    let similarMovies: any[] = [];
+    let similarMovies: FilmItem[] = [];
     try {
-      if (movie.category && movie.category.length > 0) {
+      if (movie.category && movie.category.length > 0 && movie.category[0].slug) {
         const similarResponse = await getFilmsByGenre(movie.category[0].slug, 1);
-        similarMovies = (similarResponse.items || []).filter((m) => m.slug !== slug).slice(0, 20);
+        similarMovies = (similarResponse.items || [])
+          .filter((m) => m.slug !== slug)
+          .slice(0, 20);
       }
-    } catch {
-      // Ignore error
+    } catch (error) {
+      // Silently ignore error - similar movies are optional
+      console.debug("Could not fetch similar movies:", error);
     }
 
     return (
