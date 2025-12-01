@@ -36,13 +36,28 @@ async function MovieDetail({ slug }: { slug: string }) {
     }
     
     const movie = response.movie;
+    
+    // Normalize category and country to arrays
+    const categories = Array.isArray(movie.category) 
+      ? movie.category 
+      : movie.category 
+        ? [movie.category] 
+        : [];
+    const countries = Array.isArray(movie.country) 
+      ? movie.country 
+      : movie.country 
+        ? [movie.country] 
+        : [];
+    
     console.log("[MovieDetail] Movie data:", {
       name: movie.name,
       slug: movie.slug,
       hasEpisodes: !!movie.episodes,
       episodeCount: movie.episodes?.length || 0,
-      hasCategory: !!movie.category,
-      categoryCount: movie.category?.length || 0,
+      hasCategory: categories.length > 0,
+      categoryCount: categories.length,
+      categoryType: Array.isArray(movie.category) ? "array" : typeof movie.category,
+      countryType: Array.isArray(movie.country) ? "array" : typeof movie.country,
     });
 
     const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
@@ -51,9 +66,9 @@ async function MovieDetail({ slug }: { slug: string }) {
     // Get similar movies (same category or genre)
     let similarMovies: any[] = [];
     try {
-      if (movie.category && movie.category.length > 0) {
-        console.log("[MovieDetail] Fetching similar movies for category:", movie.category[0].slug);
-        const similarResponse = await getFilmsByGenre(movie.category[0].slug, 1);
+      if (categories.length > 0 && categories[0]?.slug) {
+        console.log("[MovieDetail] Fetching similar movies for category:", categories[0].slug);
+        const similarResponse = await getFilmsByGenre(categories[0].slug, 1);
         similarMovies = (similarResponse.items || []).filter((m) => m.slug !== slug).slice(0, 20);
         console.log("[MovieDetail] Found", similarMovies.length, "similar movies");
       }
@@ -110,19 +125,19 @@ async function MovieDetail({ slug }: { slug: string }) {
                 {movie.time && (
                   <span className="text-gray-400">{movie.time}</span>
                 )}
-                {movie.country?.[0] && (
-                  <span className="text-gray-400">{movie.country[0].name}</span>
+                {countries[0] && (
+                  <span className="text-gray-400">{countries[0].name}</span>
                 )}
                 <span className="px-2 py-0.5 border border-gray-400 text-xs">18+</span>
               </div>
 
               {/* Genres */}
-              {movie.category && movie.category.length > 0 && (
+              {categories.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5 mb-5 text-sm text-gray-300">
-                  {movie.category.slice(0, 4).map((cat, i) => (
-                    <span key={cat.id}>
-                      {cat.name}
-                      {i < Math.min(movie.category.length, 4) - 1 && (
+                  {categories.slice(0, 4).map((cat, i) => (
+                    <span key={cat?.id || i}>
+                      {cat?.name || cat}
+                      {i < Math.min(categories.length, 4) - 1 && (
                         <span className="mx-2 text-gray-600">•</span>
                       )}
                     </span>
@@ -251,36 +266,54 @@ async function MovieDetail({ slug }: { slug: string }) {
 
               {/* Right Column - Details */}
               <div className="space-y-4">
-                <div>
-                  <span className="text-gray-400 text-sm block mb-1">Thể loại</span>
-                  <div className="flex flex-wrap gap-2">
-                    {movie.category?.map((cat) => (
-                      <Link key={cat.id} href={`/the-loai/${cat.slug}`}>
-                        <Badge
-                          variant="outline"
-                          className="bg-[#2a2a2a] border-gray-700 text-white hover:border-white cursor-pointer"
-                        >
-                          {cat.name}
-                        </Badge>
-                      </Link>
-                    ))}
+                {categories.length > 0 && (
+                  <div>
+                    <span className="text-gray-400 text-sm block mb-1">Thể loại</span>
+                    <div className="flex flex-wrap gap-2">
+                      {categories.map((cat, index) => {
+                        const catId = cat?.id || index;
+                        const catSlug = cat?.slug || (typeof cat === 'string' ? cat : '');
+                        const catName = cat?.name || cat || 'Unknown';
+                        
+                        if (!catSlug) return null;
+                        
+                        return (
+                          <Link key={catId} href={`/the-loai/${catSlug}`}>
+                            <Badge
+                              variant="outline"
+                              className="bg-[#2a2a2a] border-gray-700 text-white hover:border-white cursor-pointer"
+                            >
+                              {catName}
+                            </Badge>
+                          </Link>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {movie.country && movie.country.length > 0 && (
+                {countries.length > 0 && (
                   <div>
                     <span className="text-gray-400 text-sm block mb-1">Quốc gia</span>
                     <div className="flex flex-wrap gap-2">
-                      {movie.country.map((country) => (
-                        <Link key={country.id} href={`/quoc-gia/${country.slug}`}>
-                          <Badge
-                            variant="outline"
-                            className="bg-[#2a2a2a] border-gray-700 text-white hover:border-white cursor-pointer"
-                          >
-                            {country.name}
-                          </Badge>
-                        </Link>
-                      ))}
+                      {countries.map((country, index) => {
+                        const countryId = country?.id || index;
+                        const countrySlug = country?.slug || (typeof country === 'string' ? country : '');
+                        const countryName = country?.name || country || 'Unknown';
+                        
+                        if (!countrySlug) return null;
+                        
+                        return (
+                          <Link key={countryId} href={`/quoc-gia/${countrySlug}`}>
+                            <Badge
+                              variant="outline"
+                              className="bg-[#2a2a2a] border-gray-700 text-white hover:border-white cursor-pointer"
+                            >
+                              {countryName}
+                            </Badge>
+                          </Link>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
