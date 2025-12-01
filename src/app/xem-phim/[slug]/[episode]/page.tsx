@@ -9,8 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight, Home, List, Info } from "lucide-react";
 import { getFilmDetail, getImageUrl } from "@/lib/api";
-import { getIphimM3u8ForEpisode } from "@/lib/iphim";
-import { HlsGesturePlayer } from "@/components/player/HlsGesturePlayer";
+import VideoPlayerClient from "@/components/player/VideoPlayerClient";
 
 interface WatchPageProps {
   params: Promise<{ slug: string; episode: string }>;
@@ -66,9 +65,6 @@ async function VideoPlayer({
     const nextEpisode =
       episodeIndex < allEpisodes.length - 1 ? allEpisodes[episodeIndex + 1] : null;
 
-    // m3u8 từ iphim (nếu có)
-    const iphimM3u8 = await getIphimM3u8ForEpisode(slug, currentEpisode.slug);
-
     const background = getImageUrl(movie.poster_url || movie.thumb_url);
     const cleanDescription = movie.description?.replace(/<[^>]*>/g, "");
     const categories = Array.isArray(movie.category)
@@ -112,16 +108,17 @@ async function VideoPlayer({
               <div className="space-y-6">
                 <div className="relative rounded-[28px] overflow-hidden shadow-[0_40px_80px_-40px_rgba(0,0,0,0.9)] border border-white/10 group/player">
                   <div className="aspect-video bg-black rounded-[28px] overflow-hidden">
-                    {iphimM3u8 ? (
-                      <HlsGesturePlayer src={iphimM3u8} poster={background} />
-                    ) : (
-                      <iframe
-                        src={currentEpisode.embed}
-                        className="h-full w-full rounded-[28px]"
-                        allowFullScreen
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    {currentEpisode.embed ? (
+                      <VideoPlayerClient
+                        embedUrl={currentEpisode.embed}
+                        poster={background}
                         title={currentEpisode.name}
+                        className="h-full w-full rounded-[28px]"
                       />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        Không có video để phát
+                      </div>
                     )}
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-black/75 opacity-80 transition-opacity group-hover/player:opacity-50 pointer-events-none" />

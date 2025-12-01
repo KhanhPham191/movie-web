@@ -10,14 +10,19 @@ import {
   getFilmsByCategoryMultiple,
   getFilmsByGenreMultiple,
   getFilmsByCountryMultiple,
+  getDailyUpdatedFilms,
   CATEGORIES,
 } from "@/lib/api";
+
+// ISR: Revalidate every 30 seconds for real-time updates
+export const revalidate = 30;
 
 // Fetch data
 async function getHomePageData() {
   try {
     const [
       newlyUpdated,
+      dailyUpdated,
       phimLe,
       phimBo,
       hanQuoc,
@@ -29,6 +34,7 @@ async function getHomePageData() {
       anime,
     ] = await Promise.all([
       getNewlyUpdatedFilmsMultiple(3),
+      getDailyUpdatedFilms(1).then(r => r.items || []),
       getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 3),
       getFilmsByCategoryMultiple(CATEGORIES.PHIM_BO, 3),
       getFilmsByCountryMultiple("han-quoc", 2),
@@ -42,6 +48,7 @@ async function getHomePageData() {
 
     return {
       newlyUpdated,
+      dailyUpdated,
       phimLe,
       phimBo,
       hanQuoc,
@@ -56,6 +63,7 @@ async function getHomePageData() {
     console.error("Error fetching home page data:", error);
     return {
       newlyUpdated: [],
+      dailyUpdated: [],
       phimLe: [],
       phimBo: [],
       hanQuoc: [],
@@ -95,6 +103,16 @@ export default async function Home() {
             title="Mới phát hành"
             movies={data.phimLe}
             href="/danh-sach/phim-le"
+            variant="portrait"
+          />
+        </Suspense>
+
+        {/* Daily Updated */}
+        <Suspense fallback={<MovieSectionSkeleton />}>
+          <MovieSection
+            title="Cập nhật hôm nay"
+            movies={data.dailyUpdated}
+            href="/danh-sach/phim-cap-nhat-hang-ngay"
             variant="portrait"
           />
         </Suspense>

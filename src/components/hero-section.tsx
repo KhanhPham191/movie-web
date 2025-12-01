@@ -97,7 +97,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
   return (
     <section
-      className="relative h-[50vh] sm:h-[56.25vw] max-h-[80vh] min-h-[300px] sm:min-h-[400px] select-none"
+      className="relative h-[45vh] xs:h-[50vh] sm:h-[56.25vw] max-h-[80vh] min-h-[250px] xs:min-h-[300px] sm:min-h-[400px] select-none"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -134,7 +134,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
       {/* Content */}
       <div 
-        className={`absolute bottom-[15%] sm:bottom-[20%] left-3 sm:left-4 md:left-12 right-3 sm:right-4 md:right-[50%] transition-all duration-700 ${
+        className={`absolute bottom-[10%] xs:bottom-[12%] sm:bottom-[15%] md:bottom-[20%] left-2 xs:left-3 sm:left-4 md:left-12 right-2 xs:right-3 sm:right-4 md:right-[50%] transition-all duration-700 ${
           isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
         }`}
       >
@@ -149,28 +149,28 @@ export function HeroSection({ movies }: HeroSectionProps) {
         </div>
 
         {/* Title */}
-        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-black text-white mb-2 sm:mb-3 drop-shadow-lg line-clamp-2">
+        <h1 className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-black text-white mb-1.5 xs:mb-2 sm:mb-3 drop-shadow-lg line-clamp-2">
           {movie.name}
         </h1>
 
         {/* Original Title */}
         {movie.original_name && movie.original_name !== movie.name && (
-          <p className="text-sm sm:text-base md:text-lg text-gray-300 mb-2 sm:mb-3 line-clamp-1">
+          <p className="text-xs xs:text-sm sm:text-base md:text-lg text-gray-300 mb-1.5 xs:mb-2 sm:mb-3 line-clamp-1">
             {movie.original_name}
           </p>
         )}
 
         {/* Meta Info */}
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4 text-xs sm:text-sm">
+        <div className="flex flex-wrap items-center gap-1 xs:gap-1.5 sm:gap-2 mb-2 xs:mb-3 sm:mb-4 text-[11px] xs:text-xs sm:text-sm">
           <span className="text-green-500 font-semibold">98% Phù hợp</span>
           {movie.quality && (
             <span className="px-1 sm:px-1.5 py-0.5 border border-gray-400 text-[10px] sm:text-xs font-medium">{movie.quality}</span>
           )}
           {movie.current_episode && (
-            <span className="text-gray-300 text-xs sm:text-sm">{movie.current_episode}</span>
+            <span className="text-gray-300 text-[11px] xs:text-xs sm:text-sm">{movie.current_episode}</span>
           )}
           {movie.time && (
-            <span className="text-gray-400 text-xs sm:text-sm">{movie.time}</span>
+            <span className="text-gray-400 text-[11px] xs:text-xs sm:text-sm">{movie.time}</span>
           )}
           <span className="px-1 sm:px-1.5 py-0.5 border border-gray-400 text-[10px] sm:text-xs">18+</span>
         </div>
@@ -178,7 +178,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
         {/* Description - Netflix 2024 shows shorter description */}
         {movie.description && (
           <p 
-            className="text-xs sm:text-sm md:text-base text-gray-200 line-clamp-2 sm:line-clamp-3 mb-3 sm:mb-5 max-w-xl"
+            className="text-[11px] xs:text-xs sm:text-sm md:text-base text-gray-200 line-clamp-1 xs:line-clamp-2 sm:line-clamp-3 mb-2 xs:mb-3 sm:mb-5 max-w-xl"
             dangerouslySetInnerHTML={{
               __html: movie.description.replace(/<[^>]*>/g, "").slice(0, 120) + "...",
             }}
@@ -187,12 +187,12 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
         {/* Genres */}
         {movie.category && movie.category.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1 text-xs sm:text-sm text-gray-300 mb-3 sm:mb-5">
+          <div className="flex flex-wrap items-center gap-1 text-[11px] xs:text-xs sm:text-sm text-gray-300 mb-2 xs:mb-3 sm:mb-5">
             {movie.category.slice(0, 3).map((cat, i) => (
               <span key={cat.id}>
                 {cat.name}
                 {i < Math.min(movie.category.length, 3) - 1 && (
-                  <span className="mx-1.5 sm:mx-2 text-gray-600">•</span>
+                  <span className="mx-1 xs:mx-1.5 sm:mx-2 text-gray-600">•</span>
                 )}
               </span>
             ))}
@@ -200,13 +200,13 @@ export function HeroSection({ movies }: HeroSectionProps) {
         )}
 
         {/* Action Buttons - Netflix 2024 Style */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2">
           <Link href={`/phim/${movie.slug}`}>
             <Button
               size="lg"
-              className="bg-white hover:bg-white/90 text-black font-bold text-xs sm:text-sm md:text-base px-3 sm:px-5 md:px-8 h-8 sm:h-10 md:h-12 rounded-md"
+              className="bg-white hover:bg-white/90 text-black font-bold text-[11px] xs:text-xs sm:text-sm md:text-base px-2 xs:px-3 sm:px-5 md:px-8 h-7 xs:h-8 sm:h-10 md:h-12 rounded-md"
             >
-              <Play className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1 sm:mr-2 fill-black" />
+              <Play className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-0.5 xs:mr-1 sm:mr-2 fill-black" />
               Phát
             </Button>
           </Link>
@@ -214,9 +214,9 @@ export function HeroSection({ movies }: HeroSectionProps) {
             <Button
               size="lg"
               variant="secondary"
-              className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-xs sm:text-sm md:text-base px-3 sm:px-5 md:px-8 h-8 sm:h-10 md:h-12 rounded-md"
+              className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-[11px] xs:text-xs sm:text-sm md:text-base px-2 xs:px-3 sm:px-5 md:px-8 h-7 xs:h-8 sm:h-10 md:h-12 rounded-md"
             >
-              <Info className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1 sm:mr-2" />
+              <Info className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-0.5 xs:mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Thông tin</span>
               <span className="sm:hidden">Info</span>
             </Button>

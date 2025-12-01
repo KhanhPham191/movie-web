@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { getProxiedUrl } from "@/lib/videoProxy";
 
 async function loadHls() {
   const mod = await import("hls.js");
@@ -25,6 +26,9 @@ export function HlsGesturePlayer({ src, poster }: HlsGesturePlayerProps) {
   const startTime = useRef(0);
   const startVolume = useRef(0);
 
+  // Use proxied URL to bypass CORS and m3u8 blocking
+  const proxiedSrc = getProxiedUrl(src);
+
   useEffect(() => {
     let hls: any;
 
@@ -33,7 +37,7 @@ export function HlsGesturePlayer({ src, poster }: HlsGesturePlayerProps) {
       if (!video) return;
 
       if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
+        video.src = proxiedSrc;
         return;
       }
 
@@ -44,7 +48,7 @@ export function HlsGesturePlayer({ src, poster }: HlsGesturePlayerProps) {
       }
 
       hls = new Hls();
-      hls.loadSource(src);
+      hls.loadSource(proxiedSrc);
       hls.attachMedia(video);
       hls.on(Hls.Events.ERROR, (_event: any, data: any) => {
         console.error("[HLS] error", data);
@@ -57,7 +61,7 @@ export function HlsGesturePlayer({ src, poster }: HlsGesturePlayerProps) {
     return () => {
       if (hls) hls.destroy();
     };
-  }, [src]);
+  }, [proxiedSrc]);
 
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
     const video = videoRef.current;

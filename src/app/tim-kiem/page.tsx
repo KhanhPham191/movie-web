@@ -3,7 +3,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { MovieCard } from "@/components/movie-card";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
-import { searchFilms } from "@/lib/api";
+import { searchFilmsMerged } from "@/lib/api";
 import { Search } from "lucide-react";
 
 interface SearchPageProps {
@@ -24,8 +24,7 @@ async function SearchResults({ query }: { query: string }) {
   }
 
   try {
-    const results = await searchFilms(query);
-    const movies = results.items || [];
+    const movies = await searchFilmsMerged(query);
 
     if (movies.length === 0) {
       return (

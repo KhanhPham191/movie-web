@@ -51,27 +51,27 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
   const getCardWidth = () => {
     switch (variant) {
       case "top10":
-        return "w-[140px] sm:w-[170px] md:w-[190px] lg:w-[210px]";
+        return "w-[100px] xs:w-[120px] sm:w-[150px] md:w-[170px] lg:w-[190px]";
       case "portrait":
-        return "w-[120px] sm:w-[150px] md:w-[180px] lg:w-[210px]";
+        return "w-[90px] xs:w-[110px] sm:w-[140px] md:w-[160px] lg:w-[190px]";
       default:
-        return "w-[200px] sm:w-[240px] md:w-[280px] lg:w-[320px]";
+        return "w-[160px] xs:w-[190px] sm:w-[220px] md:w-[260px] lg:w-[300px]";
     }
   };
 
   return (
     <section 
-      className="relative py-4 group/section"
+      className="relative py-3 xs:py-4 sm:py-5 group/section"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
       {/* Section Header */}
-      <div className="px-3 sm:px-4 md:px-12 mb-2">
+      <div className="px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 mb-1.5 xs:mb-2">
         <Link 
           href={href || "#"} 
           className="group/title inline-flex items-center gap-1"
         >
-          <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white">
+          <h2 className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white">
             {title}
           </h2>
           <span className="hidden sm:flex items-center text-[rgb(255,220,120)] text-xs sm:text-sm font-medium opacity-0 max-w-0 group-hover/title:opacity-100 group-hover/title:max-w-[120px] transition-all duration-300 overflow-hidden whitespace-nowrap">

@@ -60,7 +60,6 @@ export interface FilmDetailResponse {
 }
 
 const API_BASE = "https://phim.nguonc.com/api";
-const API_BASE_IPHIM = "https://iphim.cc/api";
 
 // Fetch with error handling
 async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T> {
@@ -68,8 +67,12 @@ async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T
   console.log("[API] Fetching:", url);
   
   try {
+    // For newly updated films endpoint, use shorter cache (10 minutes)
+    // For other endpoints, use longer cache (1 hour)
+    const revalidate = endpoint.includes('phim-moi-cap-nhat') ? 600 : 3600;
+    
     const res = await fetch(url, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      next: { revalidate }, // Dynamic cache based on endpoint
     });
 
     console.log("[API] Response status:", res.status, res.statusText);
@@ -99,11 +102,11 @@ async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T
     const data = await res.json();
     console.log("[API] Response data keys:", Object.keys(data));
     
-    // Check if response has error status
+    // Check if response has error status - but return it instead of throwing
     if (data.status === "error") {
-      const error = new Error(data.message || "API returned error status") as Error & { status?: number };
-      error.status = 404; // Treat API error as 404
-      throw error;
+      console.warn("[API] API returned error status:", data.message);
+      // Return the error response as is, don't throw
+      return data;
     }
     
     return data;
@@ -124,6 +127,11 @@ export async function getNewlyUpdatedFilms(page: number = 1): Promise<FilmListRe
   return fetchAPI<FilmListResponse>(`/films/phim-moi-cap-nhat?page=${page}`);
 }
 
+// Get daily updated films (same as newly updated but with different cache)
+export async function getDailyUpdatedFilms(page: number = 1): Promise<FilmListResponse> {
+  return fetchAPI<FilmListResponse>(`/films/phim-moi-cap-nhat?page=${page}`);
+}
+
 // Get films by category (phim-le, phim-bo, phim-dang-chieu, etc.)
 export async function getFilmsByCategory(
   slug: string,
@@ -135,6 +143,27 @@ export async function getFilmsByCategory(
 // Get film detail by slug
 export async function getFilmDetail(slug: string): Promise<FilmDetailResponse> {
   return fetchAPI<FilmDetailResponse>(`/film/${slug}`);
+}
+
+/**
+ * Get film detail - using NGUONC API
+ */
+export async function getFilmDetailMerged(slug: string): Promise<FilmDetailResponse | null> {
+  try {
+    console.log(`[API] Fetching detail for slug: ${slug}`);
+    const result = await getFilmDetail(slug);
+    
+    if (result?.movie && result?.status !== "error") {
+      console.log(`[API] ✅ Found: ${slug}`);
+      return result;
+    } else {
+      console.warn(`[API] ❌ Not found or error:`, result?.status);
+      return null;
+    }
+  } catch (error) {
+    console.error(`[API] Error fetching detail:`, error);
+    return null;
+  }
 }
 
 // Get films by genre
@@ -164,6 +193,19 @@ export async function getFilmsByYear(
 // Search films
 export async function searchFilms(keyword: string): Promise<FilmListResponse> {
   return fetchAPI<FilmListResponse>(`/films/search?keyword=${encodeURIComponent(keyword)}`);
+}
+
+/**
+ * Search films - using NGUONC API
+ */
+export async function searchFilmsMerged(keyword: string): Promise<FilmItem[]> {
+  try {
+    const res = await searchFilms(keyword);
+    return res.items || [];
+  } catch (error) {
+    console.error("[API] Search error:", error);
+    return [];
+  }
 }
 
 // Predefined categories

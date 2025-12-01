@@ -17,7 +17,7 @@ import {
   VolumeX,
   Info,
 } from "lucide-react";
-import { getFilmDetail, getImageUrl, getFilmsByGenre, getFilmsByCategory, CATEGORIES } from "@/lib/api";
+import { getFilmDetailMerged, getImageUrl, getFilmsByGenre, getFilmsByCategory, CATEGORIES } from "@/lib/api";
 
 interface MoviePageProps {
   params: Promise<{ slug: string }>;
@@ -26,7 +26,7 @@ interface MoviePageProps {
 async function MovieDetail({ slug }: { slug: string }) {
   try {
     console.log("[MovieDetail] Fetching movie with slug:", slug);
-    const response = await getFilmDetail(slug);
+    const response = await getFilmDetailMerged(slug);
     console.log("[MovieDetail] API Response status:", response?.status);
     
     // Check if API returned error status
@@ -477,7 +477,7 @@ export async function generateMetadata({ params }: MoviePageProps) {
   const { slug } = await params;
   try {
     console.log("[generateMetadata] Fetching metadata for slug:", slug);
-    const response = await getFilmDetail(slug);
+    const response = await getFilmDetailMerged(slug);
     
     // Check if API returned error status
     if (response?.status === "error" || !response || !response.movie) {

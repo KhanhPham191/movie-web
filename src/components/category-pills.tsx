@@ -21,6 +21,7 @@ const categories = [
   { name: "Phim lẻ", slug: "phim-le", href: "/danh-sach/phim-le" },
   { name: "Phim bộ", slug: "phim-bo", href: "/danh-sach/phim-bo" },
   { name: "Đang chiếu", slug: "phim-dang-chieu", href: "/danh-sach/phim-dang-chieu" },
+  { name: "Cập nhật hôm nay", slug: "phim-cap-nhat-hang-ngay", href: "/danh-sach/phim-cap-nhat-hang-ngay" },
 ];
 
 export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {

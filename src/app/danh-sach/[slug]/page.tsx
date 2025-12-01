@@ -8,7 +8,10 @@ import { MovieCard } from "@/components/movie-card";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { getFilmsByCategory, getNewlyUpdatedFilms } from "@/lib/api";
+import { getFilmsByCategory, getNewlyUpdatedFilms, getDailyUpdatedFilms } from "@/lib/api";
+
+// ISR: Revalidate every 30 seconds for real-time updates
+export const revalidate = 30;
 
 const CATEGORY_NAMES: Record<string, string> = {
   "phim-le": "Phim lẻ",
@@ -16,6 +19,7 @@ const CATEGORY_NAMES: Record<string, string> = {
   "phim-dang-chieu": "Phim đang chiếu",
   "tv-shows": "TV Shows",
   "phim-moi-cap-nhat": "Phim mới cập nhật",
+  "phim-cap-nhat-hang-ngay": "Cập nhật hàng ngày",
 };
 
 interface CategoryPageProps {
@@ -34,6 +38,8 @@ async function CategoryContent({
     let response;
     if (slug === "phim-moi-cap-nhat") {
       response = await getNewlyUpdatedFilms(page);
+    } else if (slug === "phim-cap-nhat-hang-ngay") {
+      response = await getDailyUpdatedFilms(page);
     } else {
       response = await getFilmsByCategory(slug, page);
     }
