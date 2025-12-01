@@ -37,8 +37,8 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
   if (!movie) return null;
 
-  // Prefer poster_url for better quality
-  const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
+  // Use thumb_url as it's clearer than poster_url
+  const backdropUrl = getImageUrl(movie.thumb_url || movie.poster_url);
 
   return (
     <section className="relative h-[50vh] sm:h-[56.25vw] max-h-[80vh] min-h-[300px] sm:min-h-[400px]">
@@ -52,7 +52,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
             }`}
           >
             <Image
-              src={getImageUrl(m.poster_url || m.thumb_url)}
+              src={getImageUrl(m.thumb_url || m.poster_url)}
               alt={m.name}
               fill
               className="object-cover object-top"

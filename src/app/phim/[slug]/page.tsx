@@ -60,9 +60,9 @@ async function MovieDetail({ slug }: { slug: string }) {
       countryType: Array.isArray(movie.country) ? "array" : typeof movie.country,
     });
 
-    // Prefer poster_url for better quality in hero section
-    const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
-    const posterUrl = getImageUrl(movie.poster_url || movie.thumb_url);
+    // Use thumb_url for hero section as it's clearer than poster_url
+    const backdropUrl = getImageUrl(movie.thumb_url || movie.poster_url);
+    const posterUrl = getImageUrl(movie.thumb_url || movie.poster_url);
 
     // Get similar movies (same category or genre)
     let similarMovies: any[] = [];
