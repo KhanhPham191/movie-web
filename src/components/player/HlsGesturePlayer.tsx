@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { getProxiedUrl } from "@/lib/videoProxy";
+import { getProxiedVideoUrl } from "@/lib/videoProxy";
 
 async function loadHls() {
   const mod = await import("hls.js");
@@ -27,7 +27,7 @@ export function HlsGesturePlayer({ src, poster }: HlsGesturePlayerProps) {
   const startVolume = useRef(0);
 
   // Use proxied URL to bypass CORS and m3u8 blocking
-  const proxiedSrc = getProxiedUrl(src);
+  const proxiedSrc = getProxiedVideoUrl(src);
 
   useEffect(() => {
     let hls: any;
