@@ -50,7 +50,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
   };
 
   return (
-    <div className="sticky top-14 sm:top-16 lg:top-[68px] z-40 bg-[#141414]/95 backdrop-blur-sm border-b border-white/10 shadow-sm">
+    <div className="sticky top-14 sm:top-16 lg:top-[68px] z-40 bg-transparent backdrop-blur-sm">
       <div className="relative flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 md:px-12 py-2 sm:py-3">
         {/* Main Categories */}
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
