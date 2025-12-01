@@ -21,6 +21,13 @@ const mainNav = [
   { name: "Danh sách của tôi", href: "#" },
 ];
 
+const popularSubmenu = [
+  { name: "Phim mới cập nhật", href: "/danh-sach/phim-moi-cap-nhat" },
+  { name: "Phim đang chiếu", href: "/danh-sach/phim-dang-chieu" },
+  { name: "Phim được đánh giá cao", href: "/danh-sach/phim-moi-cap-nhat" },
+  { name: "Phim phổ biến", href: "/danh-sach/phim-moi-cap-nhat" },
+];
+
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -68,15 +75,44 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-5">
-            {mainNav.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="text-sm font-medium text-gray-200 hover:text-white transition-colors"
-              >
-                {item.name}
-              </Link>
-            ))}
+            {mainNav.map((item) => {
+              if (item.name === "Mới & Phổ biến") {
+                return (
+                  <DropdownMenu key={item.name}>
+                    <DropdownMenuTrigger asChild>
+                      <button className="text-sm font-medium text-gray-200 hover:text-white transition-colors flex items-center gap-1">
+                        {item.name}
+                        <ChevronDown className="w-4 h-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent 
+                      align="start" 
+                      className="w-56 bg-[#141414]/95 backdrop-blur-xl border-gray-800 z-50"
+                    >
+                      {popularSubmenu.map((subItem) => (
+                        <DropdownMenuItem key={subItem.name} asChild>
+                          <Link 
+                            href={subItem.href} 
+                            className="text-gray-200 hover:text-white cursor-pointer"
+                          >
+                            {subItem.name}
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                );
+              }
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="text-sm font-medium text-gray-200 hover:text-white transition-colors"
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Mobile Menu Dropdown */}

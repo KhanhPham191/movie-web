@@ -83,7 +83,7 @@ export default async function Home() {
       )}
 
       {/* Content Rows */}
-      <div className="relative z-20 -mt-24 md:-mt-32 space-y-0">
+      <div className="relative z-10 -mt-24 md:-mt-32 space-y-0">
         {/* Category Pills */}
         <CategoryPills />
 
