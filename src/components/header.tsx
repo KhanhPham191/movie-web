@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Bell, ChevronDown, Menu, X, Film } from "lucide-react";
+import { Search, Bell, ChevronDown, X, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,32 +13,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const mainNav = [
-  { name: "Trang chủ", href: "/" },
-  { name: "Phim lẻ", href: "/danh-sach/phim-le" },
-  { name: "Phim bộ", href: "/danh-sach/phim-bo" },
-  { name: "Mới & Phổ biến", href: "/danh-sach/phim-moi-cap-nhat" },
-  { name: "Danh sách của tôi", href: "#" },
-];
+// Navigation removed - using CategoryPills below instead
 
 export function Header() {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -52,15 +36,11 @@ export function Header() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        isScrolled
-          ? "bg-[#141414]"
-          : "bg-gradient-to-b from-black/80 via-black/40 to-transparent"
-      }`}
+      className="fixed top-0 left-0 right-0 z-50 bg-transparent transition-all duration-500"
     >
       <div className="flex items-center justify-between h-14 sm:h-16 lg:h-[68px] px-3 sm:px-4 md:px-12">
-        {/* Left Side */}
-        <div className="flex items-center gap-2 sm:gap-4 lg:gap-10 min-w-0">
+        {/* Left Side - Only Logo */}
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-1 sm:gap-1.5 shrink-0">
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-blue-600 flex items-center justify-center">
@@ -70,42 +50,6 @@ export function Header() {
               Phim7
             </span>
           </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-5">
-            {mainNav.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="text-sm font-medium text-gray-200 hover:text-white transition-colors"
-              >
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Mobile Menu Dropdown */}
-          {isMounted && (
-            <div className="lg:hidden">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="text-xs sm:text-sm font-medium gap-1 px-1.5 sm:px-2 h-8">
-                    <span className="hidden xs:inline">Duyệt</span>
-                    <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-[#141414]/95 backdrop-blur border-gray-800">
-                  {mainNav.map((item) => (
-                    <DropdownMenuItem key={item.name} asChild>
-                      <Link href={item.href} className="text-gray-200 hover:text-white">
-                        {item.name}
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          )}
         </div>
 
         {/* Right Side */}
