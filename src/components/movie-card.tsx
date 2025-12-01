@@ -18,8 +18,8 @@ interface MovieCardProps {
 
 export function MovieCard({ movie, index = 0, variant = "default", rank }: MovieCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-  // Use poster_url for all movie cards in categories
-  const imageUrl = getImageUrl(movie.poster_url || movie.thumb_url);
+  // Use thumb_url for movie cards in categories (clearer for horizontal display)
+  const imageUrl = getImageUrl(movie.thumb_url || movie.poster_url);
 
   // Top 10 variant - Netflix style with badge
   if (variant === "top10" && rank) {
