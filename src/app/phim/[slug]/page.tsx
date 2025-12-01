@@ -97,7 +97,7 @@ async function MovieDetail({ slug }: { slug: string }) {
           </div>
 
           {/* Content Overlay */}
-          <div className="container relative mx-auto px-4 md:px-12 pb-16 md:pb-24">
+          <div className="container relative z-20 mx-auto px-4 md:px-12 pb-16 md:pb-24">
             <div className="max-w-2xl">
               {/* Title */}
               <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white mb-3 drop-shadow-lg">
@@ -168,12 +168,12 @@ async function MovieDetail({ slug }: { slug: string }) {
               )}
 
               {/* Action Buttons - Netflix Style */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 relative z-30">
                 {movie.episodes?.[0]?.items?.[0] && (
                   <Link href={`/xem-phim/${movie.slug}/${movie.episodes[0].items[0].slug}`}>
                     <Button
                       size="lg"
-                      className="bg-white hover:bg-white/90 text-black font-bold text-sm md:text-base px-6 md:px-8 h-11 md:h-12 rounded-md"
+                      className="bg-white hover:bg-white/90 text-black font-bold text-sm md:text-base px-6 md:px-8 h-11 md:h-12 rounded-md relative z-30"
                     >
                       <Play className="w-5 h-5 md:w-6 md:h-6 mr-2 fill-black" />
                       Phát
@@ -183,7 +183,7 @@ async function MovieDetail({ slug }: { slug: string }) {
                 <Button
                   size="lg"
                   variant="secondary"
-                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-sm md:text-base px-6 md:px-8 h-11 md:h-12 rounded-md"
+                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-sm md:text-base px-6 md:px-8 h-11 md:h-12 rounded-md relative z-30"
                 >
                   <Plus className="w-5 h-5 md:w-6 md:h-6 mr-2" />
                   Danh sách của tôi
@@ -191,7 +191,7 @@ async function MovieDetail({ slug }: { slug: string }) {
                 <Button
                   size="lg"
                   variant="secondary"
-                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-sm md:text-base px-6 md:px-8 h-11 md:h-12 rounded-md"
+                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-sm md:text-base px-6 md:px-8 h-11 md:h-12 rounded-md relative z-30"
                 >
                   <ThumbsUp className="w-5 h-5 md:w-6 md:h-6 mr-2" />
                   Thích
@@ -199,7 +199,7 @@ async function MovieDetail({ slug }: { slug: string }) {
                 <Button
                   size="lg"
                   variant="secondary"
-                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-sm md:text-base px-6 md:px-8 h-11 md:h-12 rounded-md"
+                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-sm md:text-base px-6 md:px-8 h-11 md:h-12 rounded-md relative z-30"
                 >
                   <ChevronDown className="w-5 h-5 md:w-6 md:h-6" />
                 </Button>
@@ -209,7 +209,7 @@ async function MovieDetail({ slug }: { slug: string }) {
         </section>
 
         {/* Main Content */}
-        <div className="relative z-10 bg-[#141414] -mt-32 pt-40">
+        <div className="relative z-10 bg-[#141414] -mt-24 pt-32">
           <div className="container mx-auto px-4 md:px-12">
             {/* Episodes Section */}
             {movie.episodes && movie.episodes.length > 0 && (
