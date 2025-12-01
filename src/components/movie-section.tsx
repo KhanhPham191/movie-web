@@ -53,7 +53,8 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
       case "portrait":
         return "w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px]";
       default:
-        return "w-[180px] sm:w-[220px] md:w-[260px] lg:w-[280px] xl:w-[300px]";
+        // Default is now portrait poster (2:3 ratio)
+        return "w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px]";
     }
   };
 
