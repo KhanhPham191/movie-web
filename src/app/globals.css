@@ -41,68 +41,29 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --color-gold: var(--gold);
-  --color-gold-foreground: var(--gold-foreground);
 }
 
-/* Netflix-inspired Dark Theme */
+/* Netflix 2024 Dark Theme */
 :root {
-  --radius: 0.5rem;
-  --background: oklch(0.13 0.01 260);
-  --foreground: oklch(0.95 0.01 250);
-  --card: oklch(0.18 0.015 260);
-  --card-foreground: oklch(0.95 0.01 250);
-  --popover: oklch(0.16 0.015 260);
-  --popover-foreground: oklch(0.95 0.01 250);
-  --primary: oklch(0.6 0.2 250);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.22 0.015 260);
-  --secondary-foreground: oklch(0.95 0.01 250);
-  --muted: oklch(0.22 0.015 260);
-  --muted-foreground: oklch(0.65 0.02 250);
-  --accent: oklch(0.22 0.015 260);
-  --accent-foreground: oklch(0.95 0.01 250);
-  --destructive: oklch(0.55 0.22 25);
-  --border: oklch(0.28 0.015 260);
-  --input: oklch(0.22 0.015 260);
-  --ring: oklch(0.6 0.2 250);
-  --gold: oklch(0.75 0.15 85);
-  --gold-foreground: oklch(0.2 0.05 85);
-  --chart-1: oklch(0.6 0.2 250);
-  --chart-2: oklch(0.65 0.14 180);
-  --chart-3: oklch(0.6 0.12 280);
-  --chart-4: oklch(0.75 0.16 85);
-  --chart-5: oklch(0.68 0.18 340);
-  --sidebar: oklch(0.12 0.015 260);
-  --sidebar-foreground: oklch(0.95 0.01 250);
-  --sidebar-primary: oklch(0.6 0.2 250);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.22 0.015 260);
-  --sidebar-accent-foreground: oklch(0.95 0.01 250);
-  --sidebar-border: oklch(0.28 0.015 260);
-  --sidebar-ring: oklch(0.6 0.2 250);
-}
-
-/* Light Theme */
-.light {
-  --background: oklch(0.98 0.005 250);
-  --foreground: oklch(0.15 0.02 250);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.02 250);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.02 250);
-  --primary: oklch(0.55 0.2 250);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.94 0.01 250);
-  --secondary-foreground: oklch(0.25 0.02 250);
-  --muted: oklch(0.94 0.01 250);
-  --muted-foreground: oklch(0.5 0.02 250);
-  --accent: oklch(0.94 0.01 250);
-  --accent-foreground: oklch(0.25 0.02 250);
-  --destructive: oklch(0.55 0.22 25);
-  --border: oklch(0.88 0.01 250);
-  --input: oklch(0.88 0.01 250);
-  --ring: oklch(0.55 0.2 250);
+  --radius: 0.375rem;
+  --background: #141414;
+  --foreground: #ffffff;
+  --card: #181818;
+  --card-foreground: #ffffff;
+  --popover: #141414;
+  --popover-foreground: #ffffff;
+  --primary: #e50914;
+  --primary-foreground: #ffffff;
+  --secondary: #2a2a2a;
+  --secondary-foreground: #ffffff;
+  --muted: #2a2a2a;
+  --muted-foreground: #a3a3a3;
+  --accent: #2a2a2a;
+  --accent-foreground: #ffffff;
+  --destructive: #b91c1c;
+  --border: #333333;
+  --input: #333333;
+  --ring: #e50914;
 }
 
 @layer base {
@@ -110,7 +71,8 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-[#141414] text-white;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
@@ -123,7 +85,7 @@
   display: none;
 }
 
-/* Custom Scrollbar for other elements */
+/* Custom Scrollbar for modal/dropdown */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -134,16 +96,27 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: oklch(0.4 0.01 260);
+  background: #555;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.5 0.01 260);
+  background: #777;
 }
 
-/* Netflix-style Animations */
+/* Animations */
 @keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -154,146 +127,146 @@
   }
 }
 
-@keyframes slideInFromRight {
+@keyframes scaleIn {
   from {
     opacity: 0;
-    transform: translateX(20px);
+    transform: scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes kenBurns {
-  0% {
     transform: scale(1);
-  }
-  100% {
-    transform: scale(1.1);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px oklch(0.6 0.2 250 / 0.3);
-  }
-  50% {
-    box-shadow: 0 0 40px oklch(0.6 0.2 250 / 0.5);
   }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.6s ease-out forwards;
-  opacity: 0;
+  animation: fadeIn 0.4s ease-out forwards;
 }
 
-.animate-slide-in {
-  animation: slideInFromRight 0.5s ease-out forwards;
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out forwards;
 }
 
-.animate-ken-burns {
-  animation: kenBurns 20s ease-out forwards;
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
 }
 
-.animate-shimmer {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    oklch(1 0 0 / 0.1) 50%,
-    transparent 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite;
+/* Netflix-style text effects */
+.text-shadow-netflix {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.45);
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-/* Movie Card Hover Effects */
-.movie-card {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.movie-card:hover {
-  z-index: 30;
-}
-
-/* Glass Effect */
+/* Glass morphism */
 .glass {
-  background: oklch(0.13 0.01 260 / 0.8);
+  background: rgba(20, 20, 20, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
 
-/* Gradient Text */
-.gradient-text {
-  background: linear-gradient(135deg, oklch(0.6 0.2 250), oklch(0.7 0.18 230));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Netflix-style Hero Gradient */
-.hero-gradient {
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    oklch(0.13 0.01 260 / 0.6) 50%,
-    oklch(0.13 0.01 260) 100%
-  );
-}
-
-/* Card hover shadow */
-.card-hover-shadow {
-  transition: box-shadow 0.3s ease;
-}
-
-.card-hover-shadow:hover {
-  box-shadow: 
-    0 0 0 1px oklch(1 0 0 / 0.1),
-    0 20px 50px -10px oklch(0 0 0 / 0.8);
-}
-
 /* Selection color */
 ::selection {
-  background: oklch(0.6 0.2 250 / 0.3);
+  background: rgba(229, 9, 20, 0.3);
+  color: white;
 }
 
 /* Focus styles */
 :focus-visible {
-  outline: 2px solid oklch(0.6 0.2 250);
+  outline: 2px solid white;
   outline-offset: 2px;
 }
 
-/* Smooth scroll for the whole page */
+/* Smooth scroll */
 html {
   scroll-behavior: smooth;
 }
 
-/* Netflix-style text shadow for better readability on images */
-.text-shadow {
-  text-shadow: 0 2px 4px oklch(0 0 0 / 0.8);
+/* Card hover effects */
+.card-hover {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Loading skeleton */
+.card-hover:hover {
+  transform: scale(1.05);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8);
+}
+
+/* Netflix gradient overlay */
+.netflix-gradient {
+  background: linear-gradient(
+    180deg,
+    rgba(20, 20, 20, 0) 0%,
+    rgba(20, 20, 20, 0.1) 15%,
+    rgba(20, 20, 20, 0.4) 40%,
+    rgba(20, 20, 20, 0.7) 60%,
+    rgba(20, 20, 20, 0.9) 80%,
+    rgba(20, 20, 20, 1) 100%
+  );
+}
+
+/* Row hover effect - show arrows */
+.row-hover:hover .row-arrow {
+  opacity: 1;
+}
+
+.row-arrow {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Top 10 number styling */
+.top10-number {
+  font-family: "Netflix Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 900;
+  -webkit-text-stroke: 4px #595959;
+  paint-order: stroke fill;
+}
+
+/* Skeleton loading */
 .skeleton {
   background: linear-gradient(
     90deg,
-    oklch(0.2 0.01 260) 0%,
-    oklch(0.25 0.01 260) 50%,
-    oklch(0.2 0.01 260) 100%
+    #1a1a1a 0%,
+    #262626 50%,
+    #1a1a1a 100%
   );
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Button styles */
+.btn-netflix {
+  background: white;
+  color: black;
+  font-weight: 700;
+  transition: background 0.2s ease;
+}
+
+.btn-netflix:hover {
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.btn-netflix-secondary {
+  background: rgba(109, 109, 110, 0.7);
+  color: white;
+  font-weight: 700;
+  transition: background 0.2s ease;
+}
+
+.btn-netflix-secondary:hover {
+  background: rgba(109, 109, 110, 0.4);
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
 }

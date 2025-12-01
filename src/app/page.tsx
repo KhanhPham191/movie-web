@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import { Header } from "@/components/header";
 import { HeroSection } from "@/components/hero-section";
-import { MovieSection } from "@/components/movie-section";
+import { CategoryPills } from "@/components/category-pills";
+import { MovieSection, Top10Section } from "@/components/movie-section";
 import { Footer } from "@/components/footer";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import {
@@ -12,7 +13,7 @@ import {
   CATEGORIES,
 } from "@/lib/api";
 
-// Fetch data functions - lấy 3 trang cho mỗi danh mục
+// Fetch data
 async function getHomePageData() {
   try {
     const [
@@ -24,6 +25,8 @@ async function getHomePageData() {
       hanQuoc,
       hoatHinh,
       kinhDi,
+      tinhCam,
+      haiHuoc,
     ] = await Promise.all([
       getNewlyUpdatedFilmsMultiple(3),
       getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 3),
@@ -33,6 +36,8 @@ async function getHomePageData() {
       getFilmsByCountryMultiple("han-quoc", 2),
       getFilmsByGenreMultiple("hoat-hinh", 2),
       getFilmsByGenreMultiple("kinh-di", 2),
+      getFilmsByGenreMultiple("tinh-cam", 2),
+      getFilmsByGenreMultiple("hai", 2),
     ]);
 
     return {
@@ -44,6 +49,8 @@ async function getHomePageData() {
       hanQuoc,
       hoatHinh,
       kinhDi,
+      tinhCam,
+      haiHuoc,
     };
   } catch (error) {
     console.error("Error fetching home page data:", error);
@@ -56,6 +63,8 @@ async function getHomePageData() {
       hanQuoc: [],
       hoatHinh: [],
       kinhDi: [],
+      tinhCam: [],
+      haiHuoc: [],
     };
   }
 }
@@ -64,84 +73,107 @@ export default async function Home() {
   const data = await getHomePageData();
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-[#141414]">
       {/* Header */}
       <Header />
 
-      {/* Hero Section with multiple movies for slider */}
+      {/* Hero */}
       {data.newlyUpdated.length > 0 && (
         <HeroSection movies={data.newlyUpdated} />
       )}
 
-      {/* Movie Sections - Netflix Style */}
-      <div className="relative z-10 -mt-32 space-y-2 pb-20">
-        <Suspense fallback={<MovieSectionSkeleton />}>
-          <MovieSection
-            title="Phim mới cập nhật"
-            icon="🔥"
-            movies={data.newlyUpdated}
-            href="/danh-sach/phim-moi-cap-nhat"
-          />
-        </Suspense>
+      {/* Content Rows */}
+      <div className="relative z-20 -mt-24 md:-mt-32 space-y-0">
+        {/* Category Pills */}
+        <CategoryPills />
 
+        {/* Top 10 Section */}
         <Suspense fallback={<MovieSectionSkeleton />}>
-          <MovieSection
-            title="Phim chiếu rạp"
-            icon="🎬"
+          <Top10Section
+            title="Top 10 phim tại Việt Nam hôm nay"
             movies={data.phimDangChieu}
             href="/danh-sach/phim-dang-chieu"
           />
         </Suspense>
 
+        {/* Trending Now */}
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
-            title="Phim lẻ hay"
-            icon="⭐"
-            movies={data.phimLe}
-            href="/danh-sach/phim-le"
+            title="Đang thịnh hành"
+            movies={data.newlyUpdated}
+            href="/danh-sach/phim-moi-cap-nhat"
           />
         </Suspense>
 
+        {/* Continue Watching (simulated with phim bộ) */}
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
             title="Phim bộ đang hot"
-            icon="📺"
             movies={data.phimBo}
             href="/danh-sach/phim-bo"
           />
         </Suspense>
 
+        {/* New Releases */}
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
-            title="Phim Hàn Quốc"
-            icon="🇰🇷"
-            movies={data.hanQuoc}
-            href="/quoc-gia/han-quoc"
+            title="Mới phát hành"
+            movies={data.phimLe}
+            href="/danh-sach/phim-le"
           />
         </Suspense>
 
+        {/* Korean Dramas */}
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
-            title="Phim hành động"
-            icon="💥"
+            title="Phim Hàn Quốc"
+            movies={data.hanQuoc}
+            href="/quoc-gia/han-quoc"
+            variant="portrait"
+          />
+        </Suspense>
+
+        {/* Action */}
+        <Suspense fallback={<MovieSectionSkeleton />}>
+          <MovieSection
+            title="Phim hành động kịch tính"
             movies={data.hanhDong}
             href="/the-loai/hanh-dong"
           />
         </Suspense>
 
+        {/* Animation */}
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
             title="Phim hoạt hình"
-            icon="🎨"
             movies={data.hoatHinh}
             href="/the-loai/hoat-hinh"
+            variant="portrait"
           />
         </Suspense>
 
+        {/* Romance */}
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
-            title="Phim kinh dị"
-            icon="👻"
+            title="Phim tình cảm lãng mạn"
+            movies={data.tinhCam}
+            href="/the-loai/tinh-cam"
+          />
+        </Suspense>
+
+        {/* Comedy */}
+        <Suspense fallback={<MovieSectionSkeleton />}>
+          <MovieSection
+            title="Phim hài hước"
+            movies={data.haiHuoc}
+            href="/the-loai/hai"
+          />
+        </Suspense>
+
+        {/* Horror */}
+        <Suspense fallback={<MovieSectionSkeleton />}>
+          <MovieSection
+            title="Phim kinh dị rùng rợn"
             movies={data.kinhDi}
             href="/the-loai/kinh-di"
           />
