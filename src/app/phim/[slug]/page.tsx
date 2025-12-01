@@ -91,9 +91,9 @@ async function MovieDetail({ slug }: { slug: string }) {
               sizes="100vw"
               unoptimized
             />
-            {/* Netflix-style Gradients */}
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,20,20,0)_0%,rgba(20,20,20,0.3)_40%,rgba(20,20,20,0.7)_70%,rgba(20,20,20,0.95)_85%,rgba(20,20,20,1)_100%)]" />
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,20,20,0.8)_0%,rgba(20,20,20,0.4)_30%,rgba(20,20,20,0)_50%)]" />
+            {/* Netflix-style Gradients - Lighter for better visibility */}
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,20,20,0)_0%,rgba(20,20,20,0.15)_40%,rgba(20,20,20,0.4)_70%,rgba(20,20,20,0.7)_85%,rgba(20,20,20,0.95)_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,20,20,0.4)_0%,rgba(20,20,20,0.2)_30%,rgba(20,20,20,0)_50%)]" />
           </div>
 
           {/* Content Overlay */}

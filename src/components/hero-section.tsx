@@ -62,9 +62,9 @@ export function HeroSection({ movies }: HeroSectionProps) {
           </div>
         ))}
         
-        {/* Vignette & Gradients */}
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,20,20,0.4)_0%,rgba(20,20,20,0)_20%,rgba(20,20,20,0)_60%,rgba(20,20,20,0.8)_85%,rgba(20,20,20,1)_100%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,20,20,0.9)_0%,rgba(20,20,20,0.4)_30%,rgba(20,20,20,0)_50%)]" />
+        {/* Vignette & Gradients - Lighter for better visibility */}
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,20,20,0.2)_0%,rgba(20,20,20,0)_25%,rgba(20,20,20,0)_65%,rgba(20,20,20,0.5)_85%,rgba(20,20,20,0.9)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,20,20,0.5)_0%,rgba(20,20,20,0.2)_30%,rgba(20,20,20,0)_50%)]" />
       </div>
 
       {/* Content */}
