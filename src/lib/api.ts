@@ -179,22 +179,33 @@ export async function getMultiplePages(
   fetchFn: (page: number) => Promise<FilmListResponse>,
   pages: number = 3
 ): Promise<FilmItem[]> {
-  const promises = Array.from({ length: pages }, (_, i) => fetchFn(i + 1));
-  const results = await Promise.allSettled(promises);
-  
-  // Only use successful results, skip failed pages
-  const successfulResults = results
-    .filter((result) => result.status === "fulfilled")
-    .map((result) => (result as PromiseFulfilledResult<FilmListResponse>).value);
-  
-  // Log warnings for failed pages
-  results.forEach((result, index) => {
-    if (result.status === "rejected") {
-      console.warn(`Failed to fetch page ${index + 1}:`, result.reason?.message || "Unknown error");
+  try {
+    // First, try to fetch page 1 to check total pages available
+    const firstPage = await fetchFn(1);
+    const totalPages = firstPage.paginate?.total_page || 1;
+    
+    // Only fetch pages that actually exist
+    const pagesToFetch = Math.min(pages, totalPages);
+    
+    if (pagesToFetch === 1) {
+      return firstPage.items || [];
     }
-  });
-  
-  return successfulResults.flatMap((r) => r.items || []);
+    
+    // Fetch remaining pages in parallel
+    const remainingPromises = Array.from({ length: pagesToFetch - 1 }, (_, i) => 
+      fetchFn(i + 2).catch(() => null) // Return null on error instead of throwing
+    );
+    
+    const remainingResults = await Promise.all(remainingPromises);
+    const validResults = remainingResults.filter((r): r is FilmListResponse => r !== null);
+    
+    // Combine all results
+    const allResults = [firstPage, ...validResults];
+    return allResults.flatMap((r) => r.items || []);
+  } catch (error) {
+    // If even page 1 fails, return empty array
+    return [];
+  }
 }
 
 // Get newly updated films - multiple pages
