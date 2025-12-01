@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { Header } from "@/components/header";
 import { HeroSection } from "@/components/hero-section";
-import { GenreSection } from "@/components/genre-section";
 import { MovieSection } from "@/components/movie-section";
 import { Footer } from "@/components/footer";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
@@ -16,15 +15,25 @@ import {
 // Fetch data functions - lấy 3 trang cho mỗi danh mục
 async function getHomePageData() {
   try {
-    const [newlyUpdated, phimLe, phimBo, phimDangChieu, hanhDong, hanQuoc] =
-      await Promise.all([
-        getNewlyUpdatedFilmsMultiple(3),
-        getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 3),
-        getFilmsByCategoryMultiple(CATEGORIES.PHIM_BO, 3),
-        getFilmsByCategoryMultiple(CATEGORIES.PHIM_DANG_CHIEU, 2),
-        getFilmsByGenreMultiple("hanh-dong", 2),
-        getFilmsByCountryMultiple("han-quoc", 2),
-      ]);
+    const [
+      newlyUpdated,
+      phimLe,
+      phimBo,
+      phimDangChieu,
+      hanhDong,
+      hanQuoc,
+      hoatHinh,
+      kinhDi,
+    ] = await Promise.all([
+      getNewlyUpdatedFilmsMultiple(3),
+      getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 3),
+      getFilmsByCategoryMultiple(CATEGORIES.PHIM_BO, 3),
+      getFilmsByCategoryMultiple(CATEGORIES.PHIM_DANG_CHIEU, 2),
+      getFilmsByGenreMultiple("hanh-dong", 2),
+      getFilmsByCountryMultiple("han-quoc", 2),
+      getFilmsByGenreMultiple("hoat-hinh", 2),
+      getFilmsByGenreMultiple("kinh-di", 2),
+    ]);
 
     return {
       newlyUpdated,
@@ -33,6 +42,8 @@ async function getHomePageData() {
       phimDangChieu,
       hanhDong,
       hanQuoc,
+      hoatHinh,
+      kinhDi,
     };
   } catch (error) {
     console.error("Error fetching home page data:", error);
@@ -43,6 +54,8 @@ async function getHomePageData() {
       phimDangChieu: [],
       hanhDong: [],
       hanQuoc: [],
+      hoatHinh: [],
+      kinhDi: [],
     };
   }
 }
@@ -50,22 +63,18 @@ async function getHomePageData() {
 export default async function Home() {
   const data = await getHomePageData();
 
-  // Get featured movie from newly updated
-  const featuredMovie = data.newlyUpdated[0];
-
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-background">
       {/* Header */}
       <Header />
 
-      {/* Hero Section */}
-      {featuredMovie && <HeroSection movie={featuredMovie} />}
+      {/* Hero Section with multiple movies for slider */}
+      {data.newlyUpdated.length > 0 && (
+        <HeroSection movies={data.newlyUpdated} />
+      )}
 
-      {/* Genre Filter */}
-      <GenreSection />
-
-      {/* Movie Sections */}
-      <div className="space-y-2">
+      {/* Movie Sections - Netflix Style */}
+      <div className="relative z-10 -mt-32 space-y-2 pb-20">
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
             title="Phim mới cập nhật"
@@ -77,8 +86,17 @@ export default async function Home() {
 
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
-            title="Phim lẻ"
+            title="Phim chiếu rạp"
             icon="🎬"
+            movies={data.phimDangChieu}
+            href="/danh-sach/phim-dang-chieu"
+          />
+        </Suspense>
+
+        <Suspense fallback={<MovieSectionSkeleton />}>
+          <MovieSection
+            title="Phim lẻ hay"
+            icon="⭐"
             movies={data.phimLe}
             href="/danh-sach/phim-le"
           />
@@ -86,7 +104,7 @@ export default async function Home() {
 
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
-            title="Phim bộ"
+            title="Phim bộ đang hot"
             icon="📺"
             movies={data.phimBo}
             href="/danh-sach/phim-bo"
@@ -95,10 +113,10 @@ export default async function Home() {
 
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
-            title="Phim đang chiếu"
-            icon="🎥"
-            movies={data.phimDangChieu}
-            href="/danh-sach/phim-dang-chieu"
+            title="Phim Hàn Quốc"
+            icon="🇰🇷"
+            movies={data.hanQuoc}
+            href="/quoc-gia/han-quoc"
           />
         </Suspense>
 
@@ -113,10 +131,19 @@ export default async function Home() {
 
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
-            title="Phim Hàn Quốc"
-            icon="🇰🇷"
-            movies={data.hanQuoc}
-            href="/quoc-gia/han-quoc"
+            title="Phim hoạt hình"
+            icon="🎨"
+            movies={data.hoatHinh}
+            href="/the-loai/hoat-hinh"
+          />
+        </Suspense>
+
+        <Suspense fallback={<MovieSectionSkeleton />}>
+          <MovieSection
+            title="Phim kinh dị"
+            icon="👻"
+            movies={data.kinhDi}
+            href="/the-loai/kinh-di"
           />
         </Suspense>
       </div>

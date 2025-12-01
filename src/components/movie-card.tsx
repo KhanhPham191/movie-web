@@ -1,11 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Play, Clock, Info } from "lucide-react";
+import { Play, Plus, ThumbsUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import type { FilmItem } from "@/lib/api";
 import { getImageUrl } from "@/lib/api";
 
@@ -15,101 +15,141 @@ interface MovieCardProps {
 }
 
 export function MovieCard({ movie, index = 0 }: MovieCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
   const imageUrl = getImageUrl(movie.thumb_url || movie.poster_url);
 
   return (
-    <Link href={`/phim/${movie.slug}`}>
-      <Card
-        className="movie-card group relative overflow-hidden bg-card border-border/50 cursor-pointer animate-fade-in"
-        style={{ animationDelay: `${index * 50}ms` }}
-      >
-        {/* Poster */}
-        <div className="relative aspect-[2/3] overflow-hidden bg-muted">
-          <Image
-            src={imageUrl}
-            alt={movie.name}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-            unoptimized
-          />
+    <div
+      className="group relative"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{ animationDelay: `${index * 50}ms` }}
+    >
+      <Link href={`/phim/${movie.slug}`}>
+        {/* Main Card */}
+        <div
+          className={`relative rounded-md overflow-hidden transition-all duration-300 ease-out ${
+            isHovered
+              ? "scale-110 z-30 shadow-2xl shadow-black/80"
+              : "scale-100 z-10"
+          }`}
+        >
+          {/* Image */}
+          <div className="relative aspect-[2/3] bg-muted">
+            <Image
+              src={imageUrl}
+              alt={movie.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+              unoptimized
+            />
 
-          {/* Quality Badge */}
-          {movie.quality && (
-            <Badge className="absolute top-2 left-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 text-xs font-semibold">
-              {movie.quality}
-            </Badge>
-          )}
-
-          {/* Episodes Badge */}
-          {movie.current_episode && (
-            <Badge className="absolute top-2 right-2 bg-blue-500/90 text-white border-0 text-xs">
-              {movie.current_episode}
-            </Badge>
-          )}
-
-          {/* Language Badge */}
-          {movie.language && (
-            <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/70 backdrop-blur-sm rounded-full px-2 py-1">
-              <span className="text-white text-xs font-medium">{movie.language}</span>
+            {/* Top Badges */}
+            <div className="absolute top-2 left-2 right-2 flex justify-between items-start">
+              {movie.quality && (
+                <Badge className="bg-blue-600 text-white border-0 text-[10px] font-bold px-1.5 py-0.5">
+                  {movie.quality}
+                </Badge>
+              )}
+              {movie.current_episode && (
+                <Badge className="bg-green-600 text-white border-0 text-[10px] font-bold px-1.5 py-0.5">
+                  {movie.current_episode}
+                </Badge>
+              )}
             </div>
-          )}
 
-          {/* Overlay on Hover */}
-          <div className="movie-overlay absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col items-center justify-center gap-3 p-4">
-            <Button
-              size="lg"
-              className="rounded-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/30 animate-pulse-glow"
-            >
-              <Play className="w-5 h-5 mr-1 fill-white" />
-              Xem ngay
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-white border-white/30 hover:bg-white/20 hover:text-white"
-            >
-              <Info className="w-4 h-4 mr-1" />
-              Chi tiết
-            </Button>
+            {/* Netflix-style Progress Bar (if watching) */}
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-600">
+              <div className="h-full bg-blue-600 w-0 group-hover:w-0" />
+            </div>
           </div>
-        </div>
 
-        {/* Info */}
-        <div className="p-3">
-          <h3 className="font-semibold text-sm line-clamp-1 group-hover:text-primary transition-colors">
-            {movie.name}
-          </h3>
-          {movie.original_name && movie.original_name !== movie.name && (
-            <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
-              {movie.original_name}
-            </p>
-          )}
-          <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
-            {movie.time && (
-              <>
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  <span>{movie.time}</span>
+          {/* Hover Content - Netflix Style */}
+          <div
+            className={`absolute inset-x-0 bottom-0 bg-card rounded-b-md transition-all duration-300 ${
+              isHovered
+                ? "translate-y-0 opacity-100"
+                : "translate-y-full opacity-0"
+            }`}
+          >
+            {/* Action Buttons */}
+            <div className="p-3 space-y-3">
+              <div className="flex items-center gap-2">
+                <Button
+                  size="icon"
+                  className="w-9 h-9 rounded-full bg-white hover:bg-white/90 text-black"
+                >
+                  <Play className="w-5 h-5 fill-black" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="w-9 h-9 rounded-full border-white/40 hover:border-white bg-transparent hover:bg-white/10"
+                >
+                  <Plus className="w-5 h-5" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="w-9 h-9 rounded-full border-white/40 hover:border-white bg-transparent hover:bg-white/10"
+                >
+                  <ThumbsUp className="w-5 h-5" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="w-9 h-9 rounded-full border-white/40 hover:border-white bg-transparent hover:bg-white/10 ml-auto"
+                >
+                  <ChevronDown className="w-5 h-5" />
+                </Button>
+              </div>
+
+              {/* Info */}
+              <div className="space-y-1.5">
+                <h3 className="font-bold text-sm line-clamp-1">{movie.name}</h3>
+                
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  {movie.time && <span>{movie.time}</span>}
+                  {movie.language && (
+                    <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 border-white/30">
+                      {movie.language}
+                    </Badge>
+                  )}
                 </div>
-                <span className="w-1 h-1 rounded-full bg-muted-foreground" />
-              </>
-            )}
-            {movie.country?.[0] && <span>{movie.country[0].name}</span>}
-          </div>
-          <div className="flex flex-wrap gap-1 mt-2">
-            {movie.category?.slice(0, 2).map((cat) => (
-              <Badge
-                key={cat.id}
-                variant="secondary"
-                className="text-[10px] px-1.5 py-0"
-              >
-                {cat.name}
-              </Badge>
-            ))}
+
+                {/* Genres */}
+                <div className="flex flex-wrap gap-1">
+                  {movie.category?.slice(0, 3).map((cat, i) => (
+                    <span key={cat.id} className="text-[11px] text-muted-foreground">
+                      {cat.name}
+                      {i < Math.min((movie.category?.length || 0), 3) - 1 && (
+                        <span className="mx-1">•</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </Card>
-    </Link>
+      </Link>
+
+      {/* Title below card (when not hovered) */}
+      <div
+        className={`mt-2 transition-opacity duration-200 ${
+          isHovered ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        <h3 className="text-sm font-medium line-clamp-1 group-hover:text-primary transition-colors">
+          {movie.name}
+        </h3>
+        {movie.original_name && movie.original_name !== movie.name && (
+          <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+            {movie.original_name}
+          </p>
+        )}
+      </div>
+    </div>
   );
 }
