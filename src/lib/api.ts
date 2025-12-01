@@ -63,15 +63,34 @@ const API_BASE = "https://phim.nguonc.com/api";
 
 // Fetch with error handling
 async function fetchAPI<T>(endpoint: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${endpoint}`, {
-    next: { revalidate: 3600 }, // Cache for 1 hour
-  });
+  const url = `${API_BASE}${endpoint}`;
+  console.log("[API] Fetching:", url);
+  
+  try {
+    const res = await fetch(url, {
+      next: { revalidate: 3600 }, // Cache for 1 hour
+    });
 
-  if (!res.ok) {
-    throw new Error(`API Error: ${res.status}`);
+    console.log("[API] Response status:", res.status, res.statusText);
+    console.log("[API] Response headers:", Object.fromEntries(res.headers.entries()));
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("[API] Error response body:", errorText);
+      throw new Error(`API Error: ${res.status} ${res.statusText} - ${errorText.slice(0, 200)}`);
+    }
+
+    const data = await res.json();
+    console.log("[API] Response data keys:", Object.keys(data));
+    return data;
+  } catch (error) {
+    console.error("[API] Fetch error:", error);
+    if (error instanceof Error) {
+      console.error("[API] Error message:", error.message);
+      console.error("[API] Error stack:", error.stack);
+    }
+    throw error;
   }
-
-  return res.json();
 }
 
 // Get newly updated films

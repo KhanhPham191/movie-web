@@ -25,12 +25,24 @@ interface MoviePageProps {
 
 async function MovieDetail({ slug }: { slug: string }) {
   try {
+    console.log("[MovieDetail] Fetching movie with slug:", slug);
     const response = await getFilmDetail(slug);
-    const movie = response.movie;
-
-    if (!movie) {
+    console.log("[MovieDetail] API Response:", JSON.stringify(response, null, 2));
+    
+    if (!response || !response.movie) {
+      console.error("[MovieDetail] No movie found in response:", response);
       notFound();
     }
+    
+    const movie = response.movie;
+    console.log("[MovieDetail] Movie data:", {
+      name: movie.name,
+      slug: movie.slug,
+      hasEpisodes: !!movie.episodes,
+      episodeCount: movie.episodes?.length || 0,
+      hasCategory: !!movie.category,
+      categoryCount: movie.category?.length || 0,
+    });
 
     const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
     const posterUrl = getImageUrl(movie.thumb_url || movie.poster_url);
@@ -39,11 +51,13 @@ async function MovieDetail({ slug }: { slug: string }) {
     let similarMovies: any[] = [];
     try {
       if (movie.category && movie.category.length > 0) {
+        console.log("[MovieDetail] Fetching similar movies for category:", movie.category[0].slug);
         const similarResponse = await getFilmsByGenre(movie.category[0].slug, 1);
         similarMovies = (similarResponse.items || []).filter((m) => m.slug !== slug).slice(0, 20);
+        console.log("[MovieDetail] Found", similarMovies.length, "similar movies");
       }
-    } catch {
-      // Ignore error
+    } catch (error) {
+      console.error("[MovieDetail] Error fetching similar movies:", error);
     }
 
     return (
@@ -306,10 +320,27 @@ async function MovieDetail({ slug }: { slug: string }) {
         </div>
       </>
     );
-  } catch {
+  } catch (error) {
+    console.error("[MovieDetail] Error rendering movie detail:", error);
+    console.error("[MovieDetail] Error details:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      slug: slug,
+    });
+    
     return (
-      <div className="container mx-auto px-4 pt-32 text-center">
-        <p className="text-destructive">Có lỗi xảy ra. Vui lòng thử lại sau.</p>
+      <div className="container mx-auto px-4 pt-32 text-center space-y-4">
+        <p className="text-destructive text-lg font-semibold">Có lỗi xảy ra. Vui lòng thử lại sau.</p>
+        {process.env.NODE_ENV === "development" && (
+          <div className="mt-4 p-4 bg-red-900/20 border border-red-500 rounded text-left text-sm text-red-300 max-w-2xl mx-auto">
+            <p className="font-mono">
+              <strong>Error:</strong> {error instanceof Error ? error.message : String(error)}
+            </p>
+            {error instanceof Error && error.stack && (
+              <pre className="mt-2 text-xs overflow-auto">{error.stack}</pre>
+            )}
+          </div>
+        )}
       </div>
     );
   }
@@ -377,15 +408,25 @@ export default async function MoviePage({ params }: MoviePageProps) {
 export async function generateMetadata({ params }: MoviePageProps) {
   const { slug } = await params;
   try {
+    console.log("[generateMetadata] Fetching metadata for slug:", slug);
     const response = await getFilmDetail(slug);
     const movie = response.movie;
+    
+    if (!movie) {
+      console.error("[generateMetadata] No movie found for slug:", slug);
+      return {
+        title: "Chi tiết phim | Phim7.xyz",
+      };
+    }
+    
     return {
       title: `${movie.name} | Phim7.xyz`,
       description:
         movie.description?.replace(/<[^>]*>/g, "").slice(0, 160) ||
         `Xem phim ${movie.name} tại Phim7.xyz`,
     };
-  } catch {
+  } catch (error) {
+    console.error("[generateMetadata] Error generating metadata:", error);
     return {
       title: "Chi tiết phim | Phim7.xyz",
     };
