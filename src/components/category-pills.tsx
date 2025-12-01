@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,11 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
@@ -50,50 +55,54 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
         {/* Main Categories */}
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {/* Genre Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="outline" 
-                className="h-7 sm:h-8 px-2 sm:px-3 bg-transparent border-white/40 hover:border-white hover:bg-white/10 text-xs sm:text-sm font-medium gap-0.5 sm:gap-1"
-              >
-                <span className="hidden xs:inline">Thể loại</span>
-                <span className="xs:hidden">TL</span>
-                <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 max-h-80 overflow-y-auto bg-[#141414] border-gray-700">
-              {GENRES.map((genre) => (
-                <DropdownMenuItem key={genre.slug} asChild>
-                  <Link href={`/the-loai/${genre.slug}`} className="cursor-pointer text-gray-200 hover:text-white">
-                    {genre.name}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {isMounted && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="h-7 sm:h-8 px-2 sm:px-3 bg-transparent border-white/40 hover:border-white hover:bg-white/10 text-xs sm:text-sm font-medium gap-0.5 sm:gap-1"
+                >
+                  <span className="hidden xs:inline">Thể loại</span>
+                  <span className="xs:hidden">TL</span>
+                  <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 max-h-80 overflow-y-auto bg-[#141414] border-gray-700">
+                {GENRES.map((genre) => (
+                  <DropdownMenuItem key={genre.slug} asChild>
+                    <Link href={`/the-loai/${genre.slug}`} className="cursor-pointer text-gray-200 hover:text-white">
+                      {genre.name}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           {/* Country Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="outline" 
-                className="h-7 sm:h-8 px-2 sm:px-3 bg-transparent border-white/40 hover:border-white hover:bg-white/10 text-xs sm:text-sm font-medium gap-0.5 sm:gap-1"
-              >
-                <span className="hidden xs:inline">Quốc gia</span>
-                <span className="xs:hidden">QG</span>
-                <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-48 bg-[#141414] border-gray-700">
-              {COUNTRIES.map((country) => (
-                <DropdownMenuItem key={country.slug} asChild>
-                  <Link href={`/quoc-gia/${country.slug}`} className="cursor-pointer text-gray-200 hover:text-white">
-                    {country.name}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {isMounted && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="h-7 sm:h-8 px-2 sm:px-3 bg-transparent border-white/40 hover:border-white hover:bg-white/10 text-xs sm:text-sm font-medium gap-0.5 sm:gap-1"
+                >
+                  <span className="hidden xs:inline">Quốc gia</span>
+                  <span className="xs:hidden">QG</span>
+                  <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-48 bg-[#141414] border-gray-700">
+                {COUNTRIES.map((country) => (
+                  <DropdownMenuItem key={country.slug} asChild>
+                    <Link href={`/quoc-gia/${country.slug}`} className="cursor-pointer text-gray-200 hover:text-white">
+                      {country.name}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
 
         {/* Divider */}

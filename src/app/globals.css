@@ -160,7 +160,7 @@
   background: rgba(20, 20, 20, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-}
+  }
 
 /* Selection color */
 ::selection {

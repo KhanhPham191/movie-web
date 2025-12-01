@@ -26,7 +26,12 @@ export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -80,25 +85,27 @@ export function Header() {
           </nav>
 
           {/* Mobile Menu Dropdown */}
-          <div className="lg:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-xs sm:text-sm font-medium gap-1 px-1.5 sm:px-2 h-8">
-                  <span className="hidden xs:inline">Duyệt</span>
-                  <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-[#141414]/95 backdrop-blur border-gray-800">
-                {mainNav.map((item) => (
-                  <DropdownMenuItem key={item.name} asChild>
-                    <Link href={item.href} className="text-gray-200 hover:text-white">
-                      {item.name}
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          {isMounted && (
+            <div className="lg:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="text-xs sm:text-sm font-medium gap-1 px-1.5 sm:px-2 h-8">
+                    <span className="hidden xs:inline">Duyệt</span>
+                    <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 bg-[#141414]/95 backdrop-blur border-gray-800">
+                  {mainNav.map((item) => (
+                    <DropdownMenuItem key={item.name} asChild>
+                      <Link href={item.href} className="text-gray-200 hover:text-white">
+                        {item.name}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
         </div>
 
         {/* Right Side */}
@@ -146,30 +153,32 @@ export function Header() {
           </button>
 
           {/* Profile Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-1 sm:gap-2 group shrink-0">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-blue-600 flex items-center justify-center">
-                  <span className="text-xs sm:text-sm font-bold">P</span>
-                </div>
-                <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-white group-hover:rotate-180 transition-transform hidden md:block" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-[#141414]/95 backdrop-blur border-gray-800">
-              <DropdownMenuItem className="text-gray-200 hover:text-white cursor-pointer">
-                Quản lý hồ sơ
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-gray-200 hover:text-white cursor-pointer">
-                Tài khoản
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-gray-200 hover:text-white cursor-pointer">
-                Trung tâm trợ giúp
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-gray-200 hover:text-white cursor-pointer border-t border-gray-700 mt-2 pt-2">
-                Đăng xuất
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {isMounted && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-1 sm:gap-2 group shrink-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-blue-600 flex items-center justify-center">
+                    <span className="text-xs sm:text-sm font-bold">P</span>
+                  </div>
+                  <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-white group-hover:rotate-180 transition-transform hidden md:block" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 bg-[#141414]/95 backdrop-blur border-gray-800">
+                <DropdownMenuItem className="text-gray-200 hover:text-white cursor-pointer">
+                  Quản lý hồ sơ
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-gray-200 hover:text-white cursor-pointer">
+                  Tài khoản
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-gray-200 hover:text-white cursor-pointer">
+                  Trung tâm trợ giúp
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-gray-200 hover:text-white cursor-pointer border-t border-gray-700 mt-2 pt-2">
+                  Đăng xuất
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
     </header>

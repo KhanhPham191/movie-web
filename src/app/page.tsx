@@ -180,10 +180,10 @@ export default async function Home() {
             href="/the-loai/kinh-di"
           />
         </Suspense>
-      </div>
+        </div>
 
       {/* Footer */}
       <Footer />
-    </main>
+      </main>
   );
 }
