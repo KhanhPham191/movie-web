@@ -2201,7 +2201,6 @@ packages:
 
   shaka-player@4.16.10:
     resolution: {integrity: sha512-FJJk3rbV6IQ/gmdB6EZ4q4VuCKXdWG1pf7dPuqfZi6lNWIvymT4YWE+Hv5qkBwJRtT0L/8p/EFJKMhwE4AMTMQ==}
-    engines: {node: '>=18'}
 
   sharp@0.34.5:
     resolution: {integrity: sha512-Ou9I5Ft9WNcCbXrU9cMgPBcCK8LiwLqcbywW3t4oDV37n1pzpuNLsYiAV8eODnjbtQlSDwZ2cUEeQz4E54Hltg==}

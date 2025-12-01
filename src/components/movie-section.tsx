@@ -147,6 +147,8 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
   const [isHovering, setIsHovering] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragState = useRef<{ startX: number; scrollLeft: number }>({ startX: 0, scrollLeft: 0 });
 
   if (!movies || movies.length === 0) return null;
 
