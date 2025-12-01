@@ -45,7 +45,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
   };
 
   return (
-    <div className="sticky top-16 lg:top-[68px] z-30 bg-gradient-to-b from-[#141414] via-[#141414] to-transparent pb-8">
+    <div className="sticky top-16 lg:top-20 z-30 bg-gradient-to-b from-background via-background to-transparent pb-8">
       <div className="relative flex items-center gap-2 px-4 md:px-12 py-3">
         {/* Main Categories */}
         <div className="flex items-center gap-2 shrink-0">
@@ -103,7 +103,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
           {showLeftArrow && (
             <button
               onClick={() => scroll("left")}
-              className="absolute left-0 top-0 bottom-0 z-10 w-8 flex items-center justify-start bg-gradient-to-r from-[#141414] to-transparent"
+              className="absolute left-0 top-0 bottom-0 z-10 w-8 flex items-center justify-start bg-gradient-to-r from-background to-transparent"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -147,7 +147,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
           {showRightArrow && (
             <button
               onClick={() => scroll("right")}
-              className="absolute right-0 top-0 bottom-0 z-10 w-8 flex items-center justify-end bg-gradient-to-l from-[#141414] to-transparent"
+              className="absolute right-0 top-0 bottom-0 z-10 w-8 flex items-center justify-end bg-gradient-to-l from-background to-transparent"
             >
               <ChevronRight className="w-5 h-5" />
             </button>

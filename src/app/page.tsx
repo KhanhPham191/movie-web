@@ -13,9 +13,23 @@ import {
   CATEGORIES,
 } from "@/lib/api";
 
-// Fetch data
+// Fetch data with error handling
 async function getHomePageData() {
   try {
+    const results = await Promise.allSettled([
+      getNewlyUpdatedFilmsMultiple(2),
+      getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 2),
+      getFilmsByCategoryMultiple(CATEGORIES.PHIM_BO, 2),
+      getFilmsByCategoryMultiple(CATEGORIES.PHIM_DANG_CHIEU, 1),
+      getFilmsByGenreMultiple("hanh-dong", 1),
+      getFilmsByCountryMultiple("han-quoc", 1),
+      getFilmsByGenreMultiple("hoat-hinh", 1),
+      getFilmsByGenreMultiple("kinh-di", 1),
+      getFilmsByGenreMultiple("tinh-cam", 1),
+      getFilmsByGenreMultiple("hai", 1),
+    ]);
+
+    // Extract results, default to empty array if failed
     const [
       newlyUpdated,
       phimLe,
@@ -27,30 +41,21 @@ async function getHomePageData() {
       kinhDi,
       tinhCam,
       haiHuoc,
-    ] = await Promise.all([
-      getNewlyUpdatedFilmsMultiple(3),
-      getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 3),
-      getFilmsByCategoryMultiple(CATEGORIES.PHIM_BO, 3),
-      getFilmsByCategoryMultiple(CATEGORIES.PHIM_DANG_CHIEU, 2),
-      getFilmsByGenreMultiple("hanh-dong", 2),
-      getFilmsByCountryMultiple("han-quoc", 2),
-      getFilmsByGenreMultiple("hoat-hinh", 2),
-      getFilmsByGenreMultiple("kinh-di", 2),
-      getFilmsByGenreMultiple("tinh-cam", 2),
-      getFilmsByGenreMultiple("hai", 2),
-    ]);
+    ] = results.map((result) =>
+      result.status === "fulfilled" ? result.value : []
+    );
 
     return {
-      newlyUpdated,
-      phimLe,
-      phimBo,
-      phimDangChieu,
-      hanhDong,
-      hanQuoc,
-      hoatHinh,
-      kinhDi,
-      tinhCam,
-      haiHuoc,
+      newlyUpdated: newlyUpdated || [],
+      phimLe: phimLe || [],
+      phimBo: phimBo || [],
+      phimDangChieu: phimDangChieu || [],
+      hanhDong: hanhDong || [],
+      hanQuoc: hanQuoc || [],
+      hoatHinh: hoatHinh || [],
+      kinhDi: kinhDi || [],
+      tinhCam: tinhCam || [],
+      haiHuoc: haiHuoc || [],
     };
   } catch (error) {
     console.error("Error fetching home page data:", error);
@@ -83,7 +88,7 @@ export default async function Home() {
       )}
 
       {/* Content Rows */}
-      <div className="relative z-10 -mt-24 md:-mt-32 space-y-0">
+      <div className="relative z-20 -mt-24 md:-mt-32 space-y-0">
         {/* Category Pills */}
         <CategoryPills />
 

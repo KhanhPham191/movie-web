@@ -179,9 +179,21 @@ export async function getMultiplePages(
   fetchFn: (page: number) => Promise<FilmListResponse>,
   pages: number = 3
 ): Promise<FilmItem[]> {
-  const promises = Array.from({ length: pages }, (_, i) => fetchFn(i + 1));
-  const results = await Promise.all(promises);
-  return results.flatMap((r) => r.items || []);
+  const promises = Array.from({ length: pages }, (_, i) => 
+    fetchFn(i + 1).catch((error) => {
+      console.warn(`Failed to fetch page ${i + 1}:`, error.message);
+      return { items: [], paginate: { current_page: i + 1, total_page: 0, total_items: 0, items_per_page: 0 } };
+    })
+  );
+  const results = await Promise.allSettled(promises);
+  return results
+    .filter((result) => result.status === "fulfilled")
+    .flatMap((result) => {
+      if (result.status === "fulfilled") {
+        return result.value.items || [];
+      }
+      return [];
+    });
 }
 
 // Get newly updated films - multiple pages
