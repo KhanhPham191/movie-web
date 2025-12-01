@@ -115,13 +115,13 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
             transformOrigin: index === 0 ? "left center" : "center center",
           }}
         >
-          {/* Thumbnail - 16:9 ratio */}
-          <div className="relative aspect-video">
+          {/* Thumbnail - 16:10 ratio for better fit */}
+          <div className="relative aspect-[16/10]">
             <Image
               src={imageUrl}
               alt={movie.name}
               fill
-              className="object-cover"
+              className="object-cover object-center"
               unoptimized
             />
 
