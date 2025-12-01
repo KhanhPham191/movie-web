@@ -23,23 +23,20 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
   // Top 10 variant
   if (variant === "top10" && rank) {
     return (
-      <div className="relative flex items-end group">
-        {/* Large Rank Number - Behind poster */}
-        <div className="absolute left-0 bottom-0 z-0">
-          <span 
-            className="text-[140px] md:text-[180px] lg:text-[200px] font-black leading-none text-gray-800/40 select-none"
-            style={{
-              textShadow: "0 0 0 rgba(0,0,0,0.3)",
-              WebkitTextStroke: "2px rgba(255,255,255,0.1)",
-            }}
-          >
-            {rank}
-          </span>
-        </div>
+      <div className="flex items-center gap-0 group">
+        {/* Large Rank Number */}
+        <span 
+          className="text-[120px] md:text-[150px] font-black leading-none text-transparent select-none shrink-0"
+          style={{
+            WebkitTextStroke: "4px rgba(128,128,128,0.5)",
+          }}
+        >
+          {rank}
+        </span>
         
-        {/* Poster - In front */}
-        <Link href={`/phim/${movie.slug}`} className="relative z-10 ml-8 md:ml-12">
-          <div className="relative w-[110px] md:w-[140px] lg:w-[160px] aspect-[2/3] rounded-md overflow-hidden transition-transform duration-300 group-hover:scale-110 shadow-2xl">
+        {/* Poster */}
+        <Link href={`/phim/${movie.slug}`} className="-ml-8 md:-ml-10">
+          <div className="relative w-[100px] md:w-[120px] aspect-[2/3] rounded-md overflow-hidden transition-transform duration-300 group-hover:scale-105">
             <Image
               src={imageUrl}
               alt={movie.name}
@@ -47,10 +44,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               className="object-cover"
               unoptimized
             />
-            {/* Rank badge on poster */}
-            <div className="absolute top-2 left-2 w-8 h-8 rounded-full bg-red-600 flex items-center justify-center">
-              <span className="text-white font-black text-sm">{rank}</span>
-            </div>
           </div>
         </Link>
       </div>

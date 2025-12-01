@@ -196,10 +196,10 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex gap-2 md:gap-4 overflow-x-auto scrollbar-hide px-4 md:px-12 pb-8 pt-2 scroll-smooth"
+          className="flex gap-4 overflow-x-auto scrollbar-hide px-4 md:px-12 pb-4 pt-2 scroll-smooth"
         >
           {movies.slice(0, 10).map((movie, index) => (
-            <div key={`${movie.slug}-${index}`} className="shrink-0 w-[180px] md:w-[220px] lg:w-[260px]">
+            <div key={`${movie.slug}-${index}`} className="shrink-0">
               <MovieCard movie={movie} index={index} variant="top10" rank={index + 1} />
             </div>
           ))}
