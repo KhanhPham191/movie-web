@@ -84,8 +84,10 @@ export default async function Home() {
 
       {/* Content Rows */}
       <div className="relative z-20 -mt-24 md:-mt-32 space-y-0">
-        {/* Category Pills */}
-        <CategoryPills />
+        {/* Category Pills - Sticky below header */}
+        <div className="relative">
+          <CategoryPills />
+        </div>
 
         {/* Top 10 Section */}
         <Suspense fallback={<MovieSectionSkeleton />}>

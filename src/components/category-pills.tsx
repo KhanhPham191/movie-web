@@ -45,7 +45,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
   };
 
   return (
-    <div className="sticky top-16 lg:top-20 z-30 bg-gradient-to-b from-background via-background to-transparent pb-8">
+    <div className="sticky top-16 lg:top-[68px] z-40 bg-[#141414]/95 backdrop-blur-sm border-b border-white/10 shadow-sm">
       <div className="relative flex items-center gap-2 px-4 md:px-12 py-3">
         {/* Main Categories */}
         <div className="flex items-center gap-2 shrink-0">
