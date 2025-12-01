@@ -126,7 +126,11 @@ async function MovieDetail({ slug }: { slug: string }) {
                   <span className="text-gray-400">{movie.time}</span>
                 )}
                 {countries[0] && (
-                  <span className="text-gray-400">{countries[0].name}</span>
+                  <span className="text-gray-400">
+                    {typeof countries[0] === 'object' && countries[0] !== null
+                      ? (countries[0]?.name || String(countries[0]?.id || ''))
+                      : String(countries[0])}
+                  </span>
                 )}
                 <span className="px-2 py-0.5 border border-gray-400 text-xs">18+</span>
               </div>
@@ -134,14 +138,22 @@ async function MovieDetail({ slug }: { slug: string }) {
               {/* Genres */}
               {categories.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5 mb-5 text-sm text-gray-300">
-                  {categories.slice(0, 4).map((cat, i) => (
-                    <span key={cat?.id || i}>
-                      {cat?.name || cat}
-                      {i < Math.min(categories.length, 4) - 1 && (
-                        <span className="mx-2 text-gray-600">•</span>
-                      )}
-                    </span>
-                  ))}
+                  {categories.slice(0, 4).map((cat, i) => {
+                    const catName = typeof cat === 'object' && cat !== null 
+                      ? (cat?.name || String(cat?.id || ''))
+                      : String(cat || '');
+                    
+                    if (!catName) return null;
+                    
+                    return (
+                      <span key={cat?.id || i}>
+                        {catName}
+                        {i < Math.min(categories.length, 4) - 1 && (
+                          <span className="mx-2 text-gray-600">•</span>
+                        )}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
 
@@ -271,9 +283,13 @@ async function MovieDetail({ slug }: { slug: string }) {
                     <span className="text-gray-400 text-sm block mb-1">Thể loại</span>
                     <div className="flex flex-wrap gap-2">
                       {categories.map((cat, index) => {
-                        const catId = cat?.id || index;
-                        const catSlug = cat?.slug || (typeof cat === 'string' ? cat : '');
-                        const catName = cat?.name || cat || 'Unknown';
+                        const catId = typeof cat === 'object' && cat !== null ? (cat?.id || index) : index;
+                        const catSlug = typeof cat === 'object' && cat !== null 
+                          ? (cat?.slug || '')
+                          : (typeof cat === 'string' ? cat : '');
+                        const catName = typeof cat === 'object' && cat !== null
+                          ? (cat?.name || String(cat?.id || '') || 'Unknown')
+                          : (String(cat || 'Unknown'));
                         
                         if (!catSlug) return null;
                         
@@ -297,9 +313,13 @@ async function MovieDetail({ slug }: { slug: string }) {
                     <span className="text-gray-400 text-sm block mb-1">Quốc gia</span>
                     <div className="flex flex-wrap gap-2">
                       {countries.map((country, index) => {
-                        const countryId = country?.id || index;
-                        const countrySlug = country?.slug || (typeof country === 'string' ? country : '');
-                        const countryName = country?.name || country || 'Unknown';
+                        const countryId = typeof country === 'object' && country !== null ? (country?.id || index) : index;
+                        const countrySlug = typeof country === 'object' && country !== null 
+                          ? (country?.slug || '')
+                          : (typeof country === 'string' ? country : '');
+                        const countryName = typeof country === 'object' && country !== null
+                          ? (country?.name || String(country?.id || '') || 'Unknown')
+                          : (String(country || 'Unknown'));
                         
                         if (!countrySlug) return null;
                         
