@@ -72,22 +72,47 @@ async function fetchAPI<T>(endpoint: string): Promise<T> {
     });
 
     console.log("[API] Response status:", res.status, res.statusText);
-    console.log("[API] Response headers:", Object.fromEntries(res.headers.entries()));
 
     if (!res.ok) {
       const errorText = await res.text();
       console.error("[API] Error response body:", errorText);
-      throw new Error(`API Error: ${res.status} ${res.statusText} - ${errorText.slice(0, 200)}`);
+      
+      // Parse error response if it's JSON
+      let errorMessage = `API Error: ${res.status} ${res.statusText}`;
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (errorJson.message) {
+          errorMessage = errorJson.message;
+        }
+      } catch {
+        // If not JSON, use the text as is
+        errorMessage = errorText.slice(0, 200);
+      }
+      
+      // Create a custom error with status code
+      const error = new Error(errorMessage) as Error & { status?: number };
+      error.status = res.status;
+      throw error;
     }
 
     const data = await res.json();
     console.log("[API] Response data keys:", Object.keys(data));
+    
+    // Check if response has error status
+    if (data.status === "error") {
+      const error = new Error(data.message || "API returned error status") as Error & { status?: number };
+      error.status = 404; // Treat API error as 404
+      throw error;
+    }
+    
     return data;
   } catch (error) {
     console.error("[API] Fetch error:", error);
     if (error instanceof Error) {
       console.error("[API] Error message:", error.message);
-      console.error("[API] Error stack:", error.stack);
+      if ('status' in error) {
+        console.error("[API] Error status:", (error as any).status);
+      }
     }
     throw error;
   }

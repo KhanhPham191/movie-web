@@ -27,9 +27,10 @@ async function MovieDetail({ slug }: { slug: string }) {
   try {
     console.log("[MovieDetail] Fetching movie with slug:", slug);
     const response = await getFilmDetail(slug);
-    console.log("[MovieDetail] API Response:", JSON.stringify(response, null, 2));
+    console.log("[MovieDetail] API Response status:", response?.status);
     
-    if (!response || !response.movie) {
+    // Check if API returned error status
+    if (response?.status === "error" || !response || !response.movie) {
       console.error("[MovieDetail] No movie found in response:", response);
       notFound();
     }
@@ -324,9 +325,22 @@ async function MovieDetail({ slug }: { slug: string }) {
     console.error("[MovieDetail] Error rendering movie detail:", error);
     console.error("[MovieDetail] Error details:", {
       message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+      status: (error as any)?.status,
       slug: slug,
     });
+    
+    // If it's a 404 error or "doesn't exist" message, show not found
+    if (
+      (error as any)?.status === 404 ||
+      (error instanceof Error && (
+        error.message.includes("doesn't exist") ||
+        error.message.includes("not found") ||
+        error.message.includes("404")
+      ))
+    ) {
+      console.log("[MovieDetail] Treating as 404, calling notFound()");
+      notFound();
+    }
     
     return (
       <div className="container mx-auto px-4 pt-32 text-center space-y-4">
@@ -410,14 +424,16 @@ export async function generateMetadata({ params }: MoviePageProps) {
   try {
     console.log("[generateMetadata] Fetching metadata for slug:", slug);
     const response = await getFilmDetail(slug);
-    const movie = response.movie;
     
-    if (!movie) {
+    // Check if API returned error status
+    if (response?.status === "error" || !response || !response.movie) {
       console.error("[generateMetadata] No movie found for slug:", slug);
       return {
         title: "Chi tiết phim | Phim7.xyz",
       };
     }
+    
+    const movie = response.movie;
     
     return {
       title: `${movie.name} | Phim7.xyz`,
@@ -427,6 +443,7 @@ export async function generateMetadata({ params }: MoviePageProps) {
     };
   } catch (error) {
     console.error("[generateMetadata] Error generating metadata:", error);
+    // Don't throw error in metadata, just return default
     return {
       title: "Chi tiết phim | Phim7.xyz",
     };
