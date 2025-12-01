@@ -37,7 +37,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
   if (!movie) return null;
 
-  // Use thumb_url as it's clearer than poster_url
+  // Use thumb_url for homepage hero section (clearer for horizontal display)
   const backdropUrl = getImageUrl(movie.thumb_url || movie.poster_url);
 
   return (
