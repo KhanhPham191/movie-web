@@ -77,9 +77,9 @@ export default async function Home() {
       {/* Header */}
       <Header />
 
-      {/* Hero */}
+      {/* Hero - Only show 5 newest movies */}
       {data.newlyUpdated.length > 0 && (
-        <HeroSection movies={data.newlyUpdated} />
+        <HeroSection movies={data.newlyUpdated.slice(0, 5)} />
       )}
 
       {/* Content Rows */}

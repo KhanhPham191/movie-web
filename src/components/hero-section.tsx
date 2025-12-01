@@ -17,6 +17,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
   const [isMuted, setIsMuted] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
 
+  // Only use the 5 movies passed (already limited from parent)
   const featuredMovies = movies.slice(0, 5);
   const movie = featuredMovies[currentIndex];
 
