@@ -1,15 +1,14 @@
 import { Suspense } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
-import { ChevronLeft, ChevronRight, Home, List } from "lucide-react";
-import { getFilmDetail } from "@/lib/api";
+import { ChevronLeft, ChevronRight, Home, List, Info } from "lucide-react";
+import { getFilmDetail, getImageUrl } from "@/lib/api";
 
 interface WatchPageProps {
   params: Promise<{ slug: string; episode: string }>;
@@ -30,7 +29,6 @@ async function VideoPlayer({
       notFound();
     }
 
-    // Find the current episode
     let currentEpisode = null;
     let currentServer = null;
     let episodeIndex = -1;
@@ -48,7 +46,6 @@ async function VideoPlayer({
     }
 
     if (!currentEpisode) {
-      // Try first episode
       if (movie.episodes?.[0]?.items?.[0]) {
         currentEpisode = movie.episodes[0].items[0];
         currentServer = movie.episodes[0];
@@ -67,118 +64,198 @@ async function VideoPlayer({
     const nextEpisode =
       episodeIndex < allEpisodes.length - 1 ? allEpisodes[episodeIndex + 1] : null;
 
-    return (
-      <div className="space-y-6">
-        {/* Video Player */}
-        <Card className="overflow-hidden bg-black">
-          <div className="relative aspect-video">
-            <iframe
-              src={currentEpisode.embed}
-              className="absolute inset-0 w-full h-full"
-              allowFullScreen
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            />
-          </div>
-        </Card>
+    const background = getImageUrl(movie.poster_url || movie.thumb_url);
+    const cleanDescription = movie.description?.replace(/<[^>]*>/g, "");
+    const categories = Array.isArray(movie.category)
+      ? movie.category
+      : movie.category
+        ? [movie.category]
+        : [];
+    const countries = Array.isArray(movie.country)
+      ? movie.country
+      : movie.country
+        ? [movie.country]
+        : [];
+    const formatLabel = (value: any) =>
+      typeof value === "object" && value !== null
+        ? value.name || value.slug || value.id || ""
+        : String(value || "");
 
-        {/* Movie Info & Navigation */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold">
-              <span className="gradient-text">{movie.name}</span>
-            </h1>
-            <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-              <Badge variant="secondary">{currentServer?.server_name}</Badge>
-              <span>-</span>
-              <span className="font-medium text-foreground">
-                {currentEpisode.name}
-              </span>
+    return (
+      <div className="space-y-10">
+        <div className="relative overflow-hidden rounded-3xl bg-[#050505]">
+          <div className="absolute inset-0">
+            <Image
+              src={background}
+              alt={movie.name}
+              fill
+              className="object-cover opacity-50 blur-3xl scale-110"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-[#050505]/80 to-[#050505]" />
+          </div>
+
+          <div className="relative z-10 p-6 sm:p-8 lg:p-10 space-y-8 text-white">
+            <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-white/70">
+              {movie.quality && <Badge className="bg-white/20 text-white">{movie.quality}</Badge>}
+              {movie.current_episode && <span>{movie.current_episode}</span>}
+              {movie.time && <span>{movie.time}</span>}
+              {countries[0] && <span>{formatLabel(countries[0])}</span>}
+            </div>
+
+            <div className="grid gap-10 lg:grid-cols-[minmax(0,1.7fr)_1fr] items-start">
+              <div className="space-y-6">
+                <div className="relative rounded-[28px] overflow-hidden shadow-[0_40px_80px_-40px_rgba(0,0,0,0.9)] border border-white/10 group/player">
+                  <div className="aspect-video bg-black rounded-[28px] overflow-hidden">
+                    <iframe
+                      src={currentEpisode.embed}
+                      className="h-full w-full rounded-[28px]"
+                      allowFullScreen
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      title={currentEpisode.name}
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-black/75 opacity-80 transition-opacity group-hover/player:opacity-50 pointer-events-none" />
+                  <div className="absolute inset-0 flex flex-col justify-between p-4 sm:p-6 pointer-events-none">
+                    <div className="flex items-center justify-between text-[10px] sm:text-xs uppercase tracking-[0.3em] text-white/70">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-white/20 text-white">{currentServer?.server_name}</Badge>
+                        <span>ĐANG PHÁT</span>
+                      </div>
+                      <span>
+                        {episodeIndex + 1}/{allEpisodes.length}
+                      </span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 text-white">
+                      <div>
+                        <p className="text-xs text-white/70">Tập hiện tại</p>
+                        <h3 className="text-2xl sm:text-3xl font-black leading-tight">
+                          {currentEpisode.name}
+                        </h3>
+                      </div>
+                      <div className="flex flex-wrap gap-2 pointer-events-auto">
+                        {prevEpisode && (
+                          <Button
+                            asChild
+                            variant="outline"
+                            className="bg-black/60 text-white border-white/30 hover:bg-white/10 backdrop-blur"
+                          >
+                            <Link href={`/xem-phim/${slug}/${prevEpisode.slug}`}>
+                              <ChevronLeft className="w-4 h-4 mr-1" />
+                              {prevEpisode.name}
+                            </Link>
+                          </Button>
+                        )}
+                        {nextEpisode && (
+                          <Button
+                            asChild
+                            className="bg-white text-black hover:bg-white/90"
+                          >
+                            <Link href={`/xem-phim/${slug}/${nextEpisode.slug}`}>
+                              Tập tiếp theo
+                              <ChevronRight className="w-4 h-4 ml-1" />
+                            </Link>
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <Button size="lg" className="bg-white text-black hover:bg-white/90" asChild>
+                    <Link href={`/phim/${slug}`}>
+                      <Info className="w-5 h-5 mr-2" /> Chi tiết phim
+                    </Link>
+                  </Button>
+                  <Button size="lg" variant="secondary" asChild>
+                    <Link href="/">
+                      <Home className="w-5 h-5 mr-2" /> Trang chủ
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+
+              <div className="bg-white/5 rounded-2xl p-6 space-y-4">
+                <div>
+                  <p className="text-sm uppercase tracking-[0.3em] text-white/60">Tập hiện tại</p>
+                  <h1 className="text-2xl sm:text-3xl font-black mt-2">
+                    {movie.name}
+                  </h1>
+                  <p className="text-white/80 text-sm mt-1">{currentEpisode.name}</p>
+                </div>
+
+                {cleanDescription && (
+                  <p className="text-sm text-white/70 line-clamp-4">
+                    {cleanDescription}
+                  </p>
+                )}
+
+                <div className="space-y-2 text-sm text-white/80">
+                  {movie.director && (
+                    <p>
+                      <span className="text-white/60">Đạo diễn: </span>
+                      {movie.director}
+                    </p>
+                  )}
+                  {movie.casts && (
+                    <p>
+                      <span className="text-white/60">Diễn viên: </span>
+                      {movie.casts}
+                    </p>
+                  )}
+                  {categories.length > 0 && (
+                    <p>
+                      <span className="text-white/60">Thể loại: </span>
+                      {categories.map((c) => formatLabel(c)).join(", ")}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Episode list */}
+        <div className="bg-[#0b0b0b] rounded-3xl p-6 sm:p-8 space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-semibold text-white">Danh sách tập</h2>
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-white/50">
+              <List className="w-4 h-4" />
+              <span>{allEpisodes.length} tập</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/">
-                <Home className="w-4 h-4 mr-1" />
-                Trang chủ
-              </Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`/phim/${slug}`}>
-                <List className="w-4 h-4 mr-1" />
-                Chi tiết
-              </Link>
-            </Button>
-          </div>
-        </div>
-
-        {/* Episode Navigation */}
-        <div className="flex items-center justify-between gap-4">
-          {prevEpisode ? (
-            <Button variant="outline" asChild>
-              <Link href={`/xem-phim/${slug}/${prevEpisode.slug}`}>
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                {prevEpisode.name}
-              </Link>
-            </Button>
-          ) : (
-            <div />
-          )}
-
-          {nextEpisode ? (
-            <Button
-              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
-              asChild
-            >
-              <Link href={`/xem-phim/${slug}/${nextEpisode.slug}`}>
-                {nextEpisode.name}
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Link>
-            </Button>
-          ) : (
-            <div />
-          )}
-        </div>
-
-        <Separator />
-
-        {/* All Episodes */}
-        <div>
-          <h2 className="text-lg font-semibold mb-4">Chọn tập phim</h2>
           {movie.episodes?.map((server) => (
-            <div key={server.server_name} className="mb-4">
-              <h3 className="text-sm text-muted-foreground mb-3">
-                {server.server_name}
-              </h3>
-              <div className="flex flex-wrap gap-2">
+            <div key={server.server_name} className="space-y-3">
+              <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-white/50">
+                <span>{server.server_name}</span>
+                <span>{server.items.length} tập</span>
+              </div>
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
                 {server.items.map((ep) => (
-                  <Button
+                  <Link
                     key={ep.slug}
-                    variant={ep.slug === episodeSlug ? "default" : "outline"}
-                    size="sm"
-                    className={
+                    href={`/xem-phim/${slug}/${ep.slug}`}
+                    className={`px-4 py-2 rounded-full text-xs font-semibold transition whitespace-nowrap ${
                       ep.slug === episodeSlug
-                        ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-                        : "hover:bg-primary hover:text-primary-foreground"
-                    }
-                    asChild
+                        ? "bg-white text-black"
+                        : "bg-white/10 text-white hover:bg-white/20"
+                    }`}
                   >
-                    <Link href={`/xem-phim/${slug}/${ep.slug}`}>{ep.name}</Link>
-                  </Button>
+                    {ep.name}
+                  </Link>
                 ))}
               </div>
             </div>
           ))}
         </div>
 
-        <Separator />
-
         {/* Description */}
         {movie.description && (
-          <div>
-            <h2 className="text-lg font-semibold mb-3">Nội dung phim</h2>
+          <div className="bg-white/5 rounded-3xl p-6 sm:p-8 text-white/80 text-sm leading-relaxed">
+            <h3 className="text-lg font-semibold text-white mb-3">Nội dung phim</h3>
             <div
-              className="text-muted-foreground text-sm leading-relaxed"
               dangerouslySetInnerHTML={{
                 __html: movie.description,
               }}
@@ -195,7 +272,6 @@ async function VideoPlayer({
     );
   }
 }
-
 function VideoPlayerSkeleton() {
   return (
     <div className="space-y-6">

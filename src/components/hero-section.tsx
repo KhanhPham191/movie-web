@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Play, Info, Volume2, VolumeX } from "lucide-react";
@@ -16,8 +17,9 @@ export function HeroSection({ movies }: HeroSectionProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [dragStartX, setDragStartX] = useState<number | null>(null);
+  const [dragDeltaX, setDragDeltaX] = useState(0);
 
-  // Only use the 5 movies passed (already limited from parent)
   const featuredMovies = movies.slice(0, 5);
   const movie = featuredMovies[currentIndex];
 
@@ -38,11 +40,72 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
   if (!movie) return null;
 
-  // Use thumb_url for homepage hero section
-  const backdropUrl = getImageUrl(movie.thumb_url || movie.poster_url);
+  const startDrag = (clientX: number) => {
+    setDragStartX(clientX);
+    setDragDeltaX(0);
+  };
+
+  const moveDrag = (clientX: number) => {
+    if (dragStartX === null) return;
+    setDragDeltaX(clientX - dragStartX);
+  };
+
+  const endDrag = () => {
+    if (dragStartX === null) return;
+    if (Math.abs(dragDeltaX) > 60 && featuredMovies.length > 1) {
+      setCurrentIndex((prev) => {
+        if (dragDeltaX < 0) {
+          return (prev + 1) % featuredMovies.length;
+        }
+        return (prev - 1 + featuredMovies.length) % featuredMovies.length;
+      });
+    }
+    setDragStartX(null);
+    setDragDeltaX(0);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLElement>) => {
+    startDrag(e.clientX);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    if (dragStartX === null) return;
+    moveDrag(e.clientX);
+  };
+
+  const handleMouseUp = () => {
+    endDrag();
+  };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLElement>) => {
+    if (e.touches.length > 0) {
+      startDrag(e.touches[0].clientX);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLElement>) => {
+    if (dragStartX === null || e.touches.length === 0) return;
+    moveDrag(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    endDrag();
+  };
+
+  // Prefer poster_url for better quality
+  const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
 
   return (
-    <section className="relative h-[50vh] sm:h-[56.25vw] max-h-[80vh] min-h-[300px] sm:min-h-[400px]">
+    <section
+      className="relative h-[50vh] sm:h-[56.25vw] max-h-[80vh] min-h-[300px] sm:min-h-[400px] select-none"
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Background Images */}
       <div className="absolute inset-0">
         {featuredMovies.map((m, index) => (
@@ -53,14 +116,13 @@ export function HeroSection({ movies }: HeroSectionProps) {
             }`}
           >
             <Image
-              src={getImageUrl(m.thumb_url || m.poster_url)}
+              src={getImageUrl(m.poster_url || m.thumb_url)}
               alt={m.name}
               fill
-              className="object-cover object-center"
+              className="object-cover object-top"
               priority={index === 0}
               sizes="100vw"
-              quality={90}
-              unoptimized
+              quality={100}
             />
           </div>
         ))}
@@ -162,25 +224,6 @@ export function HeroSection({ movies }: HeroSectionProps) {
         </div>
       </div>
 
-      {/* Right Side - Mute Button & Age Rating - Hide on mobile */}
-      <div className="absolute bottom-[15%] sm:bottom-[20%] right-3 sm:right-4 md:right-12 flex items-center gap-2 sm:gap-3">
-        {/* Mute Toggle */}
-        <button
-          onClick={() => setIsMuted(!isMuted)}
-          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-gray-400 flex items-center justify-center hover:border-white transition-colors bg-black/20"
-        >
-          {isMuted ? (
-            <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-          ) : (
-            <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-          )}
-        </button>
-
-        {/* Age Rating - Netflix style */}
-        <div className="hidden sm:block px-2 sm:px-3 py-1 bg-gray-800/80 border-l-2 border-white/50 text-xs sm:text-sm font-medium text-white">
-          18+
-        </div>
-      </div>
 
       {/* Thumbnail Navigation Dots */}
       {featuredMovies.length > 1 && (

@@ -61,10 +61,10 @@ export function Footer() {
 
         {/* Brand */}
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-6 h-6 rounded bg-blue-600 flex items-center justify-center">
+          <div className="w-6 h-6 rounded bg-[linear-gradient(135deg,rgb(255,220,120),rgb(250,236,185))] flex items-center justify-center">
             <Film className="w-4 h-4 text-white" />
           </div>
-          <span className="text-sm font-semibold text-blue-500">Phim7.xyz</span>
+          <span className="text-sm font-semibold text-[rgb(255,220,120)]">Phim7.xyz</span>
         </div>
 
         {/* Copyright */}

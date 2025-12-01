@@ -18,6 +18,8 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
   const [isHovering, setIsHovering] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragState = useRef<{ startX: number; scrollLeft: number }>({ startX: 0, scrollLeft: 0 });
 
   if (!movies || movies.length === 0) {
     return null;
@@ -49,12 +51,11 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
   const getCardWidth = () => {
     switch (variant) {
       case "top10":
-        return "w-[140px] sm:w-[160px] md:w-[180px] lg:w-[220px]";
+        return "w-[140px] sm:w-[170px] md:w-[190px] lg:w-[210px]";
       case "portrait":
-        return "w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px]";
+        return "w-[120px] sm:w-[150px] md:w-[180px] lg:w-[210px]";
       default:
-        // Default is now portrait poster (2:3 ratio)
-        return "w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px]";
+        return "w-[200px] sm:w-[240px] md:w-[280px] lg:w-[320px]";
     }
   };
 
@@ -73,7 +74,7 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
           <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white">
             {title}
           </h2>
-          <span className="hidden sm:flex items-center text-blue-400 text-xs sm:text-sm font-medium opacity-0 max-w-0 group-hover/title:opacity-100 group-hover/title:max-w-[120px] transition-all duration-300 overflow-hidden whitespace-nowrap">
+          <span className="hidden sm:flex items-center text-[rgb(255,220,120)] text-xs sm:text-sm font-medium opacity-0 max-w-0 group-hover/title:opacity-100 group-hover/title:max-w-[120px] transition-all duration-300 overflow-hidden whitespace-nowrap">
             Xem tất cả
             <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
           </span>
@@ -106,9 +107,22 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-8 sm:pb-12 md:pb-16 pt-2 scroll-smooth"
+          onMouseDown={(e) => {
+            if (!scrollRef.current) return;
+            setIsDragging(true);
+            dragState.current = { startX: e.clientX, scrollLeft: scrollRef.current.scrollLeft };
+          }}
+          onMouseMove={(e) => {
+            if (!isDragging || !scrollRef.current) return;
+            e.preventDefault();
+            const dx = e.clientX - dragState.current.startX;
+            scrollRef.current.scrollLeft = dragState.current.scrollLeft - dx;
+          }}
+          onMouseUp={() => setIsDragging(false)}
+          onMouseLeave={() => setIsDragging(false)}
+          className={`flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 scroll-smooth select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
-          {movies.slice(0, 20).map((movie, index) => (
+          {movies.slice(0, 10).map((movie, index) => (
             <div
               key={`${movie.slug}-${index}`}
               className={`shrink-0 ${getCardWidth()}`}
@@ -165,7 +179,7 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
           <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white">
             {title}
           </h2>
-          <span className="hidden sm:flex items-center text-blue-400 text-xs sm:text-sm font-medium opacity-0 max-w-0 group-hover/title:opacity-100 group-hover/title:max-w-[120px] transition-all duration-300 overflow-hidden whitespace-nowrap">
+          <span className="hidden sm:flex items-center text-[rgb(255,220,120)] text-xs sm:text-sm font-medium opacity-0 max-w-0 group-hover/title:opacity-100 group-hover/title:max-w-[120px] transition-all duration-300 overflow-hidden whitespace-nowrap">
             Xem tất cả
             <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
           </span>
@@ -197,7 +211,20 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex gap-2 sm:gap-3 md:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 scroll-smooth"
+          onMouseDown={(e) => {
+            if (!scrollRef.current) return;
+            setIsDragging(true);
+            dragState.current = { startX: e.clientX, scrollLeft: scrollRef.current.scrollLeft };
+          }}
+          onMouseMove={(e) => {
+            if (!isDragging || !scrollRef.current) return;
+            e.preventDefault();
+            const dx = e.clientX - dragState.current.startX;
+            scrollRef.current.scrollLeft = dragState.current.scrollLeft - dx;
+          }}
+          onMouseUp={() => setIsDragging(false)}
+          onMouseLeave={() => setIsDragging(false)}
+          className={`flex gap-2 sm:gap-3 md:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 scroll-smooth select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
           {movies.slice(0, 10).map((movie, index) => (
             <div key={`${movie.slug}-${index}`} className="shrink-0 w-[120px] sm:w-[140px] md:w-[160px] lg:w-[180px]">

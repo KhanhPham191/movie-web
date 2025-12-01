@@ -15,7 +15,7 @@ export function GenreSection() {
               <Button
                 variant="default"
                 size="sm"
-                className="shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+                className="shrink-0 bg-gradient-to-r from-[rgb(255,220,120)] to-[rgb(250,236,185)] hover:from-[rgb(250,236,185)] hover:to-[rgb(245,245,240)] text-black"
               >
                 Tất cả
               </Button>

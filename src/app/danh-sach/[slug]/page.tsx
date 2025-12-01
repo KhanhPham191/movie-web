@@ -53,54 +53,59 @@ async function CategoryContent({
 
     return (
       <>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-6">
+        {/* Netflix-style responsive grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
           {movies.map((movie, index) => (
-            <MovieCard key={`${movie.slug}-${index}`} movie={movie} index={index} />
+            <MovieCard key={`${movie.slug}-${index}`} movie={movie} index={index} variant="portrait" />
           ))}
         </div>
 
-        {/* Pagination */}
-        <div className="flex items-center justify-center gap-2 mt-8">
-          {page > 1 && (
-            <Link href={`/danh-sach/${slug}?page=${page - 1}`}>
-              <Button variant="outline" size="sm">
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                Trang trước
-              </Button>
-            </Link>
-          )}
-          
-          <div className="flex items-center gap-1">
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const pageNum = page <= 3 ? i + 1 : page - 2 + i;
-              if (pageNum > totalPages || pageNum < 1) return null;
-              return (
-                <Link key={pageNum} href={`/danh-sach/${slug}?page=${pageNum}`}>
-                  <Button
-                    variant={pageNum === page ? "default" : "outline"}
-                    size="sm"
-                    className={pageNum === page ? "bg-primary" : ""}
-                  >
-                    {pageNum}
-                  </Button>
-                </Link>
-              );
-            })}
+        {/* Pagination - centered, mobile friendly */}
+        <div className="mt-8 flex flex-col items-center gap-4">
+          <div className="flex items-center justify-center gap-2">
+            {page > 1 && (
+              <Link href={`/danh-sach/${slug}?page=${page - 1}`}>
+                <Button variant="outline" size="sm" className="rounded-full px-4 py-1 text-xs sm:text-sm">
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Trang trước
+                </Button>
+              </Link>
+            )}
+
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const pageNum = page <= 3 ? i + 1 : page - 2 + i;
+                if (pageNum > totalPages || pageNum < 1) return null;
+                return (
+                  <Link key={pageNum} href={`/danh-sach/${slug}?page=${pageNum}`}>
+                    <Button
+                      variant={pageNum === page ? "default" : "outline"}
+                      size="icon"
+                      className={`h-8 w-8 rounded-full text-xs sm:text-sm ${
+                        pageNum === page ? "bg-primary text-black" : "bg-transparent"
+                      }`}
+                    >
+                      {pageNum}
+                    </Button>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {page < totalPages && (
+              <Link href={`/danh-sach/${slug}?page=${page + 1}`}>
+                <Button variant="outline" size="sm" className="rounded-full px-4 py-1 text-xs sm:text-sm">
+                  Trang sau
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </Link>
+            )}
           </div>
 
-          {page < totalPages && (
-            <Link href={`/danh-sach/${slug}?page=${page + 1}`}>
-              <Button variant="outline" size="sm">
-                Trang sau
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            </Link>
-          )}
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Trang {page} / {totalPages}
+          </p>
         </div>
-
-        <p className="text-center text-sm text-muted-foreground mt-4">
-          Trang {page} / {totalPages}
-        </p>
       </>
     );
   } catch {
@@ -126,23 +131,38 @@ export default async function CategoryPage({
   }
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-[#141414]">
       <Header />
 
-      <div className="pt-20 md:pt-24">
-        <GenreSection />
-      </div>
+      <div className="pt-16 sm:pt-20 md:pt-24">
+        {/* Netflix-style category hero header */}
+        <section className="bg-gradient-to-b from-black/70 via-[#141414] to-[#141414] border-b border-white/10">
+          <div className="container mx-auto px-4 py-5 sm:py-7 md:py-8 flex flex-col gap-3 sm:gap-4">
+            <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.25em] text-[rgb(255,220,120)]">
+              Danh sách phim
+            </p>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white">
+              {categoryName}
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-300 max-w-2xl">
+              Khám phá những bộ phim mới được cập nhật liên tục, đề xuất theo xu hướng xem hiện tại trên Phim7.
+            </p>
+          </div>
+        </section>
 
-      <div className="py-8">
-        <div className="container mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl font-bold mb-8">
-            <span className="gradient-text">{categoryName}</span>
-          </h1>
-
-          <Suspense fallback={<MovieSectionSkeleton />}>
-            <CategoryContent slug={slug} page={page} />
-          </Suspense>
+        {/* Genre pills row */}
+        <div className="bg-[#141414]">
+          <GenreSection />
         </div>
+
+        {/* Content grid */}
+        <section className="py-6 sm:py-8">
+          <div className="container mx-auto px-2 sm:px-4">
+            <Suspense fallback={<MovieSectionSkeleton />}>
+              <CategoryContent slug={slug} page={page} />
+            </Suspense>
+          </div>
+        </section>
       </div>
 
       <Footer />

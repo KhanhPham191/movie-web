@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { Header } from "@/components/header";
 import { HeroSection } from "@/components/hero-section";
 import { CategoryPills } from "@/components/category-pills";
-import { MovieSection, Top10Section } from "@/components/movie-section";
+import { MovieSection } from "@/components/movie-section";
 import { Footer } from "@/components/footer";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import {
@@ -20,37 +20,37 @@ async function getHomePageData() {
       newlyUpdated,
       phimLe,
       phimBo,
-      phimDangChieu,
-      hanhDong,
       hanQuoc,
+      trungQuoc,
+      nhatBan,
+      hongKong,
+      auMy,
       hoatHinh,
-      kinhDi,
-      tinhCam,
-      haiHuoc,
+      anime,
     ] = await Promise.all([
       getNewlyUpdatedFilmsMultiple(3),
       getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 3),
       getFilmsByCategoryMultiple(CATEGORIES.PHIM_BO, 3),
-      getFilmsByCategoryMultiple(CATEGORIES.PHIM_DANG_CHIEU, 2),
-      getFilmsByGenreMultiple("hanh-dong", 2),
       getFilmsByCountryMultiple("han-quoc", 2),
+      getFilmsByCountryMultiple("trung-quoc", 2),
+      getFilmsByCountryMultiple("nhat-ban", 2),
+      getFilmsByCountryMultiple("hong-kong", 2),
+      getFilmsByCountryMultiple("au-my", 2),
       getFilmsByGenreMultiple("hoat-hinh", 2),
-      getFilmsByGenreMultiple("kinh-di", 2),
-      getFilmsByGenreMultiple("tinh-cam", 2),
-      getFilmsByGenreMultiple("hai", 2),
+      getFilmsByGenreMultiple("anime", 2),
     ]);
 
     return {
       newlyUpdated,
       phimLe,
       phimBo,
-      phimDangChieu,
-      hanhDong,
       hanQuoc,
+      trungQuoc,
+      nhatBan,
+      hongKong,
+      auMy,
       hoatHinh,
-      kinhDi,
-      tinhCam,
-      haiHuoc,
+      anime,
     };
   } catch (error) {
     console.error("Error fetching home page data:", error);
@@ -58,13 +58,13 @@ async function getHomePageData() {
       newlyUpdated: [],
       phimLe: [],
       phimBo: [],
-      phimDangChieu: [],
-      hanhDong: [],
       hanQuoc: [],
+      trungQuoc: [],
+      nhatBan: [],
+      hongKong: [],
+      auMy: [],
       hoatHinh: [],
-      kinhDi: [],
-      tinhCam: [],
-      haiHuoc: [],
+      anime: [],
     };
   }
 }
@@ -77,9 +77,9 @@ export default async function Home() {
       {/* Header */}
       <Header />
 
-      {/* Hero - Only show 5 newest movies */}
+      {/* Hero */}
       {data.newlyUpdated.length > 0 && (
-        <HeroSection movies={data.newlyUpdated.slice(0, 5)} />
+        <HeroSection movies={data.newlyUpdated} />
       )}
 
       {/* Content Rows */}
@@ -89,21 +89,13 @@ export default async function Home() {
           <CategoryPills />
         </div>
 
-        {/* Top 10 Section */}
-        <Suspense fallback={<MovieSectionSkeleton />}>
-          <Top10Section
-            title="Top 10 phim tại Việt Nam hôm nay"
-            movies={data.phimDangChieu}
-            href="/danh-sach/phim-dang-chieu"
-          />
-        </Suspense>
-
-        {/* Trending Now */}
+        {/* New Releases */}
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
-            title="Đang thịnh hành"
-            movies={data.newlyUpdated}
-            href="/danh-sach/phim-moi-cap-nhat"
+            title="Mới phát hành"
+            movies={data.phimLe}
+            href="/danh-sach/phim-le"
+            variant="portrait"
           />
         </Suspense>
 
@@ -113,15 +105,7 @@ export default async function Home() {
             title="Phim bộ đang hot"
             movies={data.phimBo}
             href="/danh-sach/phim-bo"
-          />
-        </Suspense>
-
-        {/* New Releases */}
-        <Suspense fallback={<MovieSectionSkeleton />}>
-          <MovieSection
-            title="Mới phát hành"
-            movies={data.phimLe}
-            href="/danh-sach/phim-le"
+            variant="portrait"
           />
         </Suspense>
 
@@ -135,49 +119,54 @@ export default async function Home() {
           />
         </Suspense>
 
-        {/* Action */}
+        {/* Chinese Dramas */}
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
-            title="Phim hành động kịch tính"
-            movies={data.hanhDong}
-            href="/the-loai/hanh-dong"
-          />
-        </Suspense>
-
-        {/* Animation */}
-        <Suspense fallback={<MovieSectionSkeleton />}>
-          <MovieSection
-            title="Phim hoạt hình"
-            movies={data.hoatHinh}
-            href="/the-loai/hoat-hinh"
+            title="Phim Trung Quốc"
+            movies={data.trungQuoc}
+            href="/quoc-gia/trung-quoc"
             variant="portrait"
           />
         </Suspense>
 
-        {/* Romance */}
+
+        {/* Hong Kong Movies */}
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
-            title="Phim tình cảm lãng mạn"
-            movies={data.tinhCam}
-            href="/the-loai/tinh-cam"
+            title="Phim Hồng Kông"
+            movies={data.hongKong}
+            href="/quoc-gia/hong-kong"
+            variant="portrait"
           />
         </Suspense>
 
-        {/* Comedy */}
+        {/* US-UK Movies */}
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
-            title="Phim hài hước"
-            movies={data.haiHuoc}
-            href="/the-loai/hai"
+            title="Phim Âu Mỹ (US-UK)"
+            movies={data.auMy}
+            href="/quoc-gia/au-my"
+            variant="portrait"
           />
         </Suspense>
 
-        {/* Horror */}
+        {/* Japanese Movies */}
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
-            title="Phim kinh dị rùng rợn"
-            movies={data.kinhDi}
-            href="/the-loai/kinh-di"
+            title="Phim Nhật Bản"
+            movies={data.nhatBan}
+            href="/quoc-gia/nhat-ban"
+            variant="portrait"
+          />
+        </Suspense>
+
+        {/* Anime */}
+        <Suspense fallback={<MovieSectionSkeleton />}>
+          <MovieSection
+            title="Phim Anime"
+            movies={data.anime.length > 0 ? data.anime : data.hoatHinh}
+            href={data.anime.length > 0 ? "/the-loai/anime" : "/the-loai/hoat-hinh"}
+            variant="portrait"
           />
         </Suspense>
         </div>

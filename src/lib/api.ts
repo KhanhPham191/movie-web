@@ -60,10 +60,11 @@ export interface FilmDetailResponse {
 }
 
 const API_BASE = "https://phim.nguonc.com/api";
+const API_BASE_IPHIM = "https://iphim.cc/api";
 
 // Fetch with error handling
-async function fetchAPI<T>(endpoint: string): Promise<T> {
-  const url = `${API_BASE}${endpoint}`;
+async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T> {
+  const url = `${base}${endpoint}`;
   console.log("[API] Fetching:", url);
   
   try {
