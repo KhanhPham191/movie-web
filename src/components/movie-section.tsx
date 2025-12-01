@@ -106,7 +106,7 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 scroll-smooth"
+          className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-8 sm:pb-12 md:pb-16 pt-2 scroll-smooth"
         >
           {movies.slice(0, 20).map((movie, index) => (
             <div

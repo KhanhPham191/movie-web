@@ -80,7 +80,7 @@ async function MovieDetail({ slug }: { slug: string }) {
     return (
       <>
         {/* Hero Section - Netflix 2024 Style */}
-        <section className="relative h-[85vh] min-h-[500px] flex items-end">
+        <section className="relative h-[60vh] sm:h-[70vh] md:h-[85vh] min-h-[400px] sm:min-h-[500px] flex items-end">
           {/* Background Image */}
           <div className="absolute inset-0">
             <Image
@@ -90,7 +90,8 @@ async function MovieDetail({ slug }: { slug: string }) {
               className="object-cover object-center"
               priority
               sizes="100vw"
-              quality={100}
+              quality={90}
+              unoptimized
             />
             {/* Netflix-style Gradients - Lighter for better visibility */}
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,20,20,0)_0%,rgba(20,20,20,0.15)_40%,rgba(20,20,20,0.4)_70%,rgba(20,20,20,0.7)_85%,rgba(20,20,20,0.95)_100%)]" />
@@ -98,22 +99,22 @@ async function MovieDetail({ slug }: { slug: string }) {
           </div>
 
           {/* Content Overlay */}
-          <div className="container relative z-20 mx-auto px-4 md:px-12 pb-16 md:pb-24">
+          <div className="container relative z-20 mx-auto px-4 sm:px-6 md:px-12 pb-8 sm:pb-12 md:pb-16 lg:pb-24">
             <div className="max-w-2xl">
               {/* Title */}
-              <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white mb-3 drop-shadow-lg">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-black text-white mb-2 sm:mb-3 drop-shadow-lg line-clamp-2">
                 {movie.name}
               </h1>
 
               {/* Original Title */}
               {movie.original_name && movie.original_name !== movie.name && (
-                <p className="text-lg md:text-xl text-gray-300 mb-4">
+                <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-300 mb-2 sm:mb-3 md:mb-4 line-clamp-1">
                   {movie.original_name}
                 </p>
               )}
 
               {/* Meta Row */}
-              <div className="flex flex-wrap items-center gap-3 mb-4 text-sm md:text-base">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4 text-xs sm:text-sm md:text-base">
                 <span className="text-green-500 font-semibold">98% Phù hợp</span>
                 {movie.quality && (
                   <span className="px-2 py-0.5 border border-gray-400 text-xs font-medium">
@@ -169,14 +170,14 @@ async function MovieDetail({ slug }: { slug: string }) {
               )}
 
               {/* Action Buttons - Netflix Style */}
-              <div className="flex items-center gap-3 relative z-30">
+              <div className="flex items-center gap-2 sm:gap-3 relative z-30 flex-wrap">
                 {movie.episodes?.[0]?.items?.[0] && (
                   <Link href={`/xem-phim/${movie.slug}/${movie.episodes[0].items[0].slug}`}>
                     <Button
                       size="lg"
-                      className="bg-white hover:bg-white/90 text-black font-bold text-sm md:text-base px-6 md:px-8 h-11 md:h-12 rounded-md relative z-30"
+                      className="bg-white hover:bg-white/90 text-black font-bold text-xs sm:text-sm md:text-base px-4 sm:px-5 md:px-6 lg:px-8 h-9 sm:h-10 md:h-11 lg:h-12 rounded-md relative z-30"
                     >
-                      <Play className="w-5 h-5 md:w-6 md:h-6 mr-2 fill-black" />
+                      <Play className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1 sm:mr-2 fill-black" />
                       Phát
                     </Button>
                   </Link>
@@ -184,25 +185,25 @@ async function MovieDetail({ slug }: { slug: string }) {
                 <Button
                   size="lg"
                   variant="secondary"
-                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-sm md:text-base px-6 md:px-8 h-11 md:h-12 rounded-md relative z-30"
+                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-xs sm:text-sm md:text-base px-3 sm:px-4 md:px-6 lg:px-8 h-9 sm:h-10 md:h-11 lg:h-12 rounded-md relative z-30 hidden sm:flex"
                 >
-                  <Plus className="w-5 h-5 md:w-6 md:h-6 mr-2" />
-                  Danh sách của tôi
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1 sm:mr-2" />
+                  <span className="hidden md:inline">Danh sách của tôi</span>
                 </Button>
                 <Button
                   size="lg"
                   variant="secondary"
-                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-sm md:text-base px-6 md:px-8 h-11 md:h-12 rounded-md relative z-30"
+                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-xs sm:text-sm md:text-base px-3 sm:px-4 md:px-6 lg:px-8 h-9 sm:h-10 md:h-11 lg:h-12 rounded-md relative z-30 hidden sm:flex"
                 >
-                  <ThumbsUp className="w-5 h-5 md:w-6 md:h-6 mr-2" />
-                  Thích
+                  <ThumbsUp className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1 sm:mr-2" />
+                  <span className="hidden md:inline">Thích</span>
                 </Button>
                 <Button
                   size="lg"
                   variant="secondary"
-                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-sm md:text-base px-6 md:px-8 h-11 md:h-12 rounded-md relative z-30"
+                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-xs sm:text-sm md:text-base px-3 sm:px-4 md:px-6 lg:px-8 h-9 sm:h-10 md:h-11 lg:h-12 rounded-md relative z-30 hidden sm:flex"
                 >
-                  <ChevronDown className="w-5 h-5 md:w-6 md:h-6" />
+                  <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
                 </Button>
               </div>
             </div>
@@ -210,20 +211,20 @@ async function MovieDetail({ slug }: { slug: string }) {
         </section>
 
         {/* Main Content */}
-        <div className="relative z-10 bg-[#141414] -mt-24 pt-32">
-          <div className="container mx-auto px-4 md:px-12">
+        <div className="relative z-10 bg-[#141414] -mt-16 sm:-mt-20 md:-mt-24 pt-20 sm:pt-24 md:pt-32">
+          <div className="container mx-auto px-4 sm:px-6 md:px-12">
             {/* Episodes Section */}
             {movie.episodes && movie.episodes.length > 0 && (
-              <div className="mb-12">
-                <h2 className="text-xl md:text-2xl font-bold text-white mb-4">
+              <div className="mb-8 sm:mb-12">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-3 sm:mb-4">
                   Tập phim
                 </h2>
                 {movie.episodes.map((server) => (
-                  <div key={server.server_name} className="mb-8">
-                    <h3 className="text-sm text-gray-400 mb-3 font-medium">
+                  <div key={server.server_name} className="mb-6 sm:mb-8">
+                    <h3 className="text-xs sm:text-sm text-gray-400 mb-2 sm:mb-3 font-medium">
                       {server.server_name}
                     </h3>
-                    <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-4">
+                    <div className="flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide pb-3 sm:pb-4">
                       {server.items.map((episode) => (
                         <Link
                           key={episode.slug}
@@ -231,7 +232,7 @@ async function MovieDetail({ slug }: { slug: string }) {
                         >
                           <Button
                             variant="outline"
-                            className="h-10 px-4 bg-[#2a2a2a] border-gray-700 hover:bg-[#3a3a3a] hover:border-white text-white whitespace-nowrap shrink-0"
+                            className="h-8 sm:h-9 md:h-10 px-3 sm:px-4 bg-[#2a2a2a] border-gray-700 hover:bg-[#3a3a3a] hover:border-white text-white text-xs sm:text-sm whitespace-nowrap shrink-0"
                           >
                             {episode.name}
                           </Button>
@@ -244,9 +245,9 @@ async function MovieDetail({ slug }: { slug: string }) {
             )}
 
             {/* About Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12">
               {/* Left Column - Info */}
-              <div className="md:col-span-2 space-y-4">
+              <div className="md:col-span-2 space-y-3 sm:space-y-4">
                 {/* Cast & Crew */}
                 <div className="space-y-3">
                   {movie.director && (
@@ -266,9 +267,9 @@ async function MovieDetail({ slug }: { slug: string }) {
                 {/* Full Description */}
                 {movie.description && (
                   <div>
-                    <h3 className="text-lg font-semibold text-white mb-2">Về phim này</h3>
+                    <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Về phim này</h3>
                     <div
-                      className="text-gray-300 text-sm leading-relaxed"
+                      className="text-gray-300 text-xs sm:text-sm leading-relaxed"
                       dangerouslySetInnerHTML={{
                         __html: movie.description,
                       }}
@@ -278,7 +279,7 @@ async function MovieDetail({ slug }: { slug: string }) {
               </div>
 
               {/* Right Column - Details */}
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {categories.length > 0 && (
                   <div>
                     <span className="text-gray-400 text-sm block mb-1">Thể loại</span>

@@ -110,7 +110,9 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
             src={imageUrl}
             alt={movie.name}
             fill
-            className="object-cover"
+            className="object-cover object-center"
+            sizes="(max-width: 640px) 100px, (max-width: 768px) 120px, (max-width: 1024px) 140px, 160px"
+            quality={90}
             unoptimized
           />
           {movie.quality && (

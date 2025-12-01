@@ -56,10 +56,11 @@ export function HeroSection({ movies }: HeroSectionProps) {
               src={getImageUrl(m.thumb_url || m.poster_url)}
               alt={m.name}
               fill
-              className="object-cover object-top"
+              className="object-cover object-center"
               priority={index === 0}
               sizes="100vw"
-              quality={100}
+              quality={90}
+              unoptimized
             />
           </div>
         ))}
