@@ -37,6 +37,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
   if (!movie) return null;
 
+  // Prefer poster_url for better quality
   const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
 
   return (
@@ -57,7 +58,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
               className="object-cover object-top"
               priority={index === 0}
               sizes="100vw"
-              unoptimized
+              quality={100}
             />
           </div>
         ))}

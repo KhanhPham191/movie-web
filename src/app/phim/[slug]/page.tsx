@@ -60,8 +60,9 @@ async function MovieDetail({ slug }: { slug: string }) {
       countryType: Array.isArray(movie.country) ? "array" : typeof movie.country,
     });
 
+    // Prefer poster_url for better quality in hero section
     const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
-    const posterUrl = getImageUrl(movie.thumb_url || movie.poster_url);
+    const posterUrl = getImageUrl(movie.poster_url || movie.thumb_url);
 
     // Get similar movies (same category or genre)
     let similarMovies: any[] = [];
@@ -89,7 +90,7 @@ async function MovieDetail({ slug }: { slug: string }) {
               className="object-cover object-center"
               priority
               sizes="100vw"
-              unoptimized
+              quality={100}
             />
             {/* Netflix-style Gradients - Lighter for better visibility */}
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,20,20,0)_0%,rgba(20,20,20,0.15)_40%,rgba(20,20,20,0.4)_70%,rgba(20,20,20,0.7)_85%,rgba(20,20,20,0.95)_100%)]" />
