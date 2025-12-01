@@ -1,66 +1,44 @@
-// Cloudflare Worker Proxy for video streaming
-const CLOUDFLARE_WORKER_URL = 'https://proxypey.thanhtaidaiviet.workers.dev';
+/**
+ * Video Proxy Configuration using Cloudflare Workers
+ * Helps bypass CORS restrictions and m3u8 blocking
+ */
+
+const CLOUDFLARE_WORKER_URL = 'https://proxy-pey.thanhtaidaiviet.workers.dev';
 
 /**
- * Extract video URL from embed page through Cloudflare Worker
+ * Check if proxy is enabled
  */
-export async function extractVideoFromEmbed(embedUrl: string): Promise<{
-  success: boolean;
-  videoUrl?: string;
-  type?: string;
-  error?: string;
-}> {
-  if (!embedUrl) {
-    return { success: false, error: 'No embed URL provided' };
+function isProxyEnabled(): boolean {
+  // In development, check environment variable
+  if (typeof window !== 'undefined') {
+    return process.env.NEXT_PUBLIC_USE_VIDEO_PROXY !== 'false';
   }
-
-  try {
-    const proxyUrl = `${CLOUDFLARE_WORKER_URL}?extract=true&url=${encodeURIComponent(embedUrl)}`;
-    const response = await fetch(proxyUrl);
-    const data = await response.json();
-    
-    console.log('[VIDEO EXTRACT]', { embedUrl, result: data });
-    
-    return data;
-  } catch (error: any) {
-    console.error('[VIDEO EXTRACT] Error:', error);
-    return { success: false, error: error.message };
-  }
-}
-
-/**
- * Proxy video URL through Cloudflare Worker
- */
-export function getProxiedVideoUrl(videoUrl: string): string {
-  if (!videoUrl) return videoUrl;
-  if (videoUrl.includes(CLOUDFLARE_WORKER_URL)) return videoUrl;
-  
-  return `${CLOUDFLARE_WORKER_URL}?url=${encodeURIComponent(videoUrl)}`;
-}
-
-/**
- * Proxy embed URL - dùng trực tiếp không qua proxy
- * Vì iframe không thể proxy qua Worker
- */
-export function getProxiedEmbedUrl(embedUrl: string): string {
-  // Trả về URL gốc vì embed đã cho phép iframe
-  return embedUrl;
-}
-
-/**
- * Check if URL should be proxied
- */
-export function shouldProxyUrl(url: string): boolean {
-  if (!url) return false;
-  if (url.includes(CLOUDFLARE_WORKER_URL)) return false;
-  if (url.startsWith('/') || url.includes('localhost')) return false;
   return true;
 }
 
 /**
- * Get the Cloudflare Worker URL
+ * Convert original M3U8 URL to proxied URL
+ * @param originalUrl - The original M3U8 or video URL
+ * @returns Proxied URL through Cloudflare Worker
  */
-export function getProxyBaseUrl(): string {
-  return CLOUDFLARE_WORKER_URL;
-}
+export function getProxiedUrl(originalUrl: string): string {
+  if (!originalUrl) return '';
+  
+  try {
+    // Check if proxy should be used
+    if (!isProxyEnabled()) {
+      console.log('[VIDEO PROXY] Proxy disabled, using original URL');
+      return originalUrl;
+    }
 
+    const proxiedUrl = `${CLOUDFLARE_WORKER_URL}?url=${encodeURIComponent(originalUrl)}`;
+    console.log('[VIDEO PROXY] Proxying URL:', {
+      original: originalUrl,
+      proxied: proxiedUrl
+    });
+    return proxiedUrl;
+  } catch (error) {
+    console.error('[VIDEO PROXY] Error creating proxied URL:', error);
+    return originalUrl; // Fallback to original URL if something goes wrong
+  }
+}
