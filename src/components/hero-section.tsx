@@ -105,7 +105,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
   return (
     <section
-      className="relative h-[45vh] xs:h-[50vh] sm:h-[56.25vw] max-h-[80vh] min-h-[250px] xs:min-h-[300px] sm:min-h-[400px] select-none"
+      className="relative h-[50vh] sm:h-[56.25vw] max-h-[70vh] sm:max-h-[80vh] min-h-[280px] sm:min-h-[400px] select-none"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -127,95 +127,96 @@ export function HeroSection({ movies }: HeroSectionProps) {
               src={getImageUrl(m.poster_url || m.thumb_url)}
               alt={m.name}
               fill
-              className="object-cover object-top"
+              className="object-cover object-center sm:object-top"
               priority={index === 0}
               sizes="100vw"
-              quality={100}
+              quality={90}
+              unoptimized
             />
           </div>
         ))}
         
-        {/* Vignette & Gradients - Lighter for better visibility */}
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,20,20,0.2)_0%,rgba(20,20,20,0)_25%,rgba(20,20,20,0)_65%,rgba(20,20,20,0.5)_85%,rgba(20,20,20,0.9)_100%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,20,20,0.5)_0%,rgba(20,20,20,0.2)_30%,rgba(20,20,20,0)_50%)]" />
+        {/* Vignette & Gradients - Tối ưu cho mobile */}
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,15,15,0.1)_0%,rgba(15,15,15,0)_20%,rgba(15,15,15,0)_50%,rgba(15,15,15,0.6)_75%,rgba(15,15,15,0.95)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,15,15,0.4)_0%,rgba(15,15,15,0.1)_25%,rgba(15,15,15,0)_45%)]" />
       </div>
 
       {/* Content */}
       <div 
-        className={`absolute bottom-[10%] xs:bottom-[12%] sm:bottom-[15%] md:bottom-[20%] left-2 xs:left-3 sm:left-4 md:left-12 right-2 xs:right-3 sm:right-4 md:right-[50%] transition-all duration-700 ${
+        className={`absolute bottom-0 sm:bottom-[15%] md:bottom-[20%] left-0 right-0 sm:left-4 md:left-12 sm:right-4 md:right-[50%] px-3 sm:px-0 pb-4 sm:pb-0 transition-all duration-700 ${
           isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
         }`}
       >
         {/* Badge + Series indicator */}
-        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+        <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-3">
           <div className="flex items-center gap-0.5 sm:gap-1">
-            <span className="text-[#FF6EA0] font-black text-base xs:text-lg sm:text-xl tracking-tighter drop-shadow-lg">
+            <span className="text-[#FF6EA0] font-black text-sm sm:text-xl tracking-tighter drop-shadow-lg">
               P
             </span>
-            <span className="text-[10px] sm:text-xs font-semibold text-gray-200 tracking-widest uppercase">
+            <span className="text-[9px] sm:text-xs font-semibold text-gray-200 tracking-widest uppercase">
               Phim hot
             </span>
           </div>
         </div>
 
         {/* Title */}
-        <h1 className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-black text-white mb-1.5 xs:mb-2 sm:mb-3 drop-shadow-lg line-clamp-2">
+        <h1 className="text-base sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-black text-white mb-1 sm:mb-3 drop-shadow-lg line-clamp-2">
           {movie.name}
         </h1>
 
         {/* Original Title */}
         {movie.original_name && movie.original_name !== movie.name && (
-          <p className="text-xs xs:text-sm sm:text-base md:text-lg text-gray-300 mb-1.5 xs:mb-2 sm:mb-3 line-clamp-1">
+          <p className="text-[10px] sm:text-base md:text-lg text-gray-300 mb-1 sm:mb-3 line-clamp-1 hidden sm:block">
             {movie.original_name}
           </p>
         )}
 
         {/* Meta Info */}
-        <div className="flex flex-wrap items-center gap-1 xs:gap-1.5 sm:gap-2 mb-2 xs:mb-3 sm:mb-4 text-[11px] xs:text-xs sm:text-sm">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1.5 sm:mb-4 text-[10px] sm:text-sm">
           <span className="text-green-500 font-semibold">98% Phù hợp</span>
           {movie.current_episode && (
-            <span className="text-gray-300 text-[11px] xs:text-xs sm:text-sm">
+            <span className="text-gray-300 text-[10px] sm:text-sm">
               {formatEpisodeLabel(movie.current_episode)}
             </span>
           )}
           {movie.time && (
-            <span className="text-gray-400 text-[11px] xs:text-xs sm:text-sm">{movie.time}</span>
+            <span className="text-gray-400 text-[10px] sm:text-sm">{movie.time}</span>
           )}
-          <span className="px-1 sm:px-1.5 py-0.5 border border-gray-400 text-[10px] sm:text-xs">18+</span>
+          <span className="px-1 sm:px-1.5 py-0.5 border border-gray-400 text-[9px] sm:text-xs">18+</span>
         </div>
 
-        {/* Description - Netflix 2024 shows shorter description */}
+        {/* Description - Ẩn trên mobile để tiết kiệm không gian */}
         {movie.description && (
           <p 
-            className="text-[11px] xs:text-xs sm:text-sm md:text-base text-gray-200 line-clamp-1 xs:line-clamp-2 sm:line-clamp-3 mb-2 xs:mb-3 sm:mb-5 max-w-xl"
+            className="hidden sm:block text-xs sm:text-sm md:text-base text-gray-200 line-clamp-2 sm:line-clamp-3 mb-2 sm:mb-5 max-w-xl"
             dangerouslySetInnerHTML={{
               __html: movie.description.replace(/<[^>]*>/g, "").slice(0, 120) + "...",
             }}
           />
         )}
 
-        {/* Genres */}
+        {/* Genres - Ẩn trên mobile */}
         {movie.category && movie.category.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1 text-[11px] xs:text-xs sm:text-sm text-gray-300 mb-2 xs:mb-3 sm:mb-5">
+          <div className="hidden sm:flex flex-wrap items-center gap-1 text-xs sm:text-sm text-gray-300 mb-2 sm:mb-5">
             {movie.category.slice(0, 3).map((cat, i) => (
               <span key={cat.id}>
                 {cat.name}
                 {i < Math.min(movie.category.length, 3) - 1 && (
-                  <span className="mx-1 xs:mx-1.5 sm:mx-2 text-gray-600">•</span>
+                  <span className="mx-1.5 sm:mx-2 text-gray-600">•</span>
                 )}
               </span>
             ))}
           </div>
         )}
 
-        {/* Action Buttons - Netflix 2024 Style */}
-        <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2">
+        {/* Action Buttons - Tối ưu cho mobile */}
+        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-0">
           <Link href={`/phim/${movie.slug}`}>
             <Button
               size="lg"
-              className="bg-white hover:bg-white/90 text-black font-bold text-[11px] xs:text-xs sm:text-sm md:text-base px-2 xs:px-3 sm:px-5 md:px-8 h-7 xs:h-8 sm:h-10 md:h-12 rounded-md"
+              className="bg-white hover:bg-white/90 text-black font-bold text-[10px] sm:text-sm md:text-base px-3 sm:px-5 md:px-8 h-8 sm:h-10 md:h-12 rounded-md flex-1 sm:flex-initial"
             >
-              <Play className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-0.5 xs:mr-1 sm:mr-2 fill-black" />
+              <Play className="w-3 h-3 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1 sm:mr-2 fill-black" />
               Phát
             </Button>
           </Link>
@@ -223,9 +224,9 @@ export function HeroSection({ movies }: HeroSectionProps) {
             <Button
               size="lg"
               variant="secondary"
-              className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-[11px] xs:text-xs sm:text-sm md:text-base px-2 xs:px-3 sm:px-5 md:px-8 h-7 xs:h-8 sm:h-10 md:h-12 rounded-md"
+              className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-[10px] sm:text-sm md:text-base px-3 sm:px-5 md:px-8 h-8 sm:h-10 md:h-12 rounded-md"
             >
-              <Info className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-0.5 xs:mr-1 sm:mr-2" />
+              <Info className="w-3 h-3 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Thông tin</span>
               <span className="sm:hidden">Info</span>
             </Button>

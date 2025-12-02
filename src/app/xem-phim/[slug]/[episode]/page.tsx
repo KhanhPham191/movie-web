@@ -230,29 +230,31 @@ async function VideoPlayer({
             </div>
           </div>
 
-          {movie.episodes?.map((server) => (
-            <div key={server.server_name} className="space-y-2 sm:space-y-3">
-              <div className="flex items-center justify-between text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white/50">
-                <span>{server.server_name}</span>
-                <span>{server.items.length} tập</span>
+          <div className="space-y-6 sm:space-y-8">
+            {movie.episodes?.map((server) => (
+              <div key={server.server_name} className="space-y-2 sm:space-y-3">
+                <div className="flex items-center justify-between text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[#FF6EA0]/70 mb-2">
+                  <span className="font-semibold">{server.server_name}</span>
+                  <span className="text-[#FF6EA0]/50">{server.items.length} TẬP</span>
+                </div>
+                <div className="flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
+                  {server.items.map((ep) => (
+                    <Link
+                      key={ep.slug}
+                      href={`/xem-phim/${slug}/${ep.slug}`}
+                      className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-semibold transition-all whitespace-nowrap shrink-0 ${
+                        ep.slug === episodeSlug
+                          ? "bg-[#FF6EA0] text-black shadow-[0_0_20px_rgba(255,110,160,0.4)]"
+                          : "bg-white/10 text-white hover:bg-[#FF6EA0]/20 hover:text-[#FF6EA0]"
+                      }`}
+                    >
+                      {ep.name}
+                    </Link>
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
-                {server.items.map((ep) => (
-                  <Link
-                    key={ep.slug}
-                    href={`/xem-phim/${slug}/${ep.slug}`}
-                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-semibold transition-all whitespace-nowrap ${
-                      ep.slug === episodeSlug
-                        ? "bg-[#FF6EA0] text-black shadow-[0_0_20px_rgba(255,220,120,0.4)]"
-                        : "bg-white/10 text-white hover:bg-[#FF6EA0]/20 hover:text-[#FF6EA0]"
-                    }`}
-                  >
-                    {ep.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Description - Netflix 2024 Style */}

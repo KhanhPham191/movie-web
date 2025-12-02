@@ -39,12 +39,13 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
       <Link href={`/phim/${movie.slug}`}>
         <div className="group relative flex flex-col h-full">
           {/* Poster */}
-          <div className="relative aspect-[2/3] rounded-md overflow-hidden transition-transform duration-300 group-hover:scale-105 bg-muted flex-shrink-0">
+          <div className="relative aspect-[2/3] w-full rounded-md overflow-hidden transition-transform duration-300 group-hover:scale-105 bg-muted flex-shrink-0">
             <Image
               src={imageUrl}
               alt={movie.name}
               fill
               className="object-cover"
+              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               unoptimized
             />
             
@@ -82,12 +83,13 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div className="relative aspect-[2/3] rounded-md overflow-hidden bg-muted transition-all duration-300 group-hover:scale-105 group-hover:z-10 flex-shrink-0">
+          <div className="relative aspect-[2/3] w-full rounded-md overflow-hidden bg-muted transition-all duration-300 group-hover:scale-105 group-hover:z-10 flex-shrink-0">
             <Image
               src={imageUrl}
               alt={movie.name}
               fill
               className="object-cover"
+              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               unoptimized
             />
             {movie.current_episode && (
@@ -130,6 +132,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               alt={movie.name}
               fill
               className="object-cover"
+              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               unoptimized
             />
             {movie.current_episode && (
@@ -192,6 +195,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               alt={movie.name}
               fill
               className="object-cover"
+              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               unoptimized
             />
             {movie.current_episode && (
@@ -236,6 +240,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               alt={movie.name}
               fill
               className="object-cover"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               unoptimized
             />
 
@@ -251,6 +256,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
                   alt={movie.name}
                   fill
                   className="object-cover"
+                  sizes="56px"
                   unoptimized
                 />
               </div>
@@ -310,12 +316,13 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
           }}
         >
           {/* Thumbnail - 16:9 using thumb_url (crop center) */}
-          <div className="relative aspect-video">
+          <div className="relative aspect-video w-full">
             <Image
               src={imageUrl}
               alt={movie.name}
               fill
               className="object-cover"
+              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               unoptimized
             />
 

@@ -182,9 +182,9 @@ export default async function Home() {
       )}
 
       {/* Content Rows */}
-      <div className="relative z-20 -mt-10 sm:-mt-16 md:-mt-20 lg:-mt-24 pt-4 sm:pt-6 space-y-0">
+      <div className="relative z-20 -mt-10 sm:-mt-16 md:-mt-20 lg:-mt-24 pt-8 sm:pt-8 md:pt-6 space-y-0">
         {/* Category Pills - Sticky below header */}
-        <div className="relative">
+        <div className="relative mb-4 sm:mb-2 md:mb-0">
           <CategoryPills />
         </div>
 
