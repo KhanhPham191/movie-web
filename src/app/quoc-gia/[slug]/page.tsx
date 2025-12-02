@@ -8,6 +8,7 @@ import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getFilmsByCountry, COUNTRIES } from "@/lib/api";
+import { filterChinaNonAnimation } from "@/lib/filters";
 
 interface CountryPageProps {
   params: Promise<{ slug: string }>;
@@ -17,8 +18,13 @@ interface CountryPageProps {
 async function CountryContent({ slug, page }: { slug: string; page: number }) {
   try {
     const response = await getFilmsByCountry(slug, page);
-    const movies = response.items || [];
+    let movies = response.items || [];
     const totalPages = response.paginate?.total_page || 1;
+
+    // Nếu là trang Trung Quốc thì lọc lại theo detail: chỉ giữ phim Trung Quốc, bỏ thể loại "Hoạt Hình"
+    if (slug === "trung-quoc") {
+      movies = await filterChinaNonAnimation(movies);
+    }
 
     if (movies.length === 0) {
       return (

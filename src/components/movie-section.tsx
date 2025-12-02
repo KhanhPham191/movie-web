@@ -73,18 +73,26 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
     >
       {/* Section Header */}
       <div className="px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 mb-1.5 xs:mb-2">
-        <Link 
-          href={href || "#"} 
-          className="group/title inline-flex items-center gap-1"
-        >
-          <h2 className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white">
-            {title}
-          </h2>
-          <span className="hidden sm:flex items-center text-[rgb(255,220,120)] text-xs sm:text-sm font-medium opacity-0 max-w-0 group-hover/title:opacity-100 group-hover/title:max-w-[120px] transition-all duration-300 overflow-hidden whitespace-nowrap">
-            Xem tất cả
-            <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
-          </span>
-        </Link>
+        {href ? (
+          <Link
+            href={href}
+            className="group/title inline-flex items-center gap-1"
+          >
+            <h2 className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white">
+              {title}
+            </h2>
+            <span className="hidden sm:flex items-center text-[rgb(255,220,120)] text-xs sm:text-sm font-medium opacity-0 max-w-0 group-hover/title:opacity-100 group-hover/title:max-w-[120px] transition-all duration-300 overflow-hidden whitespace-nowrap">
+              Xem tất cả
+              <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
+            </span>
+          </Link>
+        ) : (
+          <div className="inline-flex items-center gap-1">
+            <h2 className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white">
+              {title}
+            </h2>
+          </div>
+        )}
       </div>
 
       {/* Slider Container */}

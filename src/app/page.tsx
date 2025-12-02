@@ -12,7 +12,39 @@ import {
   getFilmsByCountryMultiple,
   getDailyUpdatedFilms,
   CATEGORIES,
+  type FilmItem,
 } from "@/lib/api";
+import {
+  filterChinaNonAnimation,
+  filterNonAnimationByCountries,
+} from "@/lib/filters";
+
+// Helper: sắp xếp phim theo thời gian cập nhật mới nhất (field modified)
+function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
+  return [...(movies || [])].sort((a, b) => {
+    const ta = a?.modified ? new Date(a.modified).getTime() : 0;
+    const tb = b?.modified ? new Date(b.modified).getTime() : 0;
+    return tb - ta; // mới trước, cũ sau
+  });
+}
+
+// Helper: chọn tối đa `limit` phim không trùng slug, theo thứ tự hiện tại (mới nhất trước)
+function pickUniqueBySlug(
+  source: FilmItem[],
+  limit: number,
+  seen: Set<string>,
+  output: FilmItem[]
+) {
+  let added = 0;
+  for (const movie of source) {
+    if (!movie?.slug) continue;
+    if (seen.has(movie.slug)) continue;
+    output.push(movie);
+    seen.add(movie.slug);
+    added++;
+    if (added >= limit) break;
+  }
+}
 
 // ISR: Revalidate every 30 seconds for real-time updates
 export const revalidate = 30;
@@ -32,6 +64,7 @@ async function getHomePageData() {
       auMy,
       hoatHinh,
       anime,
+      thaiLan,
     ] = await Promise.all([
       getNewlyUpdatedFilmsMultiple(3),
       getDailyUpdatedFilms(1).then(r => r.items || []),
@@ -45,6 +78,7 @@ async function getHomePageData() {
       getFilmsByCountryMultiple("au-my", 2),
       getFilmsByGenreMultiple("hoat-hinh", 2),
       getFilmsByGenreMultiple("anime", 2),
+      getFilmsByCountryMultiple("thai-lan", 2),
     ]);
 
     // Lọc lại chỉ giữ phim bộ (nhiều tập)
@@ -52,18 +86,56 @@ async function getHomePageData() {
       (movie) => movie.total_episodes && movie.total_episodes > 1
     );
 
+    // Danh mục test: chỉ giữ phim Trung Quốc nhưng không phải thể loại Hoạt Hình,
+    // dựa trên category chi tiết từ /api/film/{slug}
+    const trungQuocFiltered = await filterChinaNonAnimation(trungQuoc);
+
+    // Top 10 phim bộ: 2 Trung, 3 Hàn, 2 Thái, 3 Âu Mỹ (bỏ hoạt hình)
+    const [chinaSeries, koreaSeries, thaiSeries, euUsSeries] =
+      await Promise.all([
+        filterNonAnimationByCountries(
+          (trungQuoc || []).filter((m) => (m.total_episodes || 0) > 1),
+          ["trung quoc"]
+        ),
+        filterNonAnimationByCountries(
+          (hanQuoc || []).filter((m) => (m.total_episodes || 0) > 1),
+          ["han quoc"]
+        ),
+        filterNonAnimationByCountries(
+          (thaiLan || []).filter((m) => (m.total_episodes || 0) > 1),
+          ["thai lan"]
+        ),
+        filterNonAnimationByCountries(
+          (auMy || []).filter((m) => (m.total_episodes || 0) > 1),
+          ["au my"]
+        ),
+      ]);
+
+    // Ghép top 10, đảm bảo không trùng slug; nếu trùng sẽ lấy phim kế tiếp trong list (gần nhất)
+    const seen = new Set<string>();
+    const top10Series: FilmItem[] = [];
+    pickUniqueBySlug(chinaSeries, 2, seen, top10Series);
+    pickUniqueBySlug(koreaSeries, 3, seen, top10Series);
+    pickUniqueBySlug(thaiSeries, 2, seen, top10Series);
+    pickUniqueBySlug(euUsSeries, 3, seen, top10Series);
+
+    // Sắp xếp lại top 10 theo thời gian cập nhật (modified) từ mới nhất đến cũ nhất
+    const sortedTop10Series = sortByModifiedDesc(top10Series);
+
     return {
       newlyUpdated,
       dailyUpdated,
       phimLe,
       phimBo,
       hanQuoc,
-      trungQuoc,
+      trungQuoc: trungQuocFiltered,
       nhatBan,
       hongKong,
       auMy,
       hoatHinh,
       anime,
+      thaiLan,
+      top10Series: sortedTop10Series,
     };
   } catch (error) {
     console.error("Error fetching home page data:", error);
@@ -108,7 +180,6 @@ export default async function Home() {
           <MovieSection
             title="Top 10 phim lẻ"
             movies={data.phimLe}
-            href="/danh-sach/phim-le"
             variant="newRelease"
           />
         </Suspense>
@@ -123,13 +194,12 @@ export default async function Home() {
           />
         </Suspense>
 
-        {/* Continue Watching (simulated with phim bộ) */}
+        {/* Top 10 phim bộ (2 Trung, 3 Hàn, 2 Thái, 3 Âu Mỹ - bỏ hoạt hình) */}
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
-            title="Phim bộ đang hot"
-            movies={data.phimBo}
-            href="/the-loai/tinh-cam"
-            variant="series"
+            title="Top 10 phim bộ"
+            movies={data.top10Series || []}
+            variant="newRelease"
           />
         </Suspense>
 
@@ -139,11 +209,11 @@ export default async function Home() {
             title="Phim Hàn Quốc"
             movies={data.hanQuoc}
             href="/quoc-gia/han-quoc"
-            variant="portrait"
+            variant="series"
           />
         </Suspense>
 
-        {/* Chinese Dramas */}
+        {/* Chinese Dramas - bỏ phim hoạt hình (lọc theo detail category) */}
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
             title="Phim Trung Quốc"
@@ -173,12 +243,12 @@ export default async function Home() {
           />
         </Suspense>
 
-        {/* Japanese Movies */}
+        {/* Thai Movies */}
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
-            title="Phim Nhật Bản"
-            movies={data.nhatBan}
-            href="/quoc-gia/nhat-ban"
+            title="Phim Thái Lan"
+            movies={data.thaiLan || []}
+            href="/quoc-gia/thai-lan"
             variant="portrait"
           />
         </Suspense>
