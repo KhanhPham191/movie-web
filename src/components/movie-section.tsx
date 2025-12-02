@@ -10,7 +10,7 @@ interface MovieSectionProps {
   title: string;
   movies: FilmItem[];
   href?: string;
-  variant?: "default" | "portrait" | "top10";
+  variant?: "default" | "portrait" | "top10" | "newRelease" | "series" | "cinema";
 }
 
 export function MovieSection({ title, movies, href, variant = "default" }: MovieSectionProps) {
@@ -54,6 +54,12 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
         return "w-[100px] xs:w-[120px] sm:w-[150px] md:w-[170px] lg:w-[190px]";
       case "portrait":
         return "w-[90px] xs:w-[110px] sm:w-[140px] md:w-[160px] lg:w-[190px]";
+      case "newRelease":
+        return "w-[140px] xs:w-[160px] sm:w-[190px] md:w-[210px] lg:w-[230px]";
+      case "series":
+        return "w-[150px] xs:w-[170px] sm:w-[200px] md:w-[220px] lg:w-[240px]";
+      case "cinema":
+        return "w-[260px] xs:w-[300px] sm:w-[360px] md:w-[420px] lg:w-[460px]";
       default:
         return "w-[160px] xs:w-[190px] sm:w-[220px] md:w-[260px] lg:w-[300px]";
     }
@@ -86,7 +92,7 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
         {/* Left Arrow */}
         <button
           onClick={() => scroll("left")}
-          className={`absolute left-0 top-0 bottom-0 z-40 w-8 sm:w-12 md:w-16 flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
+          className={`absolute left-0 top-0 bottom-0 z-40 w-8 sm:w-12 md:w-16 hidden lg:flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
             showLeftArrow && isHovering ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
@@ -96,7 +102,7 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
         {/* Right Arrow */}
         <button
           onClick={() => scroll("right")}
-          className={`absolute right-0 top-0 bottom-0 z-40 w-8 sm:w-12 md:w-16 flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
+          className={`absolute right-0 top-0 bottom-0 z-40 w-8 sm:w-12 md:w-16 hidden lg:flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
             showRightArrow && isHovering ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
@@ -131,7 +137,7 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
                 movie={movie} 
                 index={index} 
                 variant={variant}
-                rank={variant === "top10" ? index + 1 : undefined}
+                rank={variant === "top10" || variant === "newRelease" ? index + 1 : undefined}
               />
             </div>
           ))}
@@ -193,7 +199,7 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
         {/* Arrows */}
         <button
           onClick={() => scroll("left")}
-          className={`absolute left-0 top-0 bottom-0 z-40 w-8 sm:w-12 md:w-16 flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
+          className={`absolute left-0 top-0 bottom-0 z-40 w-8 sm:w-12 md:w-16 hidden lg:flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
             showLeftArrow && isHovering ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
@@ -202,7 +208,7 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
 
         <button
           onClick={() => scroll("right")}
-          className={`absolute right-0 top-0 bottom-0 z-40 w-8 sm:w-12 md:w-16 flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
+          className={`absolute right-0 top-0 bottom-0 z-40 w-8 sm:w-12 md:w-16 hidden lg:flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
             showRightArrow && isHovering ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >

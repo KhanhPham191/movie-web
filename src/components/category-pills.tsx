@@ -115,7 +115,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
           {showLeftArrow && (
             <button
               onClick={() => scroll("left")}
-              className="absolute left-0 top-0 bottom-0 z-10 w-6 sm:w-8 flex items-center justify-start bg-gradient-to-r from-background to-transparent lg:hidden"
+              className="absolute left-0 top-0 bottom-0 z-10 w-6 sm:w-8 items-center justify-start bg-gradient-to-r from-background to-transparent hidden md:flex"
             >
               <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
@@ -128,19 +128,29 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
             className="flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide scroll-smooth px-0.5 sm:px-1"
           >
             {categories.map((cat) => (
-              <Link key={cat.slug} href={cat.href}>
+                <Link key={cat.slug} href={cat.href}>
+                  <Button
+                    variant={activeCategory === cat.slug ? "default" : "ghost"}
+                    className={`h-7 sm:h-8 px-2.5 sm:px-4 text-xs sm:text-sm font-medium whitespace-nowrap shrink-0 rounded-full ${
+                      activeCategory === cat.slug
+                        ? "bg-white text-black hover:bg-white/90"
+                        : "bg-white/10 hover:bg-white/20 text-white"
+                    }`}
+                  >
+                    {cat.name}
+                  </Button>
+                </Link>
+              ))}
+              
+              {/* Mobile-only "Xem tất cả" button */}
+              <Link href="/danh-sach/phim-le" className="sm:hidden">
                 <Button
-                  variant={activeCategory === cat.slug ? "default" : "ghost"}
-                  className={`h-7 sm:h-8 px-2.5 sm:px-4 text-xs sm:text-sm font-medium whitespace-nowrap shrink-0 rounded-full ${
-                    activeCategory === cat.slug
-                      ? "bg-white text-black hover:bg-white/90"
-                      : "bg-white/10 hover:bg-white/20 text-white"
-                  }`}
+                  variant="ghost"
+                  className="h-7 px-3 text-xs font-medium whitespace-nowrap shrink-0 rounded-full bg-white/10 hover:bg-white/20 text-white"
                 >
-                  {cat.name}
+                  Xem tất cả
                 </Button>
               </Link>
-            ))}
             
             {/* Quick Genre Pills - Hide on very small screens */}
             <div className="hidden sm:flex gap-1.5 sm:gap-2">
@@ -161,7 +171,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
           {showRightArrow && (
             <button
               onClick={() => scroll("right")}
-              className="absolute right-0 top-0 bottom-0 z-10 w-6 sm:w-8 flex items-center justify-end bg-gradient-to-l from-background to-transparent lg:hidden"
+              className="absolute right-0 top-0 bottom-0 z-10 w-6 sm:w-8 items-center justify-end bg-gradient-to-l from-background to-transparent hidden md:flex"
             >
               <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>

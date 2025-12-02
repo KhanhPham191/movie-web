@@ -12,8 +12,16 @@ import { getImageUrl } from "@/lib/api";
 interface MovieCardProps {
   movie: FilmItem;
   index?: number;
-  variant?: "default" | "portrait" | "top10";
+  variant?: "default" | "portrait" | "top10" | "newRelease" | "series" | "cinema";
   rank?: number;
+}
+
+// Chuẩn hoá text số tập: "Hoàn tất (20/20)" -> "20/20"
+function formatEpisodeLabel(episode?: string) {
+  if (!episode) return "";
+  const match = episode.match(/Hoàn tất\s*\(([^)]+)\)/i);
+  if (match) return match[1]; // chỉ lấy "20/20"
+  return episode;
 }
 
 export function MovieCard({ movie, index = 0, variant = "default", rank }: MovieCardProps) {
@@ -82,20 +90,202 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               className="object-cover"
               unoptimized
             />
-            {movie.quality && (
-              <Badge className="absolute top-2 left-2 bg-[rgb(255,220,120)] text-black border-0 text-[10px] font-bold">
-                {movie.quality}
-              </Badge>
-            )}
             {movie.current_episode && (
               <Badge className="absolute top-2 right-2 bg-red-600 text-white border-0 text-[10px]">
-                {movie.current_episode}
+                {formatEpisodeLabel(movie.current_episode)}
               </Badge>
             )}
           </div>
           <h3 className="mt-2 text-sm font-medium line-clamp-1 group-hover:text-white transition-colors">
             {movie.name}
           </h3>
+        </div>
+      </Link>
+    );
+  }
+
+  // New Release variant - poster + big rank + info, giống layout Top mới
+  if (variant === "newRelease") {
+    // Xác định hướng nghiêng: 1 phải, 2 trái, 3 phải,... dựa trên rank (fallback index)
+    const order = rank ?? index + 1;
+    const tiltDeg = order % 2 === 1 ? 12 : -12;
+
+    return (
+      <Link href={`/phim/${movie.slug}`}>
+        <div
+          className="group relative flex flex-col items-start"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          {/* Poster */}
+          <div
+            className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-muted transition-transform duration-150 ease-out group-hover:shadow-2xl"
+            style={{
+              transform: `perspective(900px) rotateY(${tiltDeg}deg) scale(${isHovered ? 1.06 : 1})`,
+              transformStyle: "preserve-3d",
+            }}
+          >
+            <Image
+              src={imageUrl}
+              alt={movie.name}
+              fill
+              className="object-cover"
+              unoptimized
+            />
+            {movie.current_episode && (
+              <Badge className="absolute bottom-2 left-2 bg-red-600 text-white border-0 text-[10px] font-bold">
+                {formatEpisodeLabel(movie.current_episode)}
+              </Badge>
+            )}
+          </div>
+
+          {/* Rank + Info */}
+          <div className="mt-3 flex items-start gap-2 w-full">
+            {rank && (
+              <div className="text-3xl xs:text-4xl sm:text-5xl font-black text-[rgb(255,220,120)] leading-none">
+                {rank}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm xs:text-base font-semibold text-white line-clamp-2">
+                {movie.name}
+              </h3>
+              <p className="mt-1 text-[11px] xs:text-xs text-gray-400 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                {movie.time && <span>{movie.time}</span>}
+                {movie.language && (
+                  <span className="px-1 py-0.5 rounded bg-white/10 text-[10px] uppercase tracking-wide">
+                    {movie.language}
+                  </span>
+                )}
+                <span className="px-1 py-0.5 rounded border border-gray-500 text-[10px]">
+                  13+
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
+  // Series variant - poster + info, không số thứ tự, 3D nhẹ khi hover
+  if (variant === "series") {
+    return (
+      <Link href={`/phim/${movie.slug}`}>
+        <div
+          className="group relative flex flex-col items-start"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          {/* Poster */}
+          <div
+            className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-muted transition-transform duration-150 ease-out group-hover:shadow-2xl"
+            style={{
+              transform: isHovered
+                ? "perspective(900px) rotateY(8deg) scale(1.04)"
+                : "none",
+              transformStyle: "preserve-3d",
+            }}
+          >
+            <Image
+              src={imageUrl}
+              alt={movie.name}
+              fill
+              className="object-cover"
+              unoptimized
+            />
+            {movie.current_episode && (
+              <Badge className="absolute bottom-2 left-2 bg-red-600 text-white border-0 text-[10px] font-bold">
+                {formatEpisodeLabel(movie.current_episode)}
+              </Badge>
+            )}
+          </div>
+
+          {/* Info */}
+          <div className="mt-3 w-full">
+            <h3 className="text-sm xs:text-base font-semibold text-white line-clamp-2">
+              {movie.name}
+            </h3>
+            <p className="mt-1 text-[11px] xs:text-xs text-gray-400 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+              {movie.time && <span>{movie.time}</span>}
+              <span className="px-1 py-0.5 rounded border border-gray-500 text-[10px]">
+                16+
+              </span>
+            </p>
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
+  // Cinema / US-UK variant - wide backdrop + small poster + info (layout giống hình bạn gửi)
+  if (variant === "cinema") {
+    // Đổi ngược lại giữa poster và thumb_url:
+    // - backdrop dùng poster_url (nếu có) để rõ nét
+    // - poster nhỏ bên dưới dùng thumb_url để khác hình
+    const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
+    const thumbUrl = getImageUrl(movie.thumb_url || movie.poster_url);
+
+    return (
+      <Link href={`/phim/${movie.slug}`}>
+        <div className="group relative w-full max-w-full">
+          {/* Wide backdrop */}
+          <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-muted transition-transform duration-300 group-hover:scale-[1.02] group-hover:shadow-2xl">
+            <Image
+              src={backdropUrl}
+              alt={movie.name}
+              fill
+              className="object-cover"
+              unoptimized
+            />
+
+            {/* Dark gradient bar at bottom */}
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#050505] via-[#050505e6] to-transparent" />
+
+            {/* Poster + text overlay on bottom bar */}
+            <div className="absolute left-4 right-4 bottom-3 flex items-end gap-3">
+              {/* Small vertical poster */}
+              <div className="relative aspect-[2/3] w-14 xs:w-16 sm:w-20 rounded-md overflow-hidden shadow-2xl shadow-black/80 border border-white/10 bg-black/60">
+                <Image
+                  src={thumbUrl}
+                  alt={movie.name}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              </div>
+
+              {/* Text & badges */}
+              <div className="flex-1 min-w-0">
+                <div className="mb-1 flex flex-wrap items-center gap-1">
+                  {movie.language && (
+                    <Badge className="bg-white text-black text-[10px] font-semibold px-2 py-0.5 border-0">
+                      {movie.language}
+                    </Badge>
+                  )}
+                  {movie.current_episode && (
+                    <Badge className="bg-red-600 text-white text-[10px] font-semibold border-0">
+                      {formatEpisodeLabel(movie.current_episode)}
+                    </Badge>
+                  )}
+                </div>
+                <h3 className="text-sm sm:text-base font-semibold text-white line-clamp-1">
+                  {movie.name}
+                </h3>
+                {movie.original_name && movie.original_name !== movie.name && (
+                  <p className="text-[11px] xs:text-xs text-gray-300 line-clamp-1">
+                    {movie.original_name}
+                  </p>
+                )}
+                <p className="mt-1 text-[11px] xs:text-xs text-gray-300 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                  <span className="px-1 py-0.5 rounded border border-gray-500 text-[10px]">
+                    18+
+                  </span>
+                  {movie.time && <span>{movie.time}</span>}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </Link>
     );
@@ -129,22 +319,11 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               unoptimized
             />
 
-            {/* Badges on thumbnail */}
-            {!isHovered && (
-              <div className="absolute top-2 left-2 flex gap-1">
-                {movie.quality && (
-                  <Badge className="bg-black/60 text-white border-0 text-[10px] font-medium backdrop-blur-sm">
-                    {movie.quality}
-                  </Badge>
-                )}
-              </div>
-            )}
-
             {/* Episode badge */}
             {!isHovered && movie.current_episode && (
               <div className="absolute bottom-2 left-2">
                 <Badge className="bg-red-600 text-white border-0 text-[10px] font-bold">
-                  {movie.current_episode}
+                  {formatEpisodeLabel(movie.current_episode)}
                 </Badge>
               </div>
             )}
@@ -196,9 +375,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               {/* Meta Info Row */}
               <div className="flex items-center gap-2 text-xs">
                 <span className="text-green-500 font-semibold">97% Phù hợp</span>
-                {movie.quality && (
-                  <span className="px-1 border border-gray-500 text-[10px]">{movie.quality}</span>
-                )}
                 {movie.time && <span className="text-gray-400">{movie.time}</span>}
               </div>
 

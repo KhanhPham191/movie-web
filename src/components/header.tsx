@@ -57,12 +57,16 @@ export function Header() {
           : "bg-gradient-to-b from-black/80 via-black/40 to-transparent"
       }`}
     >
-      <div className={`flex items-center justify-between px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 transition-all duration-500 ${isScrolled ? "h-10 sm:h-12 lg:h-14" : "h-14 sm:h-18 md:h-20 lg:h-[80px]"}`}>
+      <div className={`flex items-center justify-between px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 transition-all duration-500 ${
+        isScrolled
+          ? "h-10 xs:h-11 sm:h-12 lg:h-14"
+          : "h-12 xs:h-14 sm:h-16 md:h-20 lg:h-[80px]"
+      }`}>
         {/* Left Side */}
         <div className="flex items-center gap-2 sm:gap-4 lg:gap-10 min-w-0">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-1 xs:gap-1.5 shrink-0">
-            <div className="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded bg-[linear-gradient(135deg,rgb(255,220,120),rgb(250,236,185))] flex items-center justify-center">
+            <div className="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded bg-[linear-gradient(135deg,rgb(255,220,120),rgb(250,236,185))] flex items-center justify-center shadow-md shadow-black/40">
               <Film className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 text-white" />
             </div>
             <span className="text-base xs:text-lg sm:text-xl font-bold text-[rgb(255,220,120)] hidden xs:block">

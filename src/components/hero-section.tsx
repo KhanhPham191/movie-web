@@ -13,6 +13,14 @@ interface HeroSectionProps {
   movies: FilmItem[];
 }
 
+// Chuẩn hoá text số tập: "Hoàn tất (20/20)" -> "20/20"
+function formatEpisodeLabel(episode?: string) {
+  if (!episode) return "";
+  const match = episode.match(/Hoàn tất\s*\(([^)]+)\)/i);
+  if (match) return match[1];
+  return episode;
+}
+
 export function HeroSection({ movies }: HeroSectionProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
@@ -138,11 +146,13 @@ export function HeroSection({ movies }: HeroSectionProps) {
           isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
         }`}
       >
-        {/* Netflix N Logo + Series indicator */}
+        {/* Badge + Series indicator */}
         <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
           <div className="flex items-center gap-0.5 sm:gap-1">
-            <span className="text-blue-500 font-black text-lg sm:text-xl tracking-tighter">P</span>
-            <span className="text-[10px] sm:text-xs font-semibold text-gray-300 tracking-widest uppercase">
+            <span className="text-[rgb(255,220,120)] font-black text-base xs:text-lg sm:text-xl tracking-tighter drop-shadow-lg">
+              P
+            </span>
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-200 tracking-widest uppercase">
               Phim hot
             </span>
           </div>
@@ -163,11 +173,10 @@ export function HeroSection({ movies }: HeroSectionProps) {
         {/* Meta Info */}
         <div className="flex flex-wrap items-center gap-1 xs:gap-1.5 sm:gap-2 mb-2 xs:mb-3 sm:mb-4 text-[11px] xs:text-xs sm:text-sm">
           <span className="text-green-500 font-semibold">98% Phù hợp</span>
-          {movie.quality && (
-            <span className="px-1 sm:px-1.5 py-0.5 border border-gray-400 text-[10px] sm:text-xs font-medium">{movie.quality}</span>
-          )}
           {movie.current_episode && (
-            <span className="text-gray-300 text-[11px] xs:text-xs sm:text-sm">{movie.current_episode}</span>
+            <span className="text-gray-300 text-[11px] xs:text-xs sm:text-sm">
+              {formatEpisodeLabel(movie.current_episode)}
+            </span>
           )}
           {movie.time && (
             <span className="text-gray-400 text-[11px] xs:text-xs sm:text-sm">{movie.time}</span>
