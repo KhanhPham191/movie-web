@@ -54,7 +54,7 @@ export function Header() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isScrolled
-          ? "bg-[#0a0a1a]"
+          ? "bg-[#0f0f0f]"
           : "bg-gradient-to-b from-black/80 via-black/40 to-transparent"
       }`}
     >
@@ -110,7 +110,7 @@ export function Header() {
                     <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-[#0a0a1a]/95 backdrop-blur border-gray-800">
+                <DropdownMenuContent className="w-56 bg-[#0f0f0f]/95 backdrop-blur border-gray-800">
                   {mainNav.map((item) => (
                     <DropdownMenuItem key={item.name} asChild>
                       <Link href={item.href} className="text-gray-200 hover:text-white">
@@ -198,7 +198,7 @@ export function Header() {
                   <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-white group-hover:rotate-180 transition-transform hidden md:block" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-[#0a0a1a]/95 backdrop-blur border-gray-800">
+              <DropdownMenuContent align="end" className="w-48 bg-[#0f0f0f]/95 backdrop-blur border-gray-800">
                 <DropdownMenuItem className="text-gray-200 hover:text-white cursor-pointer">
                   Quản lý hồ sơ
                 </DropdownMenuItem>

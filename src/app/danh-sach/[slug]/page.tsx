@@ -137,7 +137,7 @@ export default async function CategoryPage({
   }
 
   return (
-    <main className="min-h-screen bg-[#0a0a1a]">
+    <main className="min-h-screen bg-[#0f0f0f]">
       <Header />
 
       <div className="pt-16 sm:pt-20 md:pt-24">
@@ -157,7 +157,7 @@ export default async function CategoryPage({
         </section>
 
         {/* Genre pills row */}
-        <div className="bg-[#0a0a1a]">
+        <div className="bg-[#0f0f0f]">
           <GenreSection />
         </div>
 

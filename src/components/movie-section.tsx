@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useCallback } from "react";
 import Link from "next/link";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { MovieCard } from "@/components/movie-card";
 import type { FilmItem } from "@/lib/api";
 
@@ -15,37 +15,107 @@ interface MovieSectionProps {
 
 export function MovieSection({ title, movies, href, variant = "default" }: MovieSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(true);
-  const [isHovering, setIsHovering] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const dragState = useRef<{ startX: number; scrollLeft: number }>({ startX: 0, scrollLeft: 0 });
+  const hasDragged = useRef(false);
+  const dragState = useRef<{ 
+    startX: number; 
+    scrollLeft: number; 
+    lastX: number; 
+    lastTime: number;
+    velocities: number[];
+  }>({ 
+    startX: 0, 
+    scrollLeft: 0, 
+    lastX: 0,
+    lastTime: 0,
+    velocities: []
+  });
+  const animationFrameRef = useRef<number | null>(null);
+  const momentumRef = useRef<number | null>(null);
 
   if (!movies || movies.length === 0) {
     return null;
   }
 
-  const scroll = (direction: "left" | "right") => {
-    if (!scrollRef.current) return;
+  // Smooth scroll với momentum
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
     
-    const container = scrollRef.current;
-    const scrollAmount = container.clientWidth * 0.75;
+    const now = performance.now();
+    const dx = e.clientX - dragState.current.startX;
     
-    container.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
-      behavior: "smooth",
+    // Nếu di chuyển > 1px thì coi là drag
+    if (Math.abs(dx) > 1) {
+      hasDragged.current = true;
+    }
+    
+    const currentScrollLeft = dragState.current.scrollLeft - dx;
+    
+    // Tính velocity cho momentum (lưu lại các giá trị gần đây)
+    if (dragState.current.lastTime > 0) {
+      const timeDelta = now - dragState.current.lastTime;
+      const xDelta = e.clientX - dragState.current.lastX;
+      if (timeDelta > 0) {
+        const velocity = xDelta / timeDelta;
+        dragState.current.velocities.push(velocity);
+        // Chỉ giữ lại 5 giá trị gần nhất
+        if (dragState.current.velocities.length > 5) {
+          dragState.current.velocities.shift();
+        }
+      }
+    }
+    
+    dragState.current.lastX = e.clientX;
+    dragState.current.lastTime = now;
+    
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    
+    animationFrameRef.current = requestAnimationFrame(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollLeft = currentScrollLeft;
+      }
     });
-  };
+  }, [isDragging]);
 
-  const handleScroll = () => {
-    if (!scrollRef.current) return;
+  const handleMouseUp = useCallback(() => {
+    if (!isDragging) return;
     
-    const container = scrollRef.current;
-    setShowLeftArrow(container.scrollLeft > 20);
-    setShowRightArrow(
-      container.scrollLeft < container.scrollWidth - container.clientWidth - 20
-    );
-  };
+    setIsDragging(false);
+    
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    
+    // Momentum scrolling - tính average velocity
+    if (scrollRef.current && dragState.current.velocities.length > 0) {
+      const avgVelocity = dragState.current.velocities.reduce((a, b) => a + b, 0) / dragState.current.velocities.length;
+      
+      if (Math.abs(avgVelocity) > 0.1) {
+        let momentum = avgVelocity * 15; // Nhân với hệ số để tăng tốc độ
+        const friction = 0.92;
+        
+        const animateMomentum = () => {
+          if (!scrollRef.current || Math.abs(momentum) < 0.3) {
+            momentumRef.current = null;
+            return;
+          }
+          
+          scrollRef.current.scrollLeft -= momentum;
+          momentum *= friction;
+          momentumRef.current = requestAnimationFrame(animateMomentum);
+        };
+        
+        momentumRef.current = requestAnimationFrame(animateMomentum);
+      }
+    }
+    
+    dragState.current.velocities = [];
+    dragState.current.lastX = 0;
+    dragState.current.lastTime = 0;
+  }, [isDragging]);
 
   // Get card width based on variant
   const getCardWidth = () => {
@@ -66,11 +136,7 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
   };
 
   return (
-    <section 
-      className="relative py-3 xs:py-4 sm:py-5 group/section"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-    >
+    <section className="relative py-3 xs:py-4 sm:py-5 group/section">
       {/* Section Header */}
       <div className="px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 mb-1.5 xs:mb-2">
         {href ? (
@@ -95,46 +161,52 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
         )}
       </div>
 
-      {/* Slider Container */}
+      {/* Scrollable Row */}
       <div className="relative">
-        {/* Left Arrow */}
-        <button
-          onClick={() => scroll("left")}
-          className={`absolute left-0 top-0 bottom-0 z-40 w-8 sm:w-12 md:w-16 hidden lg:flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
-            showLeftArrow && isHovering ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
-        >
-          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white" />
-        </button>
-
-        {/* Right Arrow */}
-        <button
-          onClick={() => scroll("right")}
-          className={`absolute right-0 top-0 bottom-0 z-40 w-8 sm:w-12 md:w-16 hidden lg:flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
-            showRightArrow && isHovering ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
-        >
-          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white" />
-        </button>
-
-        {/* Scrollable Row */}
         <div
           ref={scrollRef}
-          onScroll={handleScroll}
           onMouseDown={(e) => {
-            if (!scrollRef.current) return;
+            // Chỉ hoạt động với chuột trái (button 0)
+            if (e.button !== 0 || !scrollRef.current) return;
+            
+            // Dừng momentum nếu đang chạy
+            if (momentumRef.current) {
+              cancelAnimationFrame(momentumRef.current);
+              momentumRef.current = null;
+            }
+            
+            // Reset drag flag
+            hasDragged.current = false;
+            
+            e.preventDefault();
             setIsDragging(true);
-            dragState.current = { startX: e.clientX, scrollLeft: scrollRef.current.scrollLeft };
+            dragState.current = { 
+              startX: e.clientX, 
+              scrollLeft: scrollRef.current.scrollLeft,
+              lastX: e.clientX,
+              lastTime: performance.now(),
+              velocities: []
+            };
           }}
           onMouseMove={(e) => {
-            if (!isDragging || !scrollRef.current) return;
+            if (!isDragging) return;
             e.preventDefault();
-            const dx = e.clientX - dragState.current.startX;
-            scrollRef.current.scrollLeft = dragState.current.scrollLeft - dx;
+            handleMouseMove(e.nativeEvent);
           }}
-          onMouseUp={() => setIsDragging(false)}
-          onMouseLeave={() => setIsDragging(false)}
-          className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 scroll-smooth select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onClick={(e) => {
+            // Nếu đã drag thì prevent click vào movie card
+            if (hasDragged.current) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          }}
+          style={{
+            scrollBehavior: isDragging ? 'auto' : 'smooth',
+            willChange: isDragging ? 'scroll-position' : 'auto',
+          }}
+          className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
           {movies.slice(0, 10).map((movie, index) => (
             <div
@@ -158,37 +230,115 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
 // Top 10 Section Component
 export function Top10Section({ title, movies, href }: { title: string; movies: FilmItem[]; href?: string }) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(true);
-  const [isHovering, setIsHovering] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const dragState = useRef<{ startX: number; scrollLeft: number }>({ startX: 0, scrollLeft: 0 });
+  const hasDragged = useRef(false);
+  const dragState = useRef<{ 
+    startX: number; 
+    scrollLeft: number; 
+    lastX: number;
+    lastTime: number;
+    velocities: number[];
+  }>({ 
+    startX: 0, 
+    scrollLeft: 0,
+    lastX: 0,
+    lastTime: 0,
+    velocities: []
+  });
+  const animationFrameRef = useRef<number | null>(null);
+  const momentumRef = useRef<number | null>(null);
 
   if (!movies || movies.length === 0) return null;
 
-  const scroll = (direction: "left" | "right") => {
-    if (!scrollRef.current) return;
-    const container = scrollRef.current;
-    const scrollAmount = container.clientWidth * 0.75;
-    container.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
-      behavior: "smooth",
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    
+    const now = performance.now();
+    const dx = e.clientX - dragState.current.startX;
+    
+    // Nếu di chuyển > 1px thì coi là drag
+    if (Math.abs(dx) > 1) {
+      hasDragged.current = true;
+    }
+    
+    const currentScrollLeft = dragState.current.scrollLeft - dx;
+    
+    // Tính velocity cho momentum (lưu lại các giá trị gần đây)
+    if (dragState.current.lastTime > 0) {
+      const timeDelta = now - dragState.current.lastTime;
+      const xDelta = e.clientX - dragState.current.lastX;
+      if (timeDelta > 0) {
+        const velocity = xDelta / timeDelta;
+        dragState.current.velocities.push(velocity);
+        // Chỉ giữ lại 5 giá trị gần nhất
+        if (dragState.current.velocities.length > 5) {
+          dragState.current.velocities.shift();
+        }
+      }
+    }
+    
+    dragState.current.lastX = e.clientX;
+    dragState.current.lastTime = now;
+    
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    
+    animationFrameRef.current = requestAnimationFrame(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollLeft = currentScrollLeft;
+      }
     });
-  };
+  }, [isDragging]);
 
-  const handleScroll = () => {
-    if (!scrollRef.current) return;
-    const container = scrollRef.current;
-    setShowLeftArrow(container.scrollLeft > 20);
-    setShowRightArrow(container.scrollLeft < container.scrollWidth - container.clientWidth - 20);
-  };
+  const handleMouseUp = useCallback(() => {
+    if (!isDragging) return;
+    
+    setIsDragging(false);
+    
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    
+    // Momentum scrolling - tính average velocity
+    if (scrollRef.current && dragState.current.velocities.length > 0) {
+      const avgVelocity = dragState.current.velocities.reduce((a, b) => a + b, 0) / dragState.current.velocities.length;
+      
+      if (Math.abs(avgVelocity) > 0.1) {
+        let momentum = avgVelocity * 15; // Nhân với hệ số để tăng tốc độ
+        const friction = 0.92;
+        
+        const animateMomentum = () => {
+          if (!scrollRef.current || Math.abs(momentum) < 0.3) {
+            momentumRef.current = null;
+            return;
+          }
+          
+          scrollRef.current.scrollLeft -= momentum;
+          momentum *= friction;
+          momentumRef.current = requestAnimationFrame(animateMomentum);
+        };
+        
+        momentumRef.current = requestAnimationFrame(animateMomentum);
+      }
+    }
+    
+    dragState.current.velocities = [];
+    dragState.current.lastX = 0;
+    dragState.current.lastTime = 0;
+    
+    // Reset hasDragged sau một khoảng thời gian ngắn để cho phép click bình thường nếu không drag
+    const wasDragging = hasDragged.current;
+    if (!wasDragging) {
+      setTimeout(() => {
+        hasDragged.current = false;
+      }, 0);
+    }
+  }, [isDragging]);
 
   return (
-    <section 
-      className="relative py-4 group/section"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-    >
+    <section className="relative py-4 group/section">
       {/* Header */}
       <div className="px-3 sm:px-4 md:px-12 mb-2">
         <Link href={href || "#"} className="group/title inline-flex items-center gap-1">
@@ -202,45 +352,52 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
         </Link>
       </div>
 
-      {/* Slider */}
+      {/* Top 10 Cards */}
       <div className="relative">
-        {/* Arrows */}
-        <button
-          onClick={() => scroll("left")}
-          className={`absolute left-0 top-0 bottom-0 z-40 w-8 sm:w-12 md:w-16 hidden lg:flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
-            showLeftArrow && isHovering ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
-        >
-          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white" />
-        </button>
-
-        <button
-          onClick={() => scroll("right")}
-          className={`absolute right-0 top-0 bottom-0 z-40 w-8 sm:w-12 md:w-16 hidden lg:flex items-center justify-center bg-black/50 hover:bg-black/80 transition-all duration-300 ${
-            showRightArrow && isHovering ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
-        >
-          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white" />
-        </button>
-
-        {/* Top 10 Cards */}
         <div
           ref={scrollRef}
-          onScroll={handleScroll}
           onMouseDown={(e) => {
-            if (!scrollRef.current) return;
+            // Chỉ hoạt động với chuột trái (button 0)
+            if (e.button !== 0 || !scrollRef.current) return;
+            
+            // Dừng momentum nếu đang chạy
+            if (momentumRef.current) {
+              cancelAnimationFrame(momentumRef.current);
+              momentumRef.current = null;
+            }
+            
+            // Reset drag flag
+            hasDragged.current = false;
+            
+            e.preventDefault();
             setIsDragging(true);
-            dragState.current = { startX: e.clientX, scrollLeft: scrollRef.current.scrollLeft };
+            dragState.current = { 
+              startX: e.clientX, 
+              scrollLeft: scrollRef.current.scrollLeft,
+              lastX: e.clientX,
+              lastTime: performance.now(),
+              velocities: []
+            };
           }}
           onMouseMove={(e) => {
-            if (!isDragging || !scrollRef.current) return;
+            if (!isDragging) return;
             e.preventDefault();
-            const dx = e.clientX - dragState.current.startX;
-            scrollRef.current.scrollLeft = dragState.current.scrollLeft - dx;
+            handleMouseMove(e.nativeEvent);
           }}
-          onMouseUp={() => setIsDragging(false)}
-          onMouseLeave={() => setIsDragging(false)}
-          className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 scroll-smooth select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onClick={(e) => {
+            // Nếu đã drag thì prevent click vào movie card
+            if (hasDragged.current) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          }}
+          style={{
+            scrollBehavior: isDragging ? 'auto' : 'smooth',
+            willChange: isDragging ? 'scroll-position' : 'auto',
+          }}
+          className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
           {movies.slice(0, 10).map((movie, index) => (
             <div key={`${movie.slug}-${index}`} className="shrink-0 flex flex-col w-[120px] sm:w-[140px] md:w-[160px] lg:w-[180px]">

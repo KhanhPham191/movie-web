@@ -68,7 +68,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
                   <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 max-h-80 overflow-y-auto bg-[#0a0a1a] border-gray-700">
+              <DropdownMenuContent className="w-56 max-h-80 overflow-y-auto bg-[#0f0f0f] border-gray-700">
                 {GENRES.map((genre) => (
                   <DropdownMenuItem key={genre.slug} asChild>
                     <Link href={`/the-loai/${genre.slug}`} className="cursor-pointer text-gray-200 hover:text-white">
@@ -93,7 +93,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
                   <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48 bg-[#0a0a1a] border-gray-700">
+              <DropdownMenuContent className="w-48 bg-[#0f0f0f] border-gray-700">
                 {COUNTRIES.map((country) => (
                   <DropdownMenuItem key={country.slug} asChild>
                     <Link href={`/quoc-gia/${country.slug}`} className="cursor-pointer text-gray-200 hover:text-white">

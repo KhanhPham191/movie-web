@@ -26,7 +26,7 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer className="bg-[#0a0a1a] pt-16 pb-8 px-4 md:px-12">
+    <footer className="bg-[#0f0f0f] pt-16 pb-8 px-4 md:px-12">
       <div className="max-w-[980px] mx-auto">
         {/* Social Links */}
         <div className="flex gap-6 mb-6">

@@ -210,7 +210,7 @@ async function MovieDetail({ slug }: { slug: string }) {
         </section>
 
         {/* Main Content */}
-        <div className="relative z-10 bg-[#0a0a1a] -mt-24 pt-32">
+        <div className="relative z-10 bg-[#0f0f0f] -mt-24 pt-32">
           <div className="container mx-auto px-4 md:px-12">
             {/* Episodes Section */}
             {movie.episodes && movie.episodes.length > 0 && (
@@ -418,7 +418,7 @@ function MovieDetailSkeleton() {
   return (
     <>
       {/* Hero Skeleton */}
-      <section className="relative h-[85vh] min-h-[500px] flex items-end bg-[#0a0a1a]">
+      <section className="relative h-[85vh] min-h-[500px] flex items-end bg-[#0f0f0f]">
         <div className="container mx-auto px-4 md:px-12 pb-24">
           <div className="max-w-2xl space-y-4">
             <Skeleton className="h-12 w-3/4" />
@@ -432,7 +432,7 @@ function MovieDetailSkeleton() {
       </section>
 
       {/* Content Skeleton */}
-      <div className="bg-[#0a0a1a] -mt-32 pt-40">
+      <div className="bg-[#0f0f0f] -mt-32 pt-40">
         <div className="container mx-auto px-4 md:px-12">
           <Skeleton className="h-8 w-48 mb-6" />
           <div className="flex gap-2 mb-12">
@@ -461,7 +461,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
   const { slug } = await params;
 
   return (
-    <main className="min-h-screen bg-[#0a0a1a]">
+    <main className="min-h-screen bg-[#0f0f0f]">
       <Header />
 
       <Suspense fallback={<MovieDetailSkeleton />}>

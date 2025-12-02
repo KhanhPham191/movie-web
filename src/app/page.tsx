@@ -172,7 +172,7 @@ export default async function Home() {
   const data = await getHomePageData();
 
   return (
-    <main className="min-h-screen bg-[#0a0a1a]">
+    <main className="min-h-screen bg-[#0f0f0f]">
       {/* Header */}
       <Header />
 

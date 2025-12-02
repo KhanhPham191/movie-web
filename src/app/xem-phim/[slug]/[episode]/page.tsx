@@ -219,7 +219,7 @@ async function VideoPlayer({
         </div>
 
         {/* Episode list - Netflix 2024 Style */}
-        <div className="bg-[#0a0a1a] rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 border border-[#FF6EA0]/10">
+        <div className="bg-[#0f0f0f] rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 border border-[#FF6EA0]/10">
           <div className="flex items-center justify-between">
             <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-white flex items-center gap-2">
               <List className="w-4 h-4 sm:w-5 sm:h-5 text-[#FF6EA0]" />

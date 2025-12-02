@@ -10,6 +10,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getFilmsByCountry, getFilmsByCountryMultiple, COUNTRIES } from "@/lib/api";
 import { filterChinaNonAnimation } from "@/lib/filters";
 
+// ISR: Revalidate every 5 minutes for Trung Quốc page
+export const revalidate = 300;
+
 interface CountryPageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string }>;
@@ -19,19 +22,38 @@ async function CountryContent({ slug, page }: { slug: string; page: number }) {
   try {
     const ITEMS_PER_PAGE = 10;
     
-    // Nếu là trang Trung Quốc: lấy nhiều pages, filter bỏ hoạt hình, sau đó phân trang lại
+    // Nếu là trang Trung Quốc: tối ưu bằng cách filter theo batch
     if (slug === "trung-quoc") {
-      // Lấy nhiều pages từ API (30 pages để có đủ phim)
-      const allMovies = await getFilmsByCountryMultiple(slug, 30);
+      // Chiến lược: lấy đủ pages để có phim cho trang hiện tại
+      // Ước tính: ~70% phim không phải hoạt hình, mỗi page có ~20 phim
+      // Cần: (page * ITEMS_PER_PAGE) / 0.7 phim gốc
+      const ESTIMATED_MOVIES_NEEDED = Math.ceil((page * ITEMS_PER_PAGE) / 0.7);
+      const PAGES_TO_FETCH = Math.min(15, Math.ceil(ESTIMATED_MOVIES_NEEDED / 20) + 3);
       
-      // Filter bỏ hoạt hình
-      const filteredMovies = await filterChinaNonAnimation(allMovies);
+      // Lấy pages từ API
+      const allMovies = await getFilmsByCountryMultiple(slug, PAGES_TO_FETCH);
+      
+      // Filter bỏ hoạt hình - chỉ filter đủ cho trang hiện tại + buffer
+      const BUFFER_SIZE = ITEMS_PER_PAGE * 2; // Buffer 2 trang để tính totalPages
+      const moviesToFilter = allMovies.slice(0, Math.min(page * ITEMS_PER_PAGE + BUFFER_SIZE, allMovies.length));
+      
+      const filteredMovies = await filterChinaNonAnimation(moviesToFilter);
+      
+      // Nếu đã có đủ phim cho trang hiện tại, dùng luôn
+      // Nếu chưa đủ, filter thêm từ phần còn lại
+      let finalFilteredMovies = filteredMovies;
+      if (filteredMovies.length < page * ITEMS_PER_PAGE && allMovies.length > moviesToFilter.length) {
+        // Filter thêm phần còn lại
+        const remainingMovies = allMovies.slice(moviesToFilter.length);
+        const additionalFiltered = await filterChinaNonAnimation(remainingMovies);
+        finalFilteredMovies = [...filteredMovies, ...additionalFiltered];
+      }
       
       // Phân trang lại: 10 phim/trang
-      const totalPages = Math.ceil(filteredMovies.length / ITEMS_PER_PAGE);
+      const totalPages = Math.ceil(finalFilteredMovies.length / ITEMS_PER_PAGE);
       const startIndex = (page - 1) * ITEMS_PER_PAGE;
       const endIndex = startIndex + ITEMS_PER_PAGE;
-      const movies = filteredMovies.slice(startIndex, endIndex);
+      const movies = finalFilteredMovies.slice(startIndex, endIndex);
 
       if (movies.length === 0) {
         return (

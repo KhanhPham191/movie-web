@@ -46,11 +46,11 @@
 /* Sakura Pink Theme */
 :root {
   --radius: 0.375rem;
-  --background: #0a0a1a;
+  --background: #0f0f0f;
   --foreground: #ffffff;
-  --card: #0f0f1f;
+  --card: #1a1a1a;
   --card-foreground: #ffffff;
-  --popover: #0a0a1a;
+  --popover: #0f0f0f;
   --popover-foreground: #ffffff;
   --primary: #FF6EA0;
   --primary-foreground: #ffffff;
@@ -73,7 +73,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-[#0a0a1a] text-white;
+    @apply bg-[#0f0f0f] text-white;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
@@ -159,7 +159,7 @@
 
 /* Glass morphism */
 .glass {
-  background: rgba(10, 10, 26, 0.85);
+  background: rgba(15, 15, 15, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   }
@@ -196,12 +196,12 @@ html {
 .netflix-gradient {
   background: linear-gradient(
     180deg,
-    rgba(10, 10, 26, 0) 0%,
-    rgba(10, 10, 26, 0.1) 15%,
-    rgba(10, 10, 26, 0.4) 40%,
-    rgba(10, 10, 26, 0.7) 60%,
-    rgba(10, 10, 26, 0.9) 80%,
-    rgba(10, 10, 26, 1) 100%
+    rgba(15, 15, 15, 0) 0%,
+    rgba(15, 15, 15, 0.1) 15%,
+    rgba(15, 15, 15, 0.4) 40%,
+    rgba(15, 15, 15, 0.7) 60%,
+    rgba(15, 15, 15, 0.9) 80%,
+    rgba(15, 15, 15, 1) 100%
   );
 }
 
@@ -227,9 +227,9 @@ html {
 .skeleton {
   background: linear-gradient(
     90deg,
-    #0f0f1f 0%,
-    #1a1a2a 50%,
-    #0f0f1f 100%
+    #1a1a1a 0%,
+    #2d2d2d 50%,
+    #1a1a1a 100%
   );
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite;
