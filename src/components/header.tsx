@@ -54,7 +54,7 @@ export function Header() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isScrolled
-          ? "bg-[#141414]"
+          ? "bg-[#0a0a1a]"
           : "bg-gradient-to-b from-black/80 via-black/40 to-transparent"
       }`}
     >
@@ -78,7 +78,7 @@ export function Header() {
               />
             </div>
             <div className="hidden xs:flex flex-col leading-tight">
-              <span className="text-base xs:text-lg sm:text-xl font-extrabold text-[rgb(255,220,120)] tracking-tight">
+              <span className="text-base xs:text-lg sm:text-xl font-extrabold text-[#FF6EA0] tracking-tight">
                 MovPey
               </span>
               <span className="text-[9px] xs:text-[10px] sm:text-xs font-medium text-gray-200 tracking-wide">
@@ -110,7 +110,7 @@ export function Header() {
                     <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-[#141414]/95 backdrop-blur border-gray-800">
+                <DropdownMenuContent className="w-56 bg-[#0a0a1a]/95 backdrop-blur border-gray-800">
                   {mainNav.map((item) => (
                     <DropdownMenuItem key={item.name} asChild>
                       <Link href={item.href} className="text-gray-200 hover:text-white">
@@ -192,13 +192,13 @@ export function Header() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-1 sm:gap-2 group shrink-0">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-[linear-gradient(135deg,rgb(255,220,120),rgb(250,236,185))] flex items-center justify-center">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-[linear-gradient(135deg,#FF6EA0,#FFB6D5)] flex items-center justify-center">
                     <span className="text-xs sm:text-sm font-bold">P</span>
                   </div>
                   <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-white group-hover:rotate-180 transition-transform hidden md:block" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-[#141414]/95 backdrop-blur border-gray-800">
+              <DropdownMenuContent align="end" className="w-48 bg-[#0a0a1a]/95 backdrop-blur border-gray-800">
                 <DropdownMenuItem className="text-gray-200 hover:text-white cursor-pointer">
                   Quản lý hồ sơ
                 </DropdownMenuItem>

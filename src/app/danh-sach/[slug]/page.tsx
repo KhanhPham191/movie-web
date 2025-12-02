@@ -137,14 +137,14 @@ export default async function CategoryPage({
   }
 
   return (
-    <main className="min-h-screen bg-[#141414]">
+    <main className="min-h-screen bg-[#0a0a1a]">
       <Header />
 
       <div className="pt-16 sm:pt-20 md:pt-24">
         {/* Netflix-style category hero header */}
         <section className="bg-gradient-to-b from-black/70 via-[#141414] to-[#141414] border-b border-white/10">
           <div className="container mx-auto px-4 py-5 sm:py-7 md:py-8 flex flex-col gap-3 sm:gap-4">
-            <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.25em] text-[rgb(255,220,120)]">
+            <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.25em] text-[#FF6EA0]">
               Danh sách phim
             </p>
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white">
@@ -157,7 +157,7 @@ export default async function CategoryPage({
         </section>
 
         {/* Genre pills row */}
-        <div className="bg-[#141414]">
+        <div className="bg-[#0a0a1a]">
           <GenreSection />
         </div>
 

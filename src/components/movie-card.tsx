@@ -37,9 +37,9 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
   if (variant === "top10" && rank) {
     return (
       <Link href={`/phim/${movie.slug}`}>
-        <div className="group relative">
+        <div className="group relative flex flex-col h-full">
           {/* Poster */}
-          <div className="relative aspect-[2/3] rounded-md overflow-hidden transition-transform duration-300 group-hover:scale-105 bg-muted">
+          <div className="relative aspect-[2/3] rounded-md overflow-hidden transition-transform duration-300 group-hover:scale-105 bg-muted flex-shrink-0">
             <Image
               src={imageUrl}
               alt={movie.name}
@@ -65,7 +65,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
           </div>
           
           {/* Title below */}
-          <h3 className="mt-2 text-sm font-medium line-clamp-1 group-hover:text-white transition-colors">
+          <h3 className="mt-2 text-sm font-medium line-clamp-2 min-h-[2.5rem] group-hover:text-white transition-colors flex-shrink-0">
             {movie.name}
           </h3>
         </div>
@@ -78,11 +78,11 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
     return (
       <Link href={`/phim/${movie.slug}`}>
         <div 
-          className="group relative"
+          className="group relative flex flex-col h-full"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div className="relative aspect-[2/3] rounded-md overflow-hidden bg-muted transition-all duration-300 group-hover:scale-105 group-hover:z-10">
+          <div className="relative aspect-[2/3] rounded-md overflow-hidden bg-muted transition-all duration-300 group-hover:scale-105 group-hover:z-10 flex-shrink-0">
             <Image
               src={imageUrl}
               alt={movie.name}
@@ -96,7 +96,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               </Badge>
             )}
           </div>
-          <h3 className="mt-2 text-sm font-medium line-clamp-1 group-hover:text-white transition-colors">
+          <h3 className="mt-2 text-sm font-medium line-clamp-2 min-h-[2.5rem] group-hover:text-white transition-colors flex-shrink-0">
             {movie.name}
           </h3>
         </div>
@@ -113,13 +113,13 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
     return (
       <Link href={`/phim/${movie.slug}`}>
         <div
-          className="group relative flex flex-col items-start"
+          className="group relative flex flex-col items-start h-full"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
           {/* Poster */}
           <div
-            className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-muted transition-transform duration-150 ease-out group-hover:shadow-2xl"
+            className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-muted transition-transform duration-150 ease-out group-hover:shadow-2xl flex-shrink-0"
             style={{
               transform: `perspective(900px) rotateY(${tiltDeg}deg) scale(${isHovered ? 1.06 : 1})`,
               transformStyle: "preserve-3d",
@@ -140,14 +140,14 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
           </div>
 
           {/* Rank + Info */}
-          <div className="mt-3 flex items-start gap-2 w-full">
+          <div className="mt-3 flex items-start gap-2 w-full flex-shrink-0">
             {rank && (
-              <div className="text-3xl xs:text-4xl sm:text-5xl font-black text-[rgb(255,220,120)] leading-none">
+              <div className="text-3xl xs:text-4xl sm:text-5xl font-black text-[#FF6EA0] leading-none flex-shrink-0">
                 {rank}
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm xs:text-base font-semibold text-white line-clamp-2">
+              <h3 className="text-sm xs:text-base font-semibold text-white line-clamp-2 min-h-[2.5rem]">
                 {movie.name}
               </h3>
               <p className="mt-1 text-[11px] xs:text-xs text-gray-400 flex flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -173,13 +173,13 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
     return (
       <Link href={`/phim/${movie.slug}`}>
         <div
-          className="group relative flex flex-col items-start"
+          className="group relative flex flex-col items-start h-full"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
           {/* Poster */}
           <div
-            className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-muted transition-transform duration-150 ease-out group-hover:shadow-2xl"
+            className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-muted transition-transform duration-150 ease-out group-hover:shadow-2xl flex-shrink-0"
             style={{
               transform: isHovered
                 ? "perspective(900px) rotateY(8deg) scale(1.04)"
@@ -202,8 +202,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
           </div>
 
           {/* Info */}
-          <div className="mt-3 w-full">
-            <h3 className="text-sm xs:text-base font-semibold text-white line-clamp-2">
+          <div className="mt-3 w-full flex-shrink-0">
+            <h3 className="text-sm xs:text-base font-semibold text-white line-clamp-2 min-h-[2.5rem]">
               {movie.name}
             </h3>
             <p className="mt-1 text-[11px] xs:text-xs text-gray-400 flex flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -228,9 +228,9 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
 
     return (
       <Link href={`/phim/${movie.slug}`}>
-        <div className="group relative w-full max-w-full">
+        <div className="group relative w-full max-w-full h-full flex flex-col">
           {/* Wide backdrop */}
-          <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-muted transition-transform duration-300 group-hover:scale-[1.02] group-hover:shadow-2xl">
+          <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-muted transition-transform duration-300 group-hover:scale-[1.02] group-hover:shadow-2xl flex-shrink-0">
             <Image
               src={backdropUrl}
               alt={movie.name}
@@ -245,7 +245,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
             {/* Poster + text overlay on bottom bar */}
             <div className="absolute left-4 right-4 bottom-3 flex items-end gap-3">
               {/* Small vertical poster */}
-              <div className="relative aspect-[2/3] w-14 xs:w-16 sm:w-20 rounded-md overflow-hidden shadow-2xl shadow-black/80 border border-white/10 bg-black/60">
+              <div className="relative aspect-[2/3] w-14 xs:w-16 sm:w-20 rounded-md overflow-hidden shadow-2xl shadow-black/80 border border-white/10 bg-black/60 flex-shrink-0">
                 <Image
                   src={thumbUrl}
                   alt={movie.name}
@@ -294,13 +294,13 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
   // Default variant - Netflix 2024 horizontal thumbnail
   return (
     <div
-      className="group relative"
+      className="group relative flex flex-col h-full"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <Link href={`/phim/${movie.slug}`}>
         <div
-          className={`relative rounded-md overflow-hidden bg-muted transition-all duration-300 ease-out ${
+          className={`relative rounded-md overflow-hidden bg-muted transition-all duration-300 ease-out flex-shrink-0 ${
             isHovered
               ? "scale-[1.25] sm:scale-[1.35] md:scale-[1.4] z-50 shadow-2xl shadow-black/80 rounded-t-md rounded-b-none"
               : "scale-100 z-10"
@@ -336,7 +336,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
 
           {/* Hover Content Panel */}
           {isHovered && (
-            <div className="absolute left-0 right-0 top-full bg-[#181818] rounded-b-md p-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute left-0 right-0 top-full bg-[#0f0f1f] rounded-b-md p-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
               {/* Action Buttons Row */}
               <div className="flex items-center gap-2">
                 <Button
@@ -396,7 +396,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
 
       {/* Title below (when not hovered) */}
       {!isHovered && (
-        <h3 className="mt-2 text-sm font-medium line-clamp-1 text-gray-300 group-hover:text-white transition-colors">
+        <h3 className="mt-2 text-sm font-medium line-clamp-2 min-h-[2.5rem] text-gray-300 group-hover:text-white transition-colors flex-shrink-0">
           {movie.name}
         </h3>
       )}

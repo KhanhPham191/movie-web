@@ -75,7 +75,7 @@ async function getHomePageData() {
       getFilmsByCountryMultiple("trung-quoc", 2),
       getFilmsByCountryMultiple("nhat-ban", 2),
       getFilmsByCountryMultiple("hong-kong", 2),
-      getFilmsByCountryMultiple("au-my", 3),
+      getFilmsByCountryMultiple("au-my", 5), // Tăng lên 5 pages để đảm bảo có đủ phim bộ US-UK sau khi filter
       getFilmsByGenreMultiple("hoat-hinh", 2),
       getFilmsByGenreMultiple("anime", 2),
       getFilmsByCountryMultiple("thai-lan", 2),
@@ -117,7 +117,20 @@ async function getHomePageData() {
     pickUniqueBySlug(chinaSeries, 2, seen, top10Series);
     pickUniqueBySlug(koreaSeries, 3, seen, top10Series);
     pickUniqueBySlug(thaiSeries, 2, seen, top10Series);
-    pickUniqueBySlug(euUsSeries, 3, seen, top10Series);
+    
+    // Đảm bảo có đủ 3 phim US-UK: lấy từ danh sách đã filter
+    const euUsNeeded = 3;
+    const euUsSlugs = new Set(euUsSeries.map(m => m.slug));
+    const beforeEuUs = top10Series.length;
+    pickUniqueBySlug(euUsSeries, euUsNeeded, seen, top10Series);
+    const euUsAdded = top10Series.length - beforeEuUs;
+    
+    // Nếu vẫn chưa đủ 3 phim US-UK, lấy thêm từ danh sách gốc (chỉ filter phim bộ, không filter hoạt hình)
+    if (euUsAdded < euUsNeeded) {
+      const auMySeriesOnly = (auMy || []).filter((m) => (m.total_episodes || 0) > 1);
+      const remainingNeeded = euUsNeeded - euUsAdded;
+      pickUniqueBySlug(auMySeriesOnly, remainingNeeded, seen, top10Series);
+    }
 
     // Sắp xếp lại top 10 theo thời gian cập nhật (modified) từ mới nhất đến cũ nhất
     const sortedTop10Series = sortByModifiedDesc(top10Series);
@@ -159,7 +172,7 @@ export default async function Home() {
   const data = await getHomePageData();
 
   return (
-    <main className="min-h-screen bg-[#141414]">
+    <main className="min-h-screen bg-[#0a0a1a]">
       {/* Header */}
       <Header />
 
@@ -233,22 +246,22 @@ export default async function Home() {
           />
         </Suspense>
 
-        {/* Hong Kong Movies */}
-        <Suspense fallback={<MovieSectionSkeleton />}>
-          <MovieSection
-            title="Phim Hồng Kông"
-            movies={data.hongKong}
-            href="/quoc-gia/hong-kong"
-            variant="portrait"
-          />
-        </Suspense>
-
         {/* Thai Movies */}
         <Suspense fallback={<MovieSectionSkeleton />}>
           <MovieSection
             title="Phim Thái Lan"
             movies={data.thaiLan || []}
             href="/quoc-gia/thai-lan"
+            variant="portrait"
+          />
+        </Suspense>
+
+        {/* Hong Kong Movies */}
+        <Suspense fallback={<MovieSectionSkeleton />}>
+          <MovieSection
+            title="Phim Hồng Kông"
+            movies={data.hongKong}
+            href="/quoc-gia/hong-kong"
             variant="portrait"
           />
         </Suspense>

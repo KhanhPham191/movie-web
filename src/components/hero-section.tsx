@@ -149,7 +149,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
         {/* Badge + Series indicator */}
         <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
           <div className="flex items-center gap-0.5 sm:gap-1">
-            <span className="text-[rgb(255,220,120)] font-black text-base xs:text-lg sm:text-xl tracking-tighter drop-shadow-lg">
+            <span className="text-[#FF6EA0] font-black text-base xs:text-lg sm:text-xl tracking-tighter drop-shadow-lg">
               P
             </span>
             <span className="text-[10px] sm:text-xs font-semibold text-gray-200 tracking-widest uppercase">

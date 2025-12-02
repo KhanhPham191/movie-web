@@ -81,7 +81,7 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
             <h2 className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white">
               {title}
             </h2>
-            <span className="hidden sm:flex items-center text-[rgb(255,220,120)] text-xs sm:text-sm font-medium opacity-0 max-w-0 group-hover/title:opacity-100 group-hover/title:max-w-[120px] transition-all duration-300 overflow-hidden whitespace-nowrap">
+            <span className="hidden sm:flex items-center text-[#FF6EA0] text-xs sm:text-sm font-medium opacity-0 max-w-0 group-hover/title:opacity-100 group-hover/title:max-w-[120px] transition-all duration-300 overflow-hidden whitespace-nowrap">
               Xem tất cả
               <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
             </span>
@@ -134,12 +134,12 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
           }}
           onMouseUp={() => setIsDragging(false)}
           onMouseLeave={() => setIsDragging(false)}
-          className={`flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 scroll-smooth select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 scroll-smooth select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
           {movies.slice(0, 10).map((movie, index) => (
             <div
               key={`${movie.slug}-${index}`}
-              className={`shrink-0 ${getCardWidth()}`}
+              className={`shrink-0 flex flex-col ${getCardWidth()}`}
             >
               <MovieCard 
                 movie={movie} 
@@ -240,10 +240,10 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
           }}
           onMouseUp={() => setIsDragging(false)}
           onMouseLeave={() => setIsDragging(false)}
-          className={`flex gap-2 sm:gap-3 md:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 scroll-smooth select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 scroll-smooth select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
           {movies.slice(0, 10).map((movie, index) => (
-            <div key={`${movie.slug}-${index}`} className="shrink-0 w-[120px] sm:w-[140px] md:w-[160px] lg:w-[180px]">
+            <div key={`${movie.slug}-${index}`} className="shrink-0 flex flex-col w-[120px] sm:w-[140px] md:w-[160px] lg:w-[180px]">
               <MovieCard movie={movie} index={index} variant="top10" rank={index + 1} />
             </div>
           ))}
