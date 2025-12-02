@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Facebook, Instagram, Twitter, Youtube, Film } from "lucide-react";
+import Image from "next/image";
+import { Facebook, Instagram, Twitter, Youtube } from "lucide-react";
 
 const footerLinks = [
   { name: "Mô tả âm thanh", href: "#" },
@@ -60,16 +61,29 @@ export function Footer() {
         </button>
 
         {/* Brand */}
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-6 h-6 rounded bg-[linear-gradient(135deg,rgb(255,220,120),rgb(250,236,185))] flex items-center justify-center">
-            <Film className="w-4 h-4 text-white" />
+        <div className="flex items-center gap-2 mb-1">
+          <div className="w-6 h-6 rounded-full overflow-hidden bg-[radial-gradient(circle,rgba(255,220,120,0.9)_0%,rgba(20,20,20,1)_70%)] flex items-center justify-center">
+            <Image
+              src="/movpey-logo.png"
+              alt="MovPey logo"
+              width={24}
+              height={24}
+              className="w-full h-full object-contain"
+            />
           </div>
-          <span className="text-sm font-semibold text-[rgb(255,220,120)]">Phim7.xyz</span>
+          <div className="flex flex-col leading-tight">
+            <span className="text-sm font-semibold text-[rgb(255,220,120)]">
+              MovPey
+            </span>
+            <span className="text-[10px] text-gray-300">
+              Phim xịn mỗi ngày
+            </span>
+          </div>
         </div>
 
         {/* Copyright */}
         <p className="text-xs text-gray-500">
-          © {new Date().getFullYear()} Phim7.xyz - Xem phim online chất lượng cao miễn phí
+          © {new Date().getFullYear()} MovPey - Phim xịn mỗi ngày. Xem phim online chất lượng cao miễn phí.
         </p>
       </div>
     </footer>

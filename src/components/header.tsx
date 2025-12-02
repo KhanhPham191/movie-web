@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Search, Bell, ChevronDown, Film } from "lucide-react";
+import { Search, Bell, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -66,12 +67,24 @@ export function Header() {
         <div className="flex items-center gap-2 sm:gap-4 lg:gap-10 min-w-0">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-1 xs:gap-1.5 shrink-0">
-            <div className="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded bg-[linear-gradient(135deg,rgb(255,220,120),rgb(250,236,185))] flex items-center justify-center shadow-md shadow-black/40">
-              <Film className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 text-white" />
+            <div className="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden shadow-md shadow-black/40 bg-[radial-gradient(circle,rgba(255,220,120,0.9)_0%,rgba(20,20,20,1)_70%)] flex items-center justify-center">
+              <Image
+                src="/movpey-logo.png"
+                alt="MovPey logo"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain"
+                priority
+              />
             </div>
-            <span className="text-base xs:text-lg sm:text-xl font-bold text-[rgb(255,220,120)] hidden xs:block">
-              Phim7
-            </span>
+            <div className="hidden xs:flex flex-col leading-tight">
+              <span className="text-base xs:text-lg sm:text-xl font-extrabold text-[rgb(255,220,120)] tracking-tight">
+                MovPey
+              </span>
+              <span className="text-[9px] xs:text-[10px] sm:text-xs font-medium text-gray-200 tracking-wide">
+                Phim xịn mỗi ngày
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}

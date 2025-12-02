@@ -18,8 +18,9 @@ const notoSansMono = Noto_Sans_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Phim7.xyz | Xem phim online miễn phí",
-  description: "Nền tảng xem phim trực tuyến với hàng nghìn bộ phim hấp dẫn",
+  title: "MovPey - Phim xịn mỗi ngày",
+  description:
+    "MovPey - Phim xịn mỗi ngày. Nền tảng xem phim trực tuyến với hàng nghìn bộ phim hấp dẫn, cập nhật liên tục.",
 };
 
 export default function RootLayout({
