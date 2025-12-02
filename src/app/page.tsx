@@ -75,7 +75,7 @@ async function getHomePageData() {
       getFilmsByCountryMultiple("trung-quoc", 2),
       getFilmsByCountryMultiple("nhat-ban", 2),
       getFilmsByCountryMultiple("hong-kong", 2),
-      getFilmsByCountryMultiple("au-my", 2),
+      getFilmsByCountryMultiple("au-my", 3),
       getFilmsByGenreMultiple("hoat-hinh", 2),
       getFilmsByGenreMultiple("anime", 2),
       getFilmsByCountryMultiple("thai-lan", 2),
@@ -107,7 +107,7 @@ async function getHomePageData() {
         ),
         filterNonAnimationByCountries(
           (auMy || []).filter((m) => (m.total_episodes || 0) > 1),
-          ["au my"]
+          ["au my", "my", "anh", "us", "uk", "nuoc anh", "nuoc my"]
         ),
       ]);
 
