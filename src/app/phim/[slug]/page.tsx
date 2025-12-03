@@ -250,21 +250,6 @@ async function MovieDetail({ slug }: { slug: string }) {
                   </div>
                 </div>
 
-                {/* Mobile primary play button so không bị che khuất */}
-                {movie.episodes?.[0]?.items?.[0] && (
-                  <div className="sm:hidden mb-4">
-                    <Link
-                      href={`/xem-phim/${movie.slug}/${movie.episodes[0].items[0].slug}`}
-                      className="block"
-                    >
-                      <Button className="w-full h-11 rounded-full bg-[#FF6EA0] text-black font-semibold text-sm shadow-[0_14px_30px_rgba(0,0,0,0.85)] hover:bg-[#FF6EA0]/90">
-                        <Play className="w-4 h-4 mr-2 fill-black" />
-                        Phát tập đầu tiên
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-
                 {movie.episodes.map((server) => (
                   <div key={server.server_name} className="mb-6 last:mb-0">
                     <div className="flex items-center justify-between mb-3">
