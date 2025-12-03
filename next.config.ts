@@ -40,6 +40,8 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60,
     dangerouslyAllowSVG: true,
+    // Prod đang trả về 402 cho /_next/image, nên tắt optimizer để dùng trực tiếp URL ảnh
+    unoptimized: true,
   },
 };
 
