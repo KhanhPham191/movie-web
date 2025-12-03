@@ -46,7 +46,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               fill
               className="object-cover"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-              unoptimized
             />
             
             {/* Rank Badge - Top Left Corner */}
@@ -90,7 +89,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               fill
               className="object-cover"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-              unoptimized
             />
             {movie.current_episode && (
               <Badge className="absolute top-2 right-2 bg-red-600 text-white border-0 text-[10px]">
@@ -133,7 +131,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               fill
               className="object-cover"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-              unoptimized
             />
             {movie.current_episode && (
               <Badge className="absolute bottom-2 left-2 bg-red-600 text-white border-0 text-[10px] font-bold">
@@ -196,7 +193,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               fill
               className="object-cover"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-              unoptimized
             />
             {movie.current_episode && (
               <Badge className="absolute bottom-2 left-2 bg-red-600 text-white border-0 text-[10px] font-bold">
@@ -257,7 +253,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
                   fill
                   className="object-cover"
                   sizes="56px"
-                  unoptimized
                 />
               </div>
 
@@ -323,7 +318,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               fill
               className="object-cover"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-              unoptimized
             />
 
             {/* Episode badge */}

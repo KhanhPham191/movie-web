@@ -131,7 +131,6 @@ export function HeroSection({ movies }: HeroSectionProps) {
               priority={index === 0}
               sizes="100vw"
               quality={90}
-              unoptimized
             />
           </div>
         ))}
