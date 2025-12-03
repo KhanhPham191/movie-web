@@ -121,17 +121,17 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
   const getCardWidth = () => {
     switch (variant) {
       case "top10":
-        return "w-[100px] xs:w-[120px] sm:w-[150px] md:w-[170px] lg:w-[190px]";
+        return "w-[110px] xs:w-[130px] sm:w-[155px] md:w-[175px] lg:w-[195px]";
       case "portrait":
-        return "w-[90px] xs:w-[110px] sm:w-[140px] md:w-[160px] lg:w-[190px]";
+        return "w-[105px] xs:w-[125px] sm:w-[145px] md:w-[165px] lg:w-[195px]";
       case "newRelease":
-        return "w-[140px] xs:w-[160px] sm:w-[190px] md:w-[210px] lg:w-[230px]";
+        return "w-[150px] xs:w-[170px] sm:w-[195px] md:w-[215px] lg:w-[235px]";
       case "series":
-        return "w-[150px] xs:w-[170px] sm:w-[200px] md:w-[220px] lg:w-[240px]";
+        return "w-[160px] xs:w-[180px] sm:w-[205px] md:w-[225px] lg:w-[245px]";
       case "cinema":
-        return "w-[260px] xs:w-[300px] sm:w-[360px] md:w-[420px] lg:w-[460px]";
+        return "w-[270px] xs:w-[310px] sm:w-[365px] md:w-[425px] lg:w-[465px]";
       default:
-        return "w-[160px] xs:w-[190px] sm:w-[220px] md:w-[260px] lg:w-[300px]";
+        return "w-[170px] xs:w-[195px] sm:w-[225px] md:w-[265px] lg:w-[305px]";
     }
   };
 

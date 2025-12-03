@@ -83,8 +83,8 @@ async function VideoPlayer({
         : String(value || "");
 
     return (
-      <div className="space-y-10">
-        <div className="relative overflow-hidden rounded-3xl bg-[#050505]">
+      <div className="space-y-10 animate-fade-in">
+        <div className="relative overflow-hidden rounded-3xl bg-[#050505] glass border border-[#FF6EA0]/10 shadow-[0_24px_80px_rgba(0,0,0,0.85)] animate-scale-in">
           <div className="absolute inset-0">
             <Image
               src={background}
@@ -104,15 +104,19 @@ async function VideoPlayer({
               {countries[0] && <span>{formatLabel(countries[0])}</span>}
             </div>
 
-            <div className="grid gap-6 lg:gap-10 lg:grid-cols-[minmax(0,1.7fr)_1fr] items-start">
-              <div className="space-y-4 sm:space-y-6">
+            <div className="grid gap-6 lg:gap-10 lg:grid-cols-[minmax(0,2.1fr)_minmax(0,1fr)] items-start">
+              <div className="space-y-4 sm:space-y-6 animate-slide-up">
                 {/* Netflix 2024 Style Video Player */}
-                <div className="relative rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_-20px_rgba(255,220,120,0.3)] border border-[#FF6EA0]/20 group/player">
-                  <div className="aspect-video bg-black rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden">
+                <div className="relative rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_-20px_rgba(255,220,120,0.35)] border border-[#FF6EA0]/30 group/player card-hover">
+                  <div
+                    className="aspect-video bg-black rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden w-full"
+                    style={{ minHeight: "260px" }}
+                  >
                     <IframePlayer
                       src={currentEpisode.embed}
                       title={`${movie.name} - ${currentEpisode.name}`}
                       allowAds={false}
+                      className="h-full w-full"
                     />
                   </div>
                   
@@ -133,18 +137,18 @@ async function VideoPlayer({
                   </div>
                 </div>
 
-                {/* Episode Navigation - Mobile Optimized */}
-                <div className="flex flex-col xs:flex-row gap-2 sm:gap-3">
+              {/* Episode Navigation - compact prev/next controls */}
+              <div className="mt-2 flex items-center justify-between gap-2 sm:gap-4">
                   {prevEpisode && (
                     <Button
                       asChild
                       variant="outline"
                       size="lg"
-                      className="flex-1 bg-black/60 text-white border-[#FF6EA0]/30 hover:bg-[#FF6EA0]/10 hover:border-[#FF6EA0] backdrop-blur text-sm sm:text-base"
+                    className="min-w-[130px] sm:min-w-[150px] bg-black/60 text-white border-[#FF6EA0]/30 hover:bg-[#FF6EA0]/10 hover:border-[#FF6EA0] backdrop-blur text-xs sm:text-sm"
                     >
                       <Link href={`/xem-phim/${slug}/${prevEpisode.slug}`}>
-                        <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
-                        <span className="truncate">{prevEpisode.name}</span>
+                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-1" />
+                      <span className="truncate">Tập trước</span>
                       </Link>
                     </Button>
                   )}
@@ -152,11 +156,11 @@ async function VideoPlayer({
                     <Button
                       asChild
                       size="lg"
-                      className="flex-1 bg-[#FF6EA0] text-black hover:bg-[#FF6EA0]/90 font-semibold text-sm sm:text-base"
+                    className="ml-auto min-w-[130px] sm:min-w-[150px] bg-[#FF6EA0] text-black hover:bg-[#FF6EA0]/90 font-semibold text-xs sm:text-sm"
                     >
                       <Link href={`/xem-phim/${slug}/${nextEpisode.slug}`}>
-                        <span className="truncate">Tập tiếp theo</span>
-                        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
+                      <span className="truncate">Tập tiếp theo</span>
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1" />
                       </Link>
                     </Button>
                   )}
@@ -178,7 +182,7 @@ async function VideoPlayer({
               </div>
 
               {/* Movie Info Panel - Mobile Optimized */}
-              <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4 border border-[#FF6EA0]/10">
+              <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4 border border-[#FF6EA0]/10 glass animate-slide-up">
                 <div>
                   <p className="text-[10px] sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[#FF6EA0]/60">Đang xem</p>
                   <h1 className="text-lg sm:text-2xl lg:text-3xl font-black mt-1 sm:mt-2 line-clamp-2">
@@ -219,15 +223,12 @@ async function VideoPlayer({
         </div>
 
         {/* Episode list - Netflix 2024 Style */}
-        <div className="bg-[#0f0f0f] rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 border border-[#FF6EA0]/10">
+        <div className="bg-[#0f0f0f] rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 border border-[#FF6EA0]/10 glass animate-slide-up">
           <div className="flex items-center justify-between">
             <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-white flex items-center gap-2">
               <List className="w-4 h-4 sm:w-5 sm:h-5 text-[#FF6EA0]" />
               Danh sách tập
             </h2>
-            <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-[0.25em] text-[#FF6EA0]/50">
-              <span>{allEpisodes.length} tập</span>
-            </div>
           </div>
 
           <div className="space-y-6 sm:space-y-8">
@@ -238,17 +239,17 @@ async function VideoPlayer({
                   <span className="text-[#FF6EA0]/50">{server.items.length} TẬP</span>
                 </div>
                 <div className="flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
-                  {server.items.map((ep) => (
+                  {server.items.map((ep, index) => (
                     <Link
                       key={ep.slug}
                       href={`/xem-phim/${slug}/${ep.slug}`}
-                      className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-semibold transition-all whitespace-nowrap shrink-0 ${
+                      className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-semibold transition-all whitespace-nowrap shrink-0 hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.65)] ${
                         ep.slug === episodeSlug
                           ? "bg-[#FF6EA0] text-black shadow-[0_0_20px_rgba(255,110,160,0.4)]"
                           : "bg-white/10 text-white hover:bg-[#FF6EA0]/20 hover:text-[#FF6EA0]"
                       }`}
                     >
-                      {ep.name}
+                      Tập {index + 1}
                     </Link>
                   ))}
                 </div>
@@ -299,14 +300,53 @@ export default async function WatchPage({ params }: WatchPageProps) {
   const { slug, episode } = await params;
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-[#05050a]">
       <Header />
 
-      <div className="pt-20 md:pt-24 pb-12">
-        <div className="container mx-auto px-4 max-w-6xl">
+      {/* Cinematic background */}
+      <div className="relative pt-20 md:pt-24 pb-16 overflow-hidden">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-40 -top-40 h-72 w-72 rounded-full bg-[#FF6EA0]/15 blur-3xl animate-fade-in" />
+          <div className="absolute right-0 top-1/4 h-80 w-80 rounded-full bg-[#FFB6D5]/10 blur-3xl animate-fade-in" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black via-black/90 to-[#05050a]" />
+        </div>
+
+        <div className="relative z-10 container mx-auto px-3 sm:px-4 lg:px-6 max-w-[1600px] space-y-10 lg:space-y-14">
+          {/* Breadcrumb / meta row */}
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm text-white/60 animate-fade-in">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center rounded-full bg-white/5 px-3 py-1 glass">
+                <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-[#FF6EA0] animate-pulse" />
+                <span className="uppercase tracking-[0.16em] text-[10px] sm:text-[11px] text-white/80">
+                  Đang xem
+                </span>
+              </span>
+              <span className="hidden xs:inline text-white/40">•</span>
+              <Link
+                href="/"
+                className="hidden xs:inline-flex items-center gap-1 text-white/60 hover:text-white transition-colors"
+              >
+                <Home className="h-3.5 w-3.5" />
+                Trang chủ
+              </Link>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white/70">
+                Phim7 • Sakura Pink UI
+              </span>
+            </div>
+          </div>
+
+          {/* Main content area */}
           <Suspense fallback={<VideoPlayerSkeleton />}>
-            <VideoPlayer slug={slug} episodeSlug={episode} />
+            <div className="animate-slide-up">
+              <VideoPlayer slug={slug} episodeSlug={episode} />
+            </div>
           </Suspense>
+
+          {/* Floating bottom gradient to merge with footer */}
+          <div className="pointer-events-none h-32 w-full bg-gradient-to-b from-transparent via-[#05050a] to-[#05050a]" />
         </div>
       </div>
 

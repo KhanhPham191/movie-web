@@ -150,9 +150,6 @@ export function HeroSection({ movies }: HeroSectionProps) {
         {/* Badge + Series indicator */}
         <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-3">
           <div className="flex items-center gap-0.5 sm:gap-1">
-            <span className="text-[#FF6EA0] font-black text-sm sm:text-xl tracking-tighter drop-shadow-lg">
-              P
-            </span>
             <span className="text-[9px] sm:text-xs font-semibold text-gray-200 tracking-widest uppercase">
               Phim hot
             </span>
@@ -173,7 +170,6 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
         {/* Meta Info */}
         <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1.5 sm:mb-4 text-[10px] sm:text-sm">
-          <span className="text-green-500 font-semibold">98% Phù hợp</span>
           {movie.current_episode && (
             <span className="text-gray-300 text-[10px] sm:text-sm">
               {formatEpisodeLabel(movie.current_episode)}

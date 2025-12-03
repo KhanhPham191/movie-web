@@ -172,113 +172,138 @@ export default async function Home() {
   const data = await getHomePageData();
 
   return (
-    <main className="min-h-screen bg-[#0f0f0f]">
+    <main className="min-h-screen bg-[#05050a]">
       {/* Header */}
       <Header />
 
       {/* Hero */}
-      {data.phimLe.length > 0 && (
-        <HeroSection movies={data.phimLe} />
-      )}
+      {data.phimLe.length > 0 && <HeroSection movies={data.phimLe} />}
 
       {/* Content Rows */}
-      <div className="relative z-20 -mt-10 sm:-mt-16 md:-mt-20 lg:-mt-24 pt-8 sm:pt-8 md:pt-6 space-y-0">
-        {/* Category Pills - Sticky below header */}
-        <div className="relative mb-4 sm:mb-2 md:mb-0">
-          <CategoryPills />
+      <div className="relative z-20 -mt-4 sm:-mt-12 md:-mt-18 lg:-mt-24 pb-16">
+        {/* Soft background gradients behind rows */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-[#FF6EA0]/10 blur-3xl" />
+          <div className="absolute right-0 top-1/3 h-64 w-64 rounded-full bg-[#FFB6D5]/10 blur-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#05050a] to-[#05050a]" />
         </div>
 
-        {/* New Releases */}
-        <Suspense fallback={<MovieSectionSkeleton />}>
-          <MovieSection
-            title="Top 10 phim lẻ"
-            movies={data.phimLe}
-            variant="newRelease"
-          />
-        </Suspense>
+        <div className="relative z-10 space-y-4 sm:space-y-6 lg:space-y-8 animate-fade-in">
+          {/* Category Pills - Sticky below header */}
+          <div className="relative pt-2 sm:pt-0 mb-3 sm:mb-1 md:mb-0 px-3 sm:px-4 md:px-8 lg:px-12">
+            <CategoryPills />
+          </div>
 
-        {/* Daily Updated */}
-        <Suspense fallback={<MovieSectionSkeleton />}>
-          <MovieSection
-            title="Cập nhật hôm nay"
-            movies={data.dailyUpdated}
-            href="/danh-sach/phim-cap-nhat-hang-ngay"
-            variant="portrait"
-          />
-        </Suspense>
+          {/* New Releases */}
+          <div className="animate-slide-up">
+            <Suspense fallback={<MovieSectionSkeleton />}>
+              <MovieSection
+                title="Top 10 phim lẻ"
+                movies={data.phimLe}
+                variant="newRelease"
+              />
+            </Suspense>
+          </div>
 
-        {/* Top 10 phim bộ (2 Trung, 3 Hàn, 2 Thái, 3 Âu Mỹ - bỏ hoạt hình) */}
-        <Suspense fallback={<MovieSectionSkeleton />}>
-          <MovieSection
-            title="Top 10 phim bộ"
-            movies={data.top10Series || []}
-            variant="newRelease"
-          />
-        </Suspense>
+          {/* Daily Updated */}
+          <div className="animate-slide-up">
+            <Suspense fallback={<MovieSectionSkeleton />}>
+              <MovieSection
+                title="Cập nhật hôm nay"
+                movies={data.dailyUpdated}
+                href="/danh-sach/phim-cap-nhat-hang-ngay"
+                variant="portrait"
+              />
+            </Suspense>
+          </div>
 
-        {/* Korean Dramas */}
-        <Suspense fallback={<MovieSectionSkeleton />}>
-          <MovieSection
-            title="Phim Hàn Quốc"
-            movies={data.hanQuoc}
-            href="/quoc-gia/han-quoc"
-            variant="series"
-          />
-        </Suspense>
+          {/* Top 10 phim bộ (2 Trung, 3 Hàn, 2 Thái, 3 Âu Mỹ - bỏ hoạt hình) */}
+          <div className="animate-slide-up">
+            <Suspense fallback={<MovieSectionSkeleton />}>
+              <MovieSection
+                title="Top 10 phim bộ"
+                movies={data.top10Series || []}
+                variant="newRelease"
+              />
+            </Suspense>
+          </div>
 
-        {/* Chinese Dramas - bỏ phim hoạt hình (lọc theo detail category) */}
-        <Suspense fallback={<MovieSectionSkeleton />}>
-          <MovieSection
-            title="Phim Trung Quốc"
-            movies={data.trungQuoc}
-            href="/quoc-gia/trung-quoc"
-            variant="portrait"
-          />
-        </Suspense>
+          {/* Korean Dramas */}
+          <div className="animate-slide-up">
+            <Suspense fallback={<MovieSectionSkeleton />}>
+              <MovieSection
+                title="Phim Hàn Quốc"
+                movies={data.hanQuoc}
+                href="/quoc-gia/han-quoc"
+                variant="series"
+              />
+            </Suspense>
+          </div>
 
-        {/* US-UK Movies - đưa lên trên, dùng UI dạng series */}
-        <Suspense fallback={<MovieSectionSkeleton />}>
-          <MovieSection
-            title="Phim Âu Mỹ (US-UK)"
-            movies={data.auMy}
-            href="/quoc-gia/au-my"
-            variant="cinema"
-          />
-        </Suspense>
+          {/* Chinese Dramas - bỏ phim hoạt hình (lọc theo detail category) */}
+          <div className="animate-slide-up">
+            <Suspense fallback={<MovieSectionSkeleton />}>
+              <MovieSection
+                title="Phim Trung Quốc"
+                movies={data.trungQuoc}
+                href="/quoc-gia/trung-quoc"
+                variant="portrait"
+              />
+            </Suspense>
+          </div>
 
-        {/* Thai Movies */}
-        <Suspense fallback={<MovieSectionSkeleton />}>
-          <MovieSection
-            title="Phim Thái Lan"
-            movies={data.thaiLan || []}
-            href="/quoc-gia/thai-lan"
-            variant="portrait"
-          />
-        </Suspense>
+          {/* US-UK Movies - đưa lên trên, dùng UI dạng series */}
+          <div className="animate-slide-up">
+            <Suspense fallback={<MovieSectionSkeleton />}>
+              <MovieSection
+                title="Phim Âu Mỹ (US-UK)"
+                movies={data.auMy}
+                href="/quoc-gia/au-my"
+                variant="cinema"
+              />
+            </Suspense>
+          </div>
 
-        {/* Hong Kong Movies */}
-        <Suspense fallback={<MovieSectionSkeleton />}>
-          <MovieSection
-            title="Phim Hồng Kông"
-            movies={data.hongKong}
-            href="/quoc-gia/hong-kong"
-            variant="portrait"
-          />
-        </Suspense>
+          {/* Thai Movies */}
+          <div className="animate-slide-up">
+            <Suspense fallback={<MovieSectionSkeleton />}>
+              <MovieSection
+                title="Phim Thái Lan"
+                movies={data.thaiLan || []}
+                href="/quoc-gia/thai-lan"
+                variant="portrait"
+              />
+            </Suspense>
+          </div>
 
-        {/* Anime */}
-        <Suspense fallback={<MovieSectionSkeleton />}>
-          <MovieSection
-            title="Phim Anime"
-            movies={data.anime.length > 0 ? data.anime : data.hoatHinh}
-            href={data.anime.length > 0 ? "/the-loai/anime" : "/the-loai/hoat-hinh"}
-            variant="portrait"
-          />
-        </Suspense>
+          {/* Hong Kong Movies */}
+          <div className="animate-slide-up">
+            <Suspense fallback={<MovieSectionSkeleton />}>
+              <MovieSection
+                title="Phim Hồng Kông"
+                movies={data.hongKong}
+                href="/quoc-gia/hong-kong"
+                variant="portrait"
+              />
+            </Suspense>
+          </div>
+
+          {/* Anime */}
+          <div className="animate-slide-up">
+            <Suspense fallback={<MovieSectionSkeleton />}>
+              <MovieSection
+                title="Phim Anime"
+                movies={data.anime.length > 0 ? data.anime : data.hoatHinh}
+                href={data.anime.length > 0 ? "/the-loai/anime" : "/the-loai/hoat-hinh"}
+                variant="portrait"
+              />
+            </Suspense>
+          </div>
         </div>
+      </div>
 
       {/* Footer */}
       <Footer />
-      </main>
+    </main>
   );
 }

@@ -59,12 +59,11 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
           {isMounted && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="h-7 sm:h-8 px-2 sm:px-3 bg-transparent border-white/40 hover:border-white hover:bg-white/10 text-xs sm:text-sm font-medium gap-0.5 sm:gap-1"
                 >
-                  <span className="hidden xs:inline">Thể loại</span>
-                  <span className="xs:hidden">TL</span>
+                  <span>Thể loại</span>
                   <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -84,12 +83,11 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
           {isMounted && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="h-7 sm:h-8 px-2 sm:px-3 bg-transparent border-white/40 hover:border-white hover:bg-white/10 text-xs sm:text-sm font-medium gap-0.5 sm:gap-1"
                 >
-                  <span className="hidden xs:inline">Quốc gia</span>
-                  <span className="xs:hidden">QG</span>
+                  <span>Quốc gia</span>
                   <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
               </DropdownMenuTrigger>

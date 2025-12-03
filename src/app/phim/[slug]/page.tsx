@@ -79,79 +79,82 @@ async function MovieDetail({ slug }: { slug: string }) {
 
     return (
       <>
-        {/* Hero Section - Netflix 2024 Style */}
-        <section className="relative h-[55vh] sm:h-[70vh] md:h-[85vh] min-h-[350px] sm:min-h-[450px] md:min-h-[500px] flex items-end">
+        {/* Hero Section - Cinematic Sakura Style */}
+        <section className="relative h-[55vh] sm:h-[70vh] md:h-[85vh] min-h-[350px] sm:min-h-[450px] md:min-h-[500px] flex items-end overflow-hidden animate-fade-in">
           {/* Background Image */}
           <div className="absolute inset-0">
             <Image
               src={backdropUrl}
               alt={movie.name}
               fill
-              className="object-cover object-center"
+              className="object-cover object-center scale-105"
               priority
               sizes="100vw"
               quality={90}
               unoptimized
             />
-            {/* Netflix-style Gradients - Tối ưu cho mobile */}
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,15,15,0)_0%,rgba(15,15,15,0.1)_30%,rgba(15,15,15,0.5)_65%,rgba(15,15,15,0.8)_85%,rgba(15,15,15,0.95)_100%)]" />
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,15,15,0.3)_0%,rgba(15,15,15,0.1)_25%,rgba(15,15,15,0)_45%)]" />
+            {/* Gradients */}
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,5,10,0.1)_0%,rgba(5,5,10,0.4)_40%,rgba(5,5,10,0.9)_80%,rgba(5,5,10,1)_100%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,110,160,0.25),transparent_55%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,182,213,0.18),transparent_55%)]" />
           </div>
 
           {/* Content Overlay */}
           <div className="container relative z-20 mx-auto px-4 md:px-12 pb-8 sm:pb-16 md:pb-24 w-full">
-            <div className="max-w-2xl">
+            <div className="max-w-2xl space-y-4 sm:space-y-5 animate-slide-up">
+              {/* Meta chips */}
+              <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-xs text-white/70">
+                <span className="inline-flex items-center rounded-full bg-black/50 px-3 py-1 glass">
+                  <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-[#FF6EA0] animate-pulse" />
+                  <span className="uppercase tracking-[0.18em] text-[9px] sm:text-[10px]">
+                    Phim nổi bật
+                  </span>
+                </span>
+                {movie.quality && (
+                  <span className="rounded-full border border-white/40 bg-black/40 px-2 py-0.5 text-[9px] sm:text-[10px]">
+                    {movie.quality}
+                  </span>
+                )}
+                {movie.current_episode && (
+                  <span className="text-[#FFB6D5] text-[9px] sm:text-[10px]">
+                    {movie.current_episode}
+                  </span>
+                )}
+                {movie.time && (
+                  <span className="text-white/70 text-[9px] sm:text-[10px]">
+                    {movie.time}
+                  </span>
+                )}
+              </div>
+
               {/* Title */}
-              <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white mb-2 sm:mb-3 drop-shadow-lg line-clamp-2 sm:line-clamp-none">
+              <h1 className="text-xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white mb-1 sm:mb-2 text-shadow-netflix line-clamp-3 sm:line-clamp-none">
                 {movie.name}
               </h1>
 
               {/* Original Title */}
               {movie.original_name && movie.original_name !== movie.name && (
-                <p className="text-sm sm:text-lg md:text-xl text-gray-300 mb-2 sm:mb-4 line-clamp-1 hidden sm:block">
+                <p className="text-sm sm:text-lg md:text-xl text-gray-200/90 mb-1.5 sm:mb-3 line-clamp-1 hidden sm:block">
                   {movie.original_name}
                 </p>
               )}
 
-              {/* Meta Row */}
-              <div className="flex flex-wrap items-center gap-1.5 sm:gap-3 mb-2 sm:mb-4 text-[10px] sm:text-sm md:text-base">
-                <span className="text-green-500 font-semibold">98% Phù hợp</span>
-                {movie.quality && (
-                  <span className="px-1.5 sm:px-2 py-0.5 border border-gray-400 text-[9px] sm:text-xs font-medium">
-                    {movie.quality}
-                  </span>
-                )}
-                {movie.current_episode && (
-                  <span className="text-gray-300 text-[10px] sm:text-sm">{movie.current_episode}</span>
-                )}
-                {movie.time && (
-                  <span className="text-gray-400 text-[10px] sm:text-sm">{movie.time}</span>
-                )}
-                {countries[0] && (
-                  <span className="text-gray-400 text-[10px] sm:text-sm hidden sm:inline">
-                    {typeof countries[0] === 'object' && countries[0] !== null
-                      ? (countries[0]?.name || String(countries[0]?.id || ''))
-                      : String(countries[0])}
-                  </span>
-                )}
-                <span className="px-1.5 sm:px-2 py-0.5 border border-gray-400 text-[9px] sm:text-xs">18+</span>
-              </div>
-
-              {/* Genres - Ẩn trên mobile để tiết kiệm không gian */}
+              {/* Genres */}
               {categories.length > 0 && (
-                <div className="hidden sm:flex flex-wrap items-center gap-1.5 mb-5 text-sm text-gray-300">
+                <div className="hidden sm:flex flex-wrap items-center gap-1.5 text-sm text-gray-200/90">
                   {categories.slice(0, 4).map((cat, i) => {
-                    const catName = typeof cat === 'object' && cat !== null 
-                      ? (cat?.name || String(cat?.id || ''))
-                      : String(cat || '');
-                    
+                    const catName =
+                      typeof cat === "object" && cat !== null
+                        ? cat?.name || String(cat?.id || "")
+                        : String(cat || "");
+
                     if (!catName) return null;
-                    
+
                     return (
-                      <span key={cat?.id || i}>
+                      <span key={(typeof cat === "object" && cat !== null && (cat as any)?.id) || i}>
                         {catName}
                         {i < Math.min(categories.length, 4) - 1 && (
-                          <span className="mx-2 text-gray-600">•</span>
+                          <span className="mx-2 text-gray-500">•</span>
                         )}
                       </span>
                     );
@@ -159,42 +162,44 @@ async function MovieDetail({ slug }: { slug: string }) {
                 </div>
               )}
 
-              {/* Description - Ẩn trên mobile */}
+              {/* Description */}
               {movie.description && (
                 <p
-                  className="hidden sm:block text-sm md:text-base text-gray-200 line-clamp-3 md:line-clamp-4 mb-6 max-w-xl"
+                  className="hidden sm:block text-sm md:text-base text-gray-100/90 line-clamp-3 md:line-clamp-4 max-w-xl"
                   dangerouslySetInnerHTML={{
-                    __html: movie.description.replace(/<[^>]*>/g, "").slice(0, 200) + "...",
+                    __html: movie.description.replace(/<[^>]*>/g, "").slice(0, 220) + "...",
                   }}
                 />
               )}
 
-              {/* Action Buttons - Tối ưu cho mobile */}
-              <div className="flex items-center gap-2 sm:gap-3 relative z-30">
+              {/* Action Buttons - chỉ hiển thị trên tablet/desktop, mobile dùng nút ở section Tập phim */}
+              <div className="hidden sm:flex items-center gap-2 sm:gap-3 pt-1 relative z-30">
                 {movie.episodes?.[0]?.items?.[0] && (
-                  <Link href={`/xem-phim/${movie.slug}/${movie.episodes[0].items[0].slug}`} className="flex-1 sm:flex-initial">
+                  <Link
+                    href={`/xem-phim/${movie.slug}/${movie.episodes[0].items[0].slug}`}
+                    className="flex-1 sm:flex-initial"
+                  >
                     <Button
                       size="lg"
-                      className="bg-white hover:bg-white/90 text-black font-bold text-xs sm:text-sm md:text-base px-4 sm:px-6 md:px-8 h-9 sm:h-11 md:h-12 rounded-md relative z-30 w-full sm:w-auto"
+                      className="bg-white hover:bg-white/90 text-black font-bold text-xs sm:text-sm md:text-base px-4 sm:px-6 md:px-8 h-9 sm:h-11 md:h-12 rounded-full shadow-[0_18px_40px_rgba(0,0,0,0.85)] w-full sm:w-auto"
                     >
                       <Play className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2 fill-black" />
-                      Phát
+                      Phát ngay
                     </Button>
                   </Link>
                 )}
                 <Button
                   size="lg"
                   variant="secondary"
-                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-xs sm:text-sm md:text-base px-3 sm:px-6 md:px-8 h-9 sm:h-11 md:h-12 rounded-md relative z-30 hidden sm:flex"
+                  className="hidden sm:inline-flex bg-black/60 hover:bg-black/80 text-white font-semibold text-xs sm:text-sm md:text-base px-3 sm:px-5 md:px-6 h-9 sm:h-11 md:h-12 rounded-full border border-white/20"
                 >
                   <Plus className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2" />
-                  <span className="hidden md:inline">Danh sách của tôi</span>
-                  <span className="md:hidden">Danh sách</span>
+                  Danh sách
                 </Button>
                 <Button
                   size="lg"
                   variant="secondary"
-                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-xs sm:text-sm md:text-base px-3 sm:px-6 md:px-8 h-9 sm:h-11 md:h-12 rounded-md relative z-30 hidden sm:flex"
+                  className="hidden sm:inline-flex bg-black/60 hover:bg-black/80 text-white font-semibold text-xs sm:text-sm md:text-base px-3 sm:px-5 md:px-6 h-9 sm:h-11 md:h-12 rounded-full border border-white/20"
                 >
                   <ThumbsUp className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2" />
                   Thích
@@ -202,7 +207,7 @@ async function MovieDetail({ slug }: { slug: string }) {
                 <Button
                   size="lg"
                   variant="secondary"
-                  className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-sm md:text-base px-6 md:px-8 h-11 md:h-12 rounded-md relative z-30"
+                  className="bg-black/60 hover:bg-black/80 text-white font-semibold text-sm md:text-base px-4 md:px-5 h-9 sm:h-11 md:h-12 rounded-full border border-white/25"
                 >
                   <ChevronDown className="w-5 h-5 md:w-6 md:h-6" />
                 </Button>
@@ -212,30 +217,65 @@ async function MovieDetail({ slug }: { slug: string }) {
         </section>
 
         {/* Main Content */}
-        <div className="relative z-10 bg-[#0f0f0f] -mt-24 pt-32">
-          <div className="container mx-auto px-4 md:px-12">
+        <div className="relative z-10 -mt-16 sm:-mt-20 pt-24 sm:pt-28 pb-16 bg-gradient-to-b from-[#05050a] via-[#05050a] to-[#05050a]">
+          <div className="container mx-auto px-4 md:px-12 space-y-8 lg:space-y-12">
+            {/* Mobile title block in black area dưới hero */}
+            <div className="sm:hidden mb-2">
+              <h1 className="text-lg font-bold text-white text-shadow-netflix">
+                {movie.name}
+              </h1>
+            </div>
             {/* Episodes Section */}
             {movie.episodes && movie.episodes.length > 0 && (
-              <div className="mb-12">
-                <h2 className="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                  <span className="text-[#FF6EA0]">Tập phim</span>
-                </h2>
+              <div className="rounded-3xl bg-white/5 glass border border-[#FF6EA0]/15 p-4 sm:p-6 lg:p-8 shadow-[0_24px_80px_rgba(0,0,0,0.85)] animate-slide-up">
+                <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6">
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-semibold text-white flex items-center gap-2">
+                      <span className="text-[#FF6EA0]">Tập phim</span>
+                    </h2>
+                    <p className="text-xs sm:text-sm text-white/60 mt-1">
+                      Chọn tập để xem ngay với player chất lượng cao.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Mobile primary play button so không bị che khuất */}
+                {movie.episodes?.[0]?.items?.[0] && (
+                  <div className="sm:hidden mb-4">
+                    <Link
+                      href={`/xem-phim/${movie.slug}/${movie.episodes[0].items[0].slug}`}
+                      className="block"
+                    >
+                      <Button className="w-full h-11 rounded-full bg-[#FF6EA0] text-black font-semibold text-sm shadow-[0_14px_30px_rgba(0,0,0,0.85)] hover:bg-[#FF6EA0]/90">
+                        <Play className="w-4 h-4 mr-2 fill-black" />
+                        Phát tập đầu tiên
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+
                 {movie.episodes.map((server) => (
-                  <div key={server.server_name} className="mb-8">
-                    <h3 className="text-sm text-[#FF6EA0] mb-3 font-semibold uppercase tracking-wider">
-                      {server.server_name}
-                    </h3>
-                    <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-4">
-                      {server.items.map((episode) => (
+                  <div key={server.server_name} className="mb-6 last:mb-0">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-xs sm:text-sm text-[#FF6EA0] font-semibold uppercase tracking-[0.18em]">
+                        {server.server_name}
+                      </h3>
+                      <span className="text-[11px] text-white/50">
+                        {server.items.length} tập
+                      </span>
+                    </div>
+                    {/* Episode buttons in wrapped rows (không cần scroll ngang) */}
+                    <div className="grid grid-cols-4 xs:grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-8 gap-2 sm:gap-2.5">
+                      {server.items.map((episode, index) => (
                         <Link
                           key={episode.slug}
                           href={`/xem-phim/${movie.slug}/${episode.slug}`}
                         >
                           <Button
                             variant="outline"
-                            className="h-10 px-4 bg-[#2a2a2a] border-[#FF6EA0]/30 hover:bg-[#FF6EA0]/10 hover:border-[#FF6EA0] text-white whitespace-nowrap shrink-0 transition-all"
+                            className="w-full h-9 sm:h-10 rounded-full bg-[#151515]/90 border-[#FF6EA0]/25 text-white text-xs sm:text-sm font-semibold transition-all hover:bg-[#FF6EA0] hover:text-black hover:border-[#FF6EA0] hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(0,0,0,0.8)]"
                           >
-                            {episode.name}
+                            Tập {index + 1}
                           </Button>
                         </Link>
                       ))}
@@ -246,20 +286,20 @@ async function MovieDetail({ slug }: { slug: string }) {
             )}
 
             {/* About Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10 items-start animate-slide-up">
               {/* Left Column - Info */}
-              <div className="md:col-span-2 space-y-4">
+              <div className="md:col-span-2 space-y-4 rounded-2xl bg-white/5 glass border border-white/10 p-4 sm:p-6 lg:p-7">
                 {/* Cast & Crew */}
-                <div className="space-y-3">
+                <div className="space-y-3 text-sm">
                   {movie.director && (
                     <div>
-                      <span className="text-[#FF6EA0]/70 text-sm">Đạo diễn: </span>
+                      <span className="text-[#FF6EA0]/70">Đạo diễn: </span>
                       <span className="text-white font-medium">{movie.director}</span>
                     </div>
                   )}
                   {movie.casts && (
                     <div>
-                      <span className="text-[#FF6EA0]/70 text-sm">Diễn viên: </span>
+                      <span className="text-[#FF6EA0]/70">Diễn viên: </span>
                       <span className="text-white font-medium">{movie.casts}</span>
                     </div>
                   )}
@@ -267,12 +307,12 @@ async function MovieDetail({ slug }: { slug: string }) {
 
                 {/* Full Description */}
                 {movie.description && (
-                  <div>
+                  <div className="pt-2">
                     <h3 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
                       <span className="text-[#FF6EA0]">Về phim này</span>
                     </h3>
                     <div
-                      className="text-gray-300 text-sm leading-relaxed"
+                      className="text-gray-200 text-sm leading-relaxed"
                       dangerouslySetInnerHTML={{
                         __html: movie.description,
                       }}
@@ -282,27 +322,32 @@ async function MovieDetail({ slug }: { slug: string }) {
               </div>
 
               {/* Right Column - Details */}
-              <div className="space-y-4">
+              <div className="space-y-4 rounded-2xl bg-white/5 glass border border-white/10 p-4 sm:p-6 lg:p-7 text-sm">
                 {categories.length > 0 && (
                   <div>
                     <span className="text-[#FF6EA0]/70 text-sm block mb-1">Thể loại</span>
                     <div className="flex flex-wrap gap-2">
                       {categories.map((cat, index) => {
-                        const catId = typeof cat === 'object' && cat !== null ? (cat?.id || index) : index;
-                        const catSlug = typeof cat === 'object' && cat !== null 
-                          ? (cat?.slug || '')
-                          : (typeof cat === 'string' ? cat : '');
-                        const catName = typeof cat === 'object' && cat !== null
-                          ? (cat?.name || String(cat?.id || '') || 'Unknown')
-                          : (String(cat || 'Unknown'));
-                        
+                        const catId =
+                          typeof cat === "object" && cat !== null ? (cat as any)?.id || index : index;
+                        const catSlug =
+                          typeof cat === "object" && cat !== null
+                            ? (cat as any)?.slug || ""
+                            : typeof cat === "string"
+                            ? cat
+                            : "";
+                        const catName =
+                          typeof cat === "object" && cat !== null
+                            ? (cat as any)?.name || String((cat as any)?.id || "") || "Unknown"
+                            : String(cat || "Unknown");
+
                         if (!catSlug) return null;
-                        
+
                         return (
                           <Link key={catId} href={`/the-loai/${catSlug}`}>
                             <Badge
                               variant="outline"
-                              className="bg-[#2a2a2a] border-[#FF6EA0]/30 text-white hover:border-[#FF6EA0] hover:bg-[#FF6EA0]/10 cursor-pointer transition-all"
+                              className="bg-[#151515] border-[#FF6EA0]/30 text-white hover:border-[#FF6EA0] hover:bg-[#FF6EA0]/15 cursor-pointer transition-all rounded-full"
                             >
                               {catName}
                             </Badge>
@@ -318,21 +363,30 @@ async function MovieDetail({ slug }: { slug: string }) {
                     <span className="text-[#FF6EA0]/70 text-sm block mb-1">Quốc gia</span>
                     <div className="flex flex-wrap gap-2">
                       {countries.map((country, index) => {
-                        const countryId = typeof country === 'object' && country !== null ? (country?.id || index) : index;
-                        const countrySlug = typeof country === 'object' && country !== null 
-                          ? (country?.slug || '')
-                          : (typeof country === 'string' ? country : '');
-                        const countryName = typeof country === 'object' && country !== null
-                          ? (country?.name || String(country?.id || '') || 'Unknown')
-                          : (String(country || 'Unknown'));
-                        
+                        const countryId =
+                          typeof country === "object" && country !== null
+                            ? (country as any)?.id || index
+                            : index;
+                        const countrySlug =
+                          typeof country === "object" && country !== null
+                            ? (country as any)?.slug || ""
+                            : typeof country === "string"
+                            ? country
+                            : "";
+                        const countryName =
+                          typeof country === "object" && country !== null
+                            ? (country as any)?.name ||
+                              String((country as any)?.id || "") ||
+                              "Unknown"
+                            : String(country || "Unknown");
+
                         if (!countrySlug) return null;
-                        
+
                         return (
                           <Link key={countryId} href={`/quoc-gia/${countrySlug}`}>
                             <Badge
                               variant="outline"
-                              className="bg-[#2a2a2a] border-[#FF6EA0]/30 text-white hover:border-[#FF6EA0] hover:bg-[#FF6EA0]/10 cursor-pointer transition-all"
+                              className="bg-[#151515] border-[#FF6EA0]/30 text-white hover:border-[#FF6EA0] hover:bg-[#FF6EA0]/15 cursor-pointer transition-all rounded-full"
                             >
                               {countryName}
                             </Badge>
@@ -346,7 +400,9 @@ async function MovieDetail({ slug }: { slug: string }) {
                 {movie.created && (
                   <div>
                     <span className="text-[#FF6EA0]/70 text-sm block mb-1">Năm phát hành</span>
-                    <span className="text-white">{new Date(movie.created).getFullYear()}</span>
+                    <span className="text-white">
+                      {new Date(movie.created).getFullYear()}
+                    </span>
                   </div>
                 )}
 
@@ -368,11 +424,8 @@ async function MovieDetail({ slug }: { slug: string }) {
 
             {/* Similar Movies */}
             {similarMovies.length > 0 && (
-              <div className="mb-12">
-                <MovieSection
-                  title="Phim tương tự"
-                  movies={similarMovies}
-                />
+              <div className="rounded-3xl bg-white/5 glass border border-[#FF6EA0]/10 p-4 sm:p-6 lg:p-8 animate-slide-up">
+                <MovieSection title="Phim tương tự" movies={similarMovies} />
               </div>
             )}
           </div>
