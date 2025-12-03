@@ -109,8 +109,7 @@ async function VideoPlayer({
                 {/* Netflix 2024 Style Video Player */}
                 <div className="relative rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_-20px_rgba(255,220,120,0.35)] border border-[#FF6EA0]/30 group/player card-hover">
                   <div
-                    className="aspect-video bg-black rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden w-full"
-                    style={{ minHeight: "260px" }}
+                    className="aspect-video bg-black rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden w-full min-h-[200px] sm:min-h-[230px] md:min-h-[260px]"
                   >
                     <IframePlayer
                       src={currentEpisode.embed}
@@ -329,12 +328,6 @@ export default async function WatchPage({ params }: WatchPageProps) {
                 <Home className="h-3.5 w-3.5" />
                 Trang chủ
               </Link>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="rounded-full bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white/70">
-                Phim7 • Sakura Pink UI
-              </span>
             </div>
           </div>
 

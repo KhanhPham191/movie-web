@@ -99,11 +99,11 @@ async function MovieDetail({ slug }: { slug: string }) {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,182,213,0.18),transparent_55%)]" />
           </div>
 
-          {/* Content Overlay */}
+          {/* Content Overlay - ẩn trên mobile, chỉ dùng hero text cho tablet/desktop */}
           <div className="container relative z-20 mx-auto px-4 md:px-12 pb-8 sm:pb-16 md:pb-24 w-full">
             <div className="max-w-2xl space-y-4 sm:space-y-5 animate-slide-up">
-              {/* Meta chips */}
-              <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-xs text-white/70">
+              {/* Meta chips - chỉ hiển thị trên tablet/desktop, mobile sẽ có block riêng phía dưới hero */}
+              <div className="hidden sm:flex flex-wrap items-center gap-2 text-[10px] sm:text-xs text-white/70">
                 <span className="inline-flex items-center rounded-full bg-black/50 px-3 py-1 glass">
                   <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-[#FF6EA0] animate-pulse" />
                   <span className="uppercase tracking-[0.18em] text-[9px] sm:text-[10px]">
@@ -128,7 +128,7 @@ async function MovieDetail({ slug }: { slug: string }) {
               </div>
 
               {/* Title */}
-              <h1 className="text-xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white mb-1 sm:mb-2 text-shadow-netflix line-clamp-3 sm:line-clamp-none">
+              <h1 className="hidden sm:block text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white mb-2 text-shadow-netflix">
                 {movie.name}
               </h1>
 
@@ -217,13 +217,24 @@ async function MovieDetail({ slug }: { slug: string }) {
         </section>
 
         {/* Main Content */}
-        <div className="relative z-10 -mt-16 sm:-mt-20 pt-24 sm:pt-28 pb-16 bg-gradient-to-b from-[#05050a] via-[#05050a] to-[#05050a]">
+        <div className="relative z-10 -mt-20 sm:-mt-20 pt-20 sm:pt-28 pb-16 bg-gradient-to-b from-[#05050a] via-[#05050a] to-[#05050a]">
           <div className="container mx-auto px-4 md:px-12 space-y-8 lg:space-y-12">
-            {/* Mobile title block in black area dưới hero */}
+            {/* Mobile title + meta block trong nền đen dưới hero (tránh bị che trên poster) */}
             <div className="sm:hidden mb-2">
               <h1 className="text-lg font-bold text-white text-shadow-netflix">
                 {movie.name}
               </h1>
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-white/70">
+                {movie.quality && (
+                  <span className="rounded-full border border-white/30 bg-black/40 px-2 py-0.5">
+                    {movie.quality}
+                  </span>
+                )}
+                {movie.current_episode && (
+                  <span className="text-[#FFB6D5]">{movie.current_episode}</span>
+                )}
+                {movie.time && <span className="text-white/70">{movie.time}</span>}
+              </div>
             </div>
             {/* Episodes Section */}
             {movie.episodes && movie.episodes.length > 0 && (
