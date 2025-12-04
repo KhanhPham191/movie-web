@@ -19,6 +19,14 @@ import {
 } from "lucide-react";
 import { getFilmDetailMerged, getImageUrl, getFilmsByGenre, getFilmsByCategory, CATEGORIES } from "@/lib/api";
 
+// Build detail page as static with ISR fallback
+export const dynamic = "force-static";
+export const revalidate = 600; // re-generate detail every 10 minutes
+export const dynamicParams = true;
+export async function generateStaticParams() {
+  return [];
+}
+
 interface MoviePageProps {
   params: Promise<{ slug: string }>;
 }
