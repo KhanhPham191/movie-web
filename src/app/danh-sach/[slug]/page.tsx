@@ -40,12 +40,13 @@ async function CategoryContent({
   page: number;
 }) {
   try {
-    let movies;
-    let totalPages;
+    let movies: any[] = [];
+    let totalPages = 1;
 
-    let response;
     if (slug === "phim-moi-cap-nhat") {
-      response = await getNewlyUpdatedFilms(page);
+      const response = await getNewlyUpdatedFilms(page);
+      movies = response.items || [];
+      totalPages = response.paginate?.total_page || 1;
     } else if (slug === "phim-cap-nhat-hang-ngay") {
       // Trang "Cập nhật hàng ngày": dùng dữ liệu đã merge từ NguonC + iPhim,
       // đồng thời giữ thông tin phân trang từ NguonC.
@@ -57,13 +58,8 @@ async function CategoryContent({
       movies = dailyCombined || [];
       totalPages = dailyNguonc.paginate?.total_page || 1;
     } else {
-      response = await getFilmsByCategory(slug, page);
-    }
-
-    if (!movies) {
+      const response = await getFilmsByCategory(slug, page);
       movies = response.items || [];
-    }
-    if (!totalPages) {
       totalPages = response.paginate?.total_page || 1;
     }
 
