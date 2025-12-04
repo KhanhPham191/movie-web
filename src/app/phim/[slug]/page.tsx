@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { MovieSection } from "@/components/movie-section";
+import { EpisodeSelector } from "@/components/episode-selector";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,9 +22,10 @@ import { getFilmDetail, getImageUrl, getFilmsByGenre, getFilmsByCategory, CATEGO
 
 interface MoviePageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ server?: string }>;
 }
 
-async function MovieDetail({ slug }: { slug: string }) {
+async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: string }) {
   try {
     console.log("[MovieDetail] Fetching movie with slug:", slug);
     const response = await getFilmDetail(slug);
@@ -204,16 +206,16 @@ async function MovieDetail({ slug }: { slug: string }) {
         </section>
 
         {/* Main Content */}
-        <div className="relative z-10 -mt-20 sm:-mt-20 pt-20 sm:pt-28 pb-16 bg-gradient-to-b from-[#05050a] via-[#05050a] to-[#05050a]">
-          <div className="container mx-auto px-4 md:px-12 space-y-8 lg:space-y-12">
+        <div className="relative z-10 -mt-16 sm:-mt-20 pt-16 sm:pt-28 pb-12 sm:pb-16 bg-gradient-to-b from-[#05050a] via-[#05050a] to-[#05050a]">
+          <div className="container mx-auto px-3 sm:px-4 md:px-12 space-y-4 sm:space-y-6 lg:space-y-12">
             {/* Mobile title + meta block trong nền đen dưới hero (tránh bị che trên poster) */}
-            <div className="sm:hidden mb-2">
-              <h1 className="text-lg font-bold text-white text-shadow-netflix">
+            <div className="sm:hidden mb-3">
+              <h1 className="text-base font-bold text-white text-shadow-netflix">
                 {movie.name}
               </h1>
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-white/70">
+              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-white/70">
                 {movie.quality && (
-                  <span className="rounded-full border border-white/30 bg-black/40 px-2 py-0.5">
+                  <span className="rounded-full border border-white/30 bg-black/40 px-1.5 py-0.5">
                     {movie.quality}
                   </span>
                 )}
@@ -225,55 +227,17 @@ async function MovieDetail({ slug }: { slug: string }) {
             </div>
             {/* Episodes Section */}
             {Array.isArray(movie.episodes) && movie.episodes.length > 0 && (
-              <div className="rounded-3xl bg-white/5 glass border border-[#fb743E]/15 p-4 sm:p-6 lg:p-8 shadow-[0_24px_80px_rgba(0,0,0,0.85)] animate-slide-up">
-                <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6">
-                  <div>
-                    <h2 className="text-xl md:text-2xl font-semibold text-white flex items-center gap-2">
-                      <span className="text-[#fb743E]">Tập phim</span>
-                    </h2>
-                    <p className="text-xs sm:text-sm text-white/60 mt-1">
-                      Chọn tập để xem ngay với player chất lượng cao.
-                    </p>
-                  </div>
-                </div>
-
-                {movie.episodes.map((server) => {
-                  const items = Array.isArray(server.items) ? server.items : [];
-                  return (
-                  <div key={server.server_name || `server-${Math.random()}`} className="mb-6 last:mb-0">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-xs sm:text-sm text-[#fb743E] font-semibold uppercase tracking-[0.18em]">
-                        {server.server_name}
-                      </h3>
-                      <span className="text-[11px] text-white/50">
-                        {items.length} tập
-                      </span>
-                    </div>
-                    {/* Episode buttons in wrapped rows (tối ưu cho mobile, không cần scroll ngang) */}
-                    <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-8 gap-2 sm:gap-2.5">
-                      {items.map((episode, index) => (
-                        <Link
-                          key={episode.slug}
-                          href={`/xem-phim/${movie.slug}/${episode.slug}`}
-                        >
-                          <Button
-                            variant="outline"
-                            className="w-full h-9 sm:h-10 rounded-full bg-[#151515]/90 border-[#fb743E]/25 text-white text-xs sm:text-sm font-semibold transition-all hover:!bg-[#fb743E] hover:!text-white hover:!border-[#fb743E] hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(0,0,0,0.8)] focus-visible:!ring-[#fb743E]/50"
-                          >
-                            Tập {index + 1}
-                          </Button>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )})}
-              </div>
+              <EpisodeSelector
+                servers={movie.episodes}
+                movieSlug={movie.slug}
+                defaultServer={serverParam}
+              />
             )}
 
             {/* About Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10 items-start animate-slide-up">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-10 items-start animate-slide-up">
               {/* Left Column - Info */}
-              <div className="md:col-span-2 space-y-4 rounded-2xl bg-white/5 glass border border-white/10 p-4 sm:p-6 lg:p-7">
+              <div className="md:col-span-2 space-y-3 sm:space-y-4 rounded-xl sm:rounded-2xl bg-white/5 glass border border-white/10 p-3 sm:p-6 lg:p-7">
                 {/* Cast & Crew */}
                 <div className="space-y-3 text-sm">
                   {movie.director && (
@@ -307,7 +271,7 @@ async function MovieDetail({ slug }: { slug: string }) {
               </div>
 
               {/* Right Column - Details */}
-              <div className="space-y-4 rounded-2xl bg-white/5 glass border border-white/10 p-4 sm:p-6 lg:p-7 text-sm">
+              <div className="space-y-3 sm:space-y-4 rounded-xl sm:rounded-2xl bg-white/5 glass border border-white/10 p-3 sm:p-6 lg:p-7 text-xs sm:text-sm">
                 {categories.length > 0 && (
                   <div>
                     <span className="text-[#fb743E]/70 text-sm block mb-1">Thể loại</span>
@@ -493,15 +457,16 @@ function MovieDetailSkeleton() {
   );
 }
 
-export default async function MoviePage({ params }: MoviePageProps) {
+export default async function MoviePage({ params, searchParams }: MoviePageProps) {
   const { slug } = await params;
+  const { server } = await searchParams;
 
   return (
     <main className="min-h-screen bg-[#0f0f0f]">
       <Header />
 
       <Suspense fallback={<MovieDetailSkeleton />}>
-        <MovieDetail slug={slug} />
+        <MovieDetail slug={slug} serverParam={server} />
       </Suspense>
 
       <Footer />

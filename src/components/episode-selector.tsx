@@ -1,0 +1,200 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Play } from "lucide-react";
+
+interface Episode {
+  name: string;
+  slug: string;
+  embed: string;
+  m3u8: string;
+}
+
+interface Server {
+  server_name: string;
+  items: Episode[];
+}
+
+interface EpisodeSelectorProps {
+  servers: Server[];
+  movieSlug: string;
+  defaultServer?: string;
+}
+
+export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSelectorProps) {
+  // Lọc chỉ giữ lại 2 server: Vietsub và Thuyết minh
+  const filteredServers = useMemo(() => {
+    return servers.filter((server) => {
+      const serverName = (server?.server_name || "").toLowerCase();
+      return (
+        /vietsub/i.test(serverName) ||
+        /thuyết\s*minh|thuyet\s*minh/i.test(serverName)
+      );
+    });
+  }, [servers]);
+
+  // Xác định server mặc định
+  const getDefaultServerIndex = () => {
+    if (defaultServer) {
+      const index = filteredServers.findIndex((s) => {
+        const serverName = (s?.server_name || "").toLowerCase();
+        const normalizedDefault = defaultServer.toLowerCase();
+        return (
+          (serverName.includes("vietsub") && normalizedDefault.includes("vietsub")) ||
+          ((serverName.includes("thuyết") || serverName.includes("thuyet")) &&
+            (normalizedDefault.includes("thuyet") || normalizedDefault.includes("thuyết")))
+        );
+      });
+      if (index !== -1) return index;
+    }
+    
+    // Fallback: ưu tiên Vietsub, sau đó Thuyết minh
+    const vietsubIndex = filteredServers.findIndex((s) =>
+      /vietsub/i.test(s.server_name)
+    );
+    if (vietsubIndex !== -1) return vietsubIndex;
+    
+    const thuyetMinhIndex = filteredServers.findIndex((s) =>
+      /thuyết\s*minh|thuyet\s*minh/i.test(s.server_name)
+    );
+    if (thuyetMinhIndex !== -1) return thuyetMinhIndex;
+    
+    return 0;
+  };
+
+  const [selectedServerIndex, setSelectedServerIndex] = useState(getDefaultServerIndex());
+
+  const currentServer = filteredServers[selectedServerIndex];
+  const currentEpisodes = currentServer?.items || [];
+
+  // Tạo tham số server từ server_name
+  const getServerParam = (serverName: string) => {
+    const name = serverName.toLowerCase();
+    if (name.includes("vietsub")) return "vietsub";
+    if (name.includes("thuyết") || name.includes("thuyet")) return "thuyet-minh";
+    return "";
+  };
+
+  // Map server_name sang tên hiển thị
+  const getServerDisplayName = (serverName: string) => {
+    const name = serverName.toLowerCase();
+    if (name.includes("vietsub")) return "Phụ đề";
+    if (name.includes("thuyết") || name.includes("thuyet")) return "Thuyết minh";
+    return serverName;
+  };
+
+  if (filteredServers.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-xl sm:rounded-2xl bg-white/5 glass border border-[#fb743E]/15 p-2.5 sm:p-4 shadow-[0_24px_80px_rgba(0,0,0,0.85)] animate-slide-up">
+      {/* Header với tabs server */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2 sm:mb-3">
+        <div className="flex items-center gap-1.5">
+          <h2 className="text-base sm:text-lg md:text-xl font-semibold text-white flex items-center gap-1.5">
+            <span className="text-[#fb743E]">Tập phim</span>
+          </h2>
+        </div>
+        
+        {/* Server Selection Tabs */}
+        {filteredServers.length > 1 && (
+          <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
+            {filteredServers.map((server, index) => {
+              const isActive = index === selectedServerIndex;
+              const displayName = getServerDisplayName(server.server_name);
+              
+              return (
+                <button
+                  key={server.server_name}
+                  onClick={() => setSelectedServerIndex(index)}
+                  className={`flex-1 sm:flex-none px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ease-in-out flex items-center justify-center gap-1 sm:gap-1.5 ${
+                    isActive
+                      ? "bg-[#1a1a2e] text-white border-2 border-blue-500"
+                      : "bg-[#0a0a0a] text-white/70 border border-white/10 hover:bg-[#fb743E] hover:text-white hover:border-[#fb743E]"
+                  }`}
+                >
+                  <svg
+                    className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  <span className="truncate">{displayName}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Episode Grid */}
+      {currentServer && (
+        <div 
+          key={currentServer.server_name}
+          style={{
+            animation: "fadeInUp 0.3s ease-out",
+          }}
+        >
+          <style jsx global>{`
+            @keyframes fadeInUp {
+              from {
+                opacity: 0;
+                transform: translateY(20px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+          `}</style>
+          <div className="flex items-center justify-between text-[10px] sm:text-xs text-[#fb743E]/70 mb-1.5 sm:mb-2">
+            <span className="font-semibold uppercase tracking-wider truncate mr-2">
+              {currentServer.server_name}
+            </span>
+            <span className="text-[#fb743E]/50 whitespace-nowrap">{currentEpisodes.length} TẬP</span>
+          </div>
+          
+          <div className="grid grid-cols-4 xs:grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-1.5 sm:gap-2">
+              {currentEpisodes.map((episode, index) => {
+                const serverParam = getServerParam(currentServer.server_name);
+                const href = serverParam
+                  ? `/xem-phim/${movieSlug}/${episode.slug}?server=${serverParam}`
+                  : `/xem-phim/${movieSlug}/${episode.slug}`;
+                
+                return (
+                  <Link 
+                    key={`${currentServer.server_name}-${episode.slug}`} 
+                    href={href}
+                    style={{
+                      animation: "fadeInUp 0.2s ease-out",
+                      animationDelay: `${Math.min(index * 15, 300)}ms`,
+                      animationFillMode: "both",
+                    }}
+                  >
+                    <Button
+                      variant="outline"
+                      className="w-full h-9 sm:h-10 md:h-11 rounded-lg bg-[#0a0a0a] border border-white/10 text-white text-xs sm:text-sm font-semibold transition-all hover:!bg-[#fb743E] hover:!text-white hover:!border-[#fb743E] hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(251,116,62,0.4)] focus-visible:!ring-[#fb743E]/50 flex items-center justify-center gap-1 px-1.5 sm:px-2"
+                    >
+                      <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-white flex-shrink-0" />
+                      <span className="whitespace-nowrap">Tập {index + 1}</span>
+                    </Button>
+                  </Link>
+                );
+              })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
