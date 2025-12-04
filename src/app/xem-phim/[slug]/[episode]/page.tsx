@@ -12,14 +12,6 @@ import { getFilmDetailMerged, getImageUrl } from "@/lib/api";
 import { IframePlayer } from "@/components/player/iframe-player";
 import { ShakaPlayer } from "@/components/player/shaka-player";
 
-// Make watch page static ISR
-export const dynamic = "force-static";
-export const revalidate = 300; // refresh every 5 minutes
-export const dynamicParams = true;
-export async function generateStaticParams() {
-  return [];
-}
-
 interface WatchPageProps {
   params: Promise<{ slug: string; episode: string }>;
 }

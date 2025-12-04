@@ -40,10 +40,10 @@ async function CategoryContent({
   page: number;
 }) {
   try {
-    let movies: Awaited<ReturnType<typeof getFilmsByCategory>>["items"] | undefined;
-    let totalPages: number | undefined;
+    let movies;
+    let totalPages;
 
-    let response: Awaited<ReturnType<typeof getFilmsByCategory>> | undefined;
+    let response;
     if (slug === "phim-moi-cap-nhat") {
       response = await getNewlyUpdatedFilms(page);
     } else if (slug === "phim-cap-nhat-hang-ngay") {
@@ -61,10 +61,10 @@ async function CategoryContent({
     }
 
     if (!movies) {
-      movies = response?.items || [];
+      movies = response.items || [];
     }
     if (!totalPages) {
-      totalPages = response?.paginate?.total_page || 1;
+      totalPages = response.paginate?.total_page || 1;
     }
 
     if (movies.length === 0) {
