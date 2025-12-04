@@ -29,6 +29,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const [openMenu, setOpenMenu] = useState<"genre" | "country" | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -57,7 +58,10 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {/* Genre Dropdown */}
           {isMounted && (
-            <DropdownMenu>
+            <DropdownMenu
+              open={openMenu === "genre"}
+              onOpenChange={(open) => setOpenMenu(open ? "genre" : null)}
+            >
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
@@ -81,7 +85,10 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
 
           {/* Country Dropdown */}
           {isMounted && (
-            <DropdownMenu>
+            <DropdownMenu
+              open={openMenu === "country"}
+              onOpenChange={(open) => setOpenMenu(open ? "country" : null)}
+            >
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"

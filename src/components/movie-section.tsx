@@ -138,7 +138,7 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
   return (
     <section className="relative py-3 xs:py-4 sm:py-5 group/section">
       {/* Section Header */}
-      <div className="px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 mb-1.5 xs:mb-2">
+      <div className="px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 mb-2 sm:mb-3 md:mb-4">
         {href ? (
           <Link
             href={href}

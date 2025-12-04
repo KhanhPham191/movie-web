@@ -7,10 +7,10 @@ import { Footer } from "@/components/footer";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import {
   getNewlyUpdatedFilmsMultiple,
+  getFilmsByCategoryMultiple,
   getFilmsByGenreMultiple,
   getFilmsByCountryMultiple,
   getDailyUpdatedFilms,
-  getFilmsByCategory,
   CATEGORIES,
   type FilmItem,
 } from "@/lib/api";
@@ -48,8 +48,8 @@ async function getHomePageData() {
     ] = await Promise.all([
       getNewlyUpdatedFilmsMultiple(3),
       getDailyUpdatedFilms(1),
-      getFilmsByCategory(CATEGORIES.PHIM_LE, 1).then((r) => r.items),
-      getFilmsByCategory(CATEGORIES.PHIM_BO, 1).then((r) => r.items),
+      getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 1),
+      getFilmsByCategoryMultiple(CATEGORIES.PHIM_BO, 3),
       // Phim bộ đang hot: lấy theo thể loại "tình cảm"
       getFilmsByGenreMultiple("tinh-cam", 3),
       getFilmsByCountryMultiple("han-quoc", 2),
@@ -62,32 +62,16 @@ async function getHomePageData() {
       getFilmsByCountryMultiple("thai-lan", 2),
     ]);
 
-    // Bỏ phim đã có ở "phim mới cập nhật" ra khỏi "cập nhật hôm nay"
-    const newlyUpdatedSlugs = new Set((newlyUpdated || []).map((m) => m.slug));
-    const dailyUpdated = (dailyUpdatedRes.items || []).filter(
-      (m: FilmItem) => m.slug && !newlyUpdatedSlugs.has(m.slug)
-    );
+    // "Cập nhật hôm nay" lấy thẳng từ API, không còn loại trùng với "phim mới cập nhật"
+    const dailyUpdated = dailyUpdatedRes.items || [];
 
-    // Top 10 phim lẻ: dùng danh sách kết hợp (NguonC + iPhim) và bỏ trùng với "Phim mới cập nhật"
-    const phimLe: FilmItem[] = [];
-    for (const movie of phimLeRaw || []) {
-      if (!movie?.slug) continue;
-      if (newlyUpdatedSlugs.has(movie.slug)) continue;
-      phimLe.push(movie);
-      if (phimLe.length >= 10) break;
-    }
+    // Top 10 phim lẻ:
+    // - Sắp xếp theo thời gian cập nhật mới nhất (field modified)
+    // - Lấy đơn giản 10 phim đầu, không cần loại trùng với section khác
+    const phimLeSorted = sortByModifiedDesc(phimLeRaw || []);
+    const phimLe = phimLeSorted.slice(0, 10);
 
-    // Top 10 phim bộ: logic tương tự "Cập nhật hôm nay" (NguonC + iPhim, bỏ trùng)
-    const phimBoTop: FilmItem[] = [];
-    for (const movie of phimBoTopRaw || []) {
-      if (!movie?.slug) continue;
-      if (newlyUpdatedSlugs.has(movie.slug)) continue;
-      if ((movie.total_episodes || 0) < 2) continue;
-      phimBoTop.push(movie);
-      if (phimBoTop.length >= 10) break;
-    }
-
-    // Lọc lại chỉ giữ phim bộ (nhiều tập)
+    // Lọc lại chỉ giữ phim bộ (nhiều tập) cho section "Phim bộ tình cảm"
     const phimBo = (phimBoTinhCam || []).filter(
       (movie) => movie.total_episodes && movie.total_episodes > 1
     );
@@ -111,6 +95,46 @@ async function getHomePageData() {
       }
     }
 
+    // Top 10 phim bộ: lấy theo combo 3 Âu Mỹ, 3 Hàn, 2 Trung, 2 Thái (ưu tiên phim bộ, mới cập nhật nhất)
+    const top10Series: FilmItem[] = [];
+
+    function pushSeries(source: FilmItem[] | undefined, count: number) {
+      if (!source || count <= 0) return;
+      const sorted = sortByModifiedDesc(source);
+      for (const movie of sorted) {
+        if (!movie?.slug) continue;
+        if ((movie.total_episodes || 0) < 2) continue; // chỉ lấy phim bộ
+        top10Series.push(movie);
+        if (top10Series.length >= 10) return;
+        if (--count <= 0) return;
+      }
+    }
+
+    // 3 Âu Mỹ, 3 Hàn, 2 Trung, 2 Thái
+    pushSeries(auMy, 3);
+    pushSeries(hanQuoc, 3);
+    pushSeries(trungQuocDisplay, 2);
+    pushSeries(thaiLan, 2);
+
+    // Nếu vì thiếu dữ liệu mà chưa đủ 10, bổ sung từ tất cả nguồn series còn lại
+    if (top10Series.length < 10) {
+      const fallbackPools: FilmItem[][] = [
+        auMy || [],
+        hanQuoc || [],
+        trungQuocDisplay || [],
+        thaiLan || [],
+      ];
+      for (const pool of fallbackPools) {
+        for (const movie of sortByModifiedDesc(pool)) {
+          if (!movie?.slug) continue;
+          if ((movie.total_episodes || 0) < 2) continue;
+          top10Series.push(movie);
+          if (top10Series.length >= 10) break;
+        }
+        if (top10Series.length >= 10) break;
+      }
+    }
+
     return {
       newlyUpdated,
       dailyUpdated,
@@ -124,7 +148,7 @@ async function getHomePageData() {
       hoatHinh,
       anime,
       thaiLan,
-      top10Series: sortByModifiedDesc(phimBoTop),
+      top10Series,
     };
   } catch (error) {
     console.error("Error fetching home page data:", error);
@@ -171,7 +195,7 @@ export default async function Home() {
           </div>
 
           {/* New Releases */}
-          <div className="animate-slide-up">
+          <div className="mt-2 sm:mt-4 md:mt-6 lg:mt-8 animate-slide-up">
             <Suspense fallback={<MovieSectionSkeleton />}>
               <MovieSection
                 title="Top 10 phim lẻ"

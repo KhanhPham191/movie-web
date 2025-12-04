@@ -65,9 +65,19 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
           </div>
           
           {/* Title below */}
-          <h3 className="mt-2 text-sm font-medium line-clamp-2 min-h-[2.5rem] group-hover:text-white transition-colors flex-shrink-0">
-            {movie.name}
-          </h3>
+          <div className="mt-2 space-y-1 flex-shrink-0">
+            <h3 className="text-sm font-medium line-clamp-2 min-h-[2.5rem] group-hover:text-white transition-colors">
+              {movie.name}
+            </h3>
+            {(movie.time || movie.total_episodes) && (
+              <p className="text-[10px] text-gray-400 flex items-center gap-2">
+                {movie.time && <span className="truncate">{movie.time}</span>}
+                <span className="px-1 py-0.5 rounded border border-gray-500 text-[9px] leading-none">
+                  16+
+                </span>
+              </p>
+            )}
+          </div>
         </div>
       </Link>
     );
@@ -96,9 +106,19 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               </Badge>
             )}
           </div>
-          <h3 className="mt-2 text-sm font-medium line-clamp-2 min-h-[2.5rem] group-hover:text-white transition-colors flex-shrink-0">
-            {movie.name}
-          </h3>
+          <div className="mt-2 space-y-1 flex-shrink-0">
+            <h3 className="text-sm font-medium line-clamp-2 min-h-[2.5rem] group-hover:text-white transition-colors">
+              {movie.name}
+            </h3>
+            {(movie.time || movie.total_episodes) && (
+              <p className="text-[10px] text-gray-400 flex items-center gap-2">
+                {movie.time && <span className="truncate">{movie.time}</span>}
+                <span className="px-1 py-0.5 rounded border border-gray-500 text-[9px] leading-none">
+                  16+
+                </span>
+              </p>
+            )}
+          </div>
         </div>
       </Link>
     );

@@ -90,12 +90,6 @@ async function MovieDetail({ slug }: { slug: string }) {
             <div className="max-w-2xl space-y-4 sm:space-y-5 animate-slide-up">
               {/* Meta chips - chỉ hiển thị trên tablet/desktop, mobile sẽ có block riêng phía dưới hero */}
               <div className="hidden sm:flex flex-wrap items-center gap-2 text-[10px] sm:text-xs text-white/70">
-                <span className="inline-flex items-center rounded-full bg-black/50 px-3 py-1 glass">
-                  <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-[#fb743E] animate-pulse" />
-                  <span className="uppercase tracking-[0.18em] text-[9px] sm:text-[10px]">
-                    Phim nổi bật
-                  </span>
-                </span>
                 {movie.quality && (
                   <span className="rounded-full border border-white/40 bg-black/40 px-2 py-0.5 text-[9px] sm:text-[10px]">
                     {movie.quality}

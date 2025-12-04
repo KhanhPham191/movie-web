@@ -228,24 +228,6 @@ export function HeroSection({ movies }: HeroSectionProps) {
           </Link>
         </div>
       </div>
-
-
-      {/* Thumbnail Navigation Dots */}
-      {featuredMovies.length > 1 && (
-        <div className="absolute bottom-4 sm:bottom-8 right-3 sm:right-4 md:right-12 flex items-center gap-1">
-          {featuredMovies.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`transition-all duration-300 ${
-                index === currentIndex
-                  ? "w-5 sm:w-6 h-0.5 sm:h-1 bg-white rounded-full"
-                  : "w-2.5 sm:w-3 h-0.5 sm:h-1 bg-white/40 rounded-full hover:bg-white/60"
-              }`}
-            />
-          ))}
-        </div>
-      )}
     </section>
   );
 }
