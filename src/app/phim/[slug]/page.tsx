@@ -29,10 +29,16 @@ async function MovieDetail({ slug }: { slug: string }) {
     const response = await getFilmDetailMerged(slug);
     console.log("[MovieDetail] API Response status:", response?.status);
     
-    // Check if API returned error status
-    if (response?.status === "error" || !response || !response.movie) {
-      console.error("[MovieDetail] No movie found in response:", response);
+    // Nếu API trả về lỗi "business" rõ ràng là không có phim, mới cho 404.
+    // Còn các case null/thiếu dữ liệu (có thể do API lỗi tạm thời) sẽ để try/catch xử lý và hiển thị trang lỗi thay vì 404.
+    if (response?.status === "error" && response?.movie == null) {
+      console.error("[MovieDetail] API returned error status with no movie:", response);
       notFound();
+    }
+
+    if (!response || !response.movie) {
+      console.error("[MovieDetail] Missing response or movie data:", response);
+      throw new Error("Không lấy được dữ liệu chi tiết phim từ API.");
     }
     
     const movie = response.movie;
@@ -63,19 +69,6 @@ async function MovieDetail({ slug }: { slug: string }) {
     // Prefer poster_url for better quality in hero section
     const backdropUrl = getImageUrl(movie.poster_url || movie.poster_url);
     const posterUrl = getImageUrl(movie.poster_url || movie.poster_url);
-
-    // Get similar movies (same category or genre)
-    let similarMovies: any[] = [];
-    try {
-      if (categories.length > 0 && categories[0]?.slug) {
-        console.log("[MovieDetail] Fetching similar movies for category:", categories[0].slug);
-        const similarResponse = await getFilmsByGenre(categories[0].slug, 1);
-        similarMovies = (similarResponse.items || []).filter((m) => m.slug !== slug).slice(0, 20);
-        console.log("[MovieDetail] Found", similarMovies.length, "similar movies");
-      }
-    } catch (error) {
-      console.error("[MovieDetail] Error fetching similar movies:", error);
-    }
 
     return (
       <>
@@ -420,12 +413,6 @@ async function MovieDetail({ slug }: { slug: string }) {
               </div>
             </div>
 
-            {/* Similar Movies */}
-            {similarMovies.length > 0 && (
-              <div className="rounded-3xl bg-white/5 glass border border-[#fb743E]/10 p-4 sm:p-6 lg:p-8 animate-slide-up">
-                <MovieSection title="Phim tương tự" movies={similarMovies} />
-              </div>
-            )}
           </div>
         </div>
       </>

@@ -327,6 +327,18 @@ export async function getFilmDetailMerged(slug: string): Promise<FilmDetailRespo
         movie.total_episodes = match ? Number(match[0]) : 0;
       }
 
+      // Chuẩn hóa "created" sang ISO string để hiển thị năm phát hành không bị NaN
+      // iPhim thường trả created/modified dạng { time: "2025-12-04T07:24:39.000000Z" }
+      const createdTime =
+        (movie.created && (movie.created as any).time) ||
+        (movie.modified && (movie.modified as any).time) ||
+        (raw.created && raw.created.time) ||
+        (raw.modified && raw.modified.time) ||
+        null;
+      if (createdTime && typeof createdTime === "string") {
+        movie.created = createdTime;
+      }
+
       // episodes ở top-level: episodes[].server_data
       if (Array.isArray(raw.episodes)) {
         iphimEpisodes = raw.episodes.map((server: any) => {
