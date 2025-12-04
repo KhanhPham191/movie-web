@@ -7,7 +7,7 @@ import { searchFilmsMerged } from "@/lib/api";
 import { Search } from "lucide-react";
 
 interface SearchPageProps {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: { q?: string };
 }
 
 async function SearchResults({ query }: { query: string }) {
@@ -62,7 +62,7 @@ async function SearchResults({ query }: { query: string }) {
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const { q: query = "" } = await searchParams;
+  const { q: query = "" } = searchParams;
 
   return (
     <main className="min-h-screen">
