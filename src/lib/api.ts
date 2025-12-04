@@ -242,9 +242,10 @@ export const COUNTRIES = [
   { name: "Ấn Độ", slug: "an-do" },
 ] as const;
 
-// Helper to get full image URL
-export function getImageUrl(path: string): string {
-  if (!path) return "/placeholder.jpg";
+// Helper to get full image URL (defensive against non-string values)
+export function getImageUrl(path: unknown): string {
+  // Fallback to existing logo in /public when path không hợp lệ
+  if (typeof path !== "string" || !path) return "/movpey-logo.ico?v=2";
   if (path.startsWith("http")) return path;
   return path;
 }

@@ -272,3 +272,12 @@ html {
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
 }
+
+/* Mobile search: remove all default borders/outlines on bar + children */
+.mobile-search form,
+.mobile-search form * {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none;
+}
