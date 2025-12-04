@@ -8,8 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight, Home, List, Info, Play } from "lucide-react";
-import { getFilmDetail, getImageUrl } from "@/lib/api";
+import { getFilmDetailMerged, getImageUrl } from "@/lib/api";
 import { IframePlayer } from "@/components/player/iframe-player";
+import { ShakaPlayer } from "@/components/player/shaka-player";
 
 interface WatchPageProps {
   params: Promise<{ slug: string; episode: string }>;
@@ -23,8 +24,8 @@ async function VideoPlayer({
   episodeSlug: string;
 }) {
   try {
-    const response = await getFilmDetail(slug);
-    const movie = response.movie;
+    const response = await getFilmDetailMerged(slug);
+    const movie = response?.movie;
 
     if (!movie) {
       notFound();
@@ -84,7 +85,7 @@ async function VideoPlayer({
 
     return (
       <div className="space-y-10 animate-fade-in">
-        <div className="relative overflow-hidden rounded-3xl bg-[#050505] glass border border-[#FF6EA0]/10 shadow-[0_24px_80px_rgba(0,0,0,0.85)] animate-scale-in">
+        <div className="relative overflow-hidden rounded-3xl bg-[#050505] glass border border-[#fb743E]/10 shadow-[0_24px_80px_rgba(0,0,0,0.85)] animate-scale-in">
           <div className="absolute inset-0">
             <Image
               src={background}
@@ -98,8 +99,8 @@ async function VideoPlayer({
 
           <div className="relative z-10 p-4 sm:p-6 lg:p-10 space-y-6 sm:space-y-8 text-white">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-white/70">
-              {movie.quality && <Badge className="bg-[#FF6EA0] text-black font-semibold">{movie.quality}</Badge>}
-              {movie.current_episode && <span className="text-[#FF6EA0]">{movie.current_episode}</span>}
+              {movie.quality && <Badge className="bg-[#fb743E] text-black font-semibold">{movie.quality}</Badge>}
+              {movie.current_episode && <span className="text-[#fb743E]">{movie.current_episode}</span>}
               {movie.time && <span>{movie.time}</span>}
               {countries[0] && <span>{formatLabel(countries[0])}</span>}
             </div>
@@ -107,29 +108,35 @@ async function VideoPlayer({
             <div className="grid gap-6 lg:gap-10 lg:grid-cols-[minmax(0,2.1fr)_minmax(0,1fr)] items-start">
               <div className="space-y-4 sm:space-y-6 animate-slide-up">
                 {/* Netflix 2024 Style Video Player */}
-                <div className="relative rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_-20px_rgba(255,220,120,0.35)] border border-[#FF6EA0]/30 group/player card-hover">
-                  <div
-                    className="aspect-video bg-black rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden w-full min-h-[200px] sm:min-h-[230px] md:min-h-[260px]"
-                  >
-                    <IframePlayer
-                      src={currentEpisode.embed}
-                      title={`${movie.name} - ${currentEpisode.name}`}
-                      allowAds={false}
-                      className="h-full w-full"
-                    />
+                <div className="relative rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_-20px_rgba(255,220,120,0.35)] border border-[#fb743E]/30 group/player card-hover">
+                  <div className="aspect-video bg-black rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden w-full min-h-[200px] sm:min-h-[230px] md:min-h-[260px]">
+                    {currentEpisode.m3u8 ? (
+                      <ShakaPlayer
+                        src={currentEpisode.m3u8}
+                        poster={background}
+                        className="h-full w-full"
+                      />
+                    ) : (
+                      <IframePlayer
+                        src={currentEpisode.embed}
+                        title={`${movie.name} - ${currentEpisode.name}`}
+                        allowAds={false}
+                        className="h-full w-full"
+                      />
+                    )}
                   </div>
                   
                   {/* Episode Info Overlay */}
                   <div className="absolute top-0 left-0 right-0 p-3 sm:p-4 lg:p-6 pointer-events-none bg-gradient-to-b from-black/80 to-transparent">
                     <div className="flex items-center justify-between text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white/70">
                       <div className="flex items-center gap-1.5 sm:gap-2">
-                        <Badge className="bg-[#FF6EA0] text-black text-[10px] sm:text-xs px-2 py-0.5">{currentServer?.server_name}</Badge>
+                        <Badge className="bg-[#fb743E] text-black text-[10px] sm:text-xs px-2 py-0.5">{currentServer?.server_name}</Badge>
                         <span className="flex items-center gap-1">
-                          <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-[#FF6EA0] text-[#FF6EA0]" />
+                          <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-[#fb743E] text-[#fb743E]" />
                           ĐANG PHÁT
                         </span>
                       </div>
-                      <span className="text-[#FF6EA0]">
+                      <span className="text-[#fb743E]">
                         {episodeIndex + 1}/{allEpisodes.length}
                       </span>
                     </div>
@@ -143,7 +150,7 @@ async function VideoPlayer({
                       asChild
                       variant="outline"
                       size="lg"
-                    className="min-w-[130px] sm:min-w-[150px] bg-black/60 text-white border-[#FF6EA0]/30 hover:bg-[#FF6EA0]/10 hover:border-[#FF6EA0] backdrop-blur text-xs sm:text-sm"
+                    className="min-w-[130px] sm:min-w-[150px] bg-black/60 text-white border-[#fb743E]/30 hover:bg-[#fb743E]/10 hover:border-[#fb743E] backdrop-blur text-xs sm:text-sm"
                     >
                       <Link href={`/xem-phim/${slug}/${prevEpisode.slug}`}>
                       <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-1" />
@@ -155,7 +162,7 @@ async function VideoPlayer({
                     <Button
                       asChild
                       size="lg"
-                    className="ml-auto min-w-[130px] sm:min-w-[150px] bg-[#FF6EA0] text-black hover:bg-[#FF6EA0]/90 font-semibold text-xs sm:text-sm"
+                    className="ml-auto min-w-[130px] sm:min-w-[150px] bg-[#fb743E] text-black hover:bg-[#fb743E]/90 font-semibold text-xs sm:text-sm"
                     >
                       <Link href={`/xem-phim/${slug}/${nextEpisode.slug}`}>
                       <span className="truncate">Tập tiếp theo</span>
@@ -167,12 +174,12 @@ async function VideoPlayer({
 
                 {/* Action Buttons - Mobile Responsive */}
                 <div className="flex flex-wrap gap-2 sm:gap-3">
-                  <Button size="lg" className="bg-[#FF6EA0] text-black hover:bg-[#FF6EA0]/90 font-semibold flex-1 sm:flex-none text-sm sm:text-base" asChild>
+                  <Button size="lg" className="bg-[#fb743E] text-black hover:bg-[#fb743E]/90 font-semibold flex-1 sm:flex-none text-sm sm:text-base" asChild>
                     <Link href={`/phim/${slug}`}>
                       <Info className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" /> Chi tiết
                     </Link>
                   </Button>
-                  <Button size="lg" variant="outline" className="border-[#FF6EA0]/30 text-white hover:bg-[#FF6EA0]/10 flex-1 sm:flex-none text-sm sm:text-base" asChild>
+                  <Button size="lg" variant="outline" className="border-[#fb743E]/30 text-white hover:bg-[#fb743E]/10 flex-1 sm:flex-none text-sm sm:text-base" asChild>
                     <Link href="/">
                       <Home className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" /> Trang chủ
                     </Link>
@@ -181,13 +188,13 @@ async function VideoPlayer({
               </div>
 
               {/* Movie Info Panel - Mobile Optimized */}
-              <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4 border border-[#FF6EA0]/10 glass animate-slide-up">
+              <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4 border border-[#fb743E]/10 glass animate-slide-up">
                 <div>
-                  <p className="text-[10px] sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[#FF6EA0]/60">Đang xem</p>
+                  <p className="text-[10px] sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[#fb743E]/60">Đang xem</p>
                   <h1 className="text-lg sm:text-2xl lg:text-3xl font-black mt-1 sm:mt-2 line-clamp-2">
                     {movie.name}
                   </h1>
-                  <p className="text-[#FF6EA0] text-sm sm:text-base font-semibold mt-0.5 sm:mt-1">{currentEpisode.name}</p>
+                  <p className="text-[#fb743E] text-sm sm:text-base font-semibold mt-0.5 sm:mt-1">{currentEpisode.name}</p>
                 </div>
 
                 {cleanDescription && (
@@ -199,19 +206,19 @@ async function VideoPlayer({
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-white/80">
                   {movie.director && (
                     <p className="line-clamp-1">
-                      <span className="text-[#FF6EA0]/60">Đạo diễn: </span>
+                      <span className="text-[#fb743E]/60">Đạo diễn: </span>
                       {movie.director}
                     </p>
                   )}
                   {movie.casts && (
                     <p className="line-clamp-2">
-                      <span className="text-[#FF6EA0]/60">Diễn viên: </span>
+                      <span className="text-[#fb743E]/60">Diễn viên: </span>
                       {movie.casts}
                     </p>
                   )}
                   {categories.length > 0 && (
                     <p className="line-clamp-1">
-                      <span className="text-[#FF6EA0]/60">Thể loại: </span>
+                      <span className="text-[#fb743E]/60">Thể loại: </span>
                       {categories.map((c) => formatLabel(c)).join(", ")}
                     </p>
                   )}
@@ -222,10 +229,10 @@ async function VideoPlayer({
         </div>
 
         {/* Episode list - Netflix 2024 Style */}
-        <div className="bg-[#0f0f0f] rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 border border-[#FF6EA0]/10 glass animate-slide-up">
+        <div className="bg-[#0f0f0f] rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 border border-[#fb743E]/10 glass animate-slide-up">
           <div className="flex items-center justify-between">
             <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-white flex items-center gap-2">
-              <List className="w-4 h-4 sm:w-5 sm:h-5 text-[#FF6EA0]" />
+              <List className="w-4 h-4 sm:w-5 sm:h-5 text-[#fb743E]" />
               Danh sách tập
             </h2>
           </div>
@@ -233,9 +240,9 @@ async function VideoPlayer({
           <div className="space-y-6 sm:space-y-8">
             {movie.episodes?.map((server) => (
               <div key={server.server_name} className="space-y-2 sm:space-y-3">
-                <div className="flex items-center justify-between text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[#FF6EA0]/70 mb-2">
+                <div className="flex items-center justify-between text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[#fb743E]/70 mb-2">
                   <span className="font-semibold">{server.server_name}</span>
-                  <span className="text-[#FF6EA0]/50">{server.items.length} TẬP</span>
+                  <span className="text-[#fb743E]/50">{server.items.length} TẬP</span>
                 </div>
                 <div className="flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
                   {server.items.map((ep, index) => (
@@ -244,8 +251,8 @@ async function VideoPlayer({
                       href={`/xem-phim/${slug}/${ep.slug}`}
                       className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-semibold transition-all whitespace-nowrap shrink-0 hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.65)] ${
                         ep.slug === episodeSlug
-                          ? "bg-[#FF6EA0] text-black shadow-[0_0_20px_rgba(255,110,160,0.4)]"
-                          : "bg-white/10 text-white hover:bg-[#FF6EA0]/20 hover:text-[#FF6EA0]"
+                          ? "bg-[#fb743E] text-black shadow-[0_0_20px_rgba(251,116,62,0.4)]"
+                          : "bg-white/10 text-white hover:bg-[#fb743E]/20 hover:text-[#fb743E]"
                       }`}
                     >
                       Tập {index + 1}
@@ -259,8 +266,8 @@ async function VideoPlayer({
 
         {/* Description - Netflix 2024 Style */}
         {movie.description && (
-          <div className="bg-white/5 rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 text-white/80 text-xs sm:text-sm leading-relaxed border border-[#FF6EA0]/10">
-            <h3 className="text-base sm:text-lg font-semibold text-[#FF6EA0] mb-2 sm:mb-3">Nội dung phim</h3>
+          <div className="bg-white/5 rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 text-white/80 text-xs sm:text-sm leading-relaxed border border-[#fb743E]/10">
+            <h3 className="text-base sm:text-lg font-semibold text-[#fb743E] mb-2 sm:mb-3">Nội dung phim</h3>
             <div
               className="prose prose-invert prose-sm max-w-none"
               dangerouslySetInnerHTML={{
@@ -305,8 +312,8 @@ export default async function WatchPage({ params }: WatchPageProps) {
       {/* Cinematic background */}
       <div className="relative pt-20 md:pt-24 pb-16 overflow-hidden">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-40 -top-40 h-72 w-72 rounded-full bg-[#FF6EA0]/15 blur-3xl animate-fade-in" />
-          <div className="absolute right-0 top-1/4 h-80 w-80 rounded-full bg-[#FFB6D5]/10 blur-3xl animate-fade-in" />
+          <div className="absolute -left-40 -top-40 h-72 w-72 rounded-full bg-[#fb743E]/15 blur-3xl animate-fade-in" />
+          <div className="absolute right-0 top-1/4 h-80 w-80 rounded-full bg-[#ff9d6b]/10 blur-3xl animate-fade-in" />
           <div className="absolute inset-0 bg-gradient-to-b from-black via-black/90 to-[#05050a]" />
         </div>
 
@@ -315,7 +322,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm text-white/60 animate-fade-in">
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center rounded-full bg-white/5 px-3 py-1 glass">
-                <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-[#FF6EA0] animate-pulse" />
+                <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-[#fb743E] animate-pulse" />
                 <span className="uppercase tracking-[0.16em] text-[10px] sm:text-[11px] text-white/80">
                   Đang xem
                 </span>
@@ -351,8 +358,14 @@ export default async function WatchPage({ params }: WatchPageProps) {
 export async function generateMetadata({ params }: WatchPageProps) {
   const { slug, episode } = await params;
   try {
-    const response = await getFilmDetail(slug);
-    const movie = response.movie;
+    const response = await getFilmDetailMerged(slug);
+    const movie = response?.movie;
+
+    if (!movie) {
+      return {
+        title: "Xem phim | Phim7.xyz",
+      };
+    }
 
     let episodeName = "";
     for (const server of movie.episodes || []) {

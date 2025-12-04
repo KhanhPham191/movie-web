@@ -10,7 +10,7 @@ import {
   getFilmsByCategoryMultiple,
   getFilmsByGenreMultiple,
   getFilmsByCountryMultiple,
-  getDailyUpdatedFilms,
+  getDailyUpdatedFilmsCombined,
   CATEGORIES,
   type FilmItem,
 } from "@/lib/api";
@@ -67,7 +67,7 @@ async function getHomePageData() {
       thaiLan,
     ] = await Promise.all([
       getNewlyUpdatedFilmsMultiple(3),
-      getDailyUpdatedFilms(1).then(r => r.items || []),
+      getDailyUpdatedFilmsCombined(1),
       getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 3),
       // Phim bộ đang hot: lấy theo thể loại "tình cảm"
       getFilmsByGenreMultiple("tinh-cam", 3),
@@ -183,8 +183,8 @@ export default async function Home() {
       <div className="relative z-20 -mt-4 sm:-mt-12 md:-mt-18 lg:-mt-24 pb-16">
         {/* Soft background gradients behind rows */}
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-[#FF6EA0]/10 blur-3xl" />
-          <div className="absolute right-0 top-1/3 h-64 w-64 rounded-full bg-[#FFB6D5]/10 blur-3xl" />
+          <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-[#fb743E]/10 blur-3xl" />
+          <div className="absolute right-0 top-1/3 h-64 w-64 rounded-full bg-[#ff9d6b]/10 blur-3xl" />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#05050a] to-[#05050a]" />
         </div>
 

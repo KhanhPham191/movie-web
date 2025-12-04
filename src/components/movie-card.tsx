@@ -142,7 +142,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
           {/* Rank + Info */}
           <div className="mt-3 flex items-start gap-2 w-full flex-shrink-0">
             {rank && (
-              <div className="text-3xl xs:text-4xl sm:text-5xl font-black text-[#FF6EA0] leading-none flex-shrink-0">
+              <div className="text-3xl xs:text-4xl sm:text-5xl font-black text-[#fb743E] leading-none flex-shrink-0">
                 {rank}
               </div>
             )}

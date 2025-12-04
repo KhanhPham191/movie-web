@@ -273,7 +273,7 @@ export function IframePlayer({
             <p className="mb-4 text-sm">Không thể tải video</p>
             <button
               onClick={handleRetry}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#FF6EA0] px-4 py-2 font-semibold text-black transition-colors hover:bg-[#FF6EA0]/90"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#fb743E] px-4 py-2 font-semibold text-black transition-colors hover:bg-[#fb743E]/90"
             >
               <RefreshCw className="h-4 w-4" />
               Thử lại

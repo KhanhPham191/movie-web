@@ -105,7 +105,7 @@ async function MovieDetail({ slug }: { slug: string }) {
               {/* Meta chips - chỉ hiển thị trên tablet/desktop, mobile sẽ có block riêng phía dưới hero */}
               <div className="hidden sm:flex flex-wrap items-center gap-2 text-[10px] sm:text-xs text-white/70">
                 <span className="inline-flex items-center rounded-full bg-black/50 px-3 py-1 glass">
-                  <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-[#FF6EA0] animate-pulse" />
+                  <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-[#fb743E] animate-pulse" />
                   <span className="uppercase tracking-[0.18em] text-[9px] sm:text-[10px]">
                     Phim nổi bật
                   </span>
@@ -116,7 +116,7 @@ async function MovieDetail({ slug }: { slug: string }) {
                   </span>
                 )}
                 {movie.current_episode && (
-                  <span className="text-[#FFB6D5] text-[9px] sm:text-[10px]">
+                  <span className="text-[#ff9d6b] text-[9px] sm:text-[10px]">
                     {movie.current_episode}
                   </span>
                 )}
@@ -231,18 +231,18 @@ async function MovieDetail({ slug }: { slug: string }) {
                   </span>
                 )}
                 {movie.current_episode && (
-                  <span className="text-[#FFB6D5]">{movie.current_episode}</span>
+                  <span className="text-[#ff9d6b]">{movie.current_episode}</span>
                 )}
                 {movie.time && <span className="text-white/70">{movie.time}</span>}
               </div>
             </div>
             {/* Episodes Section */}
-            {movie.episodes && movie.episodes.length > 0 && (
-              <div className="rounded-3xl bg-white/5 glass border border-[#FF6EA0]/15 p-4 sm:p-6 lg:p-8 shadow-[0_24px_80px_rgba(0,0,0,0.85)] animate-slide-up">
+            {Array.isArray(movie.episodes) && movie.episodes.length > 0 && (
+              <div className="rounded-3xl bg-white/5 glass border border-[#fb743E]/15 p-4 sm:p-6 lg:p-8 shadow-[0_24px_80px_rgba(0,0,0,0.85)] animate-slide-up">
                 <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6">
                   <div>
                     <h2 className="text-xl md:text-2xl font-semibold text-white flex items-center gap-2">
-                      <span className="text-[#FF6EA0]">Tập phim</span>
+                      <span className="text-[#fb743E]">Tập phim</span>
                     </h2>
                     <p className="text-xs sm:text-sm text-white/60 mt-1">
                       Chọn tập để xem ngay với player chất lượng cao.
@@ -250,26 +250,28 @@ async function MovieDetail({ slug }: { slug: string }) {
                   </div>
                 </div>
 
-                {movie.episodes.map((server) => (
-                  <div key={server.server_name} className="mb-6 last:mb-0">
+                {movie.episodes.map((server) => {
+                  const items = Array.isArray(server.items) ? server.items : [];
+                  return (
+                  <div key={server.server_name || `server-${Math.random()}`} className="mb-6 last:mb-0">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-xs sm:text-sm text-[#FF6EA0] font-semibold uppercase tracking-[0.18em]">
+                      <h3 className="text-xs sm:text-sm text-[#fb743E] font-semibold uppercase tracking-[0.18em]">
                         {server.server_name}
                       </h3>
                       <span className="text-[11px] text-white/50">
-                        {server.items.length} tập
+                        {items.length} tập
                       </span>
                     </div>
                     {/* Episode buttons in wrapped rows (không cần scroll ngang) */}
                     <div className="grid grid-cols-4 xs:grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-8 gap-2 sm:gap-2.5">
-                      {server.items.map((episode, index) => (
+                      {items.map((episode, index) => (
                         <Link
                           key={episode.slug}
                           href={`/xem-phim/${movie.slug}/${episode.slug}`}
                         >
                           <Button
                             variant="outline"
-                            className="w-full h-9 sm:h-10 rounded-full bg-[#151515]/90 border-[#FF6EA0]/25 text-white text-xs sm:text-sm font-semibold transition-all hover:bg-[#FF6EA0] hover:text-black hover:border-[#FF6EA0] hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(0,0,0,0.8)]"
+                            className="w-full h-9 sm:h-10 rounded-full bg-[#151515]/90 border-[#fb743E]/25 text-white text-xs sm:text-sm font-semibold transition-all hover:!bg-[#fb743E] hover:!text-white hover:!border-[#fb743E] hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(0,0,0,0.8)] focus-visible:!ring-[#fb743E]/50"
                           >
                             Tập {index + 1}
                           </Button>
@@ -277,7 +279,7 @@ async function MovieDetail({ slug }: { slug: string }) {
                       ))}
                     </div>
                   </div>
-                ))}
+                )})}
               </div>
             )}
 
@@ -289,13 +291,13 @@ async function MovieDetail({ slug }: { slug: string }) {
                 <div className="space-y-3 text-sm">
                   {movie.director && (
                     <div>
-                      <span className="text-[#FF6EA0]/70">Đạo diễn: </span>
+                      <span className="text-[#fb743E]/70">Đạo diễn: </span>
                       <span className="text-white font-medium">{movie.director}</span>
                     </div>
                   )}
                   {movie.casts && (
                     <div>
-                      <span className="text-[#FF6EA0]/70">Diễn viên: </span>
+                      <span className="text-[#fb743E]/70">Diễn viên: </span>
                       <span className="text-white font-medium">{movie.casts}</span>
                     </div>
                   )}
@@ -305,7 +307,7 @@ async function MovieDetail({ slug }: { slug: string }) {
                 {movie.description && (
                   <div className="pt-2">
                     <h3 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
-                      <span className="text-[#FF6EA0]">Về phim này</span>
+                      <span className="text-[#fb743E]">Về phim này</span>
                     </h3>
                     <div
                       className="text-gray-200 text-sm leading-relaxed"
@@ -321,7 +323,7 @@ async function MovieDetail({ slug }: { slug: string }) {
               <div className="space-y-4 rounded-2xl bg-white/5 glass border border-white/10 p-4 sm:p-6 lg:p-7 text-sm">
                 {categories.length > 0 && (
                   <div>
-                    <span className="text-[#FF6EA0]/70 text-sm block mb-1">Thể loại</span>
+                    <span className="text-[#fb743E]/70 text-sm block mb-1">Thể loại</span>
                     <div className="flex flex-wrap gap-2">
                       {categories.map((cat, index) => {
                         const catId =
@@ -343,7 +345,7 @@ async function MovieDetail({ slug }: { slug: string }) {
                           <Link key={catId} href={`/the-loai/${catSlug}`}>
                             <Badge
                               variant="outline"
-                              className="bg-[#151515] border-[#FF6EA0]/30 text-white hover:border-[#FF6EA0] hover:bg-[#FF6EA0]/15 cursor-pointer transition-all rounded-full"
+                              className="bg-[#151515] border-[#fb743E]/30 text-white hover:border-[#fb743E] hover:bg-[#fb743E]/15 cursor-pointer transition-all rounded-full"
                             >
                               {catName}
                             </Badge>
@@ -356,7 +358,7 @@ async function MovieDetail({ slug }: { slug: string }) {
 
                 {countries.length > 0 && (
                   <div>
-                    <span className="text-[#FF6EA0]/70 text-sm block mb-1">Quốc gia</span>
+                    <span className="text-[#fb743E]/70 text-sm block mb-1">Quốc gia</span>
                     <div className="flex flex-wrap gap-2">
                       {countries.map((country, index) => {
                         const countryId =
@@ -382,7 +384,7 @@ async function MovieDetail({ slug }: { slug: string }) {
                           <Link key={countryId} href={`/quoc-gia/${countrySlug}`}>
                             <Badge
                               variant="outline"
-                              className="bg-[#151515] border-[#FF6EA0]/30 text-white hover:border-[#FF6EA0] hover:bg-[#FF6EA0]/15 cursor-pointer transition-all rounded-full"
+                              className="bg-[#151515] border-[#fb743E]/30 text-white hover:border-[#fb743E] hover:bg-[#fb743E]/15 cursor-pointer transition-all rounded-full"
                             >
                               {countryName}
                             </Badge>
@@ -395,7 +397,7 @@ async function MovieDetail({ slug }: { slug: string }) {
 
                 {movie.created && (
                   <div>
-                    <span className="text-[#FF6EA0]/70 text-sm block mb-1">Năm phát hành</span>
+                    <span className="text-[#fb743E]/70 text-sm block mb-1">Năm phát hành</span>
                     <span className="text-white">
                       {new Date(movie.created).getFullYear()}
                     </span>
@@ -404,14 +406,14 @@ async function MovieDetail({ slug }: { slug: string }) {
 
                 {movie.time && (
                   <div>
-                    <span className="text-[#FF6EA0]/70 text-sm block mb-1">Thời lượng</span>
+                    <span className="text-[#fb743E]/70 text-sm block mb-1">Thời lượng</span>
                     <span className="text-white">{movie.time}</span>
                   </div>
                 )}
 
                 {movie.language && (
                   <div>
-                    <span className="text-[#FF6EA0]/70 text-sm block mb-1">Ngôn ngữ</span>
+                    <span className="text-[#fb743E]/70 text-sm block mb-1">Ngôn ngữ</span>
                     <span className="text-white">{movie.language}</span>
                   </div>
                 )}
@@ -420,7 +422,7 @@ async function MovieDetail({ slug }: { slug: string }) {
 
             {/* Similar Movies */}
             {similarMovies.length > 0 && (
-              <div className="rounded-3xl bg-white/5 glass border border-[#FF6EA0]/10 p-4 sm:p-6 lg:p-8 animate-slide-up">
+              <div className="rounded-3xl bg-white/5 glass border border-[#fb743E]/10 p-4 sm:p-6 lg:p-8 animate-slide-up">
                 <MovieSection title="Phim tương tự" movies={similarMovies} />
               </div>
             )}

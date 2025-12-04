@@ -67,18 +67,18 @@ export function Header() {
         <div className="flex items-center gap-2 sm:gap-4 lg:gap-10 min-w-0">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-1 xs:gap-1.5 shrink-0">
-            <div className="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden shadow-md shadow-black/40 bg-[radial-gradient(circle,rgba(255,220,120,0.9)_0%,rgba(20,20,20,1)_70%)] flex items-center justify-center">
+            <div className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-xl overflow-hidden flex items-center justify-center">
               <Image
-                src="/movpey-logo.png"
+                src="/movpey-logo.ico"
                 alt="MovPey logo"
-                width={32}
-                height={32}
+                width={64}
+                height={64}
                 className="w-full h-full object-contain"
                 priority
               />
             </div>
             <div className="hidden xs:flex flex-col leading-tight">
-              <span className="text-base xs:text-lg sm:text-xl font-extrabold text-[#FF6EA0] tracking-tight">
+              <span className="text-base xs:text-lg sm:text-xl font-extrabold text-[#fb743E] tracking-tight">
                 MovPey
               </span>
               <span className="text-[9px] xs:text-[10px] sm:text-xs font-medium text-gray-200 tracking-wide">
@@ -192,7 +192,7 @@ export function Header() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-1 sm:gap-2 group shrink-0">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-[linear-gradient(135deg,#FF6EA0,#FFB6D5)] flex items-center justify-center">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-[linear-gradient(135deg,#fb743E,#ff9d6b)] flex items-center justify-center">
                     <span className="text-xs sm:text-sm font-bold">P</span>
                   </div>
                   <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-white group-hover:rotate-180 transition-transform hidden md:block" />

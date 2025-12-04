@@ -144,7 +144,7 @@ export default async function CategoryPage({
         {/* Netflix-style category hero header */}
         <section className="bg-gradient-to-b from-black/70 via-[#141414] to-[#141414] border-b border-white/10">
           <div className="container mx-auto px-4 py-5 sm:py-7 md:py-8 flex flex-col gap-3 sm:gap-4">
-            <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.25em] text-[#FF6EA0]">
+            <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.25em] text-[#fb743E]">
               Danh sách phim
             </p>
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white">

@@ -64,7 +64,7 @@ export function Footer() {
         <div className="flex items-center gap-2 mb-1">
           <div className="w-6 h-6 rounded-full overflow-hidden bg-[radial-gradient(circle,rgba(255,220,120,0.9)_0%,rgba(20,20,20,1)_70%)] flex items-center justify-center">
             <Image
-              src="/movpey-logo.png"
+            src="/movpey-logo.ico"
               alt="MovPey logo"
               width={24}
               height={24}
@@ -72,7 +72,7 @@ export function Footer() {
             />
           </div>
           <div className="flex flex-col leading-tight">
-            <span className="text-sm font-semibold text-[#FF6EA0]">
+            <span className="text-sm font-semibold text-[#fb743E]">
               MovPey
             </span>
             <span className="text-[10px] text-gray-300">
