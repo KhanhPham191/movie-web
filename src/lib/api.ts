@@ -28,7 +28,8 @@ export interface FilmItem {
 }
 
 export interface FilmDetail extends FilmItem {
-  episodes: Episode[];
+  // episodes có thể không tồn tại hoặc rỗng, nên để là optional
+  episodes?: Episode[];
 }
 
 export interface Episode {
@@ -65,6 +66,12 @@ const IPHIM_BASE = "https://iphim.cc/api";
 
 const API_BASE = NGUONC_BASE;
 
+const DEFAULT_FETCH_HEADERS: HeadersInit = {
+  "User-Agent": "Mozilla/5.0 (compatible; Phim7Bot/1.0; +https://phim7.xyz)",
+  Accept: "application/json",
+  "Accept-Language": "vi,en;q=0.9",
+};
+
 // Fetch with error handling
 async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T> {
   const url = `${base}${endpoint}`;
@@ -77,6 +84,7 @@ async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T
     
     const res = await fetch(url, {
       next: { revalidate }, // Dynamic cache based on endpoint
+      headers: DEFAULT_FETCH_HEADERS,
     });
 
     console.log("[API] Response status:", res.status, res.statusText);
@@ -195,6 +203,33 @@ function mergeEpisodesWithIphimM3u8(
   }
 
   return merged;
+}
+
+// Helper: lấy số tập lớn nhất từ danh sách episodes (dựa vào name hoặc slug chứa số)
+function getMaxEpisodeNumber(episodes: Episode[] | undefined): number {
+  if (!episodes || episodes.length === 0) return 0;
+
+  let maxEp = 0;
+
+  for (const server of episodes) {
+    for (const ep of server.items || []) {
+      const candidates: string[] = [];
+      if (ep.name) candidates.push(ep.name);
+      if (ep.slug) candidates.push(ep.slug);
+
+      for (const str of candidates) {
+        const match = String(str).match(/(\d+)/);
+        if (match) {
+          const num = Number(match[1]);
+          if (!Number.isNaN(num) && num > maxEp) {
+            maxEp = num;
+          }
+        }
+      }
+    }
+  }
+
+  return maxEp;
 }
 
 // Get newly updated films
@@ -325,23 +360,43 @@ export async function getFilmDetailMerged(slug: string): Promise<FilmDetailRespo
     const base = (iphim || nguonc)!;
     const movie = { ...(base.movie as any) } as FilmDetail;
 
-    const hasIphimEpisodes = Array.isArray(iphimEpisodes) && iphimEpisodes.length > 0;
     const nguoncEpisodes = (nguonc?.movie as any)?.episodes as Episode[] | undefined;
+    const hasIphimEpisodes = Array.isArray(iphimEpisodes) && iphimEpisodes.length > 0;
     const hasNguoncEpisodes = Array.isArray(nguoncEpisodes) && nguoncEpisodes.length > 0;
 
-    // Ưu tiên episodes từ iPhim; chỉ fallback sang NguonPhim nếu iPhim không có tập
-    if (hasIphimEpisodes) {
-      // iPhim có tập: ưu tiên dùng luôn episodes (m3u8 + embed đã normalize từ iPhim)
+    // Chuẩn hóa episodes từ NguonPhim: giữ nguyên embed nhưng bỏ m3u8
+    const nguoncEpisodesProcessed: Episode[] | undefined = hasNguoncEpisodes
+      ? nguoncEpisodes.map((server) => ({
+          server_name: server.server_name,
+          items: server.items.map((ep) => ({
+            ...ep,
+            m3u8: "", // xoá m3u8 để player fallback sang iframe embed nếu không có iPhim
+          })),
+        }))
+      : undefined;
+
+    if (hasIphimEpisodes && hasNguoncEpisodes) {
+      // Cả hai nguồn đều có tập: so sánh số tập cao nhất
+      const maxNguonc = getMaxEpisodeNumber(nguoncEpisodes);
+      const maxIphim = getMaxEpisodeNumber(iphimEpisodes);
+
+      if (maxIphim > maxNguonc) {
+        // iPhim đang dẫn trước: dùng list tập của iPhim
+        movie.episodes = iphimEpisodes;
+      } else {
+        // NguonPhim đã có tập mới hơn hoặc bằng: giữ list tập của NguonPhim,
+        // nhưng override m3u8 cho các tập trùng slug từ iPhim (nếu có)
+        movie.episodes = mergeEpisodesWithIphimM3u8(
+          nguoncEpisodesProcessed,
+          iphimEpisodes
+        );
+      }
+    } else if (hasIphimEpisodes) {
+      // Chỉ có iPhim
       movie.episodes = iphimEpisodes;
     } else if (hasNguoncEpisodes) {
-      // Chỉ có NguonPhim: giữ nguyên embed, nhưng KHÔNG dùng m3u8 của NguonPhim
-      movie.episodes = nguoncEpisodes.map((server) => ({
-        server_name: server.server_name,
-        items: server.items.map((ep) => ({
-          ...ep,
-          m3u8: "", // xoá m3u8 để player fallback sang iframe embed
-        })),
-      }));
+      // Chỉ có NguonPhim
+      movie.episodes = nguoncEpisodesProcessed;
     } else {
       movie.episodes = undefined;
     }

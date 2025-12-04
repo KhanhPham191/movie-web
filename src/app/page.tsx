@@ -7,17 +7,14 @@ import { Footer } from "@/components/footer";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import {
   getNewlyUpdatedFilmsMultiple,
-  getFilmsByCategoryMultiple,
   getFilmsByGenreMultiple,
   getFilmsByCountryMultiple,
   getDailyUpdatedFilmsCombined,
+  getFilmsByCategoryCombined,
   CATEGORIES,
   type FilmItem,
 } from "@/lib/api";
-import {
-  filterChinaNonAnimation,
-  filterNonAnimationByCountries,
-} from "@/lib/filters";
+import { filterChinaNonAnimation } from "@/lib/filters";
 
 // Helper: sắp xếp phim theo thời gian cập nhật mới nhất (field modified)
 function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
@@ -28,24 +25,6 @@ function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
   });
 }
 
-// Helper: chọn tối đa `limit` phim không trùng slug, theo thứ tự hiện tại (mới nhất trước)
-function pickUniqueBySlug(
-  source: FilmItem[],
-  limit: number,
-  seen: Set<string>,
-  output: FilmItem[]
-) {
-  let added = 0;
-  for (const movie of source) {
-    if (!movie?.slug) continue;
-    if (seen.has(movie.slug)) continue;
-    output.push(movie);
-    seen.add(movie.slug);
-    added++;
-    if (added >= limit) break;
-  }
-}
-
 // ISR: Revalidate every 30 seconds for real-time updates
 export const revalidate = 30;
 
@@ -54,8 +33,9 @@ async function getHomePageData() {
   try {
     const [
       newlyUpdated,
-      dailyUpdated,
-      phimLe,
+      dailyUpdatedRaw,
+      phimLeRaw,
+      phimBoTopRaw,
       phimBoTinhCam,
       hanQuoc,
       trungQuoc,
@@ -68,7 +48,8 @@ async function getHomePageData() {
     ] = await Promise.all([
       getNewlyUpdatedFilmsMultiple(3),
       getDailyUpdatedFilmsCombined(1),
-      getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 3),
+      getFilmsByCategoryCombined(CATEGORIES.PHIM_LE, 1),
+      getFilmsByCategoryCombined(CATEGORIES.PHIM_BO, 1),
       // Phim bộ đang hot: lấy theo thể loại "tình cảm"
       getFilmsByGenreMultiple("tinh-cam", 3),
       getFilmsByCountryMultiple("han-quoc", 2),
@@ -81,6 +62,31 @@ async function getHomePageData() {
       getFilmsByCountryMultiple("thai-lan", 2),
     ]);
 
+    // Bỏ phim đã có ở "phim mới cập nhật" ra khỏi "cập nhật hôm nay"
+    const newlyUpdatedSlugs = new Set((newlyUpdated || []).map((m) => m.slug));
+    const dailyUpdated = (dailyUpdatedRaw || []).filter(
+      (m) => m.slug && !newlyUpdatedSlugs.has(m.slug)
+    );
+
+    // Top 10 phim lẻ: dùng danh sách kết hợp (NguonC + iPhim) và bỏ trùng với "Phim mới cập nhật"
+    const phimLe: FilmItem[] = [];
+    for (const movie of phimLeRaw || []) {
+      if (!movie?.slug) continue;
+      if (newlyUpdatedSlugs.has(movie.slug)) continue;
+      phimLe.push(movie);
+      if (phimLe.length >= 10) break;
+    }
+
+    // Top 10 phim bộ: logic tương tự "Cập nhật hôm nay" (NguonC + iPhim, bỏ trùng)
+    const phimBoTop: FilmItem[] = [];
+    for (const movie of phimBoTopRaw || []) {
+      if (!movie?.slug) continue;
+      if (newlyUpdatedSlugs.has(movie.slug)) continue;
+      if ((movie.total_episodes || 0) < 2) continue;
+      phimBoTop.push(movie);
+      if (phimBoTop.length >= 10) break;
+    }
+
     // Lọc lại chỉ giữ phim bộ (nhiều tập)
     const phimBo = (phimBoTinhCam || []).filter(
       (movie) => movie.total_episodes && movie.total_episodes > 1
@@ -90,50 +96,20 @@ async function getHomePageData() {
     // dựa trên category chi tiết từ /api/film/{slug}
     const trungQuocFiltered = await filterChinaNonAnimation(trungQuoc);
 
-    // Top 10 phim bộ: 2 Trung, 3 Hàn, 2 Thái, 3 Âu Mỹ (bỏ hoạt hình)
-    const [chinaSeries, koreaSeries, thaiSeries, euUsSeries] =
-      await Promise.all([
-        filterNonAnimationByCountries(
-          (trungQuoc || []).filter((m) => (m.total_episodes || 0) > 1),
-          ["trung quoc"]
-        ),
-        filterNonAnimationByCountries(
-          (hanQuoc || []).filter((m) => (m.total_episodes || 0) > 1),
-          ["han quoc"]
-        ),
-        filterNonAnimationByCountries(
-          (thaiLan || []).filter((m) => (m.total_episodes || 0) > 1),
-          ["thai lan"]
-        ),
-        filterNonAnimationByCountries(
-          (auMy || []).filter((m) => (m.total_episodes || 0) > 1),
-          ["au my", "my", "anh", "us", "uk", "nuoc anh", "nuoc my"]
-        ),
-      ]);
-
-    // Ghép top 10, đảm bảo không trùng slug; nếu trùng sẽ lấy phim kế tiếp trong list (gần nhất)
-    const seen = new Set<string>();
-    const top10Series: FilmItem[] = [];
-    pickUniqueBySlug(chinaSeries, 2, seen, top10Series);
-    pickUniqueBySlug(koreaSeries, 3, seen, top10Series);
-    pickUniqueBySlug(thaiSeries, 2, seen, top10Series);
-    
-    // Đảm bảo có đủ 3 phim US-UK: lấy từ danh sách đã filter
-    const euUsNeeded = 3;
-    const euUsSlugs = new Set(euUsSeries.map(m => m.slug));
-    const beforeEuUs = top10Series.length;
-    pickUniqueBySlug(euUsSeries, euUsNeeded, seen, top10Series);
-    const euUsAdded = top10Series.length - beforeEuUs;
-    
-    // Nếu vẫn chưa đủ 3 phim US-UK, lấy thêm từ danh sách gốc (chỉ filter phim bộ, không filter hoạt hình)
-    if (euUsAdded < euUsNeeded) {
-      const auMySeriesOnly = (auMy || []).filter((m) => (m.total_episodes || 0) > 1);
-      const remainingNeeded = euUsNeeded - euUsAdded;
-      pickUniqueBySlug(auMySeriesOnly, remainingNeeded, seen, top10Series);
+    // Nếu sau khi lọc chi tiết mà danh sách quá ít (vd chỉ còn vài phim),
+    // thì bổ sung thêm từ danh sách gốc để hiển thị cho đầy đủ ngoài trang chủ.
+    const desiredChinaCount = 12;
+    const trungQuocSeen = new Set((trungQuocFiltered || []).map((m) => m.slug));
+    const trungQuocDisplay: FilmItem[] = [...(trungQuocFiltered || [])];
+    if (trungQuocDisplay.length < desiredChinaCount) {
+      for (const movie of trungQuoc || []) {
+        if (!movie?.slug) continue;
+        if (trungQuocSeen.has(movie.slug)) continue;
+        trungQuocDisplay.push(movie);
+        trungQuocSeen.add(movie.slug);
+        if (trungQuocDisplay.length >= desiredChinaCount) break;
+      }
     }
-
-    // Sắp xếp lại top 10 theo thời gian cập nhật (modified) từ mới nhất đến cũ nhất
-    const sortedTop10Series = sortByModifiedDesc(top10Series);
 
     return {
       newlyUpdated,
@@ -141,14 +117,14 @@ async function getHomePageData() {
       phimLe,
       phimBo,
       hanQuoc,
-      trungQuoc: trungQuocFiltered,
+      trungQuoc: trungQuocDisplay,
       nhatBan,
       hongKong,
       auMy,
       hoatHinh,
       anime,
       thaiLan,
-      top10Series: sortedTop10Series,
+      top10Series: sortByModifiedDesc(phimBoTop),
     };
   } catch (error) {
     console.error("Error fetching home page data:", error);
