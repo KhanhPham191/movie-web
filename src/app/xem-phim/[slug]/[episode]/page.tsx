@@ -30,28 +30,39 @@ async function VideoPlayer({
       notFound();
     }
 
-    let currentEpisode = null;
-    let currentServer = null;
+    let currentEpisode = null as null | { name: string; slug: string; embed: string; m3u8: string };
+    let currentServer: (typeof movie.episodes)[number] | null = null;
     let episodeIndex = -1;
     let allEpisodes: { name: string; slug: string; embed: string; m3u8: string }[] = [];
 
-    for (const server of movie.episodes || []) {
-      allEpisodes = server.items;
-      const idx = server.items.findIndex((ep) => ep.slug === episodeSlug);
-      if (idx !== -1) {
-        currentEpisode = server.items[idx];
-        currentServer = server;
-        episodeIndex = idx;
-        break;
+    if (Array.isArray(movie.episodes)) {
+      // Tìm đúng tập theo slug trong tất cả server (Vietsub / Thuyết minh)
+      for (const server of movie.episodes) {
+        const items = Array.isArray(server.items) ? server.items : [];
+        const idx = items.findIndex((ep) => ep.slug === episodeSlug);
+        if (idx !== -1) {
+          currentEpisode = items[idx];
+          currentServer = server;
+          episodeIndex = idx;
+          allEpisodes = items;
+          break;
+        }
       }
     }
 
     if (!currentEpisode) {
-      if (movie.episodes?.[0]?.items?.[0]) {
-        currentEpisode = movie.episodes[0].items[0];
-        currentServer = movie.episodes[0];
+      // Fallback: chọn server mặc định (ưu tiên Vietsub, sau đó Thuyết minh)
+      const defaultServer = Array.isArray(movie.episodes)
+        ? movie.episodes.find((s) => /vietsub/i.test(s.server_name)) ||
+          movie.episodes.find((s) => /thuyết\s*minh|thuyet\s*minh/i.test(s.server_name)) ||
+          movie.episodes[0]
+        : undefined;
+
+      if (defaultServer?.items?.[0]) {
+        currentEpisode = defaultServer.items[0];
+        currentServer = defaultServer;
         episodeIndex = 0;
-        allEpisodes = movie.episodes[0].items;
+        allEpisodes = defaultServer.items;
       } else {
         return (
           <div className="text-center py-20">
@@ -106,6 +117,37 @@ async function VideoPlayer({
 
             <div className="grid gap-6 lg:gap-10 lg:grid-cols-[minmax(0,2.1fr)_minmax(0,1fr)] items-start">
               <div className="space-y-4 sm:space-y-6 animate-slide-up max-w-full">
+                {/* Server Selection Tabs */}
+                {Array.isArray(movie.episodes) && movie.episodes.length > 1 && (
+                  <div className="bg-white/5 rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#fb743E]/10 glass">
+                    <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto scrollbar-hide">
+                      <span className="text-[10px] sm:text-xs text-white/60 uppercase tracking-[0.2em] whitespace-nowrap shrink-0">
+                        Server:
+                      </span>
+                      {movie.episodes.map((server) => {
+                        const isActive = currentServer?.server_name === server.server_name;
+                        // Tìm tập cùng số thứ tự trong server này
+                        const sameIndexEpisode = server.items[episodeIndex] || server.items[0];
+                        const targetSlug = sameIndexEpisode?.slug || server.items[0]?.slug;
+                        
+                        return (
+                          <Link
+                            key={server.server_name}
+                            href={`/xem-phim/${slug}/${targetSlug}`}
+                            className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all whitespace-nowrap shrink-0 hover:scale-105 ${
+                              isActive
+                                ? "bg-[#fb743E] text-black shadow-[0_0_20px_rgba(251,116,62,0.4)] ring-2 ring-[#fb743E]/50"
+                                : "bg-white/10 text-white hover:bg-[#fb743E]/20 hover:text-[#fb743E] border border-white/20 hover:border-[#fb743E]/40"
+                            }`}
+                          >
+                            {server.server_name}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Video Player - iframe only (bỏ Shaka/m3u8, trở lại nguyên thủy) */}
                 <div className="relative rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_-20px_rgba(255,220,120,0.35)] border border-[#fb743E]/30 group/player card-hover max-w-full">
                   <div className="aspect-video bg-black rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden w-full">

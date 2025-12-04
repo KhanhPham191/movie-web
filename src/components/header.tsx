@@ -25,7 +25,7 @@ export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<
-    { name: string; slug: string; thumb: string }
+    { name: string; slug: string; thumb: string }[]
   >([]);
   const [isSuggestOpen, setIsSuggestOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);

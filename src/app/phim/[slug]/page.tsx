@@ -63,6 +63,13 @@ async function MovieDetail({ slug }: { slug: string }) {
     const backdropUrl = getImageUrl(movie.poster_url || movie.poster_url);
     const posterUrl = getImageUrl(movie.poster_url || movie.poster_url);
 
+    // Chọn server mặc định: ưu tiên Vietsub, sau đó Thuyết minh, cuối cùng là server đầu tiên
+    const defaultServer = Array.isArray(movie.episodes)
+      ? movie.episodes.find((s) => /vietsub/i.test(s.server_name)) ||
+        movie.episodes.find((s) => /thuyết\s*minh|thuyet\s*minh/i.test(s.server_name)) ||
+        movie.episodes[0]
+      : undefined;
+
     return (
       <>
         {/* Hero Section - Cinematic Sakura Style */}
@@ -154,9 +161,9 @@ async function MovieDetail({ slug }: { slug: string }) {
 
               {/* Action Buttons - chỉ hiển thị trên tablet/desktop, mobile dùng nút ở section Tập phim */}
               <div className="hidden sm:flex items-center gap-2 sm:gap-3 pt-1 relative z-30">
-                {movie.episodes?.[0]?.items?.[0] && (
+                {defaultServer?.items?.[0] && (
                   <Link
-                    href={`/xem-phim/${movie.slug}/${movie.episodes[0].items[0].slug}`}
+                    href={`/xem-phim/${movie.slug}/${defaultServer.items[0].slug}`}
                     className="flex-1 sm:flex-initial"
                   >
                     <Button
