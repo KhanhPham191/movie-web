@@ -8,9 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight, Home, List, Info, Play } from "lucide-react";
-import { getFilmDetailMerged, getImageUrl } from "@/lib/api";
+import { getFilmDetail, getImageUrl } from "@/lib/api";
 import { IframePlayer } from "@/components/player/iframe-player";
-import { ShakaPlayer } from "@/components/player/shaka-player";
 
 interface WatchPageProps {
   params: Promise<{ slug: string; episode: string }>;
@@ -24,8 +23,8 @@ async function VideoPlayer({
   episodeSlug: string;
 }) {
   try {
-    const response = await getFilmDetailMerged(slug);
-    const movie = response?.movie;
+    const response = await getFilmDetail(slug);
+    const movie = response.movie;
 
     if (!movie) {
       notFound();
@@ -106,24 +105,16 @@ async function VideoPlayer({
             </div>
 
             <div className="grid gap-6 lg:gap-10 lg:grid-cols-[minmax(0,2.1fr)_minmax(0,1fr)] items-start">
-              <div className="space-y-4 sm:space-y-6 animate-slide-up">
-                {/* Netflix 2024 Style Video Player */}
-                <div className="relative rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_-20px_rgba(255,220,120,0.35)] border border-[#fb743E]/30 group/player card-hover">
-                  <div className="aspect-video bg-black rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden w-full min-h-[200px] sm:min-h-[230px] md:min-h-[260px]">
-                    {currentEpisode.m3u8 ? (
-                      <ShakaPlayer
-                        src={currentEpisode.m3u8}
-                        poster={background}
-                        className="h-full w-full"
-                      />
-                    ) : (
-                      <IframePlayer
-                        src={currentEpisode.embed}
-                        title={`${movie.name} - ${currentEpisode.name}`}
-                        allowAds={false}
-                        className="h-full w-full"
-                      />
-                    )}
+              <div className="space-y-4 sm:space-y-6 animate-slide-up max-w-full">
+                {/* Video Player - iframe only (bỏ Shaka/m3u8, trở lại nguyên thủy) */}
+                <div className="relative rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_-20px_rgba(255,220,120,0.35)] border border-[#fb743E]/30 group/player card-hover max-w-full">
+                  <div className="aspect-video bg-black rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden w-full">
+                    <IframePlayer
+                      src={currentEpisode.embed}
+                      title={`${movie.name} - ${currentEpisode.name}`}
+                      allowAds={false}
+                      className="h-full w-full"
+                    />
                   </div>
                   
                   {/* Episode Info Overlay */}
@@ -188,7 +179,7 @@ async function VideoPlayer({
               </div>
 
               {/* Movie Info Panel - Mobile Optimized */}
-              <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4 border border-[#fb743E]/10 glass animate-slide-up">
+              <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4 border border-[#fb743E]/10 glass animate-slide-up max-w-full">
                 <div>
                   <p className="text-[10px] sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[#fb743E]/60">Đang xem</p>
                   <h1 className="text-lg sm:text-2xl lg:text-3xl font-black mt-1 sm:mt-2 line-clamp-2">
@@ -358,8 +349,8 @@ export default async function WatchPage({ params }: WatchPageProps) {
 export async function generateMetadata({ params }: WatchPageProps) {
   const { slug, episode } = await params;
   try {
-    const response = await getFilmDetailMerged(slug);
-    const movie = response?.movie;
+    const response = await getFilmDetail(slug);
+    const movie = response.movie;
 
     if (!movie) {
       return {

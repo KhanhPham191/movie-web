@@ -60,11 +60,8 @@ export interface FilmDetailResponse {
   movie: FilmDetail;
 }
 
-// API bases
-const NGUONC_BASE = "https://phim.nguonc.com/api";
-const IPHIM_BASE = "https://iphim.cc/api";
-
-const API_BASE = NGUONC_BASE;
+// API base (chỉ dùng NguonC, bỏ iPhim)
+const API_BASE = "https://phim.nguonc.com/api";
 
 const DEFAULT_FETCH_HEADERS: HeadersInit = {
   "User-Agent": "Mozilla/5.0 (compatible; Phim7Bot/1.0; +https://phim7.xyz)",
@@ -134,134 +131,14 @@ async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T
   }
 }
 
-// Safe fetch for a specific source – returns null on error instead of throwing
-async function fetchFromSource<T>(endpoint: string, base: string): Promise<T | null> {
-  try {
-    return await fetchAPI<T>(endpoint, base);
-  } catch (error) {
-    console.error("[API] Source fetch error:", base, endpoint, error);
-    return null;
-  }
-}
-
-// Merge two film lists, removing duplicates by slug.
-// preferred: danh sách ưu tiên (ví dụ Nguonc), secondary: danh sách bổ sung (ví dụ iPhim).
-function mergeFilmLists(preferred: FilmItem[], secondary: FilmItem[]): FilmItem[] {
-  const seen = new Set<string>();
-  const result: FilmItem[] = [];
-
-  for (const film of preferred || []) {
-    if (!film?.slug) continue;
-    if (seen.has(film.slug)) continue;
-    seen.add(film.slug);
-    result.push(film);
-  }
-
-  for (const film of secondary || []) {
-    if (!film?.slug) continue;
-    if (seen.has(film.slug)) continue;
-    seen.add(film.slug);
-    result.push(film);
-  }
-
-  return result;
-}
-
-// Merge episodes: base theo NguonPhim, chỉ override m3u8 bằng từ iPhim nếu có trùng slug.
-function mergeEpisodesWithIphimM3u8(
-  nguoncEpisodes: Episode[] | undefined,
-  iphimEpisodes: Episode[] | undefined
-): Episode[] | undefined {
-  if (!nguoncEpisodes && !iphimEpisodes) return undefined;
-  if (!nguoncEpisodes || nguoncEpisodes.length === 0) return iphimEpisodes;
-  if (!iphimEpisodes || iphimEpisodes.length === 0) return nguoncEpisodes;
-
-  // Clone để tránh mutate response gốc
-  const merged = nguoncEpisodes.map((server) => ({
-    server_name: server.server_name,
-    items: server.items.map((it) => ({ ...it })),
-  }));
-
-  // Map slug -> m3u8 từ iPhim
-  const iphimM3u8BySlug = new Map<string, string>();
-  for (const server of iphimEpisodes) {
-    for (const ep of server.items || []) {
-      if (ep.slug && ep.m3u8) {
-        iphimM3u8BySlug.set(ep.slug, ep.m3u8);
-      }
-    }
-  }
-
-  // Gán m3u8 iPhim vào tập tương ứng
-  for (const server of merged) {
-    for (const ep of server.items) {
-      const m3u8FromIphim = iphimM3u8BySlug.get(ep.slug);
-      if (m3u8FromIphim) {
-        ep.m3u8 = m3u8FromIphim;
-      }
-    }
-  }
-
-  return merged;
-}
-
-// Helper: lấy số tập lớn nhất từ danh sách episodes (dựa vào name hoặc slug chứa số)
-function getMaxEpisodeNumber(episodes: Episode[] | undefined): number {
-  if (!episodes || episodes.length === 0) return 0;
-
-  let maxEp = 0;
-
-  for (const server of episodes) {
-    for (const ep of server.items || []) {
-      const candidates: string[] = [];
-      if (ep.name) candidates.push(ep.name);
-      if (ep.slug) candidates.push(ep.slug);
-
-      for (const str of candidates) {
-        const match = String(str).match(/(\d+)/);
-        if (match) {
-          const num = Number(match[1]);
-          if (!Number.isNaN(num) && num > maxEp) {
-            maxEp = num;
-          }
-        }
-      }
-    }
-  }
-
-  return maxEp;
-}
-
 // Get newly updated films
 export async function getNewlyUpdatedFilms(page: number = 1): Promise<FilmListResponse> {
   return fetchAPI<FilmListResponse>(`/films/phim-moi-cap-nhat?page=${page}`);
 }
 
-// Get newly updated films from both sources, merged & deduped by slug
-export async function getNewlyUpdatedFilmsCombined(page: number = 1): Promise<FilmItem[]> {
-  const endpoint = `/films/phim-moi-cap-nhat?page=${page}`;
-  const [nguonc, iphim] = await Promise.all([
-    fetchFromSource<FilmListResponse>(endpoint, NGUONC_BASE),
-    fetchFromSource<FilmListResponse>(endpoint, IPHIM_BASE),
-  ]);
-
-  return mergeFilmLists(nguonc?.items || [], iphim?.items || []);
-}
-
 // Get daily updated films (same as newly updated but with different cache)
 export async function getDailyUpdatedFilms(page: number = 1): Promise<FilmListResponse> {
   return fetchAPI<FilmListResponse>(`/films/phim-moi-cap-nhat?page=${page}`);
-}
-
-// Daily updated films from both sources, merged & deduped
-export async function getDailyUpdatedFilmsCombined(page: number = 1): Promise<FilmItem[]> {
-  const endpoint = `/films/phim-moi-cap-nhat?page=${page}`;
-  const [nguonc, iphim] = await Promise.all([
-    fetchFromSource<FilmListResponse>(endpoint, NGUONC_BASE),
-    fetchFromSource<FilmListResponse>(endpoint, IPHIM_BASE),
-  ]);
-
-  return mergeFilmLists(nguonc?.items || [], iphim?.items || []);
 }
 
 // Get films by category (phim-le, phim-bo, phim-dang-chieu, etc.)
@@ -272,155 +149,9 @@ export async function getFilmsByCategory(
   return fetchAPI<FilmListResponse>(`/films/danh-sach/${slug}?page=${page}`);
 }
 
-// Category films from both sources, merged & deduped
-export async function getFilmsByCategoryCombined(
-  slug: string,
-  page: number = 1
-): Promise<FilmItem[]> {
-  const endpoint = `/films/danh-sach/${slug}?page=${page}`;
-  const [nguonc, iphim] = await Promise.all([
-    fetchFromSource<FilmListResponse>(endpoint, NGUONC_BASE),
-    fetchFromSource<FilmListResponse>(endpoint, IPHIM_BASE),
-  ]);
-
-  return mergeFilmLists(nguonc?.items || [], iphim?.items || []);
-}
-
-// Get film detail by slug from a specific base
-export async function getFilmDetail(slug: string, base: string = NGUONC_BASE): Promise<FilmDetailResponse> {
-  // NguonC: /film/{slug}, iPhim: /phim/{slug}
-  const endpoint = base === NGUONC_BASE ? `/film/${slug}` : `/phim/${slug}`;
-  return fetchAPI<FilmDetailResponse>(endpoint, base);
-}
-
-/**
- * Get film detail - try NGUONC first, then fallback to iPhim.
- */
-export async function getFilmDetailMerged(slug: string): Promise<FilmDetailResponse | null> {
-  try {
-    console.log(`[API] Fetching detail (merged) for slug: ${slug}`);
-
-    const [fromNguoncRaw, fromIphimRaw] = await Promise.all([
-      fetchFromSource<FilmDetailResponse & { episodes?: any[] }>(`/film/${slug}`, NGUONC_BASE),
-      fetchFromSource<any>(`/phim/${slug}`, IPHIM_BASE),
-    ]);
-
-    // --- Normalize NguonPhim (gần như đã đúng format) ---
-    const nguonc: FilmDetailResponse | null =
-      fromNguoncRaw && fromNguoncRaw.status !== "error" && fromNguoncRaw.movie
-        ? fromNguoncRaw
-        : null;
-
-    // --- Normalize iPhim về FilmDetailResponse + Episode[] chuẩn ---
-    let iphim: FilmDetailResponse | null = null;
-    let iphimEpisodes: Episode[] | undefined;
-
-    if (fromIphimRaw && fromIphimRaw.status !== false) {
-      const raw = fromIphimRaw as any;
-      const movie = raw.movie || {};
-
-      // Map field khác tên
-      movie.original_name = movie.original_name || movie.origin_name || "";
-      movie.current_episode = movie.current_episode || movie.episode_current || "";
-      if (!movie.total_episodes && movie.episode_total) {
-        const match = String(movie.episode_total).match(/\d+/);
-        movie.total_episodes = match ? Number(match[0]) : 0;
-      }
-
-      // Chuẩn hóa "created" sang ISO string để hiển thị năm phát hành không bị NaN
-      // iPhim thường trả created/modified dạng { time: "2025-12-04T07:24:39.000000Z" }
-      const createdTime =
-        (movie.created && (movie.created as any).time) ||
-        (movie.modified && (movie.modified as any).time) ||
-        (raw.created && raw.created.time) ||
-        (raw.modified && raw.modified.time) ||
-        null;
-      if (createdTime && typeof createdTime === "string") {
-        movie.created = createdTime;
-      }
-
-      // episodes ở top-level: episodes[].server_data
-      if (Array.isArray(raw.episodes)) {
-        iphimEpisodes = raw.episodes.map((server: any) => {
-          const serverData = Array.isArray(server.server_data) ? server.server_data : [];
-          return {
-            server_name: server.server_name || "Server",
-            items: serverData.map((ep: any) => ({
-              name: String(ep.name ?? ""),
-              slug: String(ep.slug ?? ""),
-              embed: Array.isArray(ep.link_embed) ? String(ep.link_embed[0] ?? "") : "",
-              m3u8: Array.isArray(ep.link_m3u8) ? String(ep.link_m3u8[0] ?? "") : "",
-            })),
-          } as Episode;
-        });
-      }
-
-      (movie as any).episodes = iphimEpisodes;
-      iphim = {
-        status: raw.status === true ? "success" : String(raw.status || "error"),
-        movie: movie as FilmDetail,
-      };
-    }
-
-    // --- Quyết định base movie & episodes ---
-    if (!nguonc && !iphim) {
-      console.warn("[API] ❌ Not found in both sources:", slug);
-      return null;
-    }
-
-    // Base meta: ƯU TIÊN iPhim, nếu không có thì dùng NguonPhim
-    const base = (iphim || nguonc)!;
-    const movie = { ...(base.movie as any) } as FilmDetail;
-
-    const nguoncEpisodes = (nguonc?.movie as any)?.episodes as Episode[] | undefined;
-    const hasIphimEpisodes = Array.isArray(iphimEpisodes) && iphimEpisodes.length > 0;
-    const hasNguoncEpisodes = Array.isArray(nguoncEpisodes) && nguoncEpisodes.length > 0;
-
-    // Chuẩn hóa episodes từ NguonPhim: giữ nguyên embed nhưng bỏ m3u8
-    const nguoncEpisodesProcessed: Episode[] | undefined = hasNguoncEpisodes
-      ? nguoncEpisodes.map((server) => ({
-          server_name: server.server_name,
-          items: server.items.map((ep) => ({
-            ...ep,
-            m3u8: "", // xoá m3u8 để player fallback sang iframe embed nếu không có iPhim
-          })),
-        }))
-      : undefined;
-
-    if (hasIphimEpisodes && hasNguoncEpisodes) {
-      // Cả hai nguồn đều có tập: so sánh số tập cao nhất
-      const maxNguonc = getMaxEpisodeNumber(nguoncEpisodes);
-      const maxIphim = getMaxEpisodeNumber(iphimEpisodes);
-
-      if (maxIphim > maxNguonc) {
-        // iPhim đang dẫn trước: dùng list tập của iPhim
-        movie.episodes = iphimEpisodes;
-      } else {
-        // NguonPhim đã có tập mới hơn hoặc bằng: giữ list tập của NguonPhim,
-        // nhưng override m3u8 cho các tập trùng slug từ iPhim (nếu có)
-        movie.episodes = mergeEpisodesWithIphimM3u8(
-          nguoncEpisodesProcessed,
-          iphimEpisodes
-        );
-      }
-    } else if (hasIphimEpisodes) {
-      // Chỉ có iPhim
-      movie.episodes = iphimEpisodes;
-    } else if (hasNguoncEpisodes) {
-      // Chỉ có NguonPhim
-      movie.episodes = nguoncEpisodesProcessed;
-    } else {
-      movie.episodes = undefined;
-    }
-
-    return {
-      status: "success",
-      movie,
-    };
-  } catch (error) {
-    console.error(`[API] Error fetching merged detail:`, error);
-    return null;
-  }
+// Get film detail by slug (NguonC)
+export async function getFilmDetail(slug: string): Promise<FilmDetailResponse> {
+  return fetchAPI<FilmDetailResponse>(`/film/${slug}`);
 }
 
 // Get films by genre
@@ -431,40 +162,12 @@ export async function getFilmsByGenre(
   return fetchAPI<FilmListResponse>(`/films/the-loai/${slug}?page=${page}`);
 }
 
-// Genre films from both sources, merged & deduped
-export async function getFilmsByGenreCombined(
-  slug: string,
-  page: number = 1
-): Promise<FilmItem[]> {
-  const endpoint = `/films/the-loai/${slug}?page=${page}`;
-  const [nguonc, iphim] = await Promise.all([
-    fetchFromSource<FilmListResponse>(endpoint, NGUONC_BASE),
-    fetchFromSource<FilmListResponse>(endpoint, IPHIM_BASE),
-  ]);
-
-  return mergeFilmLists(nguonc?.items || [], iphim?.items || []);
-}
-
 // Get films by country
 export async function getFilmsByCountry(
   slug: string,
   page: number = 1
 ): Promise<FilmListResponse> {
   return fetchAPI<FilmListResponse>(`/films/quoc-gia/${slug}?page=${page}`);
-}
-
-// Country films from both sources, merged & deduped
-export async function getFilmsByCountryCombined(
-  slug: string,
-  page: number = 1
-): Promise<FilmItem[]> {
-  const endpoint = `/films/quoc-gia/${slug}?page=${page}`;
-  const [nguonc, iphim] = await Promise.all([
-    fetchFromSource<FilmListResponse>(endpoint, NGUONC_BASE),
-    fetchFromSource<FilmListResponse>(endpoint, IPHIM_BASE),
-  ]);
-
-  return mergeFilmLists(nguonc?.items || [], iphim?.items || []);
 }
 
 // Get films by year
@@ -491,18 +194,6 @@ export async function searchFilmsMerged(keyword: string): Promise<FilmItem[]> {
     console.error("[API] Search error:", error);
     return [];
   }
-}
-
-// Search films in both sources, merged & deduped
-export async function searchFilmsCombined(keyword: string): Promise<FilmItem[]> {
-  const endpoint = `/films/search?keyword=${encodeURIComponent(keyword)}`;
-
-  const [nguonc, iphim] = await Promise.all([
-    fetchFromSource<FilmListResponse>(endpoint, NGUONC_BASE),
-    fetchFromSource<FilmListResponse>(endpoint, IPHIM_BASE),
-  ]);
-
-  return mergeFilmLists(nguonc?.items || [], iphim?.items || []);
 }
 
 // Predefined categories

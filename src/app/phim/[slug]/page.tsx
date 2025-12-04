@@ -17,7 +17,7 @@ import {
   VolumeX,
   Info,
 } from "lucide-react";
-import { getFilmDetailMerged, getImageUrl, getFilmsByGenre, getFilmsByCategory, CATEGORIES } from "@/lib/api";
+import { getFilmDetail, getImageUrl, getFilmsByGenre, getFilmsByCategory, CATEGORIES } from "@/lib/api";
 
 interface MoviePageProps {
   params: Promise<{ slug: string }>;
@@ -26,16 +26,9 @@ interface MoviePageProps {
 async function MovieDetail({ slug }: { slug: string }) {
   try {
     console.log("[MovieDetail] Fetching movie with slug:", slug);
-    const response = await getFilmDetailMerged(slug);
+    const response = await getFilmDetail(slug);
     console.log("[MovieDetail] API Response status:", response?.status);
     
-    // Nếu API trả về lỗi "business" rõ ràng là không có phim, mới cho 404.
-    // Còn các case null/thiếu dữ liệu (có thể do API lỗi tạm thời) sẽ để try/catch xử lý và hiển thị trang lỗi thay vì 404.
-    if (response?.status === "error" && response?.movie == null) {
-      console.error("[MovieDetail] API returned error status with no movie:", response);
-      notFound();
-    }
-
     if (!response || !response.movie) {
       console.error("[MovieDetail] Missing response or movie data:", response);
       throw new Error("Không lấy được dữ liệu chi tiết phim từ API.");
@@ -255,8 +248,8 @@ async function MovieDetail({ slug }: { slug: string }) {
                         {items.length} tập
                       </span>
                     </div>
-                    {/* Episode buttons in wrapped rows (không cần scroll ngang) */}
-                    <div className="grid grid-cols-4 xs:grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-8 gap-2 sm:gap-2.5">
+                    {/* Episode buttons in wrapped rows (tối ưu cho mobile, không cần scroll ngang) */}
+                    <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-8 gap-2 sm:gap-2.5">
                       {items.map((episode, index) => (
                         <Link
                           key={episode.slug}
@@ -519,10 +512,10 @@ export async function generateMetadata({ params }: MoviePageProps) {
   const { slug } = await params;
   try {
     console.log("[generateMetadata] Fetching metadata for slug:", slug);
-    const response = await getFilmDetailMerged(slug);
+    const response = await getFilmDetail(slug);
     
     // Check if API returned error status
-    if (response?.status === "error" || !response || !response.movie) {
+    if (!response || !response.movie) {
       console.error("[generateMetadata] No movie found for slug:", slug);
       return {
         title: "Chi tiết phim | Phim7.xyz",

@@ -1,4 +1,4 @@
-import { getFilmDetailMerged, type FilmItem } from "@/lib/api";
+import { getFilmDetail, type FilmItem } from "@/lib/api";
 
 // Chuẩn hóa chuỗi: bỏ dấu + lowercase để so khớp mềm
 function normalize(str?: string) {
@@ -75,7 +75,7 @@ export async function filterChinaNonAnimation(
   const results = await Promise.all(
     (movies || []).map(async (movie) => {
       try {
-        const detailRes = await getFilmDetailMerged(movie.slug);
+        const detailRes = await getFilmDetail(movie.slug);
         const detail = detailRes?.movie;
 
         if (detail && isChinaNonAnimationDetail(detail)) {
@@ -99,7 +99,7 @@ export async function filterNonAnimationByCountries(
   const results = await Promise.all(
     (movies || []).map(async (movie) => {
       try {
-        const detailRes = await getFilmDetailMerged(movie.slug);
+        const detailRes = await getFilmDetail(movie.slug);
         const detail = detailRes?.movie;
 
         if (detail && isNonAnimationDetailForCountries(detail, allowedCountries)) {

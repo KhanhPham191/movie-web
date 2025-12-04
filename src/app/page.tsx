@@ -9,8 +9,8 @@ import {
   getNewlyUpdatedFilmsMultiple,
   getFilmsByGenreMultiple,
   getFilmsByCountryMultiple,
-  getDailyUpdatedFilmsCombined,
-  getFilmsByCategoryCombined,
+  getDailyUpdatedFilms,
+  getFilmsByCategory,
   CATEGORIES,
   type FilmItem,
 } from "@/lib/api";
@@ -33,7 +33,7 @@ async function getHomePageData() {
   try {
     const [
       newlyUpdated,
-      dailyUpdatedRaw,
+      dailyUpdatedRes,
       phimLeRaw,
       phimBoTopRaw,
       phimBoTinhCam,
@@ -47,9 +47,9 @@ async function getHomePageData() {
       thaiLan,
     ] = await Promise.all([
       getNewlyUpdatedFilmsMultiple(3),
-      getDailyUpdatedFilmsCombined(1),
-      getFilmsByCategoryCombined(CATEGORIES.PHIM_LE, 1),
-      getFilmsByCategoryCombined(CATEGORIES.PHIM_BO, 1),
+      getDailyUpdatedFilms(1),
+      getFilmsByCategory(CATEGORIES.PHIM_LE, 1).then((r) => r.items),
+      getFilmsByCategory(CATEGORIES.PHIM_BO, 1).then((r) => r.items),
       // Phim bộ đang hot: lấy theo thể loại "tình cảm"
       getFilmsByGenreMultiple("tinh-cam", 3),
       getFilmsByCountryMultiple("han-quoc", 2),
@@ -64,8 +64,8 @@ async function getHomePageData() {
 
     // Bỏ phim đã có ở "phim mới cập nhật" ra khỏi "cập nhật hôm nay"
     const newlyUpdatedSlugs = new Set((newlyUpdated || []).map((m) => m.slug));
-    const dailyUpdated = (dailyUpdatedRaw || []).filter(
-      (m) => m.slug && !newlyUpdatedSlugs.has(m.slug)
+    const dailyUpdated = (dailyUpdatedRes.items || []).filter(
+      (m: FilmItem) => m.slug && !newlyUpdatedSlugs.has(m.slug)
     );
 
     // Top 10 phim lẻ: dùng danh sách kết hợp (NguonC + iPhim) và bỏ trùng với "Phim mới cập nhật"
