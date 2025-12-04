@@ -8,12 +8,7 @@ import { MovieCard } from "@/components/movie-card";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  getFilmsByCategory,
-  getNewlyUpdatedFilms,
-  getDailyUpdatedFilms,
-  getDailyUpdatedFilmsCombined,
-} from "@/lib/api";
+import { getFilmsByCategory, getNewlyUpdatedFilms, getDailyUpdatedFilms } from "@/lib/api";
 
 // ISR: Revalidate every 30 seconds for real-time updates
 export const revalidate = 30;
@@ -43,20 +38,17 @@ async function CategoryContent({
     let movies: any[] = [];
     let totalPages = 1;
 
-    if (slug === "phim-moi-cap-nhat") {
-      const response = await getNewlyUpdatedFilms(page);
+    if (slug === "phim-moi-cap-nhat" || slug === "phim-cap-nhat-hang-ngay") {
+      // Hai trang "phim mới cập nhật" và "cập nhật hàng ngày" hiện đều dùng chung
+      // endpoint từ NguonC. Nếu sau này có API merge thêm nguồn khác, có thể
+      // thay thế tại đây mà không ảnh hưởng tới UI.
+      const response =
+        slug === "phim-moi-cap-nhat"
+          ? await getNewlyUpdatedFilms(page)
+          : await getDailyUpdatedFilms(page);
+
       movies = response.items || [];
       totalPages = response.paginate?.total_page || 1;
-    } else if (slug === "phim-cap-nhat-hang-ngay") {
-      // Trang "Cập nhật hàng ngày": dùng dữ liệu đã merge từ NguonC + iPhim,
-      // đồng thời giữ thông tin phân trang từ NguonC.
-      const [dailyCombined, dailyNguonc] = await Promise.all([
-        getDailyUpdatedFilmsCombined(page),
-        getDailyUpdatedFilms(page),
-      ]);
-
-      movies = dailyCombined || [];
-      totalPages = dailyNguonc.paginate?.total_page || 1;
     } else {
       const response = await getFilmsByCategory(slug, page);
       movies = response.items || [];
