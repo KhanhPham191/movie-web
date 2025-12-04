@@ -105,7 +105,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
   return (
     <section
-      className="relative h-[50vh] sm:h-[56.25vw] max-h-[70vh] sm:max-h-[80vh] min-h-[280px] sm:min-h-[400px] select-none"
+      className="relative h-[260px] xs:h-[300px] sm:h-[56.25vw] max-h-[70vh] sm:max-h-[80vh] min-h-[240px] xs:min-h-[260px] sm:min-h-[400px] select-none"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -127,7 +127,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
               src={getImageUrl(m.poster_url || m.thumb_url)}
               alt={m.name}
               fill
-              className="object-cover object-center sm:object-top"
+              className="object-cover object-top"
               priority={index === 0}
               sizes="100vw"
               quality={90}

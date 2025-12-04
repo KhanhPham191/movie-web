@@ -250,7 +250,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
       <Link href={`/phim/${movie.slug}`}>
         <div className="group relative w-full max-w-full h-full flex flex-col">
           {/* Wide backdrop */}
-          <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-muted transition-transform duration-300 group-hover:scale-[1.02] group-hover:shadow-2xl flex-shrink-0">
+          <div className="relative aspect-[16/9] w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted transition-transform duration-300 group-hover:scale-[1.02] group-hover:shadow-2xl flex-shrink-0">
             <Image
               src={backdropUrl}
               alt={movie.name}
@@ -261,12 +261,12 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
             />
 
             {/* Dark gradient bar at bottom */}
-            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#050505] via-[#050505e6] to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-20 sm:h-24 bg-gradient-to-t from-[#050505] via-[#050505e6] to-transparent" />
 
             {/* Poster + text overlay on bottom bar */}
-            <div className="absolute left-4 right-4 bottom-3 flex items-end gap-3">
+            <div className="absolute left-3 right-3 sm:left-4 sm:right-4 bottom-3 flex items-end gap-2 sm:gap-3">
               {/* Small vertical poster */}
-              <div className="relative aspect-[2/3] w-14 xs:w-16 sm:w-20 rounded-md overflow-hidden shadow-2xl shadow-black/80 border border-white/10 bg-black/60 flex-shrink-0">
+              <div className="relative aspect-[2/3] w-12 xs:w-14 sm:w-20 rounded-md overflow-hidden shadow-2xl shadow-black/80 border border-white/10 bg-black/60 flex-shrink-0">
                 <Image
                   src={thumbUrl}
                   alt={movie.name}
@@ -278,28 +278,28 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
 
               {/* Text & badges */}
               <div className="flex-1 min-w-0">
-                <div className="mb-1 flex flex-wrap items-center gap-1">
+                <div className="mb-0.5 sm:mb-1 flex flex-wrap items-center gap-1">
                   {movie.language && (
-                    <Badge className="bg-white text-black text-[10px] font-semibold px-2 py-0.5 border-0">
+                    <Badge className="bg-white text-black text-[9px] xs:text-[10px] font-semibold px-1.5 sm:px-2 py-0.5 border-0">
                       {movie.language}
                     </Badge>
                   )}
                   {movie.current_episode && (
-                    <Badge className="bg-red-600 text-white text-[10px] font-semibold border-0">
+                    <Badge className="bg-red-600 text-white text-[9px] xs:text-[10px] font-semibold border-0">
                       {formatEpisodeLabel(movie.current_episode)}
                     </Badge>
                   )}
                 </div>
-                <h3 className="text-sm sm:text-base font-semibold text-white line-clamp-1">
+                <h3 className="text-xs xs:text-sm sm:text-base font-semibold text-white line-clamp-1">
                   {movie.name}
                 </h3>
                 {movie.original_name && movie.original_name !== movie.name && (
-                  <p className="text-[11px] xs:text-xs text-gray-300 line-clamp-1">
+                  <p className="text-[10px] xs:text-xs text-gray-300 line-clamp-1">
                     {movie.original_name}
                   </p>
                 )}
-                <p className="mt-1 text-[11px] xs:text-xs text-gray-300 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                  <span className="px-1 py-0.5 rounded border border-gray-500 text-[10px]">
+                <p className="mt-0.5 sm:mt-1 text-[10px] xs:text-xs text-gray-300 flex flex-wrap items-center gap-x-1.5 sm:gap-x-2 gap-y-0.5">
+                  <span className="px-1 py-0.5 rounded border border-gray-500 text-[9px] xs:text-[10px]">
                     18+
                   </span>
                   {movie.time && <span>{movie.time}</span>}

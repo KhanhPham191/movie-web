@@ -66,17 +66,17 @@ async function MovieDetail({ slug }: { slug: string }) {
     return (
       <>
         {/* Hero Section - Cinematic Sakura Style */}
-        <section className="relative h-[55vh] sm:h-[70vh] md:h-[85vh] min-h-[350px] sm:min-h-[450px] md:min-h-[500px] flex items-end overflow-hidden animate-fade-in">
+        <section className="relative h-[260px] xs:h-[300px] sm:h-[65vh] md:h-[80vh] min-h-[240px] xs:min-h-[260px] sm:min-h-[420px] md:min-h-[500px] flex items-end overflow-hidden animate-fade-in">
           {/* Background Image */}
           <div className="absolute inset-0">
             <Image
               src={backdropUrl}
               alt={movie.name}
               fill
-              className="object-cover object-center scale-105"
+              className="object-cover object-top scale-105"
               priority
-              sizes="100vw"
-              quality={90}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
+              quality={85}
               unoptimized
             />
             {/* Gradients */}

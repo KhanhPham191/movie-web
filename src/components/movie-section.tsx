@@ -129,7 +129,7 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
       case "series":
         return "w-[160px] xs:w-[180px] sm:w-[205px] md:w-[225px] lg:w-[245px]";
       case "cinema":
-        return "w-[270px] xs:w-[310px] sm:w-[365px] md:w-[425px] lg:w-[465px]";
+        return "w-[220px] xs:w-[260px] sm:w-[320px] md:w-[380px] lg:w-[440px]";
       default:
         return "w-[170px] xs:w-[195px] sm:w-[225px] md:w-[265px] lg:w-[305px]";
     }
