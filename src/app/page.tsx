@@ -14,7 +14,7 @@ import {
   CATEGORIES,
   type FilmItem,
 } from "@/lib/api";
-import { filterChinaNonAnimation, filterPhimLeByCurrentYear } from "@/lib/filters";
+import { filterPhimLeByCurrentYear } from "@/lib/filters";
 
 // Helper: sắp xếp phim theo thời gian cập nhật mới nhất (field modified)
 function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
@@ -80,24 +80,8 @@ async function getHomePageData() {
       (movie) => movie.total_episodes && movie.total_episodes > 1
     );
 
-    // Danh mục test: chỉ giữ phim Trung Quốc nhưng không phải thể loại Hoạt Hình,
-    // dựa trên category chi tiết từ /api/film/{slug}
-    const trungQuocFiltered = await filterChinaNonAnimation(trungQuoc);
-
-    // Nếu sau khi lọc chi tiết mà danh sách quá ít (vd chỉ còn vài phim),
-    // thì bổ sung thêm từ danh sách gốc để hiển thị cho đầy đủ ngoài trang chủ.
-    const desiredChinaCount = 12;
-    const trungQuocSeen = new Set((trungQuocFiltered || []).map((m) => m.slug));
-    const trungQuocDisplay: FilmItem[] = [...(trungQuocFiltered || [])];
-    if (trungQuocDisplay.length < desiredChinaCount) {
-      for (const movie of trungQuoc || []) {
-        if (!movie?.slug) continue;
-        if (trungQuocSeen.has(movie.slug)) continue;
-        trungQuocDisplay.push(movie);
-        trungQuocSeen.add(movie.slug);
-        if (trungQuocDisplay.length >= desiredChinaCount) break;
-      }
-    }
+    // Danh mục Trung Quốc: lấy trực tiếp từ API quốc gia, không lọc chi tiết
+    const trungQuocDisplay: FilmItem[] = sortByModifiedDesc(trungQuoc || []).slice(0, 12);
 
     // Top 10 phim bộ: lấy theo combo 3 Âu Mỹ, 3 Hàn, 2 Trung, 2 Thái (ưu tiên phim bộ, mới cập nhật nhất)
     const top10Series: FilmItem[] = [];
