@@ -53,7 +53,7 @@ async function getHomePageData() {
       // Phim bộ đang hot: lấy theo thể loại "tình cảm"
       getFilmsByGenreMultiple("tinh-cam", 3),
       getFilmsByCountryMultiple("han-quoc", 2),
-      getFilmsByCountryMultiple("trung-quoc", 30), // Đồng bộ với trang /quoc-gia/trung-quoc để lấy đủ dữ liệu sau khi filter
+      getFilmsByCountryMultiple("trung-quoc", 2),
       getFilmsByCountryMultiple("nhat-ban", 2),
       getFilmsByCountryMultiple("hong-kong", 2),
       getFilmsByCountryMultiple("au-my", 5), // Tăng lên 5 pages để đảm bảo có đủ phim bộ US-UK sau khi filter
@@ -80,10 +80,24 @@ async function getHomePageData() {
       (movie) => movie.total_episodes && movie.total_episodes > 1
     );
 
-    // Danh mục Trung Quốc: lọc bỏ hoạt hình, đồng bộ với trang quốc gia
-    // Lấy nhiều trang (30) rồi filter, sau đó lấy các phim đầu tiên sau filter
+    // Danh mục test: chỉ giữ phim Trung Quốc nhưng không phải thể loại Hoạt Hình,
+    // dựa trên category chi tiết từ /api/film/{slug}
     const trungQuocFiltered = await filterChinaNonAnimation(trungQuoc);
-    const trungQuocDisplay: FilmItem[] = (trungQuocFiltered || []).slice(0, 12);
+
+    // Nếu sau khi lọc chi tiết mà danh sách quá ít (vd chỉ còn vài phim),
+    // thì bổ sung thêm từ danh sách gốc để hiển thị cho đầy đủ ngoài trang chủ.
+    const desiredChinaCount = 12;
+    const trungQuocSeen = new Set((trungQuocFiltered || []).map((m) => m.slug));
+    const trungQuocDisplay: FilmItem[] = [...(trungQuocFiltered || [])];
+    if (trungQuocDisplay.length < desiredChinaCount) {
+      for (const movie of trungQuoc || []) {
+        if (!movie?.slug) continue;
+        if (trungQuocSeen.has(movie.slug)) continue;
+        trungQuocDisplay.push(movie);
+        trungQuocSeen.add(movie.slug);
+        if (trungQuocDisplay.length >= desiredChinaCount) break;
+      }
+    }
 
     // Top 10 phim bộ: lấy theo combo 3 Âu Mỹ, 3 Hàn, 2 Trung, 2 Thái (ưu tiên phim bộ, mới cập nhật nhất)
     const top10Series: FilmItem[] = [];

@@ -60,8 +60,6 @@ export default function SearchPage() {
   const searchParams = useSearchParams();
   const query = (searchParams.get("q") || "").trim();
 
-  type FilmWithScore = FilmItem & { score: number };
-
   const [movies, setMovies] = useState<FilmItem[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -111,14 +109,12 @@ export default function SearchPage() {
             const items = firstData.items || [];
             // Sắp xếp theo relevance score
             const sorted = items
-              .map(
-                (movie: FilmItem): FilmWithScore => ({
-                  ...movie,
-                  score: calculateRelevanceScore(movie.name || "", query),
-                })
-              )
-              .sort((a: FilmWithScore, b: FilmWithScore) => b.score - a.score)
-              .map(({ score, ...rest }: FilmWithScore) => rest as FilmItem); // Bỏ score khỏi kết quả cuối
+              .map((movie: FilmItem) => ({
+                ...movie,
+                score: calculateRelevanceScore(movie.name || "", query),
+              }))
+              .sort((a, b) => b.score - a.score)
+              .map(({ score, ...rest }) => rest); // Bỏ score khỏi kết quả cuối
             setMovies(sorted);
           }
         } else {
@@ -159,14 +155,12 @@ export default function SearchPage() {
             
             // Sắp xếp theo relevance score
             const sorted = combined
-              .map(
-                (movie: FilmItem): FilmWithScore => ({
-                  ...movie,
-                  score: calculateRelevanceScore(movie.name || "", query),
-                })
-              )
-              .sort((a: FilmWithScore, b: FilmWithScore) => b.score - a.score)
-              .map(({ score, ...rest }: FilmWithScore) => rest as FilmItem); // Bỏ score khỏi kết quả cuối
+              .map((movie) => ({
+                ...movie,
+                score: calculateRelevanceScore(movie.name || "", query),
+              }))
+              .sort((a, b) => b.score - a.score)
+              .map(({ score, ...rest }) => rest); // Bỏ score khỏi kết quả cuối
             
             setMovies(sorted);
           }
