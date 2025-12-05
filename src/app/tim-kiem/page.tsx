@@ -113,7 +113,7 @@ export default function SearchPage() {
                 ...movie,
                 score: calculateRelevanceScore(movie.name || "", query),
               }))
-              .sort((a, b) => b.score - a.score)
+              .sort((a: { score: number }, b: { score: number }) => b.score - a.score)
               .map(({ score, ...rest }) => rest); // Bỏ score khỏi kết quả cuối
             setMovies(sorted);
           }
@@ -159,7 +159,7 @@ export default function SearchPage() {
                 ...movie,
                 score: calculateRelevanceScore(movie.name || "", query),
               }))
-              .sort((a, b) => b.score - a.score)
+              .sort((a: { score: number }, b: { score: number }) => b.score - a.score)
               .map(({ score, ...rest }) => rest); // Bỏ score khỏi kết quả cuối
             
             setMovies(sorted);
