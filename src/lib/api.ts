@@ -245,7 +245,7 @@ export const COUNTRIES = [
 // Helper to get full image URL (defensive against non-string values)
 export function getImageUrl(path: unknown): string {
   // Fallback to existing logo in /public when path không hợp lệ
-  if (typeof path !== "string" || !path) return "/favicon.ico";
+  if (typeof path !== "string" || !path) return "/logo.ico";
   if (path.startsWith("http")) return path;
   return path;
 }

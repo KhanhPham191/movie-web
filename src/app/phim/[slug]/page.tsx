@@ -206,7 +206,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
         </section>
 
         {/* Main Content */}
-        <div className="relative z-10 -mt-16 sm:-mt-20 pt-16 sm:pt-28 pb-12 sm:pb-16 bg-gradient-to-b from-[#05050a] via-[#05050a] to-[#05050a]">
+        <div className="relative z-10 -mt-16 sm:-mt-20 pt-5 sm:pt-28 pb-12 sm:pb-16 bg-gradient-to-b from-[#05050a] via-[#05050a] to-[#05050a]">
           <div className="container mx-auto px-3 sm:px-4 md:px-12 space-y-4 sm:space-y-6 lg:space-y-12">
             {/* Mobile title + meta block trong nền đen dưới hero (tránh bị che trên poster) */}
             <div className="sm:hidden mb-3">

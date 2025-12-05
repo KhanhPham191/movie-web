@@ -242,8 +242,8 @@ export function Header() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isScrolled
-          ? "bg-[#0f0f0f]"
-          : "bg-gradient-to-b from-black/80 via-black/40 to-transparent"
+          ? "bg-black/60 backdrop-blur-md"
+          : "bg-gradient-to-b from-black/40 via-black/10 to-transparent"
       }`}
     >
       <div className={`flex items-center justify-between px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 transition-all duration-500 ${
@@ -256,14 +256,14 @@ export function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-1 xs:gap-1.5 shrink-0">
             <div className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-xl overflow-hidden flex items-center justify-center">
-                <Image
-                  src="/favicon.ico"
-                  alt="MovPey logo"
-                  width={64}
-                  height={64}
-                  className="w-full h-full object-contain"
-                  priority
-                />
+              <Image
+                src="/logo.ico"
+                alt="MovPey logo"
+                width={64}
+                height={64}
+                className="w-full h-full object-contain"
+                priority
+              />
             </div>
             <div className="hidden xs:flex flex-col leading-tight">
               <span className="text-base xs:text-lg sm:text-xl font-extrabold text-[#fb743E] tracking-tight">
@@ -519,7 +519,10 @@ export function Header() {
           {isMounted && (
             <DropdownMenu open={isNotificationOpen} onOpenChange={setIsNotificationOpen}>
               <DropdownMenuTrigger asChild>
-                <button className="hidden md:block p-2 hover:text-gray-300 transition-colors relative">
+                <button
+                  className="hidden md:block p-2 hover:text-gray-300 transition-colors relative outline-none outline-offset-0 ring-0 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:ring-offset-0 focus-visible:ring-offset-0 data-[state=open]:outline-none data-[state=open]:ring-0 data-[state=open]:ring-offset-0 data-[state=open]:border-transparent"
+                  style={{ outline: "none", boxShadow: "none" }}
+                >
                   <Bell className="w-5 h-5" />
                   {hasNewNotifications && (
                     <span className="absolute top-1 right-1 w-2 h-2 bg-red-600 rounded-full" />
