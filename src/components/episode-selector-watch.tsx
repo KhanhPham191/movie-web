@@ -217,12 +217,15 @@ export function EpisodeSelectorWatch({
             ? `/xem-phim/${movieSlug}/${ep.slug}?server=${serverParam}`
             : `/xem-phim/${movieSlug}/${ep.slug}`;
 
+          // Chỉ đánh dấu active khi đang ở đúng server hiện tại và slug khớp
+          const isActive = currentServer.server_name === currentServerName && ep.slug === currentEpisodeSlug;
+
           return (
             <Link
               key={ep.slug}
               href={href}
               className={`flex items-center justify-center gap-1 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.65)] min-w-0 ${
-                ep.slug === currentEpisodeSlug
+                isActive
                   ? "bg-[#fb743E] text-black shadow-[0_0_20px_rgba(251,116,62,0.4)]"
                   : "bg-[#0a0a0a] border border-white/10 text-white hover:bg-[#fb743E] hover:text-white hover:border-[#fb743E]"
               }`}

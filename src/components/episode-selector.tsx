@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
 
 interface Episode {
@@ -112,9 +111,20 @@ export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSe
                   onClick={() => setSelectedServerIndex(index)}
                   className={`flex-1 sm:flex-none px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ease-in-out flex items-center justify-center gap-1 sm:gap-1.5 ${
                     isActive
-                      ? "bg-[#1a1a2e] text-white border-2 border-[#fb743E]"
+                      ? "bg-[#1a1a2e] text-white"
                       : "bg-[#0a0a0a] text-white/70 border border-white/10 hover:bg-[#fb743E] hover:text-white hover:border-[#fb743E]"
                   }`}
+                  style={
+                    isActive
+                      ? {
+                          border: "2px solid transparent",
+                          backgroundImage:
+                            "linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #fb743E, #3b82f6)",
+                          backgroundOrigin: "border-box",
+                          backgroundClip: "padding-box, border-box",
+                        }
+                      : undefined
+                  }
                 >
                   <svg
                     className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0"
@@ -175,19 +185,15 @@ export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSe
                   <Link 
                     key={`${currentServer.server_name}-${episode.slug}`} 
                     href={href}
+                    className="flex items-center justify-center gap-1 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.65)] min-w-0 bg-[#0a0a0a] border border-white/10 text-white hover:bg-[#fb743E] hover:text-white hover:border-[#fb743E]"
                     style={{
                       animation: "fadeInUp 0.2s ease-out",
                       animationDelay: `${Math.min(index * 15, 300)}ms`,
                       animationFillMode: "both",
                     }}
                   >
-                    <Button
-                      variant="outline"
-                      className="w-full h-9 sm:h-10 md:h-11 rounded-lg bg-[#0a0a0a] border border-white/10 text-white text-xs sm:text-sm font-semibold transition-all hover:!bg-[#fb743E] hover:!text-white hover:!border-[#fb743E] hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(251,116,62,0.4)] focus-visible:!ring-[#fb743E]/50 flex items-center justify-center gap-1 px-1.5 sm:px-2"
-                    >
-                      <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-white flex-shrink-0" />
-                      <span className="whitespace-nowrap">{currentEpisodes.length === 1 ? "FULL" : `Tập ${index + 1}`}</span>
-                    </Button>
+                    <Play className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="whitespace-nowrap">{currentEpisodes.length === 1 ? "FULL" : `Tập ${index + 1}`}</span>
                   </Link>
                 );
               })}
