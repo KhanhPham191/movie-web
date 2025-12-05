@@ -108,13 +108,14 @@ export default function SearchPage() {
           if (!cancelled) {
             const items = firstData.items || [];
             // Sắp xếp theo relevance score
+            type FilmWithScore = FilmItem & { score: number };
             const sorted = items
-              .map((movie: FilmItem) => ({
+              .map((movie: FilmItem): FilmWithScore => ({
                 ...movie,
                 score: calculateRelevanceScore(movie.name || "", query),
               }))
-              .sort((a, b) => b.score - a.score)
-              .map(({ score, ...rest }) => rest); // Bỏ score khỏi kết quả cuối
+              .sort((a: FilmWithScore, b: FilmWithScore) => b.score - a.score)
+              .map(({ score, ...rest }: FilmWithScore) => rest as FilmItem); // Bỏ score khỏi kết quả cuối
             setMovies(sorted);
           }
         } else {
@@ -154,13 +155,14 @@ export default function SearchPage() {
             ];
             
             // Sắp xếp theo relevance score
+            type FilmWithScore = FilmItem & { score: number };
             const sorted = combined
-              .map((movie) => ({
+              .map((movie: FilmItem): FilmWithScore => ({
                 ...movie,
                 score: calculateRelevanceScore(movie.name || "", query),
               }))
-              .sort((a, b) => b.score - a.score)
-              .map(({ score, ...rest }) => rest); // Bỏ score khỏi kết quả cuối
+              .sort((a: FilmWithScore, b: FilmWithScore) => b.score - a.score)
+              .map(({ score, ...rest }: FilmWithScore) => rest as FilmItem); // Bỏ score khỏi kết quả cuối
             
             setMovies(sorted);
           }
