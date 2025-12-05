@@ -9,7 +9,6 @@ import {
   getNewlyUpdatedFilmsMultiple,
   getFilmsByCategoryMultiple,
   getFilmsByGenreMultiple,
-  getFilmsByCountry,
   getFilmsByCountryMultiple,
   getDailyUpdatedFilms,
   CATEGORIES,
@@ -54,7 +53,8 @@ async function getHomePageData() {
       // Phim bộ đang hot: lấy theo thể loại "tình cảm"
       getFilmsByGenreMultiple("tinh-cam", 3),
       getFilmsByCountryMultiple("han-quoc", 2),
-      getFilmsByCountry("trung-quoc", 1), // lấy 1 page cho tốc độ, không lọc thêm
+      // Lấy 3 trang cho Trung Quốc để đủ dữ liệu nhưng vẫn nhanh
+      getFilmsByCountryMultiple("trung-quoc", 3),
       getFilmsByCountryMultiple("nhat-ban", 2),
       getFilmsByCountryMultiple("hong-kong", 2),
       getFilmsByCountryMultiple("au-my", 5), // Tăng lên 5 pages để đảm bảo có đủ phim bộ US-UK sau khi filter
@@ -78,11 +78,11 @@ async function getHomePageData() {
 
     // Lọc lại chỉ giữ phim bộ (nhiều tập) cho section "Phim bộ tình cảm"
     const phimBo = (phimBoTinhCam || []).filter(
-      (movie: FilmItem) => movie.total_episodes && movie.total_episodes > 1
+      (movie) => movie.total_episodes && movie.total_episodes > 1
     );
 
-    // Danh mục Trung Quốc: lấy trực tiếp 1 page từ API quốc gia, không lọc, ưu tiên tốc độ
-    const trungQuocDisplay: FilmItem[] = (trungQuoc?.items || []).slice(0, 12);
+    // Danh mục Trung Quốc: lấy trực tiếp từ API quốc gia, không lọc chi tiết
+    const trungQuocDisplay: FilmItem[] = sortByModifiedDesc(trungQuoc || []).slice(0, 12);
 
     // Top 10 phim bộ: lấy theo combo 3 Âu Mỹ, 3 Hàn, 2 Trung, 2 Thái (ưu tiên phim bộ, mới cập nhật nhất)
     const top10Series: FilmItem[] = [];
