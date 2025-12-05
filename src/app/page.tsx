@@ -14,7 +14,7 @@ import {
   CATEGORIES,
   type FilmItem,
 } from "@/lib/api";
-import { filterChinaNonAnimation } from "@/lib/filters";
+import { filterChinaNonAnimation, filterPhimLeByCurrentYear } from "@/lib/filters";
 
 // Helper: sắp xếp phim theo thời gian cập nhật mới nhất (field modified)
 function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
@@ -48,12 +48,12 @@ async function getHomePageData() {
     ] = await Promise.all([
       getNewlyUpdatedFilmsMultiple(3),
       getDailyUpdatedFilms(1),
-      getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 1),
+      getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 10), // Tăng lên 10 pages để có đủ phim sau khi filter theo năm
       getFilmsByCategoryMultiple(CATEGORIES.PHIM_BO, 3),
       // Phim bộ đang hot: lấy theo thể loại "tình cảm"
       getFilmsByGenreMultiple("tinh-cam", 3),
       getFilmsByCountryMultiple("han-quoc", 2),
-      getFilmsByCountryMultiple("trung-quoc", 2),
+      getFilmsByCountryMultiple("trung-quoc", 30), // Đồng bộ với trang /quoc-gia/trung-quoc để lấy đủ dữ liệu sau khi filter
       getFilmsByCountryMultiple("nhat-ban", 2),
       getFilmsByCountryMultiple("hong-kong", 2),
       getFilmsByCountryMultiple("au-my", 5), // Tăng lên 5 pages để đảm bảo có đủ phim bộ US-UK sau khi filter
@@ -66,34 +66,24 @@ async function getHomePageData() {
     const dailyUpdated = dailyUpdatedRes.items || [];
 
     // Top 10 phim lẻ:
+    // - Lọc chỉ lấy phim có năm phát hành = năm hiện tại (UTC+7)
+    // - Kiểm tra năm phát hành từ category detail (mục số 3)
     // - Sắp xếp theo thời gian cập nhật mới nhất (field modified)
-    // - Lấy đơn giản 10 phim đầu, không cần loại trùng với section khác
+    // - Lấy 10 phim đầu
+    // Lưu ý: Sắp xếp trước khi filter để ưu tiên phim mới cập nhật nhất
     const phimLeSorted = sortByModifiedDesc(phimLeRaw || []);
-    const phimLe = phimLeSorted.slice(0, 10);
+    const phimLeFiltered = await filterPhimLeByCurrentYear(phimLeSorted, 10);
+    const phimLe = phimLeFiltered.slice(0, 10);
 
     // Lọc lại chỉ giữ phim bộ (nhiều tập) cho section "Phim bộ tình cảm"
     const phimBo = (phimBoTinhCam || []).filter(
       (movie) => movie.total_episodes && movie.total_episodes > 1
     );
 
-    // Danh mục test: chỉ giữ phim Trung Quốc nhưng không phải thể loại Hoạt Hình,
-    // dựa trên category chi tiết từ /api/film/{slug}
+    // Danh mục Trung Quốc: lọc bỏ hoạt hình, đồng bộ với trang quốc gia
+    // Lấy nhiều trang (30) rồi filter, sau đó lấy các phim đầu tiên sau filter
     const trungQuocFiltered = await filterChinaNonAnimation(trungQuoc);
-
-    // Nếu sau khi lọc chi tiết mà danh sách quá ít (vd chỉ còn vài phim),
-    // thì bổ sung thêm từ danh sách gốc để hiển thị cho đầy đủ ngoài trang chủ.
-    const desiredChinaCount = 12;
-    const trungQuocSeen = new Set((trungQuocFiltered || []).map((m) => m.slug));
-    const trungQuocDisplay: FilmItem[] = [...(trungQuocFiltered || [])];
-    if (trungQuocDisplay.length < desiredChinaCount) {
-      for (const movie of trungQuoc || []) {
-        if (!movie?.slug) continue;
-        if (trungQuocSeen.has(movie.slug)) continue;
-        trungQuocDisplay.push(movie);
-        trungQuocSeen.add(movie.slug);
-        if (trungQuocDisplay.length >= desiredChinaCount) break;
-      }
-    }
+    const trungQuocDisplay: FilmItem[] = (trungQuocFiltered || []).slice(0, 12);
 
     // Top 10 phim bộ: lấy theo combo 3 Âu Mỹ, 3 Hàn, 2 Trung, 2 Thái (ưu tiên phim bộ, mới cập nhật nhất)
     const top10Series: FilmItem[] = [];

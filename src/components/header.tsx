@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Search, Bell, ChevronDown } from "lucide-react";
-import { getImageUrl } from "@/lib/api";
+import { getImageUrl, type FilmItem } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -33,11 +33,41 @@ export function Header() {
   const scrolledSearchInputRef = useRef<HTMLInputElement | null>(null);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState<FilmItem[]>([]);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
+  const [hasNewNotifications, setHasNewNotifications] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Fetch latest film updates (max 10) when opening notifications
+  useEffect(() => {
+    if (!isNotificationOpen || notifications.length > 0 || isLoadingNotifications) return;
+
+    const fetchNotifications = async () => {
+      try {
+        setIsLoadingNotifications(true);
+        const res = await fetch("https://phim.nguonc.com/api/films/phim-moi-cap-nhat?page=1", {
+          headers: { Accept: "application/json" },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const items: FilmItem[] = Array.isArray(data?.items) ? data.items : [];
+        setNotifications(items.slice(0, 10));
+        setHasNewNotifications(items.length > 0);
+      } catch (error) {
+        console.error("[Notifications] Fetch error:", error);
+        setNotifications([]);
+      } finally {
+        setIsLoadingNotifications(false);
+      }
+    };
+
+    fetchNotifications();
+  }, [isNotificationOpen, notifications.length, isLoadingNotifications]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -110,6 +140,29 @@ export function Header() {
     }
 
     return 0;
+  };
+
+  // Hiển thị thời gian dạng "x phút/giờ/ngày trước"
+  const formatTimeAgo = (dateStr?: string): string => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    if (Number.isNaN(date.getTime())) return "";
+
+    const now = Date.now();
+    const diffMs = Math.max(0, now - date.getTime());
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+    if (diffMinutes < 1) return "Vừa xong";
+    if (diffMinutes < 60) return `${diffMinutes} phút trước`;
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+
+    // Nếu quá 7 ngày, hiển thị ngày/tháng/năm
+    return date.toLocaleDateString("vi-VN");
   };
 
   // Autocomplete suggestions (desktop)
@@ -272,8 +325,8 @@ export function Header() {
                 <input
                   type="search"
                   placeholder="Tìm phim, diễn viên, thể loại..."
-                  className="flex-1 bg-transparent text-xs sm:text-sm placeholder:text-gray-500 px-0 border-none focus:border-none outline-none focus:outline-none focus-visible:outline-none"
-                  style={{ outline: "none", boxShadow: "none" }}
+                  className="flex-1 bg-transparent text-base sm:text-sm placeholder:text-gray-500 px-0 border-none focus:border-none outline-none focus:outline-none focus-visible:outline-none"
+                  style={{ outline: "none", boxShadow: "none", fontSize: '16px' }}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -346,25 +399,38 @@ export function Header() {
             </div>
           ) : (
             <div className="hidden sm:flex items-center relative">
-              <button
-                className="p-1.5 hover:text-gray-300 transition-colors"
-                onClick={() => setIsSearchOpen((prev) => !prev)}
-              >
-                <Search className="w-4 h-4" />
-              </button>
+              {!isSearchOpen && (
+                <button
+                  className="p-1.5 hover:text-gray-300 transition-colors"
+                  onClick={() => setIsSearchOpen(true)}
+                >
+                  <Search className="w-4 h-4" />
+                </button>
+              )}
               <div className={`relative transition-all duration-300 ${
                 isSearchOpen ? 'w-56 md:w-72 lg:w-96 opacity-100' : 'w-0 opacity-0 pointer-events-none'
               }`}>
                 <form
                   onSubmit={handleSearch}
-                  className="flex items-center bg-white/5 backdrop-blur-md border border-white/20 rounded-full px-3 py-1.5 ml-2 w-full transition-all duration-300 outline-none focus-visible:outline-none focus-within:outline-none focus-within:ring-0"
+                  className="flex items-center bg-white/5 backdrop-blur-md border border-white/20 rounded-full px-3 py-1.5 w-full transition-all duration-300 outline-none focus-visible:outline-none focus-within:outline-none focus-within:ring-0"
                 >
-                  <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mr-2 shrink-0" />
+                  <button
+                    type="button"
+                    className="p-0 mr-2 hover:text-gray-300 transition-colors shrink-0"
+                    onClick={() => {
+                      setIsSearchOpen(false);
+                      setSearchQuery("");
+                      setSuggestions([]);
+                      setIsSuggestOpen(false);
+                    }}
+                  >
+                    <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+                  </button>
                   <input
                     type="search"
                     placeholder="Tìm phim, diễn viên, thể loại..."
-                    className="flex-1 bg-transparent text-xs sm:text-sm placeholder:text-gray-500 px-0 border-none focus:border-none outline-none focus:outline-none focus-visible:outline-none"
-                    style={{ outline: 'none', boxShadow: 'none' }}
+                    className="flex-1 bg-transparent text-base sm:text-sm placeholder:text-gray-500 px-0 border-none focus:border-none outline-none focus:outline-none focus-visible:outline-none"
+                    style={{ outline: 'none', boxShadow: 'none', fontSize: '16px' }}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     ref={scrolledSearchInputRef}
@@ -373,7 +439,7 @@ export function Header() {
 
                 {/* Autocomplete dropdown - khi scroll */}
                 {isSearchOpen && isSuggestOpen && suggestions.length > 0 && (
-                  <div className="absolute left-2 right-0 mt-2 rounded-xl bg-[#0f0f0f]/95 border border-white/10 shadow-xl max-h-[400px] overflow-y-auto text-sm sm:text-base z-50">
+                  <div className="absolute left-0 right-0 mt-2 rounded-xl bg-[#0f0f0f]/95 border border-white/10 shadow-xl max-h-[400px] overflow-y-auto text-sm sm:text-base z-50">
                     {suggestions.map((s) => (
                       <button
                         key={s.slug || s.name}
@@ -450,10 +516,93 @@ export function Header() {
           </button>
 
           {/* Notifications */}
-          <button className="hidden md:block p-2 hover:text-gray-300 transition-colors relative">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-600 rounded-full" />
-          </button>
+          {isMounted && (
+            <DropdownMenu open={isNotificationOpen} onOpenChange={setIsNotificationOpen}>
+              <DropdownMenuTrigger asChild>
+                <button className="hidden md:block p-2 hover:text-gray-300 transition-colors relative">
+                  <Bell className="w-5 h-5" />
+                  {hasNewNotifications && (
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-600 rounded-full" />
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80 bg-[#0f0f0f]/95 backdrop-blur border-gray-800">
+                <div className="px-4 py-3 border-b border-gray-700 flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold text-white">Thông báo</h3>
+                  <button
+                    type="button"
+                    className="text-xs text-[#fb743E] hover:text-white transition-colors"
+                    onClick={() => {
+                      setHasNewNotifications(false);
+                    }}
+                  >
+                    Xem tất cả
+                  </button>
+                </div>
+                <div className="max-h-[400px] overflow-y-auto">
+                  {isLoadingNotifications ? (
+                    <div className="px-4 py-8 text-center text-sm text-gray-400">
+                      Đang tải thông báo...
+                    </div>
+                  ) : notifications.length === 0 ? (
+                    <div className="px-4 py-8 text-center">
+                      <Bell className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+                      <p className="text-sm text-gray-400">Chưa có thông báo mới</p>
+                    </div>
+                  ) : (
+                    <div className="py-2">
+                      {notifications.map((n) => (
+                        <button
+                          key={n.slug}
+                          type="button"
+                          className="w-full text-left px-4 py-3 hover:bg-white/5 flex items-center gap-3"
+                          onClick={() => {
+                            if (n.slug) {
+                              router.push(`/phim/${n.slug}`);
+                              setIsNotificationOpen(false);
+                            }
+                          }}
+                        >
+                          <div className="relative w-12 h-16 sm:w-14 sm:h-20 rounded-md overflow-hidden bg-white/5 shrink-0">
+                            {getImageUrl(n.poster_url || n.thumb_url) && (
+                              <Image
+                                src={getImageUrl(n.poster_url || n.thumb_url)}
+                                alt={n.name || "Poster"}
+                                fill
+                                sizes="56px"
+                                className="object-cover"
+                              />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 mb-1.5">
+                              <span className="truncate font-semibold text-sm text-white">
+                                {n.name || "Phim mới"}
+                              </span>
+                              {n.quality && (
+                                <span className="text-[11px] px-2 py-0.5 rounded bg-white/10 text-white/80 uppercase">
+                                  {n.quality}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-white/70 flex items-center gap-2 flex-wrap">
+                              {n.current_episode && <span>{n.current_episode}</span>}
+                              {n.time && <span>{n.time}</span>}
+                              {n.modified && (
+                                <span className="text-white/50">
+                                  {formatTimeAgo(n.modified)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           {/* Profile Dropdown */}
           {isMounted && (
@@ -467,16 +616,28 @@ export function Header() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 bg-[#0f0f0f]/95 backdrop-blur border-gray-800">
-                <DropdownMenuItem className="text-gray-200 hover:text-white cursor-pointer">
-                  Quản lý hồ sơ
+                <DropdownMenuItem asChild>
+                  <Link href="/tai-khoan" className="text-gray-200 hover:text-white cursor-pointer">
+                    Quản lý hồ sơ
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-gray-200 hover:text-white cursor-pointer">
-                  Tài khoản
+                <DropdownMenuItem asChild>
+                  <Link href="/tai-khoan/cai-dat" className="text-gray-200 hover:text-white cursor-pointer">
+                    Tài khoản
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-gray-200 hover:text-white cursor-pointer">
-                  Trung tâm trợ giúp
+                <DropdownMenuItem asChild>
+                  <Link href="/tro-giup" className="text-gray-200 hover:text-white cursor-pointer">
+                    Trung tâm trợ giúp
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-gray-200 hover:text-white cursor-pointer border-t border-gray-700 mt-2 pt-2">
+                <DropdownMenuItem 
+                  className="text-gray-200 hover:text-white cursor-pointer border-t border-gray-700 mt-2 pt-2"
+                  onClick={() => {
+                    // TODO: Implement logout functionality
+                    console.log("Đăng xuất");
+                  }}
+                >
                   Đăng xuất
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -508,7 +669,8 @@ export function Header() {
                 autoFocus
                 type="search"
                 placeholder="Tìm phim, diễn viên, thể loại..."
-                className="flex-1 bg-transparent text-sm placeholder:text-gray-500 border-0 border-transparent outline-none focus:outline-none focus-visible:outline-none"
+                className="flex-1 bg-transparent text-base placeholder:text-gray-500 border-0 border-transparent outline-none focus:outline-none focus-visible:outline-none"
+                style={{ fontSize: '16px' }}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />

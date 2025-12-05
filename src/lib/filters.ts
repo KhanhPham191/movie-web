@@ -8,6 +8,109 @@ function normalize(str?: string) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
+// Lấy năm hiện tại theo UTC+7
+function getCurrentYearUTC7(): number {
+  const now = new Date();
+  // UTC+7 offset: 7 * 60 * 60 * 1000 milliseconds
+  const utc7Time = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+  return utc7Time.getUTCFullYear();
+}
+
+// Lấy năm phát hành từ category detail
+// Kiểm tra trong category list, tìm group "Năm phát hành" (mục số 3 theo yêu cầu)
+// CHỈ lấy từ category, KHÔNG fallback về created (vì created là năm thêm vào DB, không phải năm phát hành)
+function getReleaseYearFromCategory(detail: any): number | null {
+  if (!detail || !detail.category) {
+    return null;
+  }
+
+  const groups = Object.values(detail.category as Record<string, any>);
+  
+  // Debug: log structure để hiểu rõ hơn
+  if (groups.length > 0) {
+    console.log(`[getReleaseYearFromCategory] ${detail.slug || 'unknown'}: Found ${groups.length} groups`);
+    groups.forEach((g: any, idx: number) => {
+      console.log(`  Group ${idx}: ${g?.group?.name || 'unnamed'}, items: ${g?.list?.length || 0}`);
+    });
+  }
+
+  // Tìm group "Năm phát hành" - thử nhiều cách:
+  // 1. Tìm theo tên group có chứa "năm" và "phát hành"
+  let namPhatHanhGroup = groups.find(
+    (g: any) => {
+      const groupName = normalize(g?.group?.name || "");
+      return (groupName.includes("nam") && groupName.includes("phat hanh")) ||
+             groupName.includes("nam phat hanh");
+    }
+  ) as any;
+
+  // 2. Nếu không tìm thấy, thử lấy group thứ 3 (mục số 3 theo yêu cầu)
+  if (!namPhatHanhGroup && groups.length >= 3) {
+    namPhatHanhGroup = groups[2]; // Index 2 = mục số 3
+    console.log(`[getReleaseYearFromCategory] Using group 3 (index 2): ${namPhatHanhGroup?.group?.name || 'unnamed'}`);
+  }
+
+  // 3. Tìm trong tất cả groups xem có group nào có list chứa năm không
+  if (!namPhatHanhGroup) {
+    for (const group of groups) {
+      if (group?.list && Array.isArray(group.list)) {
+        // Kiểm tra xem có item nào là năm không
+        const hasYear = group.list.some((item: any) => {
+          const slug = item?.slug || "";
+          const name = item?.name || "";
+          return /^\d{4}$/.test(slug) || /\b(19|20)\d{2}\b/.test(name);
+        });
+        if (hasYear) {
+          namPhatHanhGroup = group;
+          console.log(`[getReleaseYearFromCategory] Found year group by scanning: ${group?.group?.name || 'unnamed'}`);
+          break;
+        }
+      }
+    }
+  }
+
+  if (namPhatHanhGroup?.list && Array.isArray(namPhatHanhGroup.list)) {
+    // Lấy năm từ list
+    const years = namPhatHanhGroup.list
+      .map((item: any) => {
+        // Thử parse từ slug trước (thường chính xác hơn)
+        const slug = item?.slug || "";
+        const slugYearMatch = slug.match(/^\d{4}$/);
+        if (slugYearMatch) {
+          const year = parseInt(slugYearMatch[0], 10);
+          if (year >= 1900 && year <= 2100) {
+            return year;
+          }
+        }
+        
+        // Nếu không có trong slug, thử parse từ name
+        const name = item?.name || "";
+        const nameYearMatch = name.match(/\b(19|20)\d{2}\b/);
+        if (nameYearMatch) {
+          const year = parseInt(nameYearMatch[0], 10);
+          if (year >= 1900 && year <= 2100) {
+            return year;
+          }
+        }
+        
+        return null;
+      })
+      .filter((y: number | null): y is number => y !== null && y >= 1900 && y <= 2100);
+
+    if (years.length > 0) {
+      // Trả về năm mới nhất từ list
+      const maxYear = Math.max(...years);
+      console.log(`[getReleaseYearFromCategory] Found year: ${maxYear} from ${namPhatHanhGroup.group?.name || 'unnamed'}`);
+      return maxYear;
+    }
+  }
+
+  // KHÔNG fallback về created - chỉ lấy từ category
+  // Nếu không tìm thấy năm trong category, return null để bỏ qua phim này
+  console.log(`[getReleaseYearFromCategory] No year found in category for: ${detail.slug || 'unknown'}`);
+  return null;
+}
+
 // Kiểm tra 1 movie detail từ /api/film/{slug}:
 // - group "Quốc gia" có "Trung Quốc"
 // - group "Thể loại" KHÔNG chứa "Hoạt Hình"
@@ -113,6 +216,54 @@ export async function filterNonAnimationByCountries(
   );
 
   return results.filter((m): m is FilmItem => m !== null);
+}
+
+// Lọc phim lẻ chỉ lấy những phim có năm phát hành = năm hiện tại (UTC+7)
+// Kiểm tra năm phát hành từ category detail (mục số 3)
+// Tối ưu: dừng sớm khi đã có đủ số lượng phim cần thiết
+export async function filterPhimLeByCurrentYear(
+  movies: FilmItem[],
+  targetCount: number = 10
+): Promise<FilmItem[]> {
+  const currentYear = getCurrentYearUTC7();
+  console.log(`[filterPhimLeByCurrentYear] Filtering for year: ${currentYear} (UTC+7), target: ${targetCount} movies`);
+  
+  const results: FilmItem[] = [];
+  
+  // Xử lý từng phim một để có thể dừng sớm khi đã đủ
+  for (const movie of movies) {
+    // Nếu đã đủ số lượng, dừng lại
+    if (results.length >= targetCount) {
+      break;
+    }
+    
+    try {
+      const detailRes = await getFilmDetail(movie.slug);
+      const detail = detailRes?.movie;
+
+      if (!detail) {
+        continue;
+      }
+
+      const releaseYear = getReleaseYearFromCategory(detail);
+      
+      if (releaseYear === null) {
+        continue;
+      }
+      
+      // Chỉ lấy phim có năm phát hành = năm hiện tại
+      if (releaseYear === currentYear) {
+        results.push(movie);
+        console.log(`[filterPhimLeByCurrentYear] ✓ ${movie.slug}: ${releaseYear} (${results.length}/${targetCount})`);
+      }
+    } catch (error) {
+      console.error(`[filterPhimLeByCurrentYear] Error processing ${movie.slug}:`, error);
+      continue;
+    }
+  }
+
+  console.log(`[filterPhimLeByCurrentYear] Filtered ${results.length} movies out of ${movies.length} processed`);
+  return results;
 }
 
 
