@@ -312,10 +312,6 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                       ({relatedParts.length} {relatedParts.length === 1 ? "phần" : "phần"})
                     </span>
                   </div>
-                  {/* Tiêu đề phim */}
-                  <p className="text-xs sm:text-sm md:text-base text-gray-300 line-clamp-2">
-                    {baseName}
-                  </p>
                 </div>
                 
                 {/* Grid responsive cho mobile, tablet và desktop */}
