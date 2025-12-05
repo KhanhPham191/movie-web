@@ -9,6 +9,53 @@ import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import { Search } from "lucide-react";
 import type { FilmItem } from "@/lib/api";
 
+// Hàm chuẩn hóa chuỗi để so sánh (bỏ dấu, lowercase)
+const normalizeString = (str: string): string => {
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+};
+
+// Hàm tính điểm relevance cho kết quả tìm kiếm
+const calculateRelevanceScore = (movieName: string, query: string): number => {
+  const normalizedName = normalizeString(movieName);
+  const normalizedQuery = normalizeString(query);
+
+  // Exact match - điểm cao nhất
+  if (normalizedName === normalizedQuery) {
+    return 1000;
+  }
+
+  // Starts with query - điểm cao
+  if (normalizedName.startsWith(normalizedQuery)) {
+    return 500 + (normalizedQuery.length / normalizedName.length) * 100;
+  }
+
+  // Contains query - điểm trung bình
+  if (normalizedName.includes(normalizedQuery)) {
+    const position = normalizedName.indexOf(normalizedQuery);
+    const positionScore = (normalizedName.length - position) / normalizedName.length * 50;
+    return 200 + positionScore;
+  }
+
+  // Tất cả từ trong query đều có trong tên - điểm thấp hơn
+  const queryWords = normalizedQuery.split(/\s+/).filter(w => w.length > 0);
+  const allWordsMatch = queryWords.every(word => normalizedName.includes(word));
+  if (allWordsMatch) {
+    return 100;
+  }
+
+  // Một số từ khớp
+  const matchedWords = queryWords.filter(word => normalizedName.includes(word)).length;
+  if (matchedWords > 0) {
+    return (matchedWords / queryWords.length) * 50;
+  }
+
+  return 0;
+};
+
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const query = (searchParams.get("q") || "").trim();
@@ -59,7 +106,16 @@ export default function SearchPage() {
         // Nếu chỉ có 1 trang thì dùng luôn
         if (pagesToFetch === 1) {
           if (!cancelled) {
-            setMovies(firstData.items || []);
+            const items = firstData.items || [];
+            // Sắp xếp theo relevance score
+            const sorted = items
+              .map((movie: FilmItem) => ({
+                ...movie,
+                score: calculateRelevanceScore(movie.name || "", query),
+              }))
+              .sort((a, b) => b.score - a.score)
+              .map(({ score, ...rest }) => rest); // Bỏ score khỏi kết quả cuối
+            setMovies(sorted);
           }
         } else {
           // Gọi song song các trang còn lại
@@ -96,7 +152,17 @@ export default function SearchPage() {
               ...(Array.isArray(firstData?.items) ? firstData.items : []),
               ...otherItems,
             ];
-            setMovies(combined);
+            
+            // Sắp xếp theo relevance score
+            const sorted = combined
+              .map((movie) => ({
+                ...movie,
+                score: calculateRelevanceScore(movie.name || "", query),
+              }))
+              .sort((a, b) => b.score - a.score)
+              .map(({ score, ...rest }) => rest); // Bỏ score khỏi kết quả cuối
+            
+            setMovies(sorted);
           }
         }
       } catch (err) {

@@ -25,7 +25,7 @@ export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<
-    { name: string; slug: string; thumb: string }[]
+    { name: string; slug: string; thumb: string; current_episode?: string; quality?: string; time?: string }[]
   >([]);
   const [isSuggestOpen, setIsSuggestOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -43,13 +43,17 @@ export function Header() {
     const handleScroll = () => {
       const scrolled = window.scrollY > 0;
       setIsScrolled(scrolled);
-      if (!scrolled) {
+      
+      // Chỉ đóng search khi scroll về đầu trang và không có suggestions đang mở và không có query
+      if (!scrolled && !isSuggestOpen && !searchQuery.trim()) {
         setIsSearchOpen(false);
       }
+      // Khi scroll xuống, giữ nguyên search state và suggestions
+      // Không reset bất cứ gì khi scroll
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isSuggestOpen, searchQuery]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +63,53 @@ export function Header() {
       setSuggestions([]);
       setIsSuggestOpen(false);
     }
+  };
+
+  // Hàm chuẩn hóa chuỗi để so sánh (bỏ dấu, lowercase)
+  const normalizeString = (str: string): string => {
+    return str
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+  };
+
+  // Hàm tính điểm relevance cho kết quả tìm kiếm
+  const calculateRelevanceScore = (movieName: string, query: string): number => {
+    const normalizedName = normalizeString(movieName);
+    const normalizedQuery = normalizeString(query);
+
+    // Exact match - điểm cao nhất
+    if (normalizedName === normalizedQuery) {
+      return 1000;
+    }
+
+    // Starts with query - điểm cao
+    if (normalizedName.startsWith(normalizedQuery)) {
+      return 500 + (normalizedQuery.length / normalizedName.length) * 100;
+    }
+
+    // Contains query - điểm trung bình
+    if (normalizedName.includes(normalizedQuery)) {
+      const position = normalizedName.indexOf(normalizedQuery);
+      const positionScore = (normalizedName.length - position) / normalizedName.length * 50;
+      return 200 + positionScore;
+    }
+
+    // Tất cả từ trong query đều có trong tên - điểm thấp hơn
+    const queryWords = normalizedQuery.split(/\s+/).filter(w => w.length > 0);
+    const allWordsMatch = queryWords.every(word => normalizedName.includes(word));
+    if (allWordsMatch) {
+      return 100;
+    }
+
+    // Một số từ khớp
+    const matchedWords = queryWords.filter(word => normalizedName.includes(word)).length;
+    if (matchedWords > 0) {
+      return (matchedWords / queryWords.length) * 50;
+    }
+
+    return 0;
   };
 
   // Autocomplete suggestions (desktop)
@@ -89,13 +140,26 @@ export function Header() {
 
         const data = await res.json();
         const items: any[] = Array.isArray(data?.items) ? data.items : [];
-        const mapped = items.slice(0, 8).map((m) => ({
+        
+        // Map và tính điểm relevance
+        const mapped = items.map((m) => ({
           name: m?.name ?? "",
           slug: m?.slug ?? "",
           thumb: getImageUrl(m?.thumb_url || m?.poster_url || ""),
+          current_episode: m?.current_episode ?? "",
+          quality: m?.quality ?? "",
+          time: m?.time ?? "",
+          score: calculateRelevanceScore(m?.name ?? "", searchQuery.trim()),
         }));
-        setSuggestions(mapped);
-        setIsSuggestOpen(mapped.length > 0);
+
+        // Sắp xếp theo điểm relevance giảm dần, sau đó lấy top 8
+        const sorted = mapped
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 8)
+          .map(({ score, ...rest }) => rest); // Bỏ score khỏi kết quả cuối
+
+        setSuggestions(sorted);
+        setIsSuggestOpen(sorted.length > 0);
       } catch {
         setSuggestions([]);
         setIsSuggestOpen(false);
@@ -114,7 +178,10 @@ export function Header() {
   // Auto focus input khi header đã scroll và ô search thu gọn được mở ra
   useEffect(() => {
     if (isSearchOpen && isScrolled && scrolledSearchInputRef.current) {
-      scrolledSearchInputRef.current.focus();
+      // Delay nhỏ để đảm bảo input đã render
+      setTimeout(() => {
+        scrolledSearchInputRef.current?.focus();
+      }, 100);
     }
   }, [isSearchOpen, isScrolled]);
 
@@ -211,15 +278,14 @@ export function Header() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </form>
-
               {/* Autocomplete dropdown */}
               {isSuggestOpen && suggestions.length > 0 && (
-                <div className="absolute left-0 right-0 mt-1 rounded-xl bg-[#0f0f0f]/95 border border-white/10 shadow-xl max-h-[320px] overflow-y-auto text-xs sm:text-sm z-50">
+                <div className="absolute left-0 right-0 mt-2 rounded-xl bg-[#0f0f0f]/95 border border-white/10 shadow-xl max-h-[400px] overflow-y-auto text-sm sm:text-base z-50">
                   {suggestions.map((s) => (
                     <button
                       key={s.slug || s.name}
                       type="button"
-                      className="w-full text-left px-3 py-2 hover:bg-white/5 flex items-center gap-2"
+                      className="w-full text-left px-4 py-3 hover:bg-white/5 flex items-center gap-3"
                       onClick={() => {
                         if (s.slug) {
                           router.push(`/phim/${s.slug}`);
@@ -232,26 +298,46 @@ export function Header() {
                       }}
                     >
                       {/* Thumbnail */}
-                      <div className="relative w-9 h-12 rounded-md overflow-hidden bg-white/5 shrink-0">
+                      <div className="relative w-12 h-16 sm:w-14 sm:h-20 rounded-md overflow-hidden bg-white/5 shrink-0">
                         {s.thumb && (
                           <Image
                             src={s.thumb}
                             alt={s.name || "Poster"}
                             fill
-                            sizes="48px"
+                            sizes="56px"
                             className="object-cover"
                           />
                         )}
                       </div>
 
-                      {/* Title */}
-                      <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
-                        <span className="truncate">
-                          {s.name || "Không rõ tên phim"}
-                        </span>
-                        <span className="text-[10px] text-[#fb743E] uppercase tracking-wide shrink-0">
-                          Xem
-                        </span>
+                      {/* Title & Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <span className="truncate font-semibold text-sm sm:text-base">
+                            {s.name || "Không rõ tên phim"}
+                          </span>
+                          <span className="text-xs text-[#fb743E] uppercase tracking-wide shrink-0">
+                            Xem
+                          </span>
+                        </div>
+                        {/* Số tập, chất lượng và thời lượng */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {s.current_episode && (
+                            <span className="text-xs text-white/70">
+                              {s.current_episode}
+                            </span>
+                          )}
+                          {s.quality && (
+                            <span className="text-xs px-2 py-1 rounded bg-white/10 text-white/80">
+                              {s.quality}
+                            </span>
+                          )}
+                          {s.time && (
+                            <span className="text-xs text-white/60">
+                              {s.time}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </button>
                   ))}
@@ -259,29 +345,99 @@ export function Header() {
               )}
             </div>
           ) : (
-            <div className="hidden sm:flex items-center">
+            <div className="hidden sm:flex items-center relative">
               <button
                 className="p-1.5 hover:text-gray-300 transition-colors"
                 onClick={() => setIsSearchOpen((prev) => !prev)}
               >
                 <Search className="w-4 h-4" />
               </button>
-              <form
-                onSubmit={handleSearch}
-                className={`flex items-center bg-white/5 backdrop-blur-md border border-white/20 rounded-full px-3 py-1.5 ml-2 transition-all duration-300 outline-none focus-visible:outline-none focus-within:outline-none focus-within:ring-0 ${
-                  isSearchOpen ? 'w-48 md:w-64 lg:w-80 opacity-100' : 'w-0 opacity-0 border-transparent px-0 pointer-events-none'
-                }`}
-              >
-                <input
-                  type="search"
-                  placeholder="Tìm phim, diễn viên, thể loại..."
-                  className="flex-1 bg-transparent text-xs sm:text-sm placeholder:text-gray-500 px-0 border-none focus:border-none outline-none focus:outline-none focus-visible:outline-none"
-                  style={{ outline: 'none', boxShadow: 'none' }}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  ref={scrolledSearchInputRef}
-                />
-              </form>
+              <div className={`relative transition-all duration-300 ${
+                isSearchOpen ? 'w-56 md:w-72 lg:w-96 opacity-100' : 'w-0 opacity-0 pointer-events-none'
+              }`}>
+                <form
+                  onSubmit={handleSearch}
+                  className="flex items-center bg-white/5 backdrop-blur-md border border-white/20 rounded-full px-3 py-1.5 ml-2 w-full transition-all duration-300 outline-none focus-visible:outline-none focus-within:outline-none focus-within:ring-0"
+                >
+                  <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mr-2 shrink-0" />
+                  <input
+                    type="search"
+                    placeholder="Tìm phim, diễn viên, thể loại..."
+                    className="flex-1 bg-transparent text-xs sm:text-sm placeholder:text-gray-500 px-0 border-none focus:border-none outline-none focus:outline-none focus-visible:outline-none"
+                    style={{ outline: 'none', boxShadow: 'none' }}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    ref={scrolledSearchInputRef}
+                  />
+                </form>
+
+                {/* Autocomplete dropdown - khi scroll */}
+                {isSearchOpen && isSuggestOpen && suggestions.length > 0 && (
+                  <div className="absolute left-2 right-0 mt-2 rounded-xl bg-[#0f0f0f]/95 border border-white/10 shadow-xl max-h-[400px] overflow-y-auto text-sm sm:text-base z-50">
+                    {suggestions.map((s) => (
+                      <button
+                        key={s.slug || s.name}
+                        type="button"
+                        className="w-full text-left px-4 py-3 hover:bg-white/5 flex items-center gap-3"
+                        onClick={() => {
+                          if (s.slug) {
+                            router.push(`/phim/${s.slug}`);
+                          } else if (s.name) {
+                            router.push(`/tim-kiem?q=${encodeURIComponent(s.name)}`);
+                          }
+                          setIsSuggestOpen(false);
+                          setSuggestions([]);
+                          setSearchQuery("");
+                          setIsSearchOpen(false);
+                        }}
+                      >
+                        {/* Thumbnail */}
+                        <div className="relative w-12 h-16 sm:w-14 sm:h-20 rounded-md overflow-hidden bg-white/5 shrink-0">
+                          {s.thumb && (
+                            <Image
+                              src={s.thumb}
+                              alt={s.name || "Poster"}
+                              fill
+                              sizes="56px"
+                              className="object-cover"
+                            />
+                          )}
+                        </div>
+
+                        {/* Title & Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-1.5">
+                            <span className="truncate font-semibold text-sm sm:text-base">
+                              {s.name || "Không rõ tên phim"}
+                            </span>
+                            <span className="text-xs text-[#fb743E] uppercase tracking-wide shrink-0">
+                              Xem
+                            </span>
+                          </div>
+                          {/* Số tập, chất lượng và thời lượng */}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {s.current_episode && (
+                              <span className="text-xs text-white/70">
+                                {s.current_episode}
+                              </span>
+                            )}
+                            {s.quality && (
+                              <span className="text-xs px-2 py-1 rounded bg-white/10 text-white/80">
+                                {s.quality}
+                              </span>
+                            )}
+                            {s.time && (
+                              <span className="text-xs text-white/60">
+                                {s.time}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -362,12 +518,12 @@ export function Header() {
           {/* Autocomplete dropdown - mobile */}
           {isSuggestOpen && suggestions.length > 0 && (
             <div className="px-3 pb-2">
-              <div className="mt-1 rounded-xl bg-[#0f0f0f]/95 border border-white/10 shadow-xl max-h-[60vh] overflow-y-auto text-xs sm:text-sm">
+              <div className="mt-2 rounded-xl bg-[#0f0f0f]/95 border border-white/10 shadow-xl max-h-[60vh] overflow-y-auto text-sm sm:text-base">
                 {suggestions.map((s) => (
                   <button
                     key={s.slug || s.name}
                     type="button"
-                    className="w-full text-left px-3 py-2 hover:bg-white/5 flex items-center gap-2"
+                    className="w-full text-left px-4 py-3 hover:bg-white/5 flex items-center gap-3"
                     onClick={() => {
                       if (s.slug) {
                         router.push(`/phim/${s.slug}`);
@@ -382,24 +538,44 @@ export function Header() {
                       setIsMobileSearchOpen(false);
                     }}
                   >
-                    <div className="relative w-9 h-12 rounded-md overflow-hidden bg-white/5 shrink-0">
+                    <div className="relative w-12 h-16 sm:w-14 sm:h-20 rounded-md overflow-hidden bg-white/5 shrink-0">
                       {s.thumb && (
                         <Image
                           src={s.thumb}
                           alt={s.name || "Poster"}
                           fill
-                          sizes="48px"
+                          sizes="56px"
                           className="object-cover"
                         />
                       )}
                     </div>
-                    <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
-                      <span className="truncate">
-                        {s.name || "Không rõ tên phim"}
-                      </span>
-                      <span className="text-[10px] text-[#fb743E] uppercase tracking-wide shrink-0">
-                        Xem
-                      </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <span className="truncate font-semibold text-sm sm:text-base">
+                          {s.name || "Không rõ tên phim"}
+                        </span>
+                        <span className="text-xs text-[#fb743E] uppercase tracking-wide shrink-0">
+                          Xem
+                        </span>
+                      </div>
+                      {/* Số tập, chất lượng và thời lượng */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {s.current_episode && (
+                          <span className="text-xs text-white/70">
+                            {s.current_episode}
+                          </span>
+                        )}
+                        {s.quality && (
+                          <span className="text-xs px-2 py-1 rounded bg-white/10 text-white/80">
+                            {s.quality}
+                          </span>
+                        )}
+                        {s.time && (
+                          <span className="text-xs text-white/60">
+                            {s.time}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </button>
                 ))}
