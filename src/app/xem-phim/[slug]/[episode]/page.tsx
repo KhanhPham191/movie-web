@@ -7,9 +7,11 @@ import { Footer } from "@/components/footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, ChevronRight, Home, List, Info, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight, Home, Info, Play } from "lucide-react";
 import { getFilmDetail, getImageUrl } from "@/lib/api";
 import { IframePlayer } from "@/components/player/iframe-player";
+import { EpisodeSelectorWatch } from "@/components/episode-selector-watch";
+import { MovieInfoPanel } from "@/components/movie-info-panel";
 
 interface WatchPageProps {
   params: Promise<{ slug: string; episode: string }>;
@@ -25,6 +27,14 @@ async function VideoPlayer({
   episodeSlug: string;
   serverParam?: string;
 }) {
+  // Helper function để map server_name sang tên hiển thị (giống EpisodeSelector)
+  const getServerDisplayName = (serverName: string) => {
+    const name = serverName.toLowerCase();
+    if (name.includes("vietsub")) return "Vietsub";
+    if (name.includes("thuyết") || name.includes("thuyet")) return "Thuyết minh";
+    return serverName;
+  };
+
   try {
     const response = await getFilmDetail(slug);
     const movie = response.movie;
@@ -251,271 +261,96 @@ async function VideoPlayer({
               {countries[0] && <span>{formatLabel(countries[0])}</span>}
             </div>
 
-            <div className="grid gap-6 lg:gap-10 lg:grid-cols-[minmax(0,2.1fr)_minmax(0,1fr)] items-start">
-              <div className="space-y-4 sm:space-y-6 animate-slide-up max-w-full">
-                {/* Server Selection Tabs */}
-                {filteredEpisodes.length > 1 && (
-                  <div className="bg-white/5 rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#fb743E]/10 glass">
-                    <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto scrollbar-hide">
-                      <span className="text-[10px] sm:text-xs text-white/60 uppercase tracking-[0.2em] whitespace-nowrap shrink-0">
-                        Server:
-                      </span>
-                      {filteredEpisodes.map((server) => {
-                        const isActive = currentServer?.server_name === server.server_name;
-                        
-                        // Tìm tập cùng số thứ tự trong server này
-                        let targetEpisode = null;
-                        
-                        // Nếu đây là server hiện tại, dùng episode hiện tại
-                        if (isActive && currentEpisode) {
-                          targetEpisode = currentEpisode;
-                        } else if (server.items && Array.isArray(server.items)) {
-                          // Lấy số thứ tự từ tên tập hiện tại (ví dụ "Tập 5" → 5)
-                          const currentEpisodeNumber = currentEpisode?.name 
-                            ? parseInt(currentEpisode.name.match(/\d+/)?.[0] || String(episodeIndex + 1))
-                            : episodeIndex + 1;
-                          
-                          // Tìm tập có cùng số thứ tự trong server này
-                          targetEpisode = server.items.find((ep) => {
-                            const epNum = ep.name ? parseInt(ep.name.match(/\d+/)?.[0] || "0") : 0;
-                            return epNum === currentEpisodeNumber && epNum > 0;
-                          });
-                          
-                          // Nếu không tìm thấy theo số, dùng index (nhưng đảm bảo index hợp lệ)
-                          if (!targetEpisode && episodeIndex >= 0 && episodeIndex < server.items.length) {
-                            targetEpisode = server.items[episodeIndex];
-                          }
-                          
-                          // Fallback về tập đầu tiên
-                          if (!targetEpisode && server.items.length > 0) {
-                            targetEpisode = server.items[0];
-                          }
-                        }
-                        
-                        const targetSlug = targetEpisode?.slug || server.items?.[0]?.slug;
-                        
-                        // Tạo tham số server từ server_name
-                        const serverParam = server.server_name?.toLowerCase().includes("vietsub")
-                          ? "vietsub"
-                          : server.server_name?.toLowerCase().includes("thuyết") || server.server_name?.toLowerCase().includes("thuyet")
-                          ? "thuyet-minh"
-                          : "";
-                        
-                        const href = serverParam
-                          ? `/xem-phim/${slug}/${targetSlug}?server=${serverParam}`
-                          : `/xem-phim/${slug}/${targetSlug}`;
-
-                        console.log("[VideoPlayer] Render server tab:", {
-                          tabServerName: server?.server_name,
-                          isActive,
-                          currentServerName: currentServer?.server_name,
-                          episodeIndex,
-                          currentEpisodeNumber: currentEpisode?.name 
-                            ? parseInt(currentEpisode.name.match(/\d+/)?.[0] || String(episodeIndex + 1))
-                            : episodeIndex + 1,
-                          currentEpisodeName: currentEpisode?.name,
-                          currentEpisodeSlug: currentEpisode?.slug,
-                          targetEpisodeName: targetEpisode?.name,
-                          targetEpisodeSlug: targetEpisode?.slug,
-                          targetSlug,
-                          serverParam,
-                          href,
-                          serverItemsCount: server.items?.length || 0,
-                          episodeSlugFromURL: episodeSlug,
-                        });
-                        
-                        return (
-                          <Link
-                            key={server.server_name}
-                            href={href}
-                            className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all whitespace-nowrap shrink-0 hover:scale-105 ${
-                              isActive
-                                ? "bg-[#fb743E] text-black shadow-[0_0_20px_rgba(251,116,62,0.4)] ring-2 ring-[#fb743E]/50"
-                                : "bg-white/10 text-white hover:bg-[#fb743E]/20 hover:text-[#fb743E] border border-white/20 hover:border-[#fb743E]/40"
-                            }`}
-                          >
-                            {server.server_name}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Video Player - iframe only (bỏ Shaka/m3u8, trở lại nguyên thủy) */}
-                <div className="relative rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_-20px_rgba(255,220,120,0.35)] border border-[#fb743E]/30 group/player card-hover max-w-full">
-                  <div className="aspect-video bg-black rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden w-full">
-                    <IframePlayer
-                      src={currentEpisode.embed}
-                      title={`${movie.name} - ${currentEpisode.name}`}
-                      allowAds={false}
-                      className="h-full w-full"
-                    />
-                  </div>
-                  
-                  {/* Episode Info Overlay */}
-                  <div className="absolute top-0 left-0 right-0 p-3 sm:p-4 lg:p-6 pointer-events-none bg-gradient-to-b from-black/80 to-transparent">
-                    <div className="flex items-center justify-between text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white/70">
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        <Badge className="bg-[#fb743E] text-black text-[10px] sm:text-xs px-2 py-0.5">{currentServer?.server_name}</Badge>
-                        <span className="flex items-center gap-1">
-                          <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-[#fb743E] text-[#fb743E]" />
-                          ĐANG PHÁT
-                        </span>
-                      </div>
-                      <span className="text-[#fb743E]">
-                        {episodeIndex + 1}/{allEpisodes.length}
+            <div className="space-y-4 sm:space-y-6 animate-slide-up max-w-full">
+              {/* Video Player - iframe only (bỏ Shaka/m3u8, trở lại nguyên thủy) */}
+              <div className="relative rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_-20px_rgba(255,220,120,0.35)] border border-[#fb743E]/30 group/player card-hover max-w-full">
+                <div className="aspect-video bg-black rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden w-full">
+                  <IframePlayer
+                    src={currentEpisode.embed}
+                    title={`${movie.name} - ${currentEpisode.name}`}
+                    allowAds={false}
+                    className="h-full w-full"
+                  />
+                </div>
+                
+                {/* Episode Info Overlay */}
+                <div className="absolute top-0 left-0 right-0 p-3 sm:p-4 lg:p-6 pointer-events-none bg-gradient-to-b from-black/80 to-transparent">
+                  <div className="flex items-center justify-between text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white/70">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <Badge className="bg-[#fb743E] text-black text-[10px] sm:text-xs px-2 py-0.5">
+                        {currentServer ? getServerDisplayName(currentServer.server_name) : ""}
+                      </Badge>
+                      <span className="flex items-center gap-1">
+                        <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-[#fb743E] text-[#fb743E]" />
+                        ĐANG PHÁT
                       </span>
                     </div>
+                    <span className="text-[#fb743E]">
+                      {episodeIndex + 1}/{allEpisodes.length}
+                    </span>
                   </div>
-                </div>
-
-              {/* Episode Navigation - compact prev/next controls */}
-              <div className="mt-2 flex items-center justify-between gap-2 sm:gap-4">
-                  {prevEpisode && (
-                    <Button
-                      asChild
-                      variant="outline"
-                      size="lg"
-                    className="min-w-[130px] sm:min-w-[150px] bg-black/60 text-white border-[#fb743E]/30 hover:bg-[#fb743E]/10 hover:border-[#fb743E] backdrop-blur text-xs sm:text-sm"
-                    >
-                      <Link href={`/xem-phim/${slug}/${prevEpisode.slug}`}>
-                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-1" />
-                      <span className="truncate">Tập trước</span>
-                      </Link>
-                    </Button>
-                  )}
-                  {nextEpisode && (
-                    <Button
-                      asChild
-                      size="lg"
-                    className="ml-auto min-w-[130px] sm:min-w-[150px] bg-[#fb743E] text-black hover:bg-[#fb743E]/90 font-semibold text-xs sm:text-sm"
-                    >
-                      <Link href={`/xem-phim/${slug}/${nextEpisode.slug}`}>
-                      <span className="truncate">Tập tiếp theo</span>
-                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1" />
-                      </Link>
-                    </Button>
-                  )}
-                </div>
-
-                {/* Action Buttons - Mobile Responsive */}
-                <div className="flex flex-wrap gap-2 sm:gap-3">
-                  <Button size="lg" className="bg-[#fb743E] text-black hover:bg-[#fb743E]/90 font-semibold flex-1 sm:flex-none text-sm sm:text-base" asChild>
-                    <Link href={`/phim/${slug}`}>
-                      <Info className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" /> Chi tiết
-                    </Link>
-                  </Button>
-                  <Button size="lg" variant="outline" className="border-[#fb743E]/30 text-white hover:bg-[#fb743E]/10 flex-1 sm:flex-none text-sm sm:text-base" asChild>
-                    <Link href="/">
-                      <Home className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" /> Trang chủ
-                    </Link>
-                  </Button>
                 </div>
               </div>
 
-              {/* Movie Info Panel - Mobile Optimized */}
-              <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4 border border-[#fb743E]/10 glass animate-slide-up max-w-full">
-                <div>
-                  <p className="text-[10px] sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[#fb743E]/60">Đang xem</p>
-                  <h1 className="text-lg sm:text-2xl lg:text-3xl font-black mt-1 sm:mt-2 line-clamp-2">
-                    {movie.name}
-                  </h1>
-                  <p className="text-[#fb743E] text-sm sm:text-base font-semibold mt-0.5 sm:mt-1">{currentEpisode.name}</p>
-                </div>
-
-                {cleanDescription && (
-                  <p className="text-xs sm:text-sm text-white/70 line-clamp-3 sm:line-clamp-4">
-                    {cleanDescription}
-                  </p>
+              {/* Episode Navigation - compact prev/next controls */}
+              <div className="mt-2 flex items-center justify-between gap-2 sm:gap-4">
+                {prevEpisode && (
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="lg"
+                    className="min-w-[130px] sm:min-w-[150px] bg-black/60 text-white border-[#fb743E]/30 hover:bg-[#fb743E]/10 hover:border-[#fb743E] backdrop-blur text-xs sm:text-sm"
+                  >
+                    <Link href={`/xem-phim/${slug}/${prevEpisode.slug}`}>
+                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-1" />
+                      <span className="truncate">Tập trước</span>
+                    </Link>
+                  </Button>
                 )}
+                {nextEpisode && (
+                  <Button
+                    asChild
+                    size="lg"
+                    className="ml-auto min-w-[130px] sm:min-w-[150px] bg-[#fb743E] text-black hover:bg-[#fb743E]/90 font-semibold text-xs sm:text-sm"
+                  >
+                    <Link href={`/xem-phim/${slug}/${nextEpisode.slug}`}>
+                      <span className="truncate">Tập tiếp theo</span>
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1" />
+                    </Link>
+                  </Button>
+                )}
+              </div>
 
-                <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-white/80">
-                  {movie.director && (
-                    <p className="line-clamp-1">
-                      <span className="text-[#fb743E]/60">Đạo diễn: </span>
-                      {movie.director}
-                    </p>
-                  )}
-                  {movie.casts && (
-                    <p className="line-clamp-2">
-                      <span className="text-[#fb743E]/60">Diễn viên: </span>
-                      {movie.casts}
-                    </p>
-                  )}
-                  {categories.length > 0 && (
-                    <p className="line-clamp-1">
-                      <span className="text-[#fb743E]/60">Thể loại: </span>
-                      {categories.map((c) => formatLabel(c)).join(", ")}
-                    </p>
-                  )}
-                </div>
+              {/* Action Buttons - Mobile Responsive */}
+              <div className="flex flex-wrap gap-2 sm:gap-3">
+                <Button size="lg" className="bg-[#fb743E] text-black hover:bg-[#fb743E]/90 font-semibold flex-1 sm:flex-none text-sm sm:text-base" asChild>
+                  <Link href={`/phim/${slug}`}>
+                    <Info className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" /> Chi tiết
+                  </Link>
+                </Button>
+                <Button size="lg" variant="outline" className="border-[#fb743E]/30 text-white hover:bg-[#fb743E]/10 flex-1 sm:flex-none text-sm sm:text-base" asChild>
+                  <Link href="/">
+                    <Home className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" /> Trang chủ
+                  </Link>
+                </Button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Episode list - Netflix 2024 Style */}
-        {/* Chỉ hiển thị items của server đang được chọn (currentServer) */}
-        {currentServer && allEpisodes.length > 0 && (
-          <div className="bg-[#0f0f0f] rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 border border-[#fb743E]/10 glass animate-slide-up">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-white flex items-center gap-2">
-                <List className="w-4 h-4 sm:w-5 sm:h-5 text-[#fb743E]" />
-                Danh sách tập
-              </h2>
-            </div>
 
-            <div className="space-y-6 sm:space-y-8">
-              <div key={currentServer.server_name} className="space-y-2 sm:space-y-3">
-                <div className="flex items-center justify-between text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[#fb743E]/70 mb-2">
-                  <span className="font-semibold">{currentServer.server_name}</span>
-                  <span className="text-[#fb743E]/50">{allEpisodes.length} TẬP</span>
-                </div>
-                <div className="flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
-                  {allEpisodes.map((ep, index) => {
-                    // Tạo tham số server từ server_name
-                    const serverParam = currentServer.server_name?.toLowerCase().includes("vietsub")
-                      ? "vietsub"
-                      : currentServer.server_name?.toLowerCase().includes("thuyết") || currentServer.server_name?.toLowerCase().includes("thuyet")
-                      ? "thuyet-minh"
-                      : "";
-                    
-                    const href = serverParam
-                      ? `/xem-phim/${slug}/${ep.slug}?server=${serverParam}`
-                      : `/xem-phim/${slug}/${ep.slug}`;
-                    
-                    return (
-                      <Link
-                        key={ep.slug}
-                        href={href}
-                        className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-semibold transition-all whitespace-nowrap shrink-0 hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.65)] ${
-                          ep.slug === episodeSlug
-                            ? "bg-[#fb743E] text-black shadow-[0_0_20px_rgba(251,116,62,0.4)]"
-                            : "bg-white/10 text-white hover:bg-[#fb743E]/20 hover:text-[#fb743E]"
-                        }`}
-                      >
-                        Tập {index + 1}
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Description - Netflix 2024 Style */}
-        {movie.description && (
-          <div className="bg-white/5 rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 text-white/80 text-xs sm:text-sm leading-relaxed border border-[#fb743E]/10">
-            <h3 className="text-base sm:text-lg font-semibold text-[#fb743E] mb-2 sm:mb-3">Nội dung phim</h3>
-            <div
-              className="prose prose-invert prose-sm max-w-none"
-              dangerouslySetInnerHTML={{
-                __html: movie.description,
-              }}
-            />
-          </div>
+        {/* Movie Info Panel - Gộp chung với tập phim */}
+        {currentServer && allEpisodes.length > 0 && filteredEpisodes.length > 0 && (
+          <MovieInfoPanel
+            movie={movie}
+            categories={categories}
+            allEpisodes={allEpisodes}
+            currentEpisodeIndex={episodeIndex}
+            servers={filteredEpisodes}
+            movieSlug={slug}
+            currentEpisodeSlug={episodeSlug}
+            currentServerName={currentServer.server_name}
+          />
         )}
       </div>
     );

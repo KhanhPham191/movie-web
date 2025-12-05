@@ -80,7 +80,7 @@ export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSe
   // Map server_name sang tên hiển thị
   const getServerDisplayName = (serverName: string) => {
     const name = serverName.toLowerCase();
-    if (name.includes("vietsub")) return "Phụ đề";
+    if (name.includes("vietsub")) return "Vietsub";
     if (name.includes("thuyết") || name.includes("thuyet")) return "Thuyết minh";
     return serverName;
   };
@@ -112,7 +112,7 @@ export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSe
                   onClick={() => setSelectedServerIndex(index)}
                   className={`flex-1 sm:flex-none px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ease-in-out flex items-center justify-center gap-1 sm:gap-1.5 ${
                     isActive
-                      ? "bg-[#1a1a2e] text-white border-2 border-blue-500"
+                      ? "bg-[#1a1a2e] text-white border-2 border-[#fb743E]"
                       : "bg-[#0a0a0a] text-white/70 border border-white/10 hover:bg-[#fb743E] hover:text-white hover:border-[#fb743E]"
                   }`}
                 >
@@ -161,7 +161,7 @@ export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSe
             <span className="font-semibold uppercase tracking-wider truncate mr-2">
               {currentServer.server_name}
             </span>
-            <span className="text-[#fb743E]/50 whitespace-nowrap">{currentEpisodes.length} TẬP</span>
+            <span className="text-[#fb743E]/50 whitespace-nowrap">{currentEpisodes.length === 1 ? "FULL" : `${currentEpisodes.length} TẬP`}</span>
           </div>
           
           <div className="grid grid-cols-4 xs:grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-1.5 sm:gap-2">
@@ -186,7 +186,7 @@ export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSe
                       className="w-full h-9 sm:h-10 md:h-11 rounded-lg bg-[#0a0a0a] border border-white/10 text-white text-xs sm:text-sm font-semibold transition-all hover:!bg-[#fb743E] hover:!text-white hover:!border-[#fb743E] hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(251,116,62,0.4)] focus-visible:!ring-[#fb743E]/50 flex items-center justify-center gap-1 px-1.5 sm:px-2"
                     >
                       <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-white flex-shrink-0" />
-                      <span className="whitespace-nowrap">Tập {index + 1}</span>
+                      <span className="whitespace-nowrap">{currentEpisodes.length === 1 ? "FULL" : `Tập ${index + 1}`}</span>
                     </Button>
                   </Link>
                 );
