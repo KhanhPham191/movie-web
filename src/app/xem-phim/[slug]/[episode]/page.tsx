@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +74,28 @@ async function VideoPlayer({
         itemsCount: Array.isArray(s?.items) ? s.items.length : 0,
       }))
     );
+
+    // Kiểm tra xem có phải phim lẻ không (chỉ có 1 episode)
+    const isPhimLe = filteredEpisodes.length > 0 && 
+      filteredEpisodes.every((server) => {
+        const items = Array.isArray(server?.items) ? server.items : [];
+        return items.length === 1;
+      });
+
+    // Nếu là phim lẻ, lấy episode đầu tiên từ server mặc định
+    if (isPhimLe && filteredEpisodes.length > 0) {
+      const defaultServerForPhimLe = filteredEpisodes.find((s) => /vietsub/i.test(s.server_name)) ||
+        filteredEpisodes.find((s) => /thuyết\s*minh|thuyet\s*minh/i.test(s.server_name)) ||
+        filteredEpisodes[0];
+      
+      const firstEpisode = defaultServerForPhimLe?.items?.[0];
+      
+      // Nếu episodeSlug không khớp với tập 1, redirect đến tập 1
+      if (firstEpisode && firstEpisode.slug !== episodeSlug) {
+        const serverQuery = serverParam ? `?server=${serverParam}` : "";
+        redirect(`/xem-phim/${slug}/${firstEpisode.slug}${serverQuery}`);
+      }
+    }
 
     let currentEpisode = null as null | { name: string; slug: string; embed: string; m3u8: string };
     let currentServer: (typeof filteredEpisodes)[number] | null = null;
@@ -222,7 +244,9 @@ async function VideoPlayer({
         ? allEpisodes[episodeIndex + 1]
         : null;
 
-    const background = getImageUrl(movie.poster_url || movie.thumb_url);
+    // Ưu tiên thumb.url, sau đó thumb_url, cuối cùng poster_url
+    const thumbUrl = (movie as any).thumb?.url || movie.thumb_url;
+    const background = getImageUrl(thumbUrl || movie.poster_url);
     const cleanDescription = movie.description?.replace(/<[^>]*>/g, "");
     const categories = Array.isArray(movie.category)
       ? movie.category
@@ -286,7 +310,7 @@ async function VideoPlayer({
                       </span>
                     </div>
                     <span className="text-[#fb743E]">
-                      {episodeIndex + 1}/{allEpisodes.length}
+                      {allEpisodes.length === 1 ? "FULL" : `${episodeIndex + 1}/${allEpisodes.length}`}
                     </span>
                   </div>
                 </div>

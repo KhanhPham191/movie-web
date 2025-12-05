@@ -41,7 +41,9 @@ export function MovieInfoPanel({
   currentEpisodeSlug,
   currentServerName,
 }: MovieInfoPanelProps) {
-  const posterUrl = getImageUrl(movie.poster_url || movie.thumb_url);
+  // Ưu tiên thumb.url, sau đó thumb_url, cuối cùng poster_url
+  const thumbUrl = (movie as any).thumb?.url || movie.thumb_url;
+  const posterUrl = getImageUrl(thumbUrl || movie.poster_url);
   const cleanDescription = movie.description?.replace(/<[^>]*>/g, "") || "";
   
   // Tính số tập cao nhất từ tất cả servers (cố định, không thay đổi)
@@ -155,6 +157,8 @@ export function MovieInfoPanel({
               currentEpisodeSlug={currentEpisodeSlug}
               currentServerName={currentServerName}
               currentEpisodeIndex={currentEpisodeIndex}
+              movieName={movie.name}
+              posterUrl={movie.poster_url}
             />
           </div>
         )}

@@ -2,7 +2,9 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Play } from "lucide-react";
+import { getImageUrl } from "@/lib/api";
 
 interface Episode {
   name: string;
@@ -22,6 +24,8 @@ interface EpisodeSelectorWatchProps {
   currentEpisodeSlug: string;
   currentServerName: string;
   currentEpisodeIndex: number;
+  movieName?: string;
+  posterUrl?: string;
 }
 
 export function EpisodeSelectorWatch({
@@ -30,6 +34,8 @@ export function EpisodeSelectorWatch({
   currentEpisodeSlug,
   currentServerName,
   currentEpisodeIndex,
+  movieName,
+  posterUrl,
 }: EpisodeSelectorWatchProps) {
   // Lọc chỉ giữ lại 2 server: Vietsub và Thuyết minh
   const filteredServers = useMemo(() => {
@@ -81,6 +87,58 @@ export function EpisodeSelectorWatch({
   const maxEpisodes = useMemo(() => {
     return Math.max(...filteredServers.map(s => s.items?.length || 0), 0);
   }, [filteredServers]);
+
+  // Kiểm tra xem có phải phim lẻ không (chỉ có 1 episode)
+  const isPhimLe = currentEpisodes.length === 1;
+
+  // Nếu là phim lẻ, hiển thị UI card đặc biệt
+  if (isPhimLe && movieName && posterUrl) {
+    const firstEpisode = currentEpisodes[0];
+    const serverParam = getServerParam(currentServer.server_name);
+    const href = serverParam
+      ? `/xem-phim/${movieSlug}/${firstEpisode.slug}?server=${serverParam}`
+      : `/xem-phim/${movieSlug}/${firstEpisode.slug}`;
+    const imageUrl = getImageUrl(posterUrl);
+
+    return (
+      <Link href={href}>
+        <div className="relative w-full aspect-[16/9] sm:aspect-[2.5/1] rounded-xl overflow-hidden border border-[#fb743E]/50 shadow-lg hover:shadow-[#fb743E]/30 transition-all hover:scale-[1.01] group cursor-pointer">
+          {/* Background Image */}
+          <div className="absolute inset-0">
+            <Image
+              src={imageUrl}
+              alt={movieName}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1200px"
+            />
+            {/* Ombre gradient overlay bên trái - mờ dần sang phải */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#1a1a2e] via-[#1a1a2e]/90 via-[#1a1a2e]/70 via-[#1a1a2e]/40 to-transparent" />
+          </div>
+
+          {/* Content bên trái */}
+          <div className="relative z-10 h-full flex flex-col justify-center p-4 sm:p-6 md:p-8 max-w-[55%] sm:max-w-[45%] md:max-w-[40%]">
+            {/* Label Phụ đề */}
+            <div className="flex items-center gap-1.5 mb-3 sm:mb-4">
+              <div className="w-2 h-2 rounded-full bg-purple-400 shadow-sm" />
+              <span className="text-white/90 text-xs sm:text-sm font-medium">Phụ đề</span>
+            </div>
+
+            {/* Tên phim */}
+            <h3 className="text-white font-bold text-base sm:text-lg md:text-xl lg:text-2xl mb-4 sm:mb-6 line-clamp-3 leading-tight group-hover:text-[#fb743E] transition-colors">
+              {movieName}
+            </h3>
+
+            {/* Nút Đang xem */}
+            <div className="inline-flex items-center justify-center px-4 sm:px-5 py-2 sm:py-2.5 bg-white/95 hover:bg-white text-[#1a1a2e] font-semibold text-sm sm:text-base rounded-lg transition-all shadow-md group-hover:shadow-lg">
+              <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2 fill-current" />
+              <span>Đang xem</span>
+            </div>
+          </div>
+        </div>
+      </Link>
+    );
+  }
 
   return (
     <div className="space-y-2">
@@ -143,7 +201,7 @@ export function EpisodeSelectorWatch({
               className="text-[9px] sm:text-[10px] text-[#fb743E]/70 uppercase tracking-wider min-h-[12px] sm:min-h-[14px] block text-right"
               style={{ minWidth: '60px' }}
             >
-              {currentEpisodes.length} TẬP
+              {currentEpisodes.length === 1 ? "FULL" : `${currentEpisodes.length} TẬP`}
             </span>
           </div>
         )}
@@ -170,7 +228,7 @@ export function EpisodeSelectorWatch({
               }`}
             >
               <Play className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="whitespace-nowrap">Tập {index + 1}</span>
+              <span className="whitespace-nowrap">{currentEpisodes.length === 1 ? "FULL" : `Tập ${index + 1}`}</span>
             </Link>
           );
         })}
