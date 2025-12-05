@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getFilmsByCountry, COUNTRIES } from "@/lib/api";
 
-// ISR: Revalidate every 5 minutes
+// ISR: Revalidate every 5 minutes for Trung Quốc page
 export const revalidate = 300;
 
 interface CountryPageProps {
@@ -42,45 +42,43 @@ async function CountryContent({ slug, page }: { slug: string; page: number }) {
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-8">
-            {page > 1 && (
-              <Link href={`/quoc-gia/${slug}?page=${page - 1}`}>
-                <Button variant="outline" size="sm">
-                  <ChevronLeft className="w-4 h-4 mr-1" />
-                  Trang trước
-                </Button>
-              </Link>
-            )}
-            
-            <div className="flex items-center gap-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const pageNum = page <= 3 ? i + 1 : page - 2 + i;
-                if (pageNum > totalPages || pageNum < 1) return null;
-                return (
-                  <Link key={pageNum} href={`/quoc-gia/${slug}?page=${pageNum}`}>
-                    <Button
-                      variant={pageNum === page ? "default" : "outline"}
-                      size="sm"
-                      className={pageNum === page ? "bg-primary" : ""}
-                    >
-                      {pageNum}
-                    </Button>
-                  </Link>
-                );
-              })}
-            </div>
-
-            {page < totalPages && (
-              <Link href={`/quoc-gia/${slug}?page=${page + 1}`}>
-                <Button variant="outline" size="sm">
-                  Trang sau
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
-              </Link>
-            )}
+        <div className="flex items-center justify-center gap-2 mt-8">
+          {page > 1 && (
+            <Link href={`/quoc-gia/${slug}?page=${page - 1}`}>
+              <Button variant="outline" size="sm">
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                Trang trước
+              </Button>
+            </Link>
+          )}
+          
+          <div className="flex items-center gap-1">
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const pageNum = page <= 3 ? i + 1 : page - 2 + i;
+              if (pageNum > totalPages || pageNum < 1) return null;
+              return (
+                <Link key={pageNum} href={`/quoc-gia/${slug}?page=${pageNum}`}>
+                  <Button
+                    variant={pageNum === page ? "default" : "outline"}
+                    size="sm"
+                    className={pageNum === page ? "bg-primary" : ""}
+                  >
+                    {pageNum}
+                  </Button>
+                </Link>
+              );
+            })}
           </div>
-        )}
+
+          {page < totalPages && (
+            <Link href={`/quoc-gia/${slug}?page=${page + 1}`}>
+              <Button variant="outline" size="sm">
+                Trang sau
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </Link>
+          )}
+        </div>
 
         <p className="text-center text-sm text-muted-foreground mt-4">
           Trang {page} / {totalPages}

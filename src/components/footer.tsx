@@ -64,7 +64,7 @@ export function Footer() {
         <div className="flex items-center gap-2 mb-1">
           <div className="w-6 h-6 rounded-full overflow-hidden bg-[radial-gradient(circle,rgba(255,220,120,0.9)_0%,rgba(20,20,20,1)_70%)] flex items-center justify-center">
             <Image
-            src="/movpey-logo.ico"
+              src="/favicon.ico"
               alt="MovPey logo"
               width={24}
               height={24}

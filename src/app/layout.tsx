@@ -22,9 +22,9 @@ export const metadata: Metadata = {
   description:
     "MovPey - Phim xịn mỗi ngày. Nền tảng xem phim trực tuyến với hàng nghìn bộ phim hấp dẫn, cập nhật liên tục.",
   icons: {
-    icon: "/movpey-logo.ico?v=2",
-    shortcut: "/movpey-logo.ico?v=2",
-    apple: "/movpey-logo.ico?v=2",
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
   },
 };
 

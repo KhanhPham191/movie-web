@@ -256,14 +256,14 @@ export function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-1 xs:gap-1.5 shrink-0">
             <div className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-xl overflow-hidden flex items-center justify-center">
-              <Image
-                src="/movpey-logo.ico"
-                alt="MovPey logo"
-                width={64}
-                height={64}
-                className="w-full h-full object-contain"
-                priority
-              />
+                <Image
+                  src="/favicon.ico"
+                  alt="MovPey logo"
+                  width={64}
+                  height={64}
+                  className="w-full h-full object-contain"
+                  priority
+                />
             </div>
             <div className="hidden xs:flex flex-col leading-tight">
               <span className="text-base xs:text-lg sm:text-xl font-extrabold text-[#fb743E] tracking-tight">

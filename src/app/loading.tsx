@@ -11,7 +11,7 @@ export default function Loading() {
         {/* Logo ở giữa */}
         <div className="absolute h-10 w-10 drop-shadow-[0_0_22px_rgba(251,116,62,0.9)]">
           <Image
-            src="/movpey-logo.ico?v=2"
+            src="/favicon.ico"
             alt="MovPey"
             fill
             sizes="40px"
