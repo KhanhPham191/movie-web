@@ -88,7 +88,6 @@ async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T
 
     if (!res.ok) {
       const errorText = await res.text();
-      console.error("[API] Error response body:", errorText);
       
       // Parse error response if it's JSON
       let errorMessage = `API Error: ${res.status} ${res.statusText}`;
@@ -97,15 +96,49 @@ async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T
         if (errorJson.message) {
           errorMessage = errorJson.message;
         }
+        // Nếu response là JSON với status error, trả về luôn
+        if (errorJson.status === "error") {
+          return errorJson as T;
+        }
       } catch {
         // If not JSON, use the text as is
         errorMessage = errorText.slice(0, 200);
       }
       
-      // Create a custom error with status code
-      const error = new Error(errorMessage) as Error & { status?: number };
-      error.status = res.status;
-      throw error;
+      // Thay vì throw error, trả về error response object để caller có thể xử lý
+      // Chỉ log warning cho các lỗi client (4xx) trừ 404, log error cho server errors (5xx)
+      if (res.status >= 400 && res.status < 500) {
+        // Client errors (404, etc.) - không log 404 để tránh spam
+        if (res.status !== 404) {
+          console.warn(`[API] ${res.status} ${res.statusText}: ${errorMessage}`);
+        }
+      } else {
+        // Server errors (500, etc.) - log error
+        console.error(`[API] ${res.status} ${res.statusText}: ${errorMessage}`);
+      }
+      
+      // Trả về error response object thay vì throw
+      // Kiểm tra endpoint để trả về đúng type
+      if (endpoint.includes('/films/') || endpoint.includes('/danh-sach/')) {
+        // FilmListResponse
+        return {
+          status: "error",
+          message: errorMessage,
+          items: [],
+          paginate: {
+            current_page: 1,
+            total_page: 1,
+            total_items: 0,
+            items_per_page: 20,
+          },
+        } as T;
+      } else {
+        // FilmDetailResponse hoặc các response khác - chỉ trả về status và message
+        return {
+          status: "error",
+          message: errorMessage,
+        } as T;
+      }
     }
 
     const data = await res.json();
@@ -120,14 +153,31 @@ async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T
     
     return data;
   } catch (error) {
-    console.error("[API] Fetch error:", error);
-    if (error instanceof Error) {
-      console.error("[API] Error message:", error.message);
-      if ('status' in error) {
-        console.error("[API] Error status:", (error as any).status);
-      }
+    // Network errors hoặc các lỗi khác - trả về error response thay vì throw
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.warn("[API] Fetch error:", errorMessage);
+    
+    // Trả về error response object để caller có thể xử lý
+    if (endpoint.includes('/films/') || endpoint.includes('/danh-sach/')) {
+      // FilmListResponse
+      return {
+        status: "error",
+        message: errorMessage,
+        items: [],
+        paginate: {
+          current_page: 1,
+          total_page: 1,
+          total_items: 0,
+          items_per_page: 20,
+        },
+      } as T;
+    } else {
+      // FilmDetailResponse hoặc các response khác
+      return {
+        status: "error",
+        message: errorMessage,
+      } as T;
     }
-    throw error;
   }
 }
 
@@ -141,11 +191,35 @@ export async function getDailyUpdatedFilms(page: number = 1): Promise<FilmListRe
   return fetchAPI<FilmListResponse>(`/films/phim-moi-cap-nhat?page=${page}`);
 }
 
+// Valid category slugs
+const VALID_CATEGORY_SLUGS = [
+  "phim-le",
+  "phim-bo",
+  "phim-dang-chieu",
+  "tv-shows",
+] as const;
+
 // Get films by category (phim-le, phim-bo, phim-dang-chieu, etc.)
 export async function getFilmsByCategory(
   slug: string,
   page: number = 1
 ): Promise<FilmListResponse> {
+  // Validate slug trước khi gọi API để tránh lỗi không cần thiết
+  if (!VALID_CATEGORY_SLUGS.includes(slug as any)) {
+    console.warn(`[getFilmsByCategory] Invalid category slug: ${slug}`);
+    return {
+      status: "error",
+      message: `Category ${slug} doesn't exist!`,
+      items: [],
+      paginate: {
+        current_page: 1,
+        total_page: 1,
+        total_items: 0,
+        items_per_page: 20,
+      },
+    };
+  }
+  
   return fetchAPI<FilmListResponse>(`/films/danh-sach/${slug}?page=${page}`);
 }
 
@@ -257,7 +331,24 @@ export async function getMultiplePages(
 ): Promise<FilmItem[]> {
   try {
     // First, try to fetch page 1 to check total pages available
-    const firstPage = await fetchFn(1);
+    let firstPage: FilmListResponse;
+    try {
+      firstPage = await fetchFn(1);
+    } catch (fetchError) {
+      // Nếu fetch throw error (network error, etc.), return empty array
+      console.warn("[getMultiplePages] Fetch error on page 1:", fetchError instanceof Error ? fetchError.message : String(fetchError));
+      return [];
+    }
+    
+    // Kiểm tra nếu API trả về lỗi
+    if (firstPage.status === "error") {
+      // Chỉ log warning nếu không phải lỗi category không tồn tại (để tránh spam log)
+      if (!firstPage.message?.includes("doesn't exist")) {
+        console.warn("[getMultiplePages] API returned error status:", firstPage.message);
+      }
+      return [];
+    }
+    
     const totalPages = firstPage.paginate?.total_page || 1;
     
     // Only fetch pages that actually exist
@@ -273,13 +364,16 @@ export async function getMultiplePages(
     );
     
     const remainingResults = await Promise.all(remainingPromises);
-    const validResults = remainingResults.filter((r): r is FilmListResponse => r !== null);
+    const validResults = remainingResults.filter((r): r is FilmListResponse => 
+      r !== null && r.status !== "error"
+    );
     
     // Combine all results
     const allResults = [firstPage, ...validResults];
     return allResults.flatMap((r) => r.items || []);
   } catch (error) {
     // If even page 1 fails, return empty array
+    console.error("[getMultiplePages] Error:", error);
     return [];
   }
 }

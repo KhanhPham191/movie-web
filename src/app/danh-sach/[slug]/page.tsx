@@ -47,10 +47,35 @@ async function CategoryContent({
           ? await getNewlyUpdatedFilms(page)
           : await getDailyUpdatedFilms(page);
 
+      // Kiểm tra nếu API trả về lỗi
+      if (response.status === "error") {
+        console.error("[CategoryContent] API Error:", response.message);
+        return (
+          <div className="text-center py-20">
+            <p className="text-muted-foreground">
+              {response.message || "Không thể tải dữ liệu. Vui lòng thử lại sau."}
+            </p>
+          </div>
+        );
+      }
+
       movies = response.items || [];
       totalPages = response.paginate?.total_page || 1;
     } else {
       const response = await getFilmsByCategory(slug, page);
+      
+      // Kiểm tra nếu API trả về lỗi
+      if (response.status === "error") {
+        console.error("[CategoryContent] API Error:", response.message);
+        return (
+          <div className="text-center py-20">
+            <p className="text-muted-foreground">
+              {response.message || "Danh mục không tồn tại hoặc không thể tải dữ liệu."}
+            </p>
+          </div>
+        );
+      }
+
       movies = response.items || [];
       totalPages = response.paginate?.total_page || 1;
     }

@@ -118,7 +118,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
       <div className="absolute inset-0">
         {featuredMovies.map((m, index) => (
           <div
-            key={m.slug}
+            key={`${m.slug}-${m.id || index}`}
             className={`absolute inset-0 transition-opacity duration-700 ${
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}
