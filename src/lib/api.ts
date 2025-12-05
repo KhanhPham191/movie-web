@@ -46,6 +46,7 @@ export interface EpisodeItem {
 
 export interface FilmListResponse {
   status: string;
+  message?: string; // Optional message for error cases
   items: FilmItem[];
   paginate: {
     current_page: number;
@@ -57,7 +58,8 @@ export interface FilmListResponse {
 
 export interface FilmDetailResponse {
   status: string;
-  movie: FilmDetail;
+  message?: string; // Optional message for error cases
+  movie?: FilmDetail; // Optional movie for error cases
 }
 
 // API base (chỉ dùng NguonC, bỏ iPhim)
