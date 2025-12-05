@@ -18,7 +18,7 @@ import {
   VolumeX,
   Info,
 } from "lucide-react";
-import { getFilmDetail, getImageUrl, getFilmsByGenre, getFilmsByCategory, CATEGORIES } from "@/lib/api";
+import { getFilmDetail, getImageUrl, getFilmsByGenre, getFilmsByCategory, CATEGORIES, searchFilmsMerged, type FilmItem } from "@/lib/api";
 
 interface MoviePageProps {
   params: Promise<{ slug: string }>;
@@ -71,6 +71,71 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
         movie.episodes.find((s) => /thuyết\s*minh|thuyet\s*minh/i.test(s.server_name)) ||
         movie.episodes[0]
       : undefined;
+
+    // Tìm các phần khác của cùng series
+    const getBaseName = (name: string): string => {
+      // Bỏ các pattern như "phần 5", "part 5", "tap 5", "tập 5", "5", "II", "III", etc.
+      let baseName = name
+        // Xử lý "Phần 5", "phần 5", "Part 5", etc. (có thể ở đầu, giữa hoặc cuối)
+        .replace(/\s*(phần|part|tap|tập|episode|ep)\s*\d+/gi, "")
+        .replace(/\s*-\s*(phần|part|tap|tập|episode|ep)\s*\d+/gi, "")
+        .replace(/\s*:\s*(phần|part|tap|tập|episode|ep)\s*\d+/gi, "")
+        // Xử lý số ở cuối
+        .replace(/\s*\d+\s*$/, "")
+        .replace(/\s*-\s*\d+\s*$/, "")
+        .replace(/\s*:\s*\d+\s*$/, "")
+        // Xử lý số La Mã và số thường ở cuối
+        .replace(/\s*(II|III|IV|V|VI|VII|VIII|IX|X|2|3|4|5|6|7|8|9|10)+$/, "")
+        .replace(/\s*-\s*(II|III|IV|V|VI|VII|VIII|IX|X|2|3|4|5|6|7|8|9|10)+$/, "")
+        .trim();
+      
+      // Loại bỏ các ký tự đặc biệt ở cuối
+      baseName = baseName.replace(/[:\-–—]\s*$/, "").trim();
+      
+      return baseName;
+    };
+
+    const baseName = getBaseName(movie.name);
+    let relatedParts: FilmItem[] = [];
+    
+    console.log("[MovieDetail] Movie name:", movie.name);
+    console.log("[MovieDetail] Base name:", baseName);
+    console.log("[MovieDetail] Base name different:", baseName !== movie.name);
+    console.log("[MovieDetail] Base name length:", baseName.length);
+    
+    // Chỉ tìm nếu base name khác với tên gốc (có nghĩa là có phần số)
+    if (baseName !== movie.name && baseName.length > 3) {
+      try {
+        console.log("[MovieDetail] Searching for:", baseName);
+        const searchResults = await searchFilmsMerged(baseName);
+        console.log("[MovieDetail] Search results count:", searchResults.length);
+        
+        // Lọc các phim có cùng base name và loại bỏ phim hiện tại
+        // Sử dụng fuzzy matching để tìm các phim có base name tương tự
+        relatedParts = searchResults
+          .filter((m) => {
+            const mBaseName = getBaseName(m.name);
+            // So sánh không phân biệt hoa thường và loại bỏ khoảng trắng thừa
+            const normalizedBase = baseName.toLowerCase().trim();
+            const normalizedMBase = mBaseName.toLowerCase().trim();
+            const matches = normalizedMBase === normalizedBase && m.slug !== movie.slug;
+            if (matches) {
+              console.log("[MovieDetail] Found related part:", m.name, "->", mBaseName);
+            }
+            return matches;
+          })
+          .slice(0, 10); // Giới hạn 10 phần
+        
+        console.log("[MovieDetail] Related parts count:", relatedParts.length);
+        
+        // Sắp xếp theo tên để dễ tìm
+        relatedParts.sort((a, b) => a.name.localeCompare(b.name, "vi"));
+      } catch (error) {
+        console.error("[MovieDetail] Error fetching related parts:", error);
+      }
+    } else {
+      console.log("[MovieDetail] Skipping search - base name same or too short");
+    }
 
     return (
       <>
@@ -232,6 +297,60 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                 movieSlug={movie.slug}
                 defaultServer={serverParam}
               />
+            )}
+
+            {/* Related Parts Section */}
+            {relatedParts.length > 0 && (
+              <div className="space-y-2 sm:space-y-3 md:space-y-4 animate-slide-up">
+                {/* Header với tiêu đề phim */}
+                <div className="space-y-1.5 sm:space-y-2">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-white">
+                      <span className="text-[#fb743E]">Các phần khác</span>
+                    </h2>
+                    <span className="text-[10px] sm:text-xs text-gray-400">
+                      ({relatedParts.length} {relatedParts.length === 1 ? "phần" : "phần"})
+                    </span>
+                  </div>
+                  {/* Tiêu đề phim */}
+                  <p className="text-xs sm:text-sm md:text-base text-gray-300 line-clamp-2">
+                    {baseName}
+                  </p>
+                </div>
+                
+                {/* Grid responsive cho mobile, tablet và desktop */}
+                <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
+                  {relatedParts.map((part) => (
+                    <Link
+                      key={part.slug}
+                      href={`/phim/${part.slug}`}
+                      className="group relative aspect-[2/3] rounded-md sm:rounded-lg md:rounded-xl overflow-hidden bg-[#151515] border border-white/10 hover:border-[#fb743E]/50 transition-all duration-300 hover:scale-[1.02] sm:hover:scale-105 hover:shadow-[0_8px_30px_rgba(251,116,62,0.3)]"
+                    >
+                      <Image
+                        src={getImageUrl(part.thumb_url || part.poster_url)}
+                        alt={part.name}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-110"
+                        sizes="(max-width: 475px) 50vw, (max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 16vw"
+                      />
+                      {/* Gradient overlay - luôn hiển thị một phần trên mobile */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300" />
+                      
+                      {/* Title overlay - luôn hiển thị trên mobile, hover trên desktop */}
+                      <div className="absolute bottom-0 left-0 right-0 p-1.5 sm:p-2 md:p-3 transform translate-y-0 sm:translate-y-full sm:group-hover:translate-y-0 transition-transform duration-300">
+                        <h3 className="text-[10px] xs:text-xs sm:text-sm font-semibold text-white line-clamp-2 leading-tight">
+                          {part.name}
+                        </h3>
+                        {part.current_episode && (
+                          <p className="text-[9px] xs:text-[10px] sm:text-xs text-gray-300 mt-0.5 sm:mt-1 line-clamp-1">
+                            {part.current_episode}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
             )}
 
             {/* About Section */}

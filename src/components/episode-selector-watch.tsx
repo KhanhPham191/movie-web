@@ -63,12 +63,15 @@ export function EpisodeSelectorWatch({
   const currentServer = filteredServers[selectedServerIndex];
   const currentEpisodes = currentServer?.items || [];
 
-  // Map server_name sang tên hiển thị
+  // Map server_name sang tên hiển thị (bỏ #1, #2, etc.)
   const getServerDisplayName = (serverName: string) => {
     const name = serverName.toLowerCase();
+    // Bỏ các pattern như "#1", "#2", " #1", " #2", etc.
+    let cleanName = serverName.replace(/\s*#\d+\s*/g, "").trim();
+    
     if (name.includes("vietsub")) return "Vietsub";
     if (name.includes("thuyết") || name.includes("thuyet")) return "Thuyết minh";
-    return serverName;
+    return cleanName;
   };
 
   // Tạo tham số server từ server_name

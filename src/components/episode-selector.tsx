@@ -76,12 +76,15 @@ export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSe
     return "";
   };
 
-  // Map server_name sang tên hiển thị
+  // Map server_name sang tên hiển thị (bỏ #1, #2, etc.)
   const getServerDisplayName = (serverName: string) => {
     const name = serverName.toLowerCase();
+    // Bỏ các pattern như "#1", "#2", " #1", " #2", etc.
+    let cleanName = serverName.replace(/\s*#\d+\s*/g, "").trim();
+    
     if (name.includes("vietsub")) return "Vietsub";
     if (name.includes("thuyết") || name.includes("thuyet")) return "Thuyết minh";
-    return serverName;
+    return cleanName;
   };
 
   if (filteredServers.length === 0) {
@@ -169,7 +172,7 @@ export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSe
           `}</style>
           <div className="flex items-center justify-between text-[10px] sm:text-xs text-[#fb743E]/70 mb-1.5 sm:mb-2">
             <span className="font-semibold uppercase tracking-wider truncate mr-2">
-              {currentServer.server_name}
+              {getServerDisplayName(currentServer.server_name)}
             </span>
             <span className="text-[#fb743E]/50 whitespace-nowrap">{currentEpisodes.length === 1 ? "FULL" : `${currentEpisodes.length} TẬP`}</span>
           </div>
