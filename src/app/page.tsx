@@ -1,186 +1,33 @@
 import { Suspense } from "react";
 import { Header } from "@/components/header";
-import { HeroSection } from "@/components/hero-section";
 import { CategoryPills } from "@/components/category-pills";
-import { MovieSection } from "@/components/movie-section";
 import { Footer } from "@/components/footer";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
-import {
-  getNewlyUpdatedFilmsMultiple,
-  getFilmsByCategoryMultiple,
-  getFilmsByGenreMultiple,
-  getFilmsByCountryMultiple,
-  getDailyUpdatedFilms,
-  CATEGORIES,
-  type FilmItem,
-} from "@/lib/api";
-import { filterPhimLeByCurrentYear, filterChinaNonAnimation } from "@/lib/filters";
+import { HeroSectionWrapper } from "@/components/home-sections/hero-section-wrapper";
+import { Top10PhimLe } from "@/components/home-sections/top10-phim-le";
+import { DailyUpdated } from "@/components/home-sections/daily-updated";
+import { Top10PhimBo } from "@/components/home-sections/top10-phim-bo";
+import { HanQuocSection } from "@/components/home-sections/han-quoc";
+import { TrungQuocSection } from "@/components/home-sections/trung-quoc";
+import { AuMySection } from "@/components/home-sections/au-my";
+import { ThaiLanSection } from "@/components/home-sections/thai-lan";
+import { HongKongSection } from "@/components/home-sections/hong-kong";
+import { AnimeSection } from "@/components/home-sections/anime";
 
-// Helper: sắp xếp phim theo thời gian cập nhật mới nhất (field modified)
-function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
-  return [...(movies || [])].sort((a, b) => {
-    const ta = a?.modified ? new Date(a.modified).getTime() : 0;
-    const tb = b?.modified ? new Date(b.modified).getTime() : 0;
-    return tb - ta; // mới trước, cũ sau
-  });
-}
-
-// ISR: Revalidate every 30 seconds for real-time updates
-export const revalidate = 30;
-
-// Fetch data
-async function getHomePageData() {
-  try {
-    const [
-      newlyUpdated,
-      dailyUpdatedRes,
-      phimLeRaw,
-      phimBoTopRaw,
-      phimBoTinhCam,
-      hanQuoc,
-      trungQuoc,
-      nhatBan,
-      hongKong,
-      auMy,
-      hoatHinh,
-      anime,
-      thaiLan,
-    ] = await Promise.all([
-      getNewlyUpdatedFilmsMultiple(3),
-      getDailyUpdatedFilms(1),
-      getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 10), // Tăng lên 10 pages để có đủ phim sau khi filter theo năm
-      getFilmsByCategoryMultiple(CATEGORIES.PHIM_BO, 3),
-      // Phim bộ đang hot: lấy theo thể loại "tình cảm"
-      getFilmsByGenreMultiple("tinh-cam", 3),
-      getFilmsByCountryMultiple("han-quoc", 2),
-      // Lấy 3 trang cho Trung Quốc để đủ dữ liệu nhưng vẫn nhanh
-      getFilmsByCountryMultiple("trung-quoc", 3),
-      getFilmsByCountryMultiple("nhat-ban", 2),
-      getFilmsByCountryMultiple("hong-kong", 2),
-      getFilmsByCountryMultiple("au-my", 5), // Tăng lên 5 pages để đảm bảo có đủ phim bộ US-UK sau khi filter
-      getFilmsByGenreMultiple("hoat-hinh", 2),
-      getFilmsByGenreMultiple("anime", 2),
-      getFilmsByCountryMultiple("thai-lan", 2),
-    ]);
-
-    // "Cập nhật hôm nay" lấy thẳng từ API, không còn loại trùng với "phim mới cập nhật"
-    const dailyUpdated = dailyUpdatedRes.items || [];
-
-    // Top 10 phim lẻ:
-    // - Lọc chỉ lấy phim có năm phát hành = năm hiện tại (UTC+7)
-    // - Kiểm tra năm phát hành từ category detail (mục số 3)
-    // - Sắp xếp theo thời gian cập nhật mới nhất (field modified)
-    // - Lấy 10 phim đầu
-    // Lưu ý: Sắp xếp trước khi filter để ưu tiên phim mới cập nhật nhất
-    const phimLeSorted = sortByModifiedDesc(phimLeRaw || []);
-    const phimLeFiltered = await filterPhimLeByCurrentYear(phimLeSorted, 10);
-    const phimLe = phimLeFiltered.slice(0, 10);
-
-    // Lọc lại chỉ giữ phim bộ (nhiều tập) cho section "Phim bộ tình cảm"
-    const phimBo = (phimBoTinhCam || []).filter(
-      (movie) => movie.total_episodes && movie.total_episodes > 1
-    );
-
-    // Danh mục Trung Quốc: lọc bỏ hoạt hình trên home, nhưng "Xem tất cả" vẫn dẫn tới API quốc gia
-    const trungQuocFiltered = await filterChinaNonAnimation(trungQuoc);
-    const desiredChinaCount = 10;
-    const trungQuocSeen = new Set((trungQuocFiltered || []).map((m) => m.slug));
-    const trungQuocDisplay: FilmItem[] = sortByModifiedDesc(trungQuocFiltered || []).slice(0, desiredChinaCount);
-
-    // Nếu sau khi lọc còn thiếu, bù thêm từ danh sách gốc (không lọc) để đủ số lượng hiển thị
-    if (trungQuocDisplay.length < desiredChinaCount) {
-      for (const movie of sortByModifiedDesc(trungQuoc || [])) {
-        if (!movie?.slug) continue;
-        if (trungQuocSeen.has(movie.slug)) continue;
-        trungQuocDisplay.push(movie);
-        trungQuocSeen.add(movie.slug);
-        if (trungQuocDisplay.length >= desiredChinaCount) break;
-      }
-    }
-
-    // Top 10 phim bộ: lấy theo combo 3 Âu Mỹ, 3 Hàn, 2 Trung, 2 Thái (ưu tiên phim bộ, mới cập nhật nhất)
-    const top10Series: FilmItem[] = [];
-
-    function pushSeries(source: FilmItem[] | undefined, count: number) {
-      if (!source || count <= 0) return;
-      const sorted = sortByModifiedDesc(source);
-      for (const movie of sorted) {
-        if (!movie?.slug) continue;
-        if ((movie.total_episodes || 0) < 2) continue; // chỉ lấy phim bộ
-        top10Series.push(movie);
-        if (top10Series.length >= 10) return;
-        if (--count <= 0) return;
-      }
-    }
-
-    // 3 Âu Mỹ, 3 Hàn, 2 Trung, 2 Thái
-    pushSeries(auMy, 3);
-    pushSeries(hanQuoc, 3);
-    pushSeries(trungQuocDisplay, 2);
-    pushSeries(thaiLan, 2);
-
-    // Nếu vì thiếu dữ liệu mà chưa đủ 10, bổ sung từ tất cả nguồn series còn lại
-    if (top10Series.length < 10) {
-      const fallbackPools: FilmItem[][] = [
-        auMy || [],
-        hanQuoc || [],
-        trungQuocDisplay || [],
-        thaiLan || [],
-      ];
-      for (const pool of fallbackPools) {
-        for (const movie of sortByModifiedDesc(pool)) {
-          if (!movie?.slug) continue;
-          if ((movie.total_episodes || 0) < 2) continue;
-          top10Series.push(movie);
-          if (top10Series.length >= 10) break;
-        }
-        if (top10Series.length >= 10) break;
-      }
-    }
-
-    return {
-      newlyUpdated,
-      dailyUpdated,
-      phimLe,
-      phimBo,
-      hanQuoc,
-      trungQuoc: trungQuocDisplay,
-      nhatBan,
-      hongKong,
-      auMy,
-      hoatHinh,
-      anime,
-      thaiLan,
-      top10Series,
-    };
-  } catch (error) {
-    console.error("Error fetching home page data:", error);
-    return {
-      newlyUpdated: [],
-      dailyUpdated: [],
-      phimLe: [],
-      phimBo: [],
-      hanQuoc: [],
-      trungQuoc: [],
-      nhatBan: [],
-      hongKong: [],
-      auMy: [],
-      hoatHinh: [],
-      anime: [],
-    };
-  }
-}
+// ISR: Revalidate every 5 minutes để giảm số lần gọi API
+export const revalidate = 300;
 
 export default async function Home() {
-  const data = await getHomePageData();
 
   return (
     <main className="min-h-screen bg-[#05050a]">
       {/* Header */}
       <Header />
 
-      {/* Hero */}
-      {data.phimLe.length > 0 && <HeroSection movies={data.phimLe} />}
+      {/* Hero - Priority load */}
+      <Suspense fallback={<div className="h-[60vh] bg-[#05050a]" />}>
+        <HeroSectionWrapper />
+      </Suspense>
 
       {/* Content Rows */}
       <div className="relative z-20 -mt-4 sm:-mt-12 md:-mt-18 lg:-mt-24 pb-16">
@@ -197,109 +44,66 @@ export default async function Home() {
             <CategoryPills />
           </div>
 
-          {/* New Releases */}
+          {/* Top 10 phim lẻ - Priority section */}
           <div className="mt-2 sm:mt-4 md:mt-6 lg:mt-8 animate-slide-up">
             <Suspense fallback={<MovieSectionSkeleton />}>
-              <MovieSection
-                title="Top 10 phim lẻ"
-                movies={data.phimLe}
-                variant="newRelease"
-              />
+              <Top10PhimLe />
             </Suspense>
           </div>
 
-          {/* Daily Updated */}
+          {/* Daily Updated - Priority section */}
           <div className="animate-slide-up">
             <Suspense fallback={<MovieSectionSkeleton />}>
-              <MovieSection
-                title="Cập nhật hôm nay"
-                movies={data.dailyUpdated}
-                href="/danh-sach/phim-cap-nhat-hang-ngay"
-                variant="portrait"
-              />
+              <DailyUpdated />
             </Suspense>
           </div>
 
-          {/* Top 10 phim bộ (2 Trung, 3 Hàn, 2 Thái, 3 Âu Mỹ - bỏ hoạt hình) */}
+          {/* Top 10 phim bộ */}
           <div className="animate-slide-up">
             <Suspense fallback={<MovieSectionSkeleton />}>
-              <MovieSection
-                title="Top 10 phim bộ"
-                movies={data.top10Series || []}
-                variant="newRelease"
-              />
+              <Top10PhimBo />
             </Suspense>
           </div>
 
           {/* Korean Dramas */}
           <div className="animate-slide-up">
             <Suspense fallback={<MovieSectionSkeleton />}>
-              <MovieSection
-                title="Phim Hàn Quốc"
-                movies={data.hanQuoc}
-                href="/quoc-gia/han-quoc"
-                variant="series"
-              />
+              <HanQuocSection />
             </Suspense>
           </div>
 
-          {/* Chinese Dramas - bỏ phim hoạt hình (lọc theo detail category) */}
+          {/* Chinese Dramas */}
           <div className="animate-slide-up">
             <Suspense fallback={<MovieSectionSkeleton />}>
-              <MovieSection
-                title="Phim Trung Quốc"
-                movies={data.trungQuoc}
-                href="/quoc-gia/trung-quoc"
-                variant="portrait"
-              />
+              <TrungQuocSection />
             </Suspense>
           </div>
 
-          {/* US-UK Movies - đưa lên trên, dùng UI dạng series */}
+          {/* US-UK Movies */}
           <div className="animate-slide-up">
             <Suspense fallback={<MovieSectionSkeleton />}>
-              <MovieSection
-                title="Phim Âu Mỹ (US-UK)"
-                movies={data.auMy}
-                href="/quoc-gia/au-my"
-                variant="cinema"
-              />
+              <AuMySection />
             </Suspense>
           </div>
 
           {/* Thai Movies */}
           <div className="animate-slide-up">
             <Suspense fallback={<MovieSectionSkeleton />}>
-              <MovieSection
-                title="Phim Thái Lan"
-                movies={data.thaiLan || []}
-                href="/quoc-gia/thai-lan"
-                variant="portrait"
-              />
+              <ThaiLanSection />
             </Suspense>
           </div>
 
           {/* Hong Kong Movies */}
           <div className="animate-slide-up">
             <Suspense fallback={<MovieSectionSkeleton />}>
-              <MovieSection
-                title="Phim Hồng Kông"
-                movies={data.hongKong}
-                href="/quoc-gia/hong-kong"
-                variant="portrait"
-              />
+              <HongKongSection />
             </Suspense>
           </div>
 
           {/* Anime */}
           <div className="animate-slide-up">
             <Suspense fallback={<MovieSectionSkeleton />}>
-              <MovieSection
-                title="Phim Anime"
-                movies={data.anime.length > 0 ? data.anime : data.hoatHinh}
-                href={data.anime.length > 0 ? "/the-loai/anime" : "/the-loai/hoat-hinh"}
-                variant="portrait"
-              />
+              <AnimeSection />
             </Suspense>
           </div>
         </div>

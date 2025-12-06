@@ -78,10 +78,11 @@ export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSe
 
   // Map server_name sang tên hiển thị (bỏ #1, #2, etc.)
   const getServerDisplayName = (serverName: string) => {
-    const name = serverName.toLowerCase();
-    // Bỏ các pattern như "#1", "#2", " #1", " #2", etc.
-    let cleanName = serverName.replace(/\s*#\d+\s*/g, "").trim();
+    // Bỏ các pattern như "#1", "#2", " #1", " #2", etc. trước khi xử lý
+    const cleanName = serverName.replace(/\s*#\d+\s*/g, "").trim();
+    const name = cleanName.toLowerCase();
     
+    // Kiểm tra loại server sau khi đã clean
     if (name.includes("vietsub")) return "Vietsub";
     if (name.includes("thuyết") || name.includes("thuyet")) return "Thuyết minh";
     return cleanName;

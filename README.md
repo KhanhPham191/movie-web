@@ -14,6 +14,8 @@ Dự án web phim được xây dựng với công nghệ hiện đại, giao di
 - 📱 **Responsive** - Tương thích với mọi kích thước màn hình
 - ⚡ **Hiệu năng cao** - Được tối ưu với Next.js 16 và Turbopack
 - 🎭 **Animation đẹp** - Hiệu ứng hover và chuyển động mượt mà
+- 🔐 **Authentication** - Đăng nhập/đăng ký với Supabase Auth
+- 👤 **Quản lý tài khoản** - Quản lý hồ sơ và cài đặt người dùng
 
 ## 🚀 Công nghệ sử dụng
 
@@ -22,6 +24,7 @@ Dự án web phim được xây dựng với công nghệ hiện đại, giao di
 - **UI Components:** shadcn/ui
 - **Icons:** Lucide React
 - **Theme:** next-themes
+- **Authentication:** Supabase Auth
 - **Package Manager:** pnpm
 - **Language:** TypeScript
 
@@ -35,11 +38,42 @@ cd movie-web
 # Cài đặt dependencies
 pnpm install
 
+# Cấu hình Supabase (xem bên dưới)
+# Tạo file .env.local với các biến môi trường
+
 # Chạy development server
 pnpm dev
 ```
 
 Mở [http://localhost:3000](http://localhost:3000) trong trình duyệt.
+
+## 🔐 Cấu hình Supabase Authentication
+
+Dự án sử dụng Supabase để quản lý authentication. Để thiết lập:
+
+1. **Tạo tài khoản Supabase:**
+   - Truy cập [https://supabase.com](https://supabase.com)
+   - Đăng ký/đăng nhập và tạo project mới
+
+2. **Lấy thông tin API:**
+   - Vào Project Settings > API
+   - Copy `Project URL` và `anon public` key
+
+3. **Tạo file `.env.local`:**
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. **Cấu hình Email Authentication trong Supabase:**
+   - Vào Authentication > Providers
+   - Bật Email provider
+   - Cấu hình email templates (tùy chọn)
+
+5. **Cấu hình Redirect URLs:**
+   - Vào Authentication > URL Configuration
+   - Thêm `http://localhost:3000` vào Site URL
+   - Thêm `http://localhost:3000/**` vào Redirect URLs (cho production thêm domain của bạn)
 
 ## 📁 Cấu trúc thư mục
 
@@ -47,11 +81,13 @@ Mở [http://localhost:3000](http://localhost:3000) trong trình duyệt.
 src/
 ├── app/
 │   ├── globals.css      # Global styles & theme variables
-│   ├── layout.tsx       # Root layout với ThemeProvider
-│   └── page.tsx         # Trang chủ
+│   ├── layout.tsx       # Root layout với ThemeProvider & AuthProvider
+│   ├── page.tsx         # Trang chủ
+│   ├── dang-nhap/       # Trang đăng nhập
+│   └── dang-ky/         # Trang đăng ký
 ├── components/
 │   ├── ui/              # shadcn/ui components
-│   ├── header.tsx       # Navigation header
+│   ├── header.tsx       # Navigation header với auth
 │   ├── footer.tsx       # Footer
 │   ├── hero-section.tsx # Hero section với phim nổi bật
 │   ├── movie-card.tsx   # Card hiển thị phim
@@ -59,8 +95,11 @@ src/
 │   ├── genre-section.tsx # Bộ lọc thể loại
 │   ├── theme-provider.tsx # Provider cho dark mode
 │   └── theme-toggle.tsx  # Nút chuyển đổi theme
+├── contexts/
+│   └── auth-context.tsx # Auth context với Supabase
 └── lib/
-    ├── movies.ts        # Dữ liệu phim mẫu
+    ├── supabase/        # Supabase client & server config
+    ├── api.ts           # API calls cho phim
     └── utils.ts         # Utility functions
 ```
 

@@ -4,9 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Search, Bell, ChevronDown } from "lucide-react";
+import { Search, Bell, ChevronDown, LogIn } from "lucide-react";
 import { getImageUrl, type FilmItem } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +39,7 @@ export function Header() {
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
   const [hasNewNotifications, setHasNewNotifications] = useState(false);
   const router = useRouter();
+  const { user, signOut, isAuthenticated } = useAuth();
 
   useEffect(() => {
     setIsMounted(true);
@@ -607,44 +609,80 @@ export function Header() {
             </DropdownMenu>
           )}
 
-          {/* Profile Dropdown */}
+          {/* Profile Dropdown or Login Button */}
           {isMounted && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1 sm:gap-2 group shrink-0">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-[linear-gradient(135deg,#fb743E,#ff9d6b)] flex items-center justify-center">
-                    <span className="text-xs sm:text-sm font-bold">P</span>
-                  </div>
-                  <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-white group-hover:rotate-180 transition-transform hidden md:block" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-[#0f0f0f]/95 backdrop-blur border-gray-800">
-                <DropdownMenuItem asChild>
-                  <Link href="/tai-khoan" className="text-gray-200 hover:text-white cursor-pointer">
-                    Quản lý hồ sơ
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/tai-khoan/cai-dat" className="text-gray-200 hover:text-white cursor-pointer">
-                    Tài khoản
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/tro-giup" className="text-gray-200 hover:text-white cursor-pointer">
-                    Trung tâm trợ giúp
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="text-gray-200 hover:text-white cursor-pointer border-t border-gray-700 mt-2 pt-2"
-                  onClick={() => {
-                    // TODO: Implement logout functionality
-                    console.log("Đăng xuất");
-                  }}
-                >
-                  Đăng xuất
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <>
+              {isAuthenticated ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-1 sm:gap-2 group shrink-0">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-[linear-gradient(135deg,#fb743E,#ff9d6b)] flex items-center justify-center">
+                        <span className="text-xs sm:text-sm font-bold">
+                          {user?.user_metadata?.name?.charAt(0).toUpperCase() || 
+                           user?.email?.charAt(0).toUpperCase() || 
+                           "P"}
+                        </span>
+                      </div>
+                      <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-white group-hover:rotate-180 transition-transform hidden md:block" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 bg-[#0f0f0f]/95 backdrop-blur border-gray-800">
+                    <div className="px-2 py-1.5 border-b border-gray-700">
+                      <p className="text-xs text-gray-400">Đăng nhập với</p>
+                      <p className="text-sm text-white truncate">{user?.email}</p>
+                    </div>
+                    <DropdownMenuItem asChild>
+                      <Link href="/tai-khoan" className="text-gray-200 hover:text-white cursor-pointer">
+                        Quản lý hồ sơ
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/tai-khoan/cai-dat" className="text-gray-200 hover:text-white cursor-pointer">
+                        Tài khoản
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/tro-giup" className="text-gray-200 hover:text-white cursor-pointer">
+                        Trung tâm trợ giúp
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="text-gray-200 hover:text-white cursor-pointer border-t border-gray-700 mt-2 pt-2"
+                      onClick={async () => {
+                        await signOut();
+                        router.push("/");
+                        router.refresh();
+                      }}
+                    >
+                      Đăng xuất
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <>
+                  <Button 
+                    variant="outline" 
+                    className="hidden sm:flex items-center gap-2 bg-white/5 border-white/20 text-white hover:bg-white/10"
+                    asChild
+                  >
+                    <Link href="/dang-nhap">
+                      <LogIn className="w-4 h-4" />
+                      Đăng nhập
+                    </Link>
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="sm:hidden"
+                    asChild
+                  >
+                    <Link href="/dang-nhap">
+                      <LogIn className="w-5 h-5" />
+                    </Link>
+                  </Button>
+                </>
+              )}
+            </>
           )}
         </div>
       </div>

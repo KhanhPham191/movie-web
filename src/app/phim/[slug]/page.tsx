@@ -6,6 +6,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { MovieSection } from "@/components/movie-section";
 import { EpisodeSelector } from "@/components/episode-selector";
+import { MovieActionsWrapper } from "@/components/movie-actions-wrapper";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -242,29 +243,12 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                     </Button>
                   </Link>
                 )}
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="hidden sm:inline-flex bg-black/60 hover:bg-black/80 text-white font-semibold text-xs sm:text-sm md:text-base px-3 sm:px-5 md:px-6 h-9 sm:h-11 md:h-12 rounded-full border border-white/20"
-                >
-                  <Plus className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2" />
-                  Danh sách
-                </Button>
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="hidden sm:inline-flex bg-black/60 hover:bg-black/80 text-white font-semibold text-xs sm:text-sm md:text-base px-3 sm:px-5 md:px-6 h-9 sm:h-11 md:h-12 rounded-full border border-white/20"
-                >
-                  <ThumbsUp className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2" />
-                  Thích
-                </Button>
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="bg-black/60 hover:bg-black/80 text-white font-semibold text-sm md:text-base px-4 md:px-5 h-9 sm:h-11 md:h-12 rounded-full border border-white/25"
-                >
-                  <ChevronDown className="w-5 h-5 md:w-6 md:h-6" />
-                </Button>
+                {/* Movie Actions - Yêu thích, Đánh giá, Thêm vào danh sách */}
+                <div className="hidden sm:flex items-center gap-2">
+                  <Suspense fallback={null}>
+                    <MovieActionsWrapper movie={movie} />
+                  </Suspense>
+                </div>
               </div>
             </div>
           </div>
