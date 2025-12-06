@@ -73,7 +73,24 @@ Dự án sử dụng Supabase để quản lý authentication. Để thiết l�
 5. **Cấu hình Redirect URLs:**
    - Vào Authentication > URL Configuration
    - Thêm `http://localhost:3000` vào Site URL
-   - Thêm `http://localhost:3000/**` vào Redirect URLs (cho production thêm domain của bạn)
+   - Thêm `http://localhost:3000/**` vào Redirect URLs
+   - **Cho production:** Thêm domain production của bạn (ví dụ: `https://your-domain.vercel.app/auth/callback`)
+
+## 🚀 Deploy lên Production
+
+**⚠️ QUAN TRỌNG:** Trên production, bạn **PHẢI** set Environment Variables trong hosting platform:
+
+### Vercel:
+1. Vào **Settings** → **Environment Variables**
+2. Thêm `NEXT_PUBLIC_SUPABASE_URL` và `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+3. **Redeploy** project
+
+### Netlify:
+1. Vào **Site configuration** → **Environment variables**
+2. Thêm `NEXT_PUBLIC_SUPABASE_URL` và `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+3. **Redeploy** site
+
+**Xem chi tiết trong file [DEPLOYMENT.md](./DEPLOYMENT.md)**
 
 ## 📁 Cấu trúc thư mục
 
