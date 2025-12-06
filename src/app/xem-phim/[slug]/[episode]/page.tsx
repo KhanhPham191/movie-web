@@ -12,6 +12,7 @@ import { getFilmDetail, getImageUrl, searchFilmsMerged, type FilmItem } from "@/
 import { IframePlayer } from "@/components/player/iframe-player";
 import { EpisodeSelectorWatch } from "@/components/episode-selector-watch";
 import { MovieInfoPanel } from "@/components/movie-info-panel";
+import { WatchProgressTracker } from "@/components/watch-progress-tracker";
 
 interface WatchPageProps {
   params: Promise<{ slug: string; episode: string }>;
@@ -334,6 +335,13 @@ async function VideoPlayer({
 
     return (
       <div className="space-y-10 animate-fade-in">
+        {/* Watch Progress Tracker - Lưu tiến độ xem */}
+        <WatchProgressTracker
+          movie={movie}
+          episodeSlug={currentEpisode.slug}
+          episodeName={currentEpisode.name}
+        />
+        
         <div className="relative overflow-hidden rounded-3xl bg-[#050505] glass border border-[#fb743E]/10 shadow-[0_24px_80px_rgba(0,0,0,0.85)] animate-scale-in">
           <div className="absolute inset-0">
             <Image

@@ -4,6 +4,7 @@ import { CategoryPills } from "@/components/category-pills";
 import { Footer } from "@/components/footer";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import { HeroSectionWrapper } from "@/components/home-sections/hero-section-wrapper";
+import { CurrentlyWatchingSection } from "@/components/home-sections/currently-watching";
 import { Top10PhimLe } from "@/components/home-sections/top10-phim-le";
 import { DailyUpdated } from "@/components/home-sections/daily-updated";
 import { Top10PhimBo } from "@/components/home-sections/top10-phim-bo";
@@ -42,6 +43,11 @@ export default async function Home() {
           {/* Category Pills - Sticky below header */}
           <div className="relative pt-2 sm:pt-0 mb-3 sm:mb-1 md:mb-0 px-3 sm:px-4 md:px-8 lg:px-12">
             <CategoryPills />
+          </div>
+
+          {/* Currently Watching - Hiển thị đầu tiên, nổi bật */}
+          <div className="animate-slide-up -mt-2 sm:-mt-4">
+            <CurrentlyWatchingSection />
           </div>
 
           {/* Top 10 phim lẻ - Priority section */}

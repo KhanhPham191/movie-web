@@ -70,7 +70,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
   body {
     @apply bg-[#0f0f0f] text-white;
@@ -172,8 +172,29 @@
 
 /* Focus styles */
 :focus-visible {
-  outline: 2px solid white;
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
+}
+
+/* Remove white borders from dropdown menu items */
+[data-slot="dropdown-menu-item"]:focus,
+[data-slot="dropdown-menu-item"]:focus-visible,
+[data-slot="dropdown-menu-item"]:active {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove white borders from dropdown menu content */
+[data-slot="dropdown-menu-content"] {
+  border-color: var(--border) !important;
+}
+
+/* Remove white borders from all interactive elements in dropdowns */
+[data-slot="dropdown-menu-content"] *:focus,
+[data-slot="dropdown-menu-content"] *:focus-visible {
+  outline: none !important;
+  border: none !important;
 }
 
 /* Smooth scroll */
