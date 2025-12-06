@@ -22,26 +22,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const supabase = createClient();
 
   useEffect(() => {
-    // Lấy user hiện tại
+    // Lấy user hiện tại - luôn cố gắng, để Supabase tự trả về lỗi nếu chưa cấu hình
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      setIsLoading(false);
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        // Nếu lỗi do Supabase chưa cấu hình, chỉ log warning
+        if (error && (error.message?.includes('Invalid API key') || 
+                      error.message?.includes('fetch') ||
+                      error.message?.includes('network'))) {
+          console.warn('[Auth] Supabase chưa được cấu hình đúng. Vui lòng kiểm tra .env.local');
+          setIsLoading(false);
+          return;
+        }
+        
+        setUser(user);
+        setIsLoading(false);
+      } catch (error: any) {
+        // Nếu lỗi do Supabase chưa cấu hình, chỉ log warning
+        if (error?.message?.includes('Invalid API key') || 
+            error?.message?.includes('fetch') ||
+            error?.message?.includes('network')) {
+          console.warn('[Auth] Supabase chưa được cấu hình đúng. Vui lòng kiểm tra .env.local');
+        } else {
+          console.error('[Auth] Error getting user:', error);
+        }
+        setIsLoading(false);
+      }
     };
 
     getUser();
 
     // Lắng nghe thay đổi auth state
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
+    try {
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+      });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+      return () => {
+        subscription.unsubscribe();
+      };
+    } catch (error: any) {
+      // Nếu lỗi do Supabase chưa cấu hình, chỉ log warning
+      if (error?.message?.includes('Invalid API key') || 
+          error?.message?.includes('fetch') ||
+          error?.message?.includes('network')) {
+        console.warn('[Auth] Supabase chưa được cấu hình đúng. Vui lòng kiểm tra .env.local');
+      } else {
+        console.error('[Auth] Error setting up auth state listener:', error);
+      }
+      setIsLoading(false);
+      return () => {};
+    }
   }, [supabase.auth]);
 
   const signIn = async (email: string, password: string) => {

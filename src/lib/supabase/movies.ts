@@ -379,31 +379,53 @@ export async function addToCurrentlyWatching(
   watchTime: number = 0,
   totalDuration: number = 0
 ): Promise<{ error: any }> {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  if (!user) {
-    return { error: { message: "Bạn cần đăng nhập" } };
+  try {
+    const supabase = createClient();
+    
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError) {
+      // Nếu lỗi do Supabase chưa cấu hình, trả về null error (không lưu được nhưng không crash)
+      if (userError.message?.includes('Invalid API key') || 
+          userError.message?.includes('fetch') ||
+          userError.message?.includes('network')) {
+        return { error: null };
+      }
+    }
+    
+    if (!user) {
+      return { error: { message: "Bạn cần đăng nhập" } };
+    }
+
+    const { error } = await supabase
+      .from("currently_watching")
+      .upsert({
+        user_id: user.id,
+        movie_slug: movie.slug,
+        movie_name: movie.name,
+        movie_thumb: movie.thumb_url,
+        movie_poster: movie.poster_url,
+        episode_slug: episodeSlug,
+        episode_name: episodeName,
+        watch_time: watchTime,
+        total_duration: totalDuration,
+        last_watched_at: new Date().toISOString(),
+      }, {
+        onConflict: "user_id,movie_slug"
+      });
+
+    // Nếu lỗi do table chưa tồn tại hoặc Supabase chưa cấu hình, trả về null error
+    if (error && (error.message?.includes('relation') || 
+                  error.message?.includes('does not exist') ||
+                  error.message?.includes('Invalid API key'))) {
+      return { error: null };
+    }
+
+    return { error };
+  } catch (error: any) {
+    console.error("Error adding to currently watching:", error);
+    return { error: null }; // Không throw error
   }
-
-  const { error } = await supabase
-    .from("currently_watching")
-    .upsert({
-      user_id: user.id,
-      movie_slug: movie.slug,
-      movie_name: movie.name,
-      movie_thumb: movie.thumb_url,
-      movie_poster: movie.poster_url,
-      episode_slug: episodeSlug,
-      episode_name: episodeName,
-      watch_time: watchTime,
-      total_duration: totalDuration,
-      last_watched_at: new Date().toISOString(),
-    }, {
-      onConflict: "user_id,movie_slug"
-    });
-
-  return { error };
 }
 
 export async function updateCurrentlyWatching(
@@ -412,60 +434,123 @@ export async function updateCurrentlyWatching(
   totalDuration: number,
   episodeSlug?: string
 ): Promise<{ error: any }> {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  if (!user) {
-    return { error: { message: "Bạn cần đăng nhập" } };
+  try {
+    const supabase = createClient();
+    
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError) {
+      if (userError.message?.includes('Invalid API key') || 
+          userError.message?.includes('fetch') ||
+          userError.message?.includes('network')) {
+        return { error: null };
+      }
+    }
+    
+    if (!user) {
+      return { error: { message: "Bạn cần đăng nhập" } };
+    }
+
+    const { error } = await supabase
+      .from("currently_watching")
+      .update({
+        watch_time: watchTime,
+        total_duration: totalDuration,
+        episode_slug: episodeSlug,
+        last_watched_at: new Date().toISOString(),
+      })
+      .eq("user_id", user.id)
+      .eq("movie_slug", movieSlug);
+
+    if (error && (error.message?.includes('relation') || 
+                  error.message?.includes('does not exist') ||
+                  error.message?.includes('Invalid API key'))) {
+      return { error: null };
+    }
+
+    return { error };
+  } catch (error: any) {
+    console.error("Error updating currently watching:", error);
+    return { error: null };
   }
-
-  const { error } = await supabase
-    .from("currently_watching")
-    .update({
-      watch_time: watchTime,
-      total_duration: totalDuration,
-      episode_slug: episodeSlug,
-      last_watched_at: new Date().toISOString(),
-    })
-    .eq("user_id", user.id)
-    .eq("movie_slug", movieSlug);
-
-  return { error };
 }
 
 export async function getCurrentlyWatching(): Promise<{ data: CurrentlyWatching[] | null; error: any }> {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  if (!user) {
-    return { data: null, error: { message: "Bạn cần đăng nhập" } };
+  try {
+    const supabase = createClient();
+    
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError) {
+      // Nếu lỗi do Supabase chưa cấu hình, trả về empty array
+      if (userError.message?.includes('Invalid API key') || 
+          userError.message?.includes('fetch') ||
+          userError.message?.includes('network')) {
+        return { data: [], error: null };
+      }
+    }
+    
+    if (!user) {
+      return { data: null, error: { message: "Bạn cần đăng nhập" } };
+    }
+
+    const { data, error } = await supabase
+      .from("currently_watching")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("last_watched_at", { ascending: false })
+      .limit(20);
+
+    // Nếu lỗi do Supabase chưa cấu hình hoặc table chưa tồn tại, trả về empty array
+    if (error && (error.message?.includes('Invalid API key') || 
+                  error.message?.includes('relation') ||
+                  error.message?.includes('does not exist'))) {
+      return { data: [], error: null };
+    }
+
+    return { data, error };
+  } catch (error: any) {
+    // Nếu có lỗi network hoặc Supabase chưa cấu hình, trả về empty array
+    console.error("Error getting currently watching:", error);
+    return { data: [], error: null };
   }
-
-  const { data, error } = await supabase
-    .from("currently_watching")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("last_watched_at", { ascending: false })
-    .limit(20);
-
-  return { data, error };
 }
 
 export async function removeFromCurrentlyWatching(movieSlug: string): Promise<{ error: any }> {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  if (!user) {
-    return { error: { message: "Bạn cần đăng nhập" } };
+  try {
+    const supabase = createClient();
+    
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError) {
+      if (userError.message?.includes('Invalid API key') || 
+          userError.message?.includes('fetch') ||
+          userError.message?.includes('network')) {
+        return { error: null };
+      }
+    }
+    
+    if (!user) {
+      return { error: { message: "Bạn cần đăng nhập" } };
+    }
+
+    const { error } = await supabase
+      .from("currently_watching")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("movie_slug", movieSlug);
+
+    if (error && (error.message?.includes('relation') || 
+                  error.message?.includes('does not exist') ||
+                  error.message?.includes('Invalid API key'))) {
+      return { error: null };
+    }
+
+    return { error };
+  } catch (error: any) {
+    console.error("Error removing from currently watching:", error);
+    return { error: null };
   }
-
-  const { error } = await supabase
-    .from("currently_watching")
-    .delete()
-    .eq("user_id", user.id)
-    .eq("movie_slug", movieSlug);
-
-  return { error };
 }
 
 // ========== PLAYLISTS ==========

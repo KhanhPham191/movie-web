@@ -4,25 +4,28 @@ export function createClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  // Kiểm tra nếu chưa cấu hình Supabase
-  if (!supabaseUrl || !supabaseKey || 
-      supabaseUrl === 'your_supabase_project_url_here' ||
-      !supabaseUrl.startsWith('http')) {
-    // Log error để debug
-    if (typeof window !== 'undefined') {
-      console.error('[Supabase] ⚠️ Environment variables chưa được cấu hình đúng!')
-      console.error('[Supabase] NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl || 'undefined')
-      console.error('[Supabase] NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseKey ? '***' : 'undefined')
-      console.error('[Supabase] Vui lòng tạo file .env.local với các biến môi trường cần thiết')
-      console.error('[Supabase] Hướng dẫn: https://supabase.com/dashboard > Project Settings > API')
+  // Chỉ check nếu hoàn toàn không có giá trị, không check placeholder
+  // Để Supabase vẫn có thể hoạt động và trả về lỗi thực tế từ server
+  if (!supabaseUrl || !supabaseKey) {
+    // Chỉ trong quá trình build/prerender mới dùng dummy client
+    if (typeof window === 'undefined') {
+      return createBrowserClient(
+        'https://placeholder.supabase.co',
+        'placeholder-key'
+      )
     }
-    // Throw error thay vì trả về dummy client để người dùng biết cần cấu hình
-    throw new Error(
-      'Supabase chưa được cấu hình. Vui lòng tạo file .env.local với NEXT_PUBLIC_SUPABASE_URL và NEXT_PUBLIC_SUPABASE_ANON_KEY. ' +
-      'Xem README.md để biết thêm chi tiết.'
-    )
+    
+    // Trong browser, log warning nhưng vẫn cố gắng tạo client với giá trị rỗng
+    // Để Supabase tự trả về lỗi thực tế
+    console.warn('[Supabase] ⚠️ Environment variables chưa được cấu hình!')
+    console.warn('[Supabase] Vui lòng tạo file .env.local với NEXT_PUBLIC_SUPABASE_URL và NEXT_PUBLIC_SUPABASE_ANON_KEY')
   }
 
-  return createBrowserClient(supabaseUrl, supabaseKey)
+  // Luôn tạo client với giá trị có (dù có thể là placeholder)
+  // Để Supabase tự xử lý và trả về lỗi thực tế nếu không hợp lệ
+  return createBrowserClient(
+    supabaseUrl || 'https://placeholder.supabase.co',
+    supabaseKey || 'placeholder-key'
+  )
 }
 
