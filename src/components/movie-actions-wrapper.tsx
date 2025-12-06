@@ -35,3 +35,4 @@ export class MovieActionsWrapper extends Component<Props, State> {
     return <MovieActions movie={this.props.movie} />;
   }
 }
+

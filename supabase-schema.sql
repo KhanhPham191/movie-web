@@ -213,3 +213,4 @@ CREATE POLICY "Users can update their own currently watching"
 CREATE POLICY "Users can delete their own currently watching"
   ON public.currently_watching FOR DELETE
   USING (auth.uid() = user_id);
+

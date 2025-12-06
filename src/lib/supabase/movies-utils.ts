@@ -47,3 +47,4 @@ export async function safeSupabaseCall<T>(
     return fallback;
   }
 }
+

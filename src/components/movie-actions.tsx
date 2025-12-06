@@ -232,3 +232,4 @@ export function MovieActions({ movie, onRatingChange }: MovieActionsProps) {
     </div>
   );
 }
+

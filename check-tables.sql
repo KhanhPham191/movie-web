@@ -54,3 +54,4 @@ WHERE schemaname = 'public'
     'currently_watching'
   )
 ORDER BY tablename, policyname;
+
