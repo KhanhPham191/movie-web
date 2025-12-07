@@ -618,9 +618,11 @@ export function Header() {
                     <button className="flex items-center gap-1 sm:gap-2 group shrink-0">
                       <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-[linear-gradient(135deg,#fb743E,#ff9d6b)] flex items-center justify-center">
                         <span className="text-xs sm:text-sm font-bold">
-                          {user?.user_metadata?.name?.charAt(0).toUpperCase() || 
-                           user?.email?.charAt(0).toUpperCase() || 
-                           "P"}
+                          {(user?.user_metadata?.username || 
+                            user?.email?.replace('@movpey.local', '') || 
+                            user?.user_metadata?.name || 
+                            user?.email || 
+                            'P')?.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-white group-hover:rotate-180 transition-transform hidden md:block" />
@@ -629,7 +631,10 @@ export function Header() {
                   <DropdownMenuContent align="end" className="w-48 bg-[#0f0f0f]/95 backdrop-blur border-gray-800">
                     <div className="px-2 py-1.5 border-b border-gray-700">
                       <p className="text-xs text-gray-400">Đăng nhập với</p>
-                      <p className="text-sm text-white truncate">{user?.email}</p>
+                      <p className="text-sm text-white truncate">
+                        {user?.user_metadata?.username || 
+                         (user?.email?.replace('@movpey.local', '') || user?.email || '')}
+                      </p>
                     </div>
                     <DropdownMenuItem asChild>
                       <Link href="/tro-giup" className="text-gray-200 hover:text-white cursor-pointer">
