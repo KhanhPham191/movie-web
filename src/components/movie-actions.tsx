@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
-import { Heart, Star, Plus, Check } from "lucide-react";
+import { Heart, Star, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   addToFavorites,
@@ -17,9 +16,6 @@ import {
   isFavorite,
   addRating,
   getUserRating,
-  addToPlaylist,
-  getPlaylists,
-  type Playlist,
 } from "@/lib/supabase/movies";
 import type { FilmItem } from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -34,7 +30,6 @@ export function MovieActions({ movie, onRatingChange }: MovieActionsProps) {
   const router = useRouter();
   const [favorited, setFavorited] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [userRating, setUserRating] = useState<number | null>(null);
   const [showRatingDialog, setShowRatingDialog] = useState(false);
 
@@ -43,7 +38,6 @@ export function MovieActions({ movie, onRatingChange }: MovieActionsProps) {
       // Chỉ load khi component đã mount và user đã authenticated
       const timer = setTimeout(() => {
         checkFavorite();
-        loadPlaylists();
         loadUserRating();
       }, 100);
       
@@ -58,16 +52,6 @@ export function MovieActions({ movie, onRatingChange }: MovieActionsProps) {
     } catch (error) {
       console.error("[checkFavorite] Error:", error);
       setFavorited(false);
-    }
-  };
-
-  const loadPlaylists = async () => {
-    try {
-      const { data } = await getPlaylists();
-      if (data) setPlaylists(data);
-    } catch (error) {
-      console.error("[loadPlaylists] Error:", error);
-      setPlaylists([]);
     }
   };
 
@@ -110,18 +94,6 @@ export function MovieActions({ movie, onRatingChange }: MovieActionsProps) {
     setLoading(false);
     setShowRatingDialog(false);
     if (onRatingChange) onRatingChange();
-  };
-
-  const handleAddToPlaylist = async (playlistId: string) => {
-    if (!isAuthenticated) {
-      router.push("/dang-nhap");
-      return;
-    }
-
-    setLoading(true);
-    await addToPlaylist(playlistId, movie);
-    setLoading(false);
-    // Có thể thêm toast notification ở đây
   };
 
   if (!isAuthenticated) {
@@ -184,51 +156,6 @@ export function MovieActions({ movie, onRatingChange }: MovieActionsProps) {
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-
-      {/* Add to Playlist */}
-      {playlists.length > 0 && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              disabled={loading}
-              className="bg-white/5 border-white/20 text-white hover:bg-white/10"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Thêm vào danh sách
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-[#0f0f0f]/95 backdrop-blur border-gray-800">
-            {playlists.map((playlist) => (
-              <DropdownMenuItem
-                key={playlist.id}
-                onClick={() => handleAddToPlaylist(playlist.id)}
-                className="text-gray-200 hover:text-white cursor-pointer"
-              >
-                {playlist.name}
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator className="bg-gray-700" />
-            <DropdownMenuItem
-              onClick={() => router.push("/tai-khoan/danh-sach")}
-              className="text-[#fb743E] hover:text-white cursor-pointer"
-            >
-              Tạo danh sách mới
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-
-      {playlists.length === 0 && (
-        <Button
-          variant="outline"
-          onClick={() => router.push("/tai-khoan/danh-sach")}
-          className="bg-white/5 border-white/20 text-white hover:bg-white/10"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Tạo danh sách
-        </Button>
-      )}
     </div>
   );
 }
