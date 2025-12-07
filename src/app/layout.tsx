@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Noto_Sans, Noto_Sans_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
+import { URLCleaner } from "@/components/url-cleaner";
 import "./globals.css";
 
 const notoSans = Noto_Sans({
@@ -46,6 +47,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
+            <URLCleaner />
             {children}
           </AuthProvider>
         </ThemeProvider>

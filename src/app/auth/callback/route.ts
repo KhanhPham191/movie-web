@@ -7,12 +7,29 @@ export async function GET(request: Request) {
   const origin = requestUrl.origin
 
   if (code) {
-    const supabase = await createClient()
-    await supabase.auth.exchangeCodeForSession(code)
+    try {
+      const supabase = await createClient()
+      const { error } = await supabase.auth.exchangeCodeForSession(code)
+      
+      if (error) {
+        console.error('[Auth Callback] Error exchanging code:', error)
+        // Redirect về trang đăng nhập nếu có lỗi
+        return NextResponse.redirect(`${origin}/dang-nhap?error=auth_failed`)
+      }
+    } catch (error) {
+      console.error('[Auth Callback] Error:', error)
+      return NextResponse.redirect(`${origin}/dang-nhap?error=auth_failed`)
+    }
   }
 
-  // URL to redirect to after sign in process completes
-  return NextResponse.redirect(`${origin}/`)
+  // Redirect về trang chủ mà không có query params (dùng 307 để giữ method)
+  return NextResponse.redirect(`${origin}/`, {
+    status: 307,
+    headers: {
+      'Cache-Control': 'no-store, must-revalidate',
+    },
+  })
 }
+
 
 
