@@ -75,31 +75,31 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-[#0f0f0f]/95 backdrop-blur border-gray-800">
-        <DialogHeader className="space-y-2">
+        <DialogHeader className="space-y-1.5 sm:space-y-2">
           <div className="flex justify-center">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl overflow-hidden flex items-center justify-center bg-[linear-gradient(135deg,#fb743E,#ff9d6b)]">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center bg-[linear-gradient(135deg,#fb743E,#ff9d6b)]">
               <Image
                 src="/logo.ico"
                 alt="MovPey"
-                width={40}
-                height={40}
-                className="w-full h-full object-contain sm:w-12 sm:h-12"
+                width={36}
+                height={36}
+                className="w-full h-full object-contain sm:w-10 sm:h-10"
               />
             </div>
           </div>
-          <DialogTitle className="text-lg sm:text-xl text-white text-center">Đăng nhập</DialogTitle>
-          <DialogDescription className="text-gray-400 text-center text-xs sm:text-sm">
+          <DialogTitle className="text-base sm:text-lg text-white text-center">Đăng nhập</DialogTitle>
+          <DialogDescription className="text-gray-400 text-center text-xs">
             Đăng nhập để tiếp tục xem phim
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           {error && (
-            <div className="p-2.5 sm:p-3 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs sm:text-sm">
+            <div className="p-2.5 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
               {error}
             </div>
           )}
-          <div className="space-y-1.5 sm:space-y-2">
-            <label htmlFor="modal-username" className="text-xs sm:text-sm font-medium text-gray-300">
+          <div className="space-y-1.5">
+            <label htmlFor="modal-username" className="text-xs font-medium text-gray-300">
               Tài khoản
             </label>
             <Input
@@ -108,13 +108,13 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
               placeholder="Tên đăng nhập"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500 h-9 sm:h-10 text-sm"
+              className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500 h-9 text-sm"
               disabled={isLoading || isGoogleLoading}
               required
             />
           </div>
-          <div className="space-y-1.5 sm:space-y-2">
-            <label htmlFor="modal-password" className="text-xs sm:text-sm font-medium text-gray-300">
+          <div className="space-y-1.5">
+            <label htmlFor="modal-password" className="text-xs font-medium text-gray-300">
               Mật khẩu
             </label>
             <Input
@@ -123,14 +123,14 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500 h-9 sm:h-10 text-sm"
+              className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500 h-9 text-sm"
               disabled={isLoading || isGoogleLoading}
               required
             />
           </div>
           <Button
             type="submit"
-            className="w-full bg-[#fb743E] hover:bg-[#fb743E]/90 text-white h-9 sm:h-10 text-sm sm:text-base"
+            className="w-full bg-[#fb743E] hover:bg-[#fb743E]/90 text-white h-9 text-sm"
             disabled={isLoading || isGoogleLoading}
           >
             {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
@@ -140,7 +140,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-gray-700" />
             </div>
-            <div className="relative flex justify-center text-[10px] sm:text-xs uppercase">
+            <div className="relative flex justify-center text-[10px] uppercase">
               <span className="bg-[#0f0f0f] px-2 text-gray-400">Hoặc</span>
             </div>
           </div>
@@ -148,14 +148,14 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
           <Button
             type="button"
             onClick={handleGoogleSignIn}
-            className="w-full bg-white hover:bg-gray-100 text-gray-900 border border-gray-300 h-9 sm:h-10 text-sm sm:text-base"
+            className="w-full bg-white hover:bg-gray-100 text-gray-900 border border-gray-300 h-9 text-sm"
             disabled={isLoading || isGoogleLoading}
           >
             {isGoogleLoading ? (
               "Đang xử lý..."
             ) : (
-              <span className="flex items-center justify-center gap-1.5 sm:gap-2">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24">
+              <span className="flex items-center justify-center gap-1.5">
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
                     fill="#4285F4"
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -173,13 +173,13 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                <span className="text-xs sm:text-sm">Đăng nhập với Google</span>
+                <span className="text-xs">Đăng nhập với Google</span>
               </span>
             )}
           </Button>
         </form>
-        <div className="flex flex-col space-y-1.5 sm:space-y-2 text-center pt-1">
-          <p className="text-xs sm:text-sm text-gray-400">
+        <div className="flex flex-col space-y-1.5 text-center pt-1">
+          <p className="text-xs text-gray-400">
             Chưa có tài khoản?{" "}
             <Link 
               href="/dang-ky" 
@@ -191,7 +191,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
           </p>
           <Link
             href="/quen-mat-khau"
-            className="text-xs sm:text-sm text-gray-400 hover:text-[#fb743E] transition-colors"
+            className="text-xs text-gray-400 hover:text-[#fb743E] transition-colors"
             onClick={() => onOpenChange(false)}
           >
             Quên mật khẩu?
