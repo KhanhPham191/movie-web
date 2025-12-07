@@ -253,7 +253,7 @@ export function CurrentlyWatchingSection() {
           {items.slice(0, 10).map((item, index) => (
             <div
               key={`${item.id}-${index}`}
-              className="shrink-0 flex flex-col w-[105px] xs:w-[125px] sm:w-[145px] md:w-[165px] lg:w-[195px]"
+              className="shrink-0 flex flex-col w-[135px] xs:w-[140px] sm:w-[145px] md:w-[165px] lg:w-[195px]"
             >
               <CurrentlyWatchingCard item={item} index={index} />
             </div>

@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LoginModal } from "@/components/login-modal";
 
 const mainNav = [
   { name: "Trang chủ", href: "/" },
@@ -38,6 +39,7 @@ export function Header() {
   const [notifications, setNotifications] = useState<FilmItem[]>([]);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
   const [hasNewNotifications, setHasNewNotifications] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const { user, signOut, isAuthenticated } = useAuth();
@@ -675,22 +677,18 @@ export function Header() {
                   <Button 
                     variant="outline" 
                     className="hidden sm:flex items-center gap-2 bg-white/5 border-white/20 text-white hover:bg-white/10"
-                    asChild
+                    onClick={() => setIsLoginModalOpen(true)}
                   >
-                    <Link href="/dang-nhap">
-                      <LogIn className="w-4 h-4" />
-                      Đăng nhập
-                    </Link>
+                    <LogIn className="w-4 h-4" />
+                    Đăng nhập
                   </Button>
                   <Button 
                     variant="ghost" 
                     size="icon"
                     className="sm:hidden"
-                    asChild
+                    onClick={() => setIsLoginModalOpen(true)}
                   >
-                    <Link href="/dang-nhap">
-                      <LogIn className="w-5 h-5" />
-                    </Link>
+                    <LogIn className="w-5 h-5" />
                   </Button>
                 </>
               )}
@@ -799,6 +797,9 @@ export function Header() {
           )}
         </div>
       )}
+
+      {/* Login Modal */}
+      <LoginModal open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen} />
     </header>
   );
 }

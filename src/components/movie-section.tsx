@@ -121,17 +121,17 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
   const getCardWidth = () => {
     switch (variant) {
       case "top10":
-        return "w-[110px] xs:w-[130px] sm:w-[155px] md:w-[175px] lg:w-[195px]";
+        return "w-[140px] xs:w-[150px] sm:w-[155px] md:w-[175px] lg:w-[195px]";
       case "portrait":
-        return "w-[105px] xs:w-[125px] sm:w-[145px] md:w-[165px] lg:w-[195px]";
+        return "w-[135px] xs:w-[140px] sm:w-[145px] md:w-[165px] lg:w-[195px]";
       case "newRelease":
-        return "w-[150px] xs:w-[170px] sm:w-[195px] md:w-[215px] lg:w-[235px]";
+        return "w-[185px] xs:w-[190px] sm:w-[195px] md:w-[215px] lg:w-[235px]";
       case "series":
-        return "w-[160px] xs:w-[180px] sm:w-[205px] md:w-[225px] lg:w-[245px]";
+        return "w-[195px] xs:w-[200px] sm:w-[205px] md:w-[225px] lg:w-[245px]";
       case "cinema":
-        return "w-[220px] xs:w-[260px] sm:w-[320px] md:w-[380px] lg:w-[440px]";
+        return "w-[280px] xs:w-[300px] sm:w-[320px] md:w-[380px] lg:w-[440px]";
       default:
-        return "w-[170px] xs:w-[195px] sm:w-[225px] md:w-[265px] lg:w-[305px]";
+        return "w-[210px] xs:w-[220px] sm:w-[225px] md:w-[265px] lg:w-[305px]";
     }
   };
 
@@ -406,7 +406,7 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
           className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
           {movies.slice(0, 10).map((movie, index) => (
-            <div key={`${movie.slug}-${index}`} className="shrink-0 flex flex-col w-[120px] sm:w-[140px] md:w-[160px] lg:w-[180px]">
+            <div key={`${movie.slug}-${index}`} className="shrink-0 flex flex-col w-[150px] sm:w-[140px] md:w-[160px] lg:w-[180px]">
               <MovieCard movie={movie} index={index} variant="top10" rank={index + 1} />
             </div>
           ))}
