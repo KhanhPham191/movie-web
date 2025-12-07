@@ -632,16 +632,6 @@ export function Header() {
                       <p className="text-sm text-white truncate">{user?.email}</p>
                     </div>
                     <DropdownMenuItem asChild>
-                      <Link href="/tai-khoan" className="text-gray-200 hover:text-white cursor-pointer">
-                        Quản lý hồ sơ
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/tai-khoan/cai-dat" className="text-gray-200 hover:text-white cursor-pointer">
-                        Tài khoản
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
                       <Link href="/tro-giup" className="text-gray-200 hover:text-white cursor-pointer">
                         Trung tâm trợ giúp
                       </Link>
