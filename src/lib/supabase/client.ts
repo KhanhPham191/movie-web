@@ -5,7 +5,7 @@ export function createClient() {
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   // Debug logging cho production - chỉ log trong browser
-  if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined') {
     console.log('[Supabase Debug] ===================')
     console.log('[Supabase Debug] URL:', supabaseUrl ? '✅ Có' : '❌ Không có')
     console.log('[Supabase Debug] Key:', supabaseKey ? '✅ Có' : '❌ Không có')

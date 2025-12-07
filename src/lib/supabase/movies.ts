@@ -380,7 +380,7 @@ export async function addToCurrentlyWatching(
   totalDuration: number = 0
 ): Promise<{ error: any }> {
   try {
-    const supabase = createClient();
+  const supabase = createClient();
     
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
@@ -392,27 +392,27 @@ export async function addToCurrentlyWatching(
         return { error: null };
       }
     }
-    
-    if (!user) {
-      return { error: { message: "Bạn cần đăng nhập" } };
-    }
+  
+  if (!user) {
+    return { error: { message: "Bạn cần đăng nhập" } };
+  }
 
-    const { error } = await supabase
-      .from("currently_watching")
-      .upsert({
-        user_id: user.id,
-        movie_slug: movie.slug,
-        movie_name: movie.name,
-        movie_thumb: movie.thumb_url,
-        movie_poster: movie.poster_url,
-        episode_slug: episodeSlug,
-        episode_name: episodeName,
-        watch_time: watchTime,
-        total_duration: totalDuration,
-        last_watched_at: new Date().toISOString(),
-      }, {
-        onConflict: "user_id,movie_slug"
-      });
+  const { error } = await supabase
+    .from("currently_watching")
+    .upsert({
+      user_id: user.id,
+      movie_slug: movie.slug,
+      movie_name: movie.name,
+      movie_thumb: movie.thumb_url,
+      movie_poster: movie.poster_url,
+      episode_slug: episodeSlug,
+      episode_name: episodeName,
+      watch_time: watchTime,
+      total_duration: totalDuration,
+      last_watched_at: new Date().toISOString(),
+    }, {
+      onConflict: "user_id,movie_slug"
+    });
 
     // Nếu lỗi do table chưa tồn tại hoặc Supabase chưa cấu hình, trả về null error
     if (error && (error.message?.includes('relation') || 
@@ -421,7 +421,7 @@ export async function addToCurrentlyWatching(
       return { error: null };
     }
 
-    return { error };
+  return { error };
   } catch (error: any) {
     console.error("Error adding to currently watching:", error);
     return { error: null }; // Không throw error
@@ -435,7 +435,7 @@ export async function updateCurrentlyWatching(
   episodeSlug?: string
 ): Promise<{ error: any }> {
   try {
-    const supabase = createClient();
+  const supabase = createClient();
     
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
@@ -446,21 +446,21 @@ export async function updateCurrentlyWatching(
         return { error: null };
       }
     }
-    
-    if (!user) {
-      return { error: { message: "Bạn cần đăng nhập" } };
-    }
+  
+  if (!user) {
+    return { error: { message: "Bạn cần đăng nhập" } };
+  }
 
-    const { error } = await supabase
-      .from("currently_watching")
-      .update({
-        watch_time: watchTime,
-        total_duration: totalDuration,
-        episode_slug: episodeSlug,
-        last_watched_at: new Date().toISOString(),
-      })
-      .eq("user_id", user.id)
-      .eq("movie_slug", movieSlug);
+  const { error } = await supabase
+    .from("currently_watching")
+    .update({
+      watch_time: watchTime,
+      total_duration: totalDuration,
+      episode_slug: episodeSlug,
+      last_watched_at: new Date().toISOString(),
+    })
+    .eq("user_id", user.id)
+    .eq("movie_slug", movieSlug);
 
     if (error && (error.message?.includes('relation') || 
                   error.message?.includes('does not exist') ||
@@ -468,7 +468,7 @@ export async function updateCurrentlyWatching(
       return { error: null };
     }
 
-    return { error };
+  return { error };
   } catch (error: any) {
     console.error("Error updating currently watching:", error);
     return { error: null };
@@ -477,7 +477,7 @@ export async function updateCurrentlyWatching(
 
 export async function getCurrentlyWatching(): Promise<{ data: CurrentlyWatching[] | null; error: any }> {
   try {
-    const supabase = createClient();
+  const supabase = createClient();
     
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
@@ -489,17 +489,17 @@ export async function getCurrentlyWatching(): Promise<{ data: CurrentlyWatching[
         return { data: [], error: null };
       }
     }
-    
-    if (!user) {
-      return { data: null, error: { message: "Bạn cần đăng nhập" } };
-    }
+  
+  if (!user) {
+    return { data: null, error: { message: "Bạn cần đăng nhập" } };
+  }
 
-    const { data, error } = await supabase
-      .from("currently_watching")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("last_watched_at", { ascending: false })
-      .limit(20);
+  const { data, error } = await supabase
+    .from("currently_watching")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("last_watched_at", { ascending: false })
+    .limit(20);
 
     // Nếu lỗi do Supabase chưa cấu hình hoặc table chưa tồn tại, trả về empty array
     if (error && (error.message?.includes('Invalid API key') || 
@@ -508,7 +508,7 @@ export async function getCurrentlyWatching(): Promise<{ data: CurrentlyWatching[
       return { data: [], error: null };
     }
 
-    return { data, error };
+  return { data, error };
   } catch (error: any) {
     // Nếu có lỗi network hoặc Supabase chưa cấu hình, trả về empty array
     console.error("Error getting currently watching:", error);
@@ -518,7 +518,7 @@ export async function getCurrentlyWatching(): Promise<{ data: CurrentlyWatching[
 
 export async function removeFromCurrentlyWatching(movieSlug: string): Promise<{ error: any }> {
   try {
-    const supabase = createClient();
+  const supabase = createClient();
     
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
@@ -529,16 +529,16 @@ export async function removeFromCurrentlyWatching(movieSlug: string): Promise<{ 
         return { error: null };
       }
     }
-    
-    if (!user) {
-      return { error: { message: "Bạn cần đăng nhập" } };
-    }
+  
+  if (!user) {
+    return { error: { message: "Bạn cần đăng nhập" } };
+  }
 
-    const { error } = await supabase
-      .from("currently_watching")
-      .delete()
-      .eq("user_id", user.id)
-      .eq("movie_slug", movieSlug);
+  const { error } = await supabase
+    .from("currently_watching")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("movie_slug", movieSlug);
 
     if (error && (error.message?.includes('relation') || 
                   error.message?.includes('does not exist') ||
@@ -546,7 +546,7 @@ export async function removeFromCurrentlyWatching(movieSlug: string): Promise<{ 
       return { error: null };
     }
 
-    return { error };
+  return { error };
   } catch (error: any) {
     console.error("Error removing from currently watching:", error);
     return { error: null };
