@@ -72,9 +72,12 @@ Dự án sử dụng Supabase để quản lý authentication. Để thiết l�
 
 5. **Cấu hình Redirect URLs:**
    - Vào Authentication > URL Configuration
-   - Thêm `http://localhost:3000` vào Site URL
-   - Thêm `http://localhost:3000/**` vào Redirect URLs
-   - **Cho production:** Thêm domain production của bạn (ví dụ: `https://your-domain.vercel.app/auth/callback`)
+   - **Site URL:** `https://movpey.xyz` (hoặc `http://localhost:3000` cho development)
+   - **Redirect URLs:** Thêm các URL sau:
+     - `http://localhost:3000/auth/callback` (cho development)
+     - `https://movpey.xyz/auth/callback` (cho production)
+     - `https://www.movpey.xyz/auth/callback` (nếu có www subdomain)
+   - **Lưu ý:** Code sẽ tự động sử dụng domain hiện tại (`window.location.origin`), nhưng Supabase cần được cấu hình để chấp nhận các redirect URLs này
 
 ## 🚀 Deploy lên Production
 

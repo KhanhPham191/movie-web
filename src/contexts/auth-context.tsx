@@ -168,12 +168,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
+      // Lấy origin từ window.location để đảm bảo luôn đúng domain hiện tại
+      const redirectUrl = `${window.location.origin}/auth/callback`;
+      
+      // Debug logging để kiểm tra redirect URL
+      console.log('[Google OAuth] Redirect URL:', redirectUrl);
+      console.log('[Google OAuth] Current origin:', window.location.origin);
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUrl,
         },
       });
+      
+      if (error) {
+        console.error('[Google OAuth] Error:', error);
+      }
+      
       return { error };
     } catch (err: any) {
       console.error('[Auth] SignInWithGoogle error:', err);
