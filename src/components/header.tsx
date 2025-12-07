@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LoginModal } from "@/components/login-modal";
+import { SignupModal } from "@/components/signup-modal";
 
 const mainNav = [
   { name: "Trang chủ", href: "/" },
@@ -40,6 +41,7 @@ export function Header() {
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
   const [hasNewNotifications, setHasNewNotifications] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const { user, signOut, isAuthenticated } = useAuth();
@@ -799,7 +801,18 @@ export function Header() {
       )}
 
       {/* Login Modal */}
-      <LoginModal open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen} />
+      <LoginModal 
+        open={isLoginModalOpen} 
+        onOpenChange={setIsLoginModalOpen}
+        onSwitchToSignup={() => setIsSignupModalOpen(true)}
+      />
+      
+      {/* Signup Modal */}
+      <SignupModal 
+        open={isSignupModalOpen} 
+        onOpenChange={setIsSignupModalOpen}
+        onSwitchToLogin={() => setIsLoginModalOpen(true)}
+      />
     </header>
   );
 }

@@ -18,9 +18,10 @@ import {
 interface LoginModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSwitchToSignup?: () => void;
 }
 
-export function LoginModal({ open, onOpenChange }: LoginModalProps) {
+export function LoginModal({ open, onOpenChange, onSwitchToSignup }: LoginModalProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -181,13 +182,18 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
         <div className="flex flex-col space-y-1.5 text-center pt-1">
           <p className="text-xs text-gray-400">
             Chưa có tài khoản?{" "}
-            <Link 
-              href="/dang-ky" 
+            <button
+              type="button"
               className="text-[#fb743E] hover:underline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => {
+                onOpenChange(false);
+                if (onSwitchToSignup) {
+                  onSwitchToSignup();
+                }
+              }}
             >
               Đăng ký ngay
-            </Link>
+            </button>
           </p>
           <Link
             href="/quen-mat-khau"
