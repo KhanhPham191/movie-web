@@ -1,19 +1,17 @@
 "use client";
 
 import {
-  useMemo,
   useEffect,
   useRef,
   useState,
   useCallback,
 } from "react";
-import { Loader2, AlertCircle, RefreshCw, FastForward, Rewind } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
 
 interface IframePlayerProps {
   src: string;
   title?: string;
   className?: string;
-  allowAds?: boolean;
 }
 
 type GestureMode = "none" | "horizontal" | "vertical-left" | "vertical-right";
@@ -25,19 +23,6 @@ interface GestureState {
   initialTime: number;
 }
 
-const ADBLOCK_PARAMS: Record<string, string> = {
-  ads: "false",
-  adblock: "1",
-  noads: "1",
-  ad: "false",
-  advertisement: "false",
-  hidead: "true",
-  hideads: "true",
-  skiphttps: "true",
-  no_ads: "true",
-  skip_ads: "true",
-};
-
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
 
@@ -45,13 +30,9 @@ export function IframePlayer({
   src,
   title = "Player",
   className = "w-full h-full",
-  allowAds = false,
 }: IframePlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const observerRef = useRef<MutationObserver | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const timeoutRefs = useRef<NodeJS.Timeout[]>([]);
   const gestureRef = useRef<GestureState | null>(null);
   const videoControlRef = useRef<{
     currentTime: number;
@@ -63,27 +44,7 @@ export function IframePlayer({
   const [hasError, setHasError] = useState(false);
   const [retry, setRetry] = useState(0);
   const [hud, setHud] = useState<string | null>(null);
-
-  const enhancedSrc = useMemo(() => {
-    if (!src) return "";
-
-    try {
-      const url = new URL(src);
-      if (!allowAds) {
-        Object.entries(ADBLOCK_PARAMS).forEach(([key, value]) => {
-          if (!url.searchParams.has(key)) {
-            url.searchParams.append(key, value);
-          }
-        });
-      }
-      return url.toString();
-    } catch {
-      if (allowAds) return src;
-      const separator = src.includes("?") ? "&" : "?";
-      const params = new URLSearchParams(ADBLOCK_PARAMS);
-      return `${src}${separator}${params.toString()}`;
-    }
-  }, [src, allowAds]);
+  const hudTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleRetry = useCallback(() => {
     setHasError(false);
@@ -93,13 +54,15 @@ export function IframePlayer({
 
   const showHud = useCallback((text: string) => {
     setHud(text);
-    window.clearTimeout((showHud as any)._t);
-    (showHud as any)._t = window.setTimeout(() => setHud(null), 700);
+    if (hudTimeoutRef.current) {
+      clearTimeout(hudTimeoutRef.current);
+    }
+    hudTimeoutRef.current = setTimeout(() => setHud(null), 700);
   }, []);
 
   useEffect(() => {
     const iframe = iframeRef.current;
-    if (!iframe || !enhancedSrc) return;
+    if (!iframe || !src) return;
 
     const handleLoad = () => {
       setIsLoading(false);
@@ -142,7 +105,7 @@ export function IframePlayer({
               });
             }
           }
-        } catch (e) {
+        } catch {
           // Cross-origin, can't access
         }
       }, 1000);
@@ -165,219 +128,7 @@ export function IframePlayer({
       iframe.removeEventListener("error", handleError);
       clearTimeout(timeout);
     };
-  }, [enhancedSrc, isLoading, retry]);
-
-  useEffect(() => {
-    if (allowAds || !iframeRef.current) return;
-
-    let active = true;
-    let lastCleanup = 0;
-    const CLEANUP_WINDOW = 1000;
-
-    const removeAds = (doc: Document) => {
-      const now = Date.now();
-      if (now - lastCleanup < CLEANUP_WINDOW) return;
-      lastCleanup = now;
-
-      try {
-        // Protect video elements and their containers
-        const video = doc.querySelector('video');
-        const videoParents: HTMLElement[] = [];
-        if (video) {
-          let parent = video.parentElement;
-          while (parent && parent !== doc.body) {
-            videoParents.push(parent);
-            parent = parent.parentElement;
-          }
-        }
-
-        // Remove ads and overlays, but protect video-related elements
-        doc.querySelectorAll("iframe, div, ins, span, button").forEach((node) => {
-          const target = node as HTMLElement;
-          
-          // Skip if it's a video element or its parent
-          if (target === video || videoParents.includes(target)) {
-            return;
-          }
-          
-          // Skip if it contains video
-          if (target.querySelector('video')) {
-            return;
-          }
-
-          const text = target.textContent?.toLowerCase() || "";
-          const haystack = `${target.id} ${target.className} ${target.getAttribute('data-name') || ''}`.toLowerCase();
-          const style = window.getComputedStyle(target);
-          const zIndex = parseInt(style.zIndex) || 0;
-          
-          // Skip player-related elements
-          if (
-            haystack.includes("player") ||
-            haystack.includes("video") ||
-            haystack.includes("jwplayer") ||
-            haystack.includes("plyr") ||
-            haystack.includes("vjs")
-          ) {
-            return;
-          }
-
-          // Only remove if it's clearly an ad/overlay
-          if (
-            (haystack.includes("ad") && !haystack.includes("advance") && !haystack.includes("add")) ||
-            (haystack.includes("ads") && !haystack.includes("adsby")) ||
-            haystack.includes("advert") ||
-            haystack.includes("bet") ||
-            haystack.includes("casino") ||
-            (haystack.includes("overlay") && !haystack.includes("player")) ||
-            (haystack.includes("popup") && !haystack.includes("player")) ||
-            (haystack.includes("modal") && !haystack.includes("player")) ||
-            text.includes("quảng cáo") ||
-            text.includes("advertisement") ||
-            (zIndex > 9999 && (style.position === 'fixed' || style.position === 'absolute') && 
-             !haystack.includes("player") && !haystack.includes("video"))
-          ) {
-            // Only hide, don't remove to avoid breaking layout
-            target.style.display = "none";
-            target.style.visibility = "hidden";
-            target.style.opacity = "0";
-            target.style.pointerEvents = "none";
-            target.style.width = "0";
-            target.style.height = "0";
-          }
-        });
-      } catch {
-        // ignore cross-origin errors
-      }
-    };
-
-    const clickSkipButtons = (doc: Document) => {
-      const selectors = [
-        'button[class*="skip"]',
-        'button[id*="skip"]',
-        '[aria-label*="skip"]',
-        '[aria-label*="Skip"]',
-        '[aria-label*="Bỏ qua"]',
-        '.skip-ads',
-        '#skip-ads',
-        '[class*="skip-ad"]',
-      ];
-
-      selectors.forEach((selector) => {
-        doc.querySelectorAll(selector).forEach((el) => {
-          if (el instanceof HTMLElement) {
-            el.click();
-            el.remove();
-          }
-        });
-      });
-    };
-
-    const inject = () => {
-      if (!active) return;
-      const doc =
-        iframeRef.current?.contentDocument ||
-        iframeRef.current?.contentWindow?.document;
-
-      if (!doc) return;
-
-      const style = doc.createElement("style");
-      style.id = "iframe-ad-block";
-      style.textContent = `
-        /* Protect video elements */
-        video, [class*="player"]:not([class*="ad"]), [id*="player"]:not([id*="ad"]),
-        [class*="video"]:not([class*="ad"]), [id*="video"]:not([id*="ad"]) {
-          display: block !important;
-          visibility: visible !important;
-          width: 100% !important;
-          height: 100% !important;
-          opacity: 1 !important;
-          position: relative !important;
-          z-index: 1 !important;
-        }
-        
-        /* Hide ads and overlays, but exclude player-related */
-        [class*="ad"]:not([class*="advance"]):not([class*="add"]):not([class*="player"]),
-        [id*="ad"]:not([id*="advance"]):not([id*="add"]):not([id*="player"]),
-        [class*="ads"]:not([class*="adsby"]):not([class*="player"]),
-        [class*="adv"]:not([class*="advance"]):not([class*="player"]),
-        [class*="banner"]:not([class*="player"]),
-        [class*="popup"]:not([class*="player"]):not([class*="popup-player"]),
-        [class*="sponsor"]:not([class*="player"]),
-        [class*="overlay"]:not([class*="player"]):not([class*="video-overlay"]),
-        [id*="overlay"]:not([id*="player"]):not([id*="video-overlay"]),
-        [class*="advert"]:not([class*="player"]),
-        [data-ad-slot], [data-ad-client],
-        ins.adsbygoogle, 
-        iframe[src*="ads"]:not([src*="player"]), 
-        iframe[src*="advert"]:not([src*="player"]),
-        div[class*="modal"]:not([class*="player"]):not([class*="video-modal"]),
-        div[id*="modal"]:not([id*="player"]):not([id*="video-modal"]) {
-          display: none !important;
-          visibility: hidden !important;
-          width: 0 !important;
-          height: 0 !important;
-          opacity: 0 !important;
-          pointer-events: none !important;
-        }
-        
-        /* Remove high z-index overlays, but protect video */
-        [style*="position: fixed"]:not([class*="player"]):not([id*="player"]):not([class*="video"]):not([id*="video"]) {
-          z-index: -1 !important;
-        }
-        
-        /* Ensure video container fills space */
-        body, html {
-          width: 100% !important;
-          height: 100% !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          overflow: hidden !important;
-        }
-        
-        /* Make sure video player container is visible */
-        [class*="player"], [id*="player"], [class*="video-container"], [id*="video-container"] {
-          width: 100% !important;
-          height: 100% !important;
-          display: block !important;
-          position: relative !important;
-        }
-      `;
-
-      doc.head?.appendChild(style);
-      removeAds(doc);
-      clickSkipButtons(doc);
-
-      observerRef.current = new MutationObserver(() => {
-        removeAds(doc);
-        clickSkipButtons(doc);
-      });
-
-      observerRef.current.observe(doc.body || doc.documentElement, {
-        childList: true,
-        subtree: true,
-      });
-
-      intervalRef.current = setInterval(() => {
-        removeAds(doc);
-        clickSkipButtons(doc);
-      }, 2000);
-    };
-
-    timeoutRefs.current.push(setTimeout(inject, 400));
-    timeoutRefs.current.push(setTimeout(inject, 1000));
-
-    return () => {
-      active = false;
-      observerRef.current?.disconnect();
-      observerRef.current = null;
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      timeoutRefs.current.forEach(clearTimeout);
-      timeoutRefs.current = [];
-    };
-  }, [allowAds, enhancedSrc, retry]);
+  }, [src, isLoading, retry]);
 
   // Gesture controls for seeking
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -429,7 +180,7 @@ export function IframePlayer({
       if (video) {
         try {
           video.currentTime = newTime;
-        } catch (e) {
+        } catch {
           // May fail if video not ready
         }
       }
@@ -450,7 +201,7 @@ export function IframePlayer({
         try {
           video.volume = newVolume;
           showHud(`🔊 ${Math.round(newVolume * 100)}%`);
-        } catch (e) {
+        } catch {
           // May fail
         }
       }
@@ -523,7 +274,7 @@ export function IframePlayer({
     return () => window.removeEventListener("keydown", handleKey);
   }, [showHud]);
 
-  if (!enhancedSrc) {
+  if (!src) {
     return (
       <div className={`${className} flex items-center justify-center bg-black/40`}>
         <div className="text-center text-white/70">
@@ -571,7 +322,7 @@ export function IframePlayer({
       <iframe
         key={retry}
         ref={iframeRef}
-        src={enhancedSrc}
+        src={src}
         className="h-full w-full border-0 pointer-events-auto"
         style={{
           width: '100%',

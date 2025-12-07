@@ -35,6 +35,7 @@ async function VideoPlayer({
     let cleanName = serverName.replace(/\s*#\d+\s*/g, "").trim();
     
     if (name.includes("vietsub")) return "Vietsub";
+    if (name.includes("lồng") || name.includes("long")) return "Lồng tiếng";
     if (name.includes("thuyết") || name.includes("thuyet")) return "Thuyết minh";
     return cleanName;
   };
@@ -127,13 +128,14 @@ async function VideoPlayer({
       console.log("[VideoPlayer] Skipping search - base name same as movie name or too short");
     }
 
-    // Lọc chỉ giữ lại 2 server: Vietsub và Thuyết minh
+    // Lọc giữ lại 3 server: Vietsub, Thuyết minh và Lồng tiếng
     let filteredEpisodes = Array.isArray(movie.episodes) ? movie.episodes : [];
     filteredEpisodes = filteredEpisodes.filter((server) => {
       const serverName = server?.server_name || "";
       return (
         /vietsub/i.test(serverName) ||
-        /thuyết\s*minh|thuyet\s*minh/i.test(serverName)
+        /thuyết\s*minh|thuyet\s*minh/i.test(serverName) ||
+        /lồng\s*tiếng|long\s*tieng/i.test(serverName)
       );
     });
 
@@ -155,6 +157,7 @@ async function VideoPlayer({
     // Nếu là phim lẻ, lấy episode đầu tiên từ server mặc định
     if (isPhimLe && filteredEpisodes.length > 0) {
       const defaultServerForPhimLe = filteredEpisodes.find((s) => /vietsub/i.test(s.server_name)) ||
+        filteredEpisodes.find((s) => /lồng\s*tiếng|long\s*tieng/i.test(s.server_name)) ||
         filteredEpisodes.find((s) => /thuyết\s*minh|thuyet\s*minh/i.test(s.server_name)) ||
         filteredEpisodes[0];
       
@@ -187,8 +190,10 @@ async function VideoPlayer({
           const serverName = (server?.server_name || "").toLowerCase();
           return (
             serverName.includes("vietsub") && normalizedServerParam.includes("vietsub") ||
-            (serverName.includes("thuyết") || serverName.includes("thuyet")) && 
-            (normalizedServerParam.includes("thuyet") || normalizedServerParam.includes("thuyết"))
+            ((serverName.includes("lồng") || serverName.includes("long")) &&
+             (normalizedServerParam.includes("long") || normalizedServerParam.includes("lồng"))) ||
+            ((serverName.includes("thuyết") || serverName.includes("thuyet")) && 
+             (normalizedServerParam.includes("thuyet") || normalizedServerParam.includes("thuyết")))
           );
         }) || null;
         
@@ -278,9 +283,10 @@ async function VideoPlayer({
     }
 
     if (!currentEpisode) {
-      // Fallback: chọn server mặc định (ưu tiên Vietsub, sau đó Thuyết minh)
+      // Fallback: chọn server mặc định (ưu tiên Vietsub, sau đó Lồng tiếng, cuối cùng Thuyết minh)
       const defaultServer = filteredEpisodes.length > 0
         ? filteredEpisodes.find((s) => /vietsub/i.test(s.server_name)) ||
+          filteredEpisodes.find((s) => /lồng\s*tiếng|long\s*tieng/i.test(s.server_name)) ||
           filteredEpisodes.find((s) =>
             /thuyết\s*minh|thuyet\s*minh/i.test(s.server_name)
           ) ||

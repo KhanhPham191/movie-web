@@ -16,12 +16,12 @@ function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
 
 export async function Top10PhimBo() {
   try {
-    // Giảm số pages: 3 Hàn, 2 Trung, 2 Thái, 3 Âu Mỹ (thay vì 5)
+    // Giảm số pages để tối ưu: 1 page mỗi country
     const [hanQuoc, trungQuoc, thaiLan, auMy] = await Promise.all([
-      getFilmsByCountryMultiple("han-quoc", 2), // Giảm từ 2 xuống 2 (giữ nguyên)
-      getFilmsByCountryMultiple("trung-quoc", 2), // Giảm từ 3 xuống 2
-      getFilmsByCountryMultiple("thai-lan", 2), // Giữ nguyên
-      getFilmsByCountryMultiple("au-my", 3), // Giảm từ 5 xuống 3
+      getFilmsByCountryMultiple("han-quoc", 1),
+      getFilmsByCountryMultiple("trung-quoc", 1),
+      getFilmsByCountryMultiple("thai-lan", 1),
+      getFilmsByCountryMultiple("au-my", 2),
     ]);
 
     // Lọc Trung Quốc

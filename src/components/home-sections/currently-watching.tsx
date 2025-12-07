@@ -143,14 +143,25 @@ export function CurrentlyWatchingSection() {
 
     fetchData();
 
-    // Refresh khi focus lại tab/window (khi user quay lại từ trang xem phim)
+    // Refresh khi focus lại tab/window với debounce để tránh gọi quá nhiều
+    let focusTimeout: NodeJS.Timeout | null = null;
     const handleFocus = () => {
+      // Clear timeout cũ nếu có
+      if (focusTimeout) {
+        clearTimeout(focusTimeout);
+      }
+      // Debounce 2 giây để tránh gọi quá nhiều khi user switch tabs nhanh
+      focusTimeout = setTimeout(() => {
       fetchData();
+      }, 2000);
     };
 
     window.addEventListener("focus", handleFocus);
     return () => {
       window.removeEventListener("focus", handleFocus);
+      if (focusTimeout) {
+        clearTimeout(focusTimeout);
+      }
     };
   }, [isAuthenticated]);
 

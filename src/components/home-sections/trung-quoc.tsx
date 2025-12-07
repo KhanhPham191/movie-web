@@ -12,8 +12,8 @@ function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
 
 export async function TrungQuocSection() {
   try {
-    // Giảm từ 3 pages xuống 2 pages
-    const trungQuoc = await getFilmsByCountryMultiple("trung-quoc", 2);
+    // Giảm từ 2 pages xuống 1 page để tối ưu
+    const trungQuoc = await getFilmsByCountryMultiple("trung-quoc", 1);
     const trungQuocFiltered = await filterChinaNonAnimation(trungQuoc);
     const desiredChinaCount = 10;
     const trungQuocSeen = new Set((trungQuocFiltered || []).map((m) => m.slug));

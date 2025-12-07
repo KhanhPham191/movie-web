@@ -18,8 +18,8 @@ function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
 
 export async function Top10PhimLe() {
   try {
-    // Giảm từ 10 pages xuống 5 pages để tối ưu
-    const phimLeRaw = await getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 5);
+    // Giảm từ 5 pages xuống 3 pages để tối ưu
+    const phimLeRaw = await getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 3);
     const phimLeSorted = sortByModifiedDesc(phimLeRaw || []);
     const phimLeFiltered = await filterPhimLeByCurrentYear(phimLeSorted, 10);
     const phimLe = phimLeFiltered.slice(0, 10);

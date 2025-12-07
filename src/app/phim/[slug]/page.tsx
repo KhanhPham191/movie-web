@@ -62,13 +62,15 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
       countryType: Array.isArray(movie.country) ? "array" : typeof movie.country,
     });
 
-    // Prefer poster_url for better quality in hero section
-    const backdropUrl = getImageUrl(movie.poster_url || movie.poster_url);
-    const posterUrl = getImageUrl(movie.poster_url || movie.poster_url);
+    // backdropUrl: prefer thumb_url (landscape/backdrop), fallback to poster_url
+    // posterUrl: prefer poster_url (portrait/poster), fallback to thumb_url
+    const backdropUrl = getImageUrl(movie.thumb_url || movie.poster_url);
+    const posterUrl = getImageUrl(movie.poster_url || movie.thumb_url);
 
-    // Chọn server mặc định: ưu tiên Vietsub, sau đó Thuyết minh, cuối cùng là server đầu tiên
+    // Chọn server mặc định: ưu tiên Vietsub, sau đó Lồng tiếng, sau đó Thuyết minh, cuối cùng là server đầu tiên
     const defaultServer = Array.isArray(movie.episodes)
       ? movie.episodes.find((s) => /vietsub/i.test(s.server_name)) ||
+        movie.episodes.find((s) => /lồng\s*tiếng|long\s*tieng/i.test(s.server_name)) ||
         movie.episodes.find((s) => /thuyết\s*minh|thuyet\s*minh/i.test(s.server_name)) ||
         movie.episodes[0]
       : undefined;

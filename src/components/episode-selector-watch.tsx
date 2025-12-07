@@ -37,13 +37,14 @@ export function EpisodeSelectorWatch({
   movieName,
   posterUrl,
 }: EpisodeSelectorWatchProps) {
-  // Lọc chỉ giữ lại 2 server: Vietsub và Thuyết minh
+  // Lọc giữ lại 3 server: Vietsub, Thuyết minh và Lồng tiếng
   const filteredServers = useMemo(() => {
     return servers.filter((server) => {
       const serverName = (server?.server_name || "").toLowerCase();
       return (
         /vietsub/i.test(serverName) ||
-        /thuyết\s*minh|thuyet\s*minh/i.test(serverName)
+        /thuyết\s*minh|thuyet\s*minh/i.test(serverName) ||
+        /lồng\s*tiếng|long\s*tieng/i.test(serverName)
       );
     });
   }, [servers]);
@@ -71,6 +72,7 @@ export function EpisodeSelectorWatch({
     
     // Kiểm tra loại server sau khi đã clean
     if (name.includes("vietsub")) return "Vietsub";
+    if (name.includes("lồng") || name.includes("long")) return "Lồng tiếng";
     if (name.includes("thuyết") || name.includes("thuyet")) return "Thuyết minh";
     return cleanName;
   };
@@ -79,6 +81,7 @@ export function EpisodeSelectorWatch({
   const getServerParam = (serverName: string) => {
     const name = serverName.toLowerCase();
     if (name.includes("vietsub")) return "vietsub";
+    if (name.includes("lồng") || name.includes("long")) return "long-tieng";
     if (name.includes("thuyết") || name.includes("thuyet")) return "thuyet-minh";
     return "";
   };

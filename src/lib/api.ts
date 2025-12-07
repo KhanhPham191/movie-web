@@ -71,15 +71,28 @@ const DEFAULT_FETCH_HEADERS: HeadersInit = {
   "Accept-Language": "vi,en;q=0.9",
 };
 
-// Fetch with error handling
+// Request cache để tránh duplicate calls trong cùng một request cycle
+const requestCache = new Map<string, Promise<any>>();
+
+// Fetch with error handling và request deduplication
 async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T> {
   const url = `${base}${endpoint}`;
+  const cacheKey = url;
+  
+  // Nếu đã có request đang chạy cho cùng URL, reuse nó
+  if (requestCache.has(cacheKey)) {
+    console.log("[API] Reusing cached request:", url);
+    return requestCache.get(cacheKey) as Promise<T>;
+  }
+  
   console.log("[API] Fetching:", url);
   
+  // Tạo promise và cache nó
+  const fetchPromise = (async () => {
   try {
     // For newly updated films endpoint, use shorter cache (10 minutes)
-    // For other endpoints, use longer cache (1 hour)
-    const revalidate = endpoint.includes('phim-moi-cap-nhat') ? 600 : 3600;
+      // For other endpoints, use longer cache (2 hours để giảm số lần gọi API)
+      const revalidate = endpoint.includes('phim-moi-cap-nhat') ? 600 : 7200;
     
     const res = await fetch(url, {
       next: { revalidate }, // Dynamic cache based on endpoint
@@ -181,6 +194,20 @@ async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T
       } as T;
     }
   }
+  })();
+  
+  // Xóa cache sau khi promise hoàn thành (resolve hoặc reject)
+  // Sử dụng .finally() để đảm bảo cache chỉ bị xóa sau khi promise thực sự hoàn thành
+  fetchPromise
+    .finally(() => {
+      // Xóa cache sau một khoảng thời gian ngắn để các duplicate requests có thể reuse
+      setTimeout(() => {
+        requestCache.delete(cacheKey);
+      }, 100);
+    });
+  
+  requestCache.set(cacheKey, fetchPromise);
+  return fetchPromise;
 }
 
 // Get newly updated films
@@ -326,7 +353,7 @@ export function getImageUrl(path: unknown): string {
   return path;
 }
 
-// Fetch multiple pages and combine results
+// Fetch multiple pages and combine results với tối ưu batch requests
 export async function getMultiplePages(
   fetchFn: (page: number) => Promise<FilmListResponse>,
   pages: number = 3
@@ -360,18 +387,25 @@ export async function getMultiplePages(
       return firstPage.items || [];
     }
     
-    // Fetch remaining pages in parallel
-    const remainingPromises = Array.from({ length: pagesToFetch - 1 }, (_, i) => 
-      fetchFn(i + 2).catch(() => null) // Return null on error instead of throwing
+    // Batch requests: fetch tối đa 3 pages cùng lúc để tránh quá tải
+    const BATCH_SIZE = 3;
+    const remainingPages = pagesToFetch - 1;
+    const allResults: FilmListResponse[] = [firstPage];
+    
+    // Fetch remaining pages theo batch
+    for (let i = 0; i < remainingPages; i += BATCH_SIZE) {
+      const batchPromises = Array.from(
+        { length: Math.min(BATCH_SIZE, remainingPages - i) },
+        (_, j) => fetchFn(i + j + 2).catch(() => null)
     );
     
-    const remainingResults = await Promise.all(remainingPromises);
-    const validResults = remainingResults.filter((r): r is FilmListResponse => 
-      r !== null && r.status !== "error"
+      const batchResults = await Promise.all(batchPromises);
+      const validBatchResults = batchResults.filter(
+        (r): r is FilmListResponse => r !== null && r.status !== "error"
     );
+      allResults.push(...validBatchResults);
+    }
     
-    // Combine all results
-    const allResults = [firstPage, ...validResults];
     return allResults.flatMap((r) => r.items || []);
   } catch (error) {
     // If even page 1 fails, return empty array
