@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Noto_Sans, Noto_Sans_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
@@ -47,7 +48,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <URLCleaner />
+            <Suspense fallback={null}>
+              <URLCleaner />
+            </Suspense>
             {children}
           </AuthProvider>
         </ThemeProvider>
