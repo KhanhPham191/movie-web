@@ -515,6 +515,7 @@ export function Header() {
                 )}
               </div>
             </div>
+            )
           )}
 
           {/* Mobile search icon */}
