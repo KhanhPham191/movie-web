@@ -648,8 +648,13 @@ export function Header() {
                       </p>
                     </div>
                     <DropdownMenuItem asChild>
-                      <Link href="/tro-giup" className="text-gray-200 hover:text-white cursor-pointer">
-                        Trung tâm trợ giúp
+                      <Link href="/tai-khoan" className="text-gray-200 hover:text-white cursor-pointer">
+                        Tài khoản
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/yeu-thich" className="text-gray-200 hover:text-white cursor-pointer">
+                        Danh sách yêu thích
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem 
