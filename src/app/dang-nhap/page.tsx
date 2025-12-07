@@ -19,7 +19,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -32,17 +32,17 @@ export default function LoginPage() {
     setError("");
     setIsLoading(true);
 
-    if (!email || !password) {
+    if (!username || !password) {
       setError("Vui lòng nhập đầy đủ thông tin");
       setIsLoading(false);
       return;
     }
 
-    const { error } = await signIn(email, password);
+    const { error } = await signIn(username, password);
     setIsLoading(false);
 
     if (error) {
-      setError(error.message || "Email hoặc mật khẩu không đúng");
+      setError(error.message || "Tài khoản hoặc mật khẩu không đúng");
     } else {
       router.push("/");
       router.refresh();
@@ -90,15 +90,15 @@ export default function LoginPage() {
                 </div>
               )}
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-gray-300">
-                  Email
+                <label htmlFor="username" className="text-sm font-medium text-gray-300">
+                  Tài khoản
                 </label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="username"
+                  type="text"
+                  placeholder="Tên đăng nhập"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500"
                   disabled={isLoading}
                   required

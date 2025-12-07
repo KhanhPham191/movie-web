@@ -19,7 +19,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 
 export default function SignUpPage() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
@@ -35,8 +35,21 @@ export default function SignUpPage() {
     setSuccess(false);
     setIsLoading(true);
 
-    if (!email || !password) {
+    if (!username || !password) {
       setError("Vui lòng nhập đầy đủ thông tin");
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate username format
+    if (!/^[a-zA-Z0-9_]+$/.test(username.trim())) {
+      setError("Tên đăng nhập chỉ được dùng chữ cái, số và dấu gạch dưới (_)");
+      setIsLoading(false);
+      return;
+    }
+
+    if (username.trim().length < 3) {
+      setError("Tên đăng nhập phải có ít nhất 3 ký tự");
       setIsLoading(false);
       return;
     }
@@ -47,17 +60,17 @@ export default function SignUpPage() {
       return;
     }
 
-    const { error } = await signUp(email, password, name || undefined);
+    const { error } = await signUp(username, password, name || undefined);
     setIsLoading(false);
 
     if (error) {
       setError(error.message || "Đăng ký thất bại. Vui lòng thử lại.");
     } else {
       setSuccess(true);
-      // Supabase sẽ gửi email xác nhận, chuyển về trang đăng nhập sau 3 giây
+      // Chuyển về trang đăng nhập sau 2 giây
       setTimeout(() => {
         router.push("/dang-nhap");
-      }, 3000);
+      }, 2000);
     }
   };
 
@@ -100,7 +113,7 @@ export default function SignUpPage() {
                 <div className="p-4 rounded-md bg-green-500/10 border border-green-500/20 text-green-400">
                   <p className="font-semibold mb-2">Đăng ký thành công!</p>
                   <p className="text-sm">
-                    Chúng tôi đã gửi email xác nhận đến <strong>{email}</strong>. Vui lòng kiểm tra hộp thư và xác nhận tài khoản trước khi đăng nhập.
+                    Tài khoản <strong>{username}</strong> đã được tạo thành công. Bạn có thể đăng nhập ngay.
                   </p>
                 </div>
                 <p className="text-sm text-gray-400">
@@ -129,19 +142,24 @@ export default function SignUpPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium text-gray-300">
-                    Email <span className="text-red-400">*</span>
+                  <label htmlFor="username" className="text-sm font-medium text-gray-300">
+                    Tài khoản <span className="text-red-400">*</span>
                   </label>
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    id="username"
+                    type="text"
+                    placeholder="Tên đăng nhập (chỉ chữ, số, dấu _)"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500"
                     disabled={isLoading}
                     required
+                    pattern="[a-zA-Z0-9_]+"
+                    title="Chỉ được dùng chữ cái, số và dấu gạch dưới"
                   />
+                  <p className="text-xs text-gray-500">
+                    Chỉ được dùng chữ cái, số và dấu gạch dưới (_). Tối thiểu 3 ký tự.
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="password" className="text-sm font-medium text-gray-300">

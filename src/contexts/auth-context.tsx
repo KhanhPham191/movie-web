@@ -7,8 +7,8 @@ import type { User } from "@supabase/supabase-js";
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any | null }>;
-  signUp: (email: string, password: string, name?: string) => Promise<{ error: any | null }>;
+  signIn: (username: string, password: string) => Promise<{ error: any | null }>;
+  signUp: (username: string, password: string, name?: string) => Promise<{ error: any | null }>;
   signInWithGoogle: () => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
@@ -79,8 +79,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [supabase.auth]);
 
-  const signIn = async (email: string, password: string) => {
+  // Helper function để convert username thành email format cho Supabase
+  const usernameToEmail = (username: string): string => {
+    // Loại bỏ khoảng trắng và chuyển thành lowercase
+    const cleanUsername = username.trim().toLowerCase().replace(/\s+/g, '');
+    // Chỉ giữ lại chữ, số và dấu gạch dưới
+    const sanitized = cleanUsername.replace(/[^a-z0-9_]/g, '');
+    return `${sanitized}@movpey.local`;
+  };
+
+  const signIn = async (username: string, password: string) => {
     try {
+      // Convert username thành email format
+      const email = usernameToEmail(username);
+      
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -99,6 +111,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             } 
           };
         }
+        // Nếu là lỗi invalid credentials, đổi message
+        if (error.message?.includes('Invalid login credentials') || error.message?.includes('invalid')) {
+          return {
+            error: {
+              message: 'Tài khoản hoặc mật khẩu không đúng'
+            }
+          };
+        }
       }
       
       return { error };
@@ -112,15 +132,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string, name?: string) => {
+  const signUp = async (username: string, password: string, name?: string) => {
     try {
+      // Validate username format
+      const cleanUsername = username.trim();
+      if (!/^[a-zA-Z0-9_]+$/.test(cleanUsername)) {
+        return {
+          error: {
+            message: 'Tên đăng nhập chỉ được dùng chữ cái, số và dấu gạch dưới (_)'
+          }
+        };
+      }
+
+      if (cleanUsername.length < 3) {
+        return {
+          error: {
+            message: 'Tên đăng nhập phải có ít nhất 3 ký tự'
+          }
+        };
+      }
+
+      // Convert username thành email format
+      const email = usernameToEmail(cleanUsername);
+      
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            name: name || email.split("@")[0],
+            name: name || cleanUsername,
+            username: cleanUsername, // Lưu username thật vào metadata
           },
+          emailRedirectTo: undefined, // Tắt email confirmation để đăng ký nhanh
         },
       });
       
@@ -139,6 +182,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             error: { 
               message: 'Không thể kết nối đến Supabase. Vui lòng kiểm tra file .env.local và cấu hình NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY. Xem README.md để biết thêm chi tiết.' 
             } 
+          };
+        }
+        // Nếu user đã tồn tại
+        if (error.message?.includes('already registered') || error.message?.includes('already exists')) {
+          return {
+            error: {
+              message: 'Tên đăng nhập này đã được sử dụng. Vui lòng chọn tên khác.'
+            }
           };
         }
       }
