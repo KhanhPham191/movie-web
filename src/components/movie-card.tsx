@@ -39,7 +39,15 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
       <Link href={`/phim/${movie.slug}`}>
         <div className="group relative flex flex-col h-full">
           {/* Poster */}
-          <div className="relative aspect-[2/3] w-full rounded-md overflow-hidden transition-transform duration-300 group-hover:scale-105 bg-muted flex-shrink-0">
+          <div 
+            className="relative aspect-[2/3] w-full rounded-md overflow-hidden transition-transform duration-300 group-hover:scale-105 bg-muted flex-shrink-0"
+            style={{
+              willChange: "transform",
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden",
+              transform: "translateZ(0)",
+            }}
+          >
             <Image
               src={imageUrl}
               alt={movie.name}
@@ -328,10 +336,14 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
           }`}
           style={{
             transformOrigin: index === 0 ? "left center" : "center center",
+            willChange: "transform",
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            transform: "translateZ(0)",
           }}
         >
           {/* Thumbnail - 16:9 using thumb_url (crop center) */}
-          <div className="relative aspect-video w-full">
+          <div className="relative aspect-video w-full overflow-hidden rounded-md">
             <Image
               src={imageUrl}
               alt={movie.name}

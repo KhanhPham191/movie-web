@@ -200,6 +200,41 @@
 /* Smooth scroll */
 html {
   scroll-behavior: smooth;
+  /* Prevent horizontal scroll on iPad */
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
+body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+  position: relative;
+}
+
+/* Fix iPad zoom and horizontal scroll */
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari */
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+}
+
+/* Prevent horizontal scroll on all devices */
+* {
+  max-width: 100%;
+}
+
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
 }
 
 /* Card hover effects */
@@ -301,4 +336,44 @@ html {
   outline: none !important;
   box-shadow: none !important;
   -webkit-appearance: none;
+}
+
+/* Fix iPad horizontal scroll and zoom issues */
+@media screen and (max-width: 1024px) {
+  html, body {
+    overflow-x: hidden !important;
+    position: relative;
+    width: 100%;
+    max-width: 100vw;
+  }
+  
+  /* Prevent horizontal scroll on scrollable containers */
+  [class*="overflow-x-auto"],
+  [class*="overflow-x-scroll"] {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
+  }
+  
+  /* Fix card jagged edges on iPad */
+  [class*="rounded"],
+  img {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Fix card border-radius jagged edges on all devices */
+.rounded-md,
+.rounded-lg,
+.rounded-xl {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  isolation: isolate;
 }

@@ -42,7 +42,15 @@ export function CurrentlyWatchingCard({ item, index = 0 }: CurrentlyWatchingCard
     <Link href={href}>
       <div className="group relative flex flex-col h-full cursor-pointer">
         {/* Poster với progress bar - Nổi bật hơn */}
-        <div className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-muted transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_8px_30px_rgba(251,116,62,0.4)] group-hover:border-2 group-hover:border-[#fb743E]/50 flex-shrink-0 border border-transparent">
+        <div 
+          className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-muted transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_8px_30px_rgba(251,116,62,0.4)] group-hover:border-2 group-hover:border-[#fb743E]/50 flex-shrink-0 border border-transparent"
+          style={{
+            willChange: "transform",
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            transform: "translateZ(0)",
+          }}
+        >
           <Image
             src={imageUrl}
             alt={item.movie_name}

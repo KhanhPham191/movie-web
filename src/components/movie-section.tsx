@@ -205,6 +205,9 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
           style={{
             scrollBehavior: isDragging ? 'auto' : 'smooth',
             willChange: isDragging ? 'scroll-position' : 'auto',
+            overscrollBehaviorX: 'contain',
+            WebkitOverflowScrolling: 'touch',
+            touchAction: 'pan-x',
           }}
           className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
@@ -396,6 +399,9 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
           style={{
             scrollBehavior: isDragging ? 'auto' : 'smooth',
             willChange: isDragging ? 'scroll-position' : 'auto',
+            overscrollBehaviorX: 'contain',
+            WebkitOverflowScrolling: 'touch',
+            touchAction: 'pan-x',
           }}
           className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
