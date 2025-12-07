@@ -41,10 +41,8 @@ export function SignupModal({ open, onOpenChange, onSwitchToLogin }: SignupModal
       setName("");
       setError("");
       setSuccess(false);
-      // Mở modal đăng nhập nếu có callback
-      if (onSwitchToLogin) {
-        onSwitchToLogin();
-      }
+      // Refresh trang để cập nhật trạng thái đăng nhập
+      router.refresh();
     }, 2000);
   };
 
