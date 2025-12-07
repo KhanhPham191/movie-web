@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Search, Bell, ChevronDown, LogIn } from "lucide-react";
 import { getImageUrl, type FilmItem } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,14 @@ export function Header() {
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
   const [hasNewNotifications, setHasNewNotifications] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const { user, signOut, isAuthenticated } = useAuth();
+
+  // Ẩn search bar trên các trang auth
+  const hideSearch = pathname?.startsWith('/dang-nhap') || 
+                     pathname?.startsWith('/dang-ky') || 
+                     pathname?.startsWith('/quen-mat-khau') ||
+                     pathname?.startsWith('/dat-lai-mat-khau');
 
   useEffect(() => {
     setIsMounted(true);
@@ -317,7 +324,7 @@ export function Header() {
         {/* Right Side */}
         <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4 shrink-0">
           {/* Desktop search */}
-          {!isScrolled ? (
+          {!isScrolled && !hideSearch ? (
             <div className="relative hidden sm:block mr-2">
               <form
                 onSubmit={handleSearch}
@@ -400,15 +407,16 @@ export function Header() {
               )}
             </div>
           ) : (
-            <div className="hidden sm:flex items-center relative">
-              {!isSearchOpen && (
-                <button
-                  className="p-1.5 hover:text-gray-300 transition-colors"
-                  onClick={() => setIsSearchOpen(true)}
-                >
-                  <Search className="w-4 h-4" />
-                </button>
-              )}
+            !hideSearch && (
+              <div className="hidden sm:flex items-center relative">
+                {!isSearchOpen && (
+                  <button
+                    className="p-1.5 hover:text-gray-300 transition-colors"
+                    onClick={() => setIsSearchOpen(true)}
+                  >
+                    <Search className="w-4 h-4" />
+                  </button>
+                )}
               <div className={`relative transition-all duration-300 ${
                 isSearchOpen ? 'w-56 md:w-72 lg:w-96 opacity-100' : 'w-0 opacity-0 pointer-events-none'
               }`}>
@@ -510,12 +518,14 @@ export function Header() {
           )}
 
           {/* Mobile search icon */}
-          <button
-            className="sm:hidden p-1.5 hover:text-gray-300 transition-colors"
-            onClick={() => setIsMobileSearchOpen(true)}
-          >
-            <Search className="w-4 h-4" />
-          </button>
+          {!hideSearch && (
+            <button
+              className="sm:hidden p-1.5 hover:text-gray-300 transition-colors"
+              onClick={() => setIsMobileSearchOpen(true)}
+            >
+              <Search className="w-4 h-4" />
+            </button>
+          )}
 
           {/* Notifications */}
           {isMounted && (
@@ -683,7 +693,7 @@ export function Header() {
       </div>
 
       {/* Mobile search overlay */}
-      {isMobileSearchOpen && (
+      {isMobileSearchOpen && !hideSearch && (
         <div className="sm:hidden fixed inset-x-0 top-0 z-50 bg-[#0f0f0f] border-b border-white/10 mobile-search">
           <div className="px-3 py-2 flex items-center gap-2">
             <button
