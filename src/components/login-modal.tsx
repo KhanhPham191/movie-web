@@ -75,19 +75,19 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-[#0f0f0f]/95 backdrop-blur border-gray-800">
-        <DialogHeader className="space-y-1.5 sm:space-y-2">
+        <DialogHeader className="space-y-1.5">
           <div className="flex justify-center">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center bg-[linear-gradient(135deg,#fb743E,#ff9d6b)]">
+            <div className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center bg-[linear-gradient(135deg,#fb743E,#ff9d6b)]">
               <Image
                 src="/logo.ico"
                 alt="MovPey"
                 width={36}
                 height={36}
-                className="w-full h-full object-contain sm:w-10 sm:h-10"
+                className="w-full h-full object-contain"
               />
             </div>
           </div>
-          <DialogTitle className="text-base sm:text-lg text-white text-center">Đăng nhập</DialogTitle>
+          <DialogTitle className="text-base text-white text-center">Đăng nhập</DialogTitle>
           <DialogDescription className="text-gray-400 text-center text-xs">
             Đăng nhập để tiếp tục xem phim
           </DialogDescription>
