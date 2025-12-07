@@ -324,7 +324,7 @@ export function Header() {
         {/* Right Side */}
         <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4 shrink-0">
           {/* Desktop search */}
-          {!isScrolled && !hideSearch ? (
+          {!isScrolled && !hideSearch && (
             <div className="relative hidden sm:block mr-2">
               <form
                 onSubmit={handleSearch}
@@ -406,17 +406,19 @@ export function Header() {
                 </div>
               )}
             </div>
-          ) : (
-            !hideSearch && (
-              <div className="hidden sm:flex items-center relative">
-                {!isSearchOpen && (
-                  <button
-                    className="p-1.5 hover:text-gray-300 transition-colors"
-                    onClick={() => setIsSearchOpen(true)}
-                  >
-                    <Search className="w-4 h-4" />
-                  </button>
-                )}
+          )}
+
+          {/* Scrolled search - khi đã scroll và không ẩn search */}
+          {isScrolled && !hideSearch && (
+            <div className="hidden sm:flex items-center relative">
+              {!isSearchOpen && (
+                <button
+                  className="p-1.5 hover:text-gray-300 transition-colors"
+                  onClick={() => setIsSearchOpen(true)}
+                >
+                  <Search className="w-4 h-4" />
+                </button>
+              )}
               <div className={`relative transition-all duration-300 ${
                 isSearchOpen ? 'w-56 md:w-72 lg:w-96 opacity-100' : 'w-0 opacity-0 pointer-events-none'
               }`}>
@@ -515,7 +517,6 @@ export function Header() {
                 )}
               </div>
             </div>
-            )
           )}
 
           {/* Mobile search icon */}
