@@ -101,16 +101,13 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
     // Momentum scrolling - tính average velocity với cải thiện
     if (scrollRef.current && dragState.current.velocities.length > 0) {
       // Lấy velocity trung bình từ các giá trị gần nhất (weighted average)
-      const recentVelocities = dragState.current.velocities.slice(-4);
+      const recentVelocities = dragState.current.velocities.slice(-3);
       const avgVelocity = recentVelocities.reduce((a, b) => a + b, 0) / recentVelocities.length;
       
-      if (Math.abs(avgVelocity) > 0.08) {
-        let momentum = avgVelocity * 24; // Tăng hệ số để mượt hơn
-        const friction = 0.96; // Giảm friction để scroll lâu hơn, mượt hơn
-        const minMomentum = 0.25; // Ngưỡng dừng nhỏ hơn để mượt
-        const maxMomentum = 40; // Giới hạn để tránh jump lớn
-        // Clamp momentum để tránh vượt quá xa
-        momentum = Math.max(Math.min(momentum, maxMomentum), -maxMomentum);
+      if (Math.abs(avgVelocity) > 0.15) {
+        let momentum = avgVelocity * 20; // Tăng hệ số để mượt hơn
+        const friction = 0.94; // Giảm friction để scroll lâu hơn, mượt hơn
+        const minMomentum = 0.5; // Tăng ngưỡng dừng để mượt hơn
         
         const animateMomentum = () => {
           if (!scrollRef.current || Math.abs(momentum) < minMomentum) {
@@ -258,7 +255,7 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
             overscrollBehaviorX: 'contain',
             WebkitOverflowScrolling: 'touch', // Quan trọng cho iOS momentum scrolling
             touchAction: 'pan-x pan-y',
-            scrollSnapType: 'x proximity', // Đổi từ mandatory sang proximity để mượt hơn
+            scrollSnapType: 'none', // Tắt snap để lướt liên tục mượt hơn
             // Tối ưu cho iPad/iOS - giảm thiểu để browser tự tối ưu
             WebkitTransform: 'translate3d(0, 0, 0)',
             transform: 'translate3d(0, 0, 0)',
@@ -268,7 +265,7 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
           {movies.slice(0, 10).map((movie, index) => (
             <div
               key={`${movie.slug}-${index}`}
-              className={`shrink-0 flex flex-col ${getCardWidth()} scroll-snap-align-start`}
+              className={`shrink-0 flex flex-col ${getCardWidth()}`}
               onClick={(e) => {
                 // Prevent click nếu đã drag
                 if (hasDragged.current || dragDistance.current > 5) {
@@ -381,16 +378,13 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
     // Momentum scrolling - tính average velocity với cải thiện
     if (scrollRef.current && dragState.current.velocities.length > 0) {
       // Lấy velocity trung bình từ các giá trị gần nhất (weighted average)
-      const recentVelocities = dragState.current.velocities.slice(-4);
+      const recentVelocities = dragState.current.velocities.slice(-3);
       const avgVelocity = recentVelocities.reduce((a, b) => a + b, 0) / recentVelocities.length;
       
-      if (Math.abs(avgVelocity) > 0.08) {
-        let momentum = avgVelocity * 24; // Tăng hệ số để mượt hơn
-        const friction = 0.96; // Giảm friction để scroll lâu hơn, mượt hơn
-        const minMomentum = 0.25; // Ngưỡng dừng nhỏ hơn để mượt
-        const maxMomentum = 40; // Giới hạn để tránh jump lớn
-        // Clamp momentum để tránh vượt quá xa
-        momentum = Math.max(Math.min(momentum, maxMomentum), -maxMomentum);
+      if (Math.abs(avgVelocity) > 0.15) {
+        let momentum = avgVelocity * 20; // Tăng hệ số để mượt hơn
+        const friction = 0.94; // Giảm friction để scroll lâu hơn, mượt hơn
+        const minMomentum = 0.5; // Tăng ngưỡng dừng để mượt hơn
         
         const animateMomentum = () => {
           if (!scrollRef.current || Math.abs(momentum) < minMomentum) {
@@ -505,7 +499,7 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
             overscrollBehaviorX: 'contain',
             WebkitOverflowScrolling: 'touch', // Quan trọng cho iOS momentum scrolling
             touchAction: 'pan-x pan-y',
-            scrollSnapType: 'x proximity', // Đổi từ mandatory sang proximity để mượt hơn
+            scrollSnapType: 'none', // Tắt snap để lướt liên tục mượt hơn
             // Tối ưu cho iPad/iOS - giảm thiểu để browser tự tối ưu
             WebkitTransform: 'translate3d(0, 0, 0)',
             transform: 'translate3d(0, 0, 0)',
@@ -515,7 +509,7 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
           {movies.slice(0, 10).map((movie, index) => (
             <div 
               key={`${movie.slug}-${index}`} 
-              className="shrink-0 flex flex-col w-[150px] sm:w-[140px] md:w-[160px] lg:w-[180px] scroll-snap-align-start"
+              className="shrink-0 flex flex-col w-[150px] sm:w-[140px] md:w-[160px] lg:w-[180px]"
               onClick={(e) => {
                 // Prevent click nếu đã drag
                 if (hasDragged.current || dragDistance.current > 5) {
