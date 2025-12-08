@@ -375,7 +375,6 @@ async function VideoPlayer({
                   <IframePlayer
                     src={currentEpisode.embed}
                     title={`${movie.name} - ${currentEpisode.name}`}
-                    allowAds={false}
                     className="h-full w-full"
                   />
                 </div>
