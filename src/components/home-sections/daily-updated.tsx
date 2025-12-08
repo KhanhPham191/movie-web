@@ -7,12 +7,13 @@ export async function DailyUpdated() {
     
     const dailyUpdatedRes = await getDailyUpdatedFilms(1).catch((error) => {
       console.error("[DailyUpdated] Failed to fetch daily updated:", error);
-      return { status: "error", items: [], paginate: { current_page: 1, total_page: 1, total_items: 0, items_per_page: 20 } };
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return { status: "error", message: errorMessage, items: [], paginate: { current_page: 1, total_page: 1, total_items: 0, items_per_page: 20 } };
     });
 
     // Kiểm tra nếu API trả về lỗi
     if (dailyUpdatedRes.status === "error") {
-      console.warn("[DailyUpdated] API returned error status:", dailyUpdatedRes.message);
+      console.warn("[DailyUpdated] API returned error status:", dailyUpdatedRes.message || "Unknown error");
       return null; // Return null thay vì <></>
     }
 
