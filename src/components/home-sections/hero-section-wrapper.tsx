@@ -1,5 +1,6 @@
 import { HeroSection } from "@/components/hero-section";
 import {
+  getNewlyUpdatedFilmsMultiple,
   getFilmsByCategoryMultiple,
   CATEGORIES,
   type FilmItem,
@@ -16,8 +17,21 @@ function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
 
 export async function HeroSectionWrapper() {
   try {
-    // Giảm từ 5 pages xuống 3 pages để tối ưu
-    const phimLeRaw = await getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 3);
+    // Ưu tiên dùng phim mới cập nhật để trigger nhanh
+    const phimLeUpdated = await getNewlyUpdatedFilmsMultiple(3).catch((error) => {
+      console.error("[HeroSection] Failed to fetch newly updated films:", error);
+      return [];
+    });
+
+    // Fallback sang category nếu updated rỗng
+    const phimLeRaw =
+      phimLeUpdated.length > 0
+        ? phimLeUpdated
+        : await getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 3).catch((error) => {
+            console.error("[HeroSection] Failed to fetch phim le category:", error);
+            return [];
+          });
+
     const phimLeSorted = sortByModifiedDesc(phimLeRaw || []);
     const phimLeFiltered = await filterPhimLeByCurrentYear(phimLeSorted, 10);
     const phimLe = phimLeFiltered.slice(0, 10);

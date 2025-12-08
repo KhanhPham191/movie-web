@@ -74,6 +74,15 @@ const DEFAULT_FETCH_HEADERS: HeadersInit = {
 // Request cache để tránh duplicate calls trong cùng một request cycle
 const requestCache = new Map<string, Promise<any>>();
 
+// Helper function để tạo timeout promise
+function createTimeoutPromise(timeoutMs: number): Promise<never> {
+  return new Promise((_, reject) => {
+    setTimeout(() => {
+      reject(new Error(`Request timeout after ${timeoutMs}ms`));
+    }, timeoutMs);
+  });
+}
+
 // Fetch with error handling và request deduplication
 async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T> {
   const url = `${base}${endpoint}`;
@@ -94,10 +103,17 @@ async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T
       // For other endpoints, use longer cache (2 hours để giảm số lần gọi API)
       const revalidate = endpoint.includes('phim-moi-cap-nhat') ? 600 : 7200;
     
-    const res = await fetch(url, {
-      next: { revalidate }, // Dynamic cache based on endpoint
-      headers: DEFAULT_FETCH_HEADERS,
-    });
+    // Timeout: 15s cho update phim mới, 30s cho các endpoint khác
+    const timeoutMs = endpoint.includes('phim-moi-cap-nhat') ? 15000 : 30000;
+    
+    // Sử dụng Promise.race để timeout request
+    const res = await Promise.race([
+      fetch(url, {
+        next: { revalidate }, // Dynamic cache based on endpoint
+        headers: DEFAULT_FETCH_HEADERS,
+      }),
+      createTimeoutPromise(timeoutMs),
+    ]) as Response;
 
     console.log("[API] Response status:", res.status, res.statusText);
 
@@ -168,16 +184,25 @@ async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T
     
     return data;
   } catch (error) {
-    // Network errors hoặc các lỗi khác - trả về error response thay vì throw
+    // Network errors, timeout errors hoặc các lỗi khác - trả về error response thay vì throw
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.warn("[API] Fetch error:", errorMessage);
+    
+    // Kiểm tra nếu là timeout error
+    if (errorMessage.includes('timeout')) {
+      const timeoutMs = endpoint.includes('phim-moi-cap-nhat') ? 15000 : 30000;
+      console.warn(`[API] Request timeout after ${timeoutMs}ms:`, url);
+    } else {
+      console.warn("[API] Fetch error:", errorMessage);
+    }
     
     // Trả về error response object để caller có thể xử lý
     if (endpoint.includes('/films/') || endpoint.includes('/danh-sach/')) {
       // FilmListResponse
       return {
         status: "error",
-        message: errorMessage,
+        message: errorMessage.includes('timeout') 
+          ? `Request timeout. Vui lòng thử lại sau.` 
+          : errorMessage,
         items: [],
         paginate: {
           current_page: 1,
@@ -190,7 +215,9 @@ async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T
       // FilmDetailResponse hoặc các response khác
       return {
         status: "error",
-        message: errorMessage,
+        message: errorMessage.includes('timeout')
+          ? `Request timeout. Vui lòng thử lại sau.`
+          : errorMessage,
       } as T;
     }
   }
