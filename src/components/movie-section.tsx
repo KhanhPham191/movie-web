@@ -17,6 +17,8 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const hasDragged = useRef(false);
+  const dragStartTime = useRef<number>(0);
+  const dragDistance = useRef<number>(0);
   const dragState = useRef<{ 
     startX: number; 
     scrollLeft: number; 
@@ -53,8 +55,11 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
     const now = performance.now();
     const dx = e.clientX - dragState.current.startX;
     
-    // Nếu di chuyển > 1px thì coi là drag
-    if (Math.abs(dx) > 1) {
+    // Tính khoảng cách di chuyển
+    dragDistance.current = Math.abs(dx);
+    
+    // Nếu di chuyển > 5px thì coi là drag (tăng threshold để tránh false positive)
+    if (dragDistance.current > 5) {
       hasDragged.current = true;
     }
     
@@ -83,6 +88,7 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
     
     animationFrameRef.current = requestAnimationFrame(() => {
       if (scrollRef.current) {
+        // Sử dụng transform để tối ưu performance, sau đó sync với scrollLeft
         scrollRef.current.scrollLeft = currentScrollLeft;
       }
     });
@@ -91,6 +97,9 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
   const handleMouseUp = useCallback(() => {
     if (!isDragging) return;
     
+    const wasDragging = hasDragged.current;
+    const dragDist = dragDistance.current;
+    
     setIsDragging(false);
     
     if (animationFrameRef.current) {
@@ -98,27 +107,46 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
       animationFrameRef.current = null;
     }
     
-    // Momentum scrolling - tính average velocity
+    // Momentum scrolling - tính average velocity với cải thiện
     if (scrollRef.current && dragState.current.velocities.length > 0) {
-      const avgVelocity = dragState.current.velocities.reduce((a, b) => a + b, 0) / dragState.current.velocities.length;
+      // Lấy velocity trung bình từ các giá trị gần nhất (weighted average)
+      const recentVelocities = dragState.current.velocities.slice(-3);
+      const avgVelocity = recentVelocities.reduce((a, b) => a + b, 0) / recentVelocities.length;
       
-      if (Math.abs(avgVelocity) > 0.1) {
-        let momentum = avgVelocity * 15; // Nhân với hệ số để tăng tốc độ
-        const friction = 0.92;
+      if (Math.abs(avgVelocity) > 0.15) {
+        let momentum = avgVelocity * 20; // Tăng hệ số để mượt hơn
+        const friction = 0.94; // Giảm friction để scroll lâu hơn, mượt hơn
+        const minMomentum = 0.5; // Tăng ngưỡng dừng để mượt hơn
         
         const animateMomentum = () => {
-          if (!scrollRef.current || Math.abs(momentum) < 0.3) {
+          if (!scrollRef.current || Math.abs(momentum) < minMomentum) {
             momentumRef.current = null;
             return;
           }
           
-          scrollRef.current.scrollLeft -= momentum;
+          // Sử dụng easing để mượt hơn
+          const currentScroll = scrollRef.current.scrollLeft;
+          scrollRef.current.scrollLeft = currentScroll - momentum;
           momentum *= friction;
           momentumRef.current = requestAnimationFrame(animateMomentum);
         };
         
         momentumRef.current = requestAnimationFrame(animateMomentum);
       }
+    }
+    
+    // Nếu đã drag, prevent click trong 300ms sau khi thả chuột
+    if (wasDragging || dragDist > 5) {
+      hasDragged.current = true;
+      // Reset sau 300ms để cho phép click bình thường sau đó
+      setTimeout(() => {
+        hasDragged.current = false;
+        dragDistance.current = 0;
+      }, 300);
+    } else {
+      // Nếu không drag, reset ngay
+      hasDragged.current = false;
+      dragDistance.current = 0;
     }
     
     dragState.current.velocities = [];
@@ -245,8 +273,10 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
               momentumRef.current = null;
             }
             
-            // Reset drag flag
+            // Reset drag flag và tracking
             hasDragged.current = false;
+            dragDistance.current = 0;
+            dragStartTime.current = performance.now();
             
             e.preventDefault();
             setIsDragging(true);
@@ -270,9 +300,18 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
           onTouchEnd={handleTouchEnd}
           onClick={(e) => {
             // Nếu đã drag thì prevent click vào movie card
-            if (hasDragged.current) {
+            if (hasDragged.current || dragDistance.current > 5) {
               e.preventDefault();
               e.stopPropagation();
+              return false;
+            }
+          }}
+          onClickCapture={(e) => {
+            // Capture phase để chặn sớm hơn
+            if (hasDragged.current || dragDistance.current > 5) {
+              e.preventDefault();
+              e.stopPropagation();
+              return false;
             }
           }}
           style={{
@@ -287,7 +326,21 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
           {movies.slice(0, 10).map((movie, index) => (
             <div
               key={`${movie.slug}-${index}`}
-              className={`shrink-0 flex flex-col ${getCardWidth()}`}
+              className={`shrink-0 flex flex-col ${getCardWidth()} scroll-snap-align-start`}
+              onClick={(e) => {
+                // Prevent click nếu đã drag
+                if (hasDragged.current || dragDistance.current > 5) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
+              onClickCapture={(e) => {
+                // Capture phase để chặn sớm hơn
+                if (hasDragged.current || dragDistance.current > 5) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
             >
               <MovieCard 
                 movie={movie} 
@@ -308,6 +361,8 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const hasDragged = useRef(false);
+  const dragStartTime = useRef<number>(0);
+  const dragDistance = useRef<number>(0);
   const dragState = useRef<{ 
     startX: number; 
     scrollLeft: number; 
@@ -341,8 +396,11 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
     const now = performance.now();
     const dx = e.clientX - dragState.current.startX;
     
-    // Nếu di chuyển > 1px thì coi là drag
-    if (Math.abs(dx) > 1) {
+    // Tính khoảng cách di chuyển
+    dragDistance.current = Math.abs(dx);
+    
+    // Nếu di chuyển > 5px thì coi là drag (tăng threshold để tránh false positive)
+    if (dragDistance.current > 5) {
       hasDragged.current = true;
     }
     
@@ -371,6 +429,7 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
     
     animationFrameRef.current = requestAnimationFrame(() => {
       if (scrollRef.current) {
+        // Sử dụng transform để tối ưu performance, sau đó sync với scrollLeft
         scrollRef.current.scrollLeft = currentScrollLeft;
       }
     });
@@ -386,21 +445,26 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
       animationFrameRef.current = null;
     }
     
-    // Momentum scrolling - tính average velocity
+    // Momentum scrolling - tính average velocity với cải thiện
     if (scrollRef.current && dragState.current.velocities.length > 0) {
-      const avgVelocity = dragState.current.velocities.reduce((a, b) => a + b, 0) / dragState.current.velocities.length;
+      // Lấy velocity trung bình từ các giá trị gần nhất (weighted average)
+      const recentVelocities = dragState.current.velocities.slice(-3);
+      const avgVelocity = recentVelocities.reduce((a, b) => a + b, 0) / recentVelocities.length;
       
-      if (Math.abs(avgVelocity) > 0.1) {
-        let momentum = avgVelocity * 15; // Nhân với hệ số để tăng tốc độ
-        const friction = 0.92;
+      if (Math.abs(avgVelocity) > 0.15) {
+        let momentum = avgVelocity * 20; // Tăng hệ số để mượt hơn
+        const friction = 0.94; // Giảm friction để scroll lâu hơn, mượt hơn
+        const minMomentum = 0.5; // Tăng ngưỡng dừng để mượt hơn
         
         const animateMomentum = () => {
-          if (!scrollRef.current || Math.abs(momentum) < 0.3) {
+          if (!scrollRef.current || Math.abs(momentum) < minMomentum) {
             momentumRef.current = null;
             return;
           }
           
-          scrollRef.current.scrollLeft -= momentum;
+          // Sử dụng easing để mượt hơn
+          const currentScroll = scrollRef.current.scrollLeft;
+          scrollRef.current.scrollLeft = currentScroll - momentum;
           momentum *= friction;
           momentumRef.current = requestAnimationFrame(animateMomentum);
         };
@@ -409,17 +473,26 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
       }
     }
     
+    // Nếu đã drag, prevent click trong 300ms sau khi thả chuột
+    const wasDragging = hasDragged.current;
+    const dragDist = dragDistance.current;
+    
+    if (wasDragging || dragDist > 5) {
+      hasDragged.current = true;
+      // Reset sau 300ms để cho phép click bình thường sau đó
+      setTimeout(() => {
+        hasDragged.current = false;
+        dragDistance.current = 0;
+      }, 300);
+    } else {
+      // Nếu không drag, reset ngay
+      hasDragged.current = false;
+      dragDistance.current = 0;
+    }
+    
     dragState.current.velocities = [];
     dragState.current.lastX = 0;
     dragState.current.lastTime = 0;
-    
-    // Reset hasDragged sau một khoảng thời gian ngắn để cho phép click bình thường nếu không drag
-    const wasDragging = hasDragged.current;
-    if (!wasDragging) {
-      setTimeout(() => {
-        hasDragged.current = false;
-      }, 0);
-    }
   }, [isDragging]);
 
   // Touch handlers cho iPad/mobile
@@ -505,8 +578,10 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
               momentumRef.current = null;
             }
             
-            // Reset drag flag
+            // Reset drag flag và tracking
             hasDragged.current = false;
+            dragDistance.current = 0;
+            dragStartTime.current = performance.now();
             
             e.preventDefault();
             setIsDragging(true);
@@ -530,9 +605,18 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
           onTouchEnd={handleTouchEnd}
           onClick={(e) => {
             // Nếu đã drag thì prevent click vào movie card
-            if (hasDragged.current) {
+            if (hasDragged.current || dragDistance.current > 5) {
               e.preventDefault();
               e.stopPropagation();
+              return false;
+            }
+          }}
+          onClickCapture={(e) => {
+            // Capture phase để chặn sớm hơn
+            if (hasDragged.current || dragDistance.current > 5) {
+              e.preventDefault();
+              e.stopPropagation();
+              return false;
             }
           }}
           style={{
@@ -541,11 +625,29 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
             overscrollBehaviorX: 'contain',
             WebkitOverflowScrolling: 'touch',
             touchAction: 'pan-x pan-y',
+            scrollSnapType: 'x mandatory',
           }}
-          className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} scroll-smooth`}
         >
           {movies.slice(0, 10).map((movie, index) => (
-            <div key={`${movie.slug}-${index}`} className="shrink-0 flex flex-col w-[150px] sm:w-[140px] md:w-[160px] lg:w-[180px]">
+            <div 
+              key={`${movie.slug}-${index}`} 
+              className="shrink-0 flex flex-col w-[150px] sm:w-[140px] md:w-[160px] lg:w-[180px] scroll-snap-align-start"
+              onClick={(e) => {
+                // Prevent click nếu đã drag
+                if (hasDragged.current || dragDistance.current > 5) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
+              onClickCapture={(e) => {
+                // Capture phase để chặn sớm hơn
+                if (hasDragged.current || dragDistance.current > 5) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
+            >
               <MovieCard movie={movie} index={index} variant="top10" rank={index + 1} />
             </div>
           ))}
