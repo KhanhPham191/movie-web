@@ -101,13 +101,16 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
     // Momentum scrolling - tính average velocity với cải thiện
     if (scrollRef.current && dragState.current.velocities.length > 0) {
       // Lấy velocity trung bình từ các giá trị gần nhất (weighted average)
-      const recentVelocities = dragState.current.velocities.slice(-3);
+      const recentVelocities = dragState.current.velocities.slice(-4);
       const avgVelocity = recentVelocities.reduce((a, b) => a + b, 0) / recentVelocities.length;
       
-      if (Math.abs(avgVelocity) > 0.15) {
-        let momentum = avgVelocity * 20; // Tăng hệ số để mượt hơn
-        const friction = 0.94; // Giảm friction để scroll lâu hơn, mượt hơn
-        const minMomentum = 0.5; // Tăng ngưỡng dừng để mượt hơn
+      if (Math.abs(avgVelocity) > 0.08) {
+        let momentum = avgVelocity * 24; // Tăng hệ số để mượt hơn
+        const friction = 0.96; // Giảm friction để scroll lâu hơn, mượt hơn
+        const minMomentum = 0.25; // Ngưỡng dừng nhỏ hơn để mượt
+        const maxMomentum = 40; // Giới hạn để tránh jump lớn
+        // Clamp momentum để tránh vượt quá xa
+        momentum = Math.max(Math.min(momentum, maxMomentum), -maxMomentum);
         
         const animateMomentum = () => {
           if (!scrollRef.current || Math.abs(momentum) < minMomentum) {
@@ -378,13 +381,16 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
     // Momentum scrolling - tính average velocity với cải thiện
     if (scrollRef.current && dragState.current.velocities.length > 0) {
       // Lấy velocity trung bình từ các giá trị gần nhất (weighted average)
-      const recentVelocities = dragState.current.velocities.slice(-3);
+      const recentVelocities = dragState.current.velocities.slice(-4);
       const avgVelocity = recentVelocities.reduce((a, b) => a + b, 0) / recentVelocities.length;
       
-      if (Math.abs(avgVelocity) > 0.15) {
-        let momentum = avgVelocity * 20; // Tăng hệ số để mượt hơn
-        const friction = 0.94; // Giảm friction để scroll lâu hơn, mượt hơn
-        const minMomentum = 0.5; // Tăng ngưỡng dừng để mượt hơn
+      if (Math.abs(avgVelocity) > 0.08) {
+        let momentum = avgVelocity * 24; // Tăng hệ số để mượt hơn
+        const friction = 0.96; // Giảm friction để scroll lâu hơn, mượt hơn
+        const minMomentum = 0.25; // Ngưỡng dừng nhỏ hơn để mượt
+        const maxMomentum = 40; // Giới hạn để tránh jump lớn
+        // Clamp momentum để tránh vượt quá xa
+        momentum = Math.max(Math.min(momentum, maxMomentum), -maxMomentum);
         
         const animateMomentum = () => {
           if (!scrollRef.current || Math.abs(momentum) < minMomentum) {

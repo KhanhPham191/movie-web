@@ -1,4 +1,4 @@
-import { Suspense, type ReactElement } from "react";
+import { Suspense } from "react";
 import { Header } from "@/components/header";
 import { CategoryPills } from "@/components/category-pills";
 import { Footer } from "@/components/footer";
@@ -18,20 +18,6 @@ import { ChristmasDecorations } from "@/components/christmas-decorations";
 
 // ISR: Revalidate every 5 minutes để giảm số lần gọi API
 export const revalidate = 300;
-
-// Safe wrapper để tránh crash khi section gặp lỗi
-async function SafeAsyncSection({
-  render,
-}: {
-  render: () => Promise<ReactElement | null> | ReactElement | null;
-}) {
-  try {
-    return await render();
-  } catch (error) {
-    console.error("[Home] Section render error:", error);
-    return null;
-  }
-}
 
 export default async function Home() {
 
@@ -59,7 +45,7 @@ export default async function Home() {
 
       {/* Hero - Priority load */}
       <Suspense fallback={<div className="h-[60vh] bg-[#05050a]" />}>
-            <SafeAsyncSection render={() => <HeroSectionWrapper />} />
+        <HeroSectionWrapper />
       </Suspense>
 
       {/* Content Rows - Premium Layout */}
@@ -102,7 +88,7 @@ export default async function Home() {
               <div className="absolute -inset-4 bg-gradient-to-r from-[#FF2EBC]/5 via-transparent to-[#D946EF]/5 rounded-3xl blur-2xl opacity-50" />
               <div className="relative">
                 <Suspense fallback={<MovieSectionSkeleton />}>
-                  <SafeAsyncSection render={() => <Top10PhimLe />} />
+                  <Top10PhimLe />
                 </Suspense>
               </div>
             </div>
@@ -111,7 +97,7 @@ export default async function Home() {
           {/* Daily Updated - Premium Section */}
           <div className="animate-slide-up">
             <Suspense fallback={<MovieSectionSkeleton />}>
-              <SafeAsyncSection render={() => <DailyUpdated />} />
+              <DailyUpdated />
             </Suspense>
           </div>
 
@@ -121,7 +107,7 @@ export default async function Home() {
               <div className="absolute -inset-4 bg-gradient-to-l from-[#D946EF]/5 via-transparent to-[#FF2EBC]/5 rounded-3xl blur-2xl opacity-50" />
               <div className="relative">
                 <Suspense fallback={<MovieSectionSkeleton />}>
-                  <SafeAsyncSection render={() => <Top10PhimBo />} />
+                  <Top10PhimBo />
                 </Suspense>
               </div>
             </div>
@@ -130,42 +116,42 @@ export default async function Home() {
           {/* Korean Dramas */}
           <div className="animate-slide-up">
             <Suspense fallback={<MovieSectionSkeleton />}>
-              <SafeAsyncSection render={() => <HanQuocSection />} />
+              <HanQuocSection />
             </Suspense>
           </div>
 
           {/* Chinese Dramas */}
           <div className="animate-slide-up">
             <Suspense fallback={<MovieSectionSkeleton />}>
-              <SafeAsyncSection render={() => <TrungQuocSection />} />
+              <TrungQuocSection />
             </Suspense>
           </div>
 
           {/* US-UK Movies */}
           <div className="animate-slide-up">
             <Suspense fallback={<MovieSectionSkeleton />}>
-              <SafeAsyncSection render={() => <AuMySection />} />
+              <AuMySection />
             </Suspense>
           </div>
 
           {/* Thai Movies */}
           <div className="animate-slide-up">
             <Suspense fallback={<MovieSectionSkeleton />}>
-              <SafeAsyncSection render={() => <ThaiLanSection />} />
+              <ThaiLanSection />
             </Suspense>
           </div>
 
           {/* Hong Kong Movies */}
           <div className="animate-slide-up">
             <Suspense fallback={<MovieSectionSkeleton />}>
-              <SafeAsyncSection render={() => <HongKongSection />} />
+              <HongKongSection />
             </Suspense>
           </div>
 
           {/* Anime */}
           <div className="animate-slide-up">
             <Suspense fallback={<MovieSectionSkeleton />}>
-              <SafeAsyncSection render={() => <AnimeSection />} />
+              <AnimeSection />
             </Suspense>
           </div>
         </div>
