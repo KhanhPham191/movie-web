@@ -34,15 +34,6 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
   });
   const animationFrameRef = useRef<number | null>(null);
   const momentumRef = useRef<number | null>(null);
-  const touchState = useRef<{
-    startX: number;
-    startY: number;
-    isScrollingHorizontal: boolean | null;
-  }>({
-    startX: 0,
-    startY: 0,
-    isScrollingHorizontal: null,
-  });
 
   if (!movies || movies.length === 0) {
     return null;
@@ -154,59 +145,7 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
     dragState.current.lastTime = 0;
   }, [isDragging]);
 
-  // Touch handlers cho iPad/mobile
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (!scrollRef.current || e.touches.length === 0) return;
-    
-    const touch = e.touches[0];
-    touchState.current = {
-      startX: touch.clientX,
-      startY: touch.clientY,
-      isScrollingHorizontal: null,
-    };
-    dragState.current.scrollLeft = scrollRef.current.scrollLeft;
-  }, []);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!scrollRef.current || e.touches.length === 0 || touchState.current.isScrollingHorizontal === null) {
-      const touch = e.touches[0];
-      const dx = Math.abs(touch.clientX - touchState.current.startX);
-      const dy = Math.abs(touch.clientY - touchState.current.startY);
-      
-      // Phát hiện hướng scroll sau khi di chuyển ít nhất 10px
-      if (dx > 10 || dy > 10) {
-        touchState.current.isScrollingHorizontal = dx > dy;
-        
-        // Nếu scroll dọc, không preventDefault để cho phép scroll trang
-        if (!touchState.current.isScrollingHorizontal) {
-          return;
-        }
-      } else {
-        return;
-      }
-    }
-    
-    // Chỉ preventDefault khi scroll ngang
-    if (touchState.current.isScrollingHorizontal && scrollRef.current) {
-      e.preventDefault();
-      const touch = e.touches[0];
-      const dx = touch.clientX - touchState.current.startX;
-      
-      if (Math.abs(dx) > 1) {
-        hasDragged.current = true;
-      }
-      
-      scrollRef.current.scrollLeft = dragState.current.scrollLeft - dx;
-    }
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    touchState.current = {
-      startX: 0,
-      startY: 0,
-      isScrollingHorizontal: null,
-    };
-  }, []);
+  // Touch handlers đã bị tắt - để browser tự xử lý scroll trên iPad
 
   // Get card width based on variant
   const getCardWidth = () => {
@@ -295,9 +234,6 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
           }}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
           onClick={(e) => {
             // Nếu đã drag thì prevent click vào movie card
             if (hasDragged.current || dragDistance.current > 5) {
@@ -315,11 +251,14 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
             }
           }}
           style={{
-            scrollBehavior: isDragging ? 'auto' : 'smooth',
-            willChange: isDragging ? 'scroll-position' : 'auto',
+            scrollBehavior: 'auto', // Để iOS tự xử lý với native momentum
             overscrollBehaviorX: 'contain',
-            WebkitOverflowScrolling: 'touch',
+            WebkitOverflowScrolling: 'touch', // Quan trọng cho iOS momentum scrolling
             touchAction: 'pan-x pan-y',
+            scrollSnapType: 'x proximity', // Đổi từ mandatory sang proximity để mượt hơn
+            // Tối ưu cho iPad/iOS - giảm thiểu để browser tự tối ưu
+            WebkitTransform: 'translate3d(0, 0, 0)',
+            transform: 'translate3d(0, 0, 0)',
           }}
           className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
@@ -378,15 +317,6 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
   });
   const animationFrameRef = useRef<number | null>(null);
   const momentumRef = useRef<number | null>(null);
-  const touchState = useRef<{
-    startX: number;
-    startY: number;
-    isScrollingHorizontal: boolean | null;
-  }>({
-    startX: 0,
-    startY: 0,
-    isScrollingHorizontal: null,
-  });
 
   if (!movies || movies.length === 0) return null;
 
@@ -495,59 +425,7 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
     dragState.current.lastTime = 0;
   }, [isDragging]);
 
-  // Touch handlers cho iPad/mobile
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (!scrollRef.current || e.touches.length === 0) return;
-    
-    const touch = e.touches[0];
-    touchState.current = {
-      startX: touch.clientX,
-      startY: touch.clientY,
-      isScrollingHorizontal: null,
-    };
-    dragState.current.scrollLeft = scrollRef.current.scrollLeft;
-  }, []);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!scrollRef.current || e.touches.length === 0 || touchState.current.isScrollingHorizontal === null) {
-      const touch = e.touches[0];
-      const dx = Math.abs(touch.clientX - touchState.current.startX);
-      const dy = Math.abs(touch.clientY - touchState.current.startY);
-      
-      // Phát hiện hướng scroll sau khi di chuyển ít nhất 10px
-      if (dx > 10 || dy > 10) {
-        touchState.current.isScrollingHorizontal = dx > dy;
-        
-        // Nếu scroll dọc, không preventDefault để cho phép scroll trang
-        if (!touchState.current.isScrollingHorizontal) {
-          return;
-        }
-      } else {
-        return;
-      }
-    }
-    
-    // Chỉ preventDefault khi scroll ngang
-    if (touchState.current.isScrollingHorizontal && scrollRef.current) {
-      e.preventDefault();
-      const touch = e.touches[0];
-      const dx = touch.clientX - touchState.current.startX;
-      
-      if (Math.abs(dx) > 1) {
-        hasDragged.current = true;
-      }
-      
-      scrollRef.current.scrollLeft = dragState.current.scrollLeft - dx;
-    }
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    touchState.current = {
-      startX: 0,
-      startY: 0,
-      isScrollingHorizontal: null,
-    };
-  }, []);
+  // Touch handlers đã bị tắt - để browser tự xử lý scroll trên iPad
 
   return (
     <section className="relative py-4 group/section">
@@ -600,9 +478,6 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
           }}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
           onClick={(e) => {
             // Nếu đã drag thì prevent click vào movie card
             if (hasDragged.current || dragDistance.current > 5) {
@@ -620,14 +495,16 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
             }
           }}
           style={{
-            scrollBehavior: isDragging ? 'auto' : 'smooth',
-            willChange: isDragging ? 'scroll-position' : 'auto',
+            scrollBehavior: 'auto', // Để iOS tự xử lý với native momentum
             overscrollBehaviorX: 'contain',
-            WebkitOverflowScrolling: 'touch',
+            WebkitOverflowScrolling: 'touch', // Quan trọng cho iOS momentum scrolling
             touchAction: 'pan-x pan-y',
-            scrollSnapType: 'x mandatory',
+            scrollSnapType: 'x proximity', // Đổi từ mandatory sang proximity để mượt hơn
+            // Tối ưu cho iPad/iOS - giảm thiểu để browser tự tối ưu
+            WebkitTransform: 'translate3d(0, 0, 0)',
+            transform: 'translate3d(0, 0, 0)',
           }}
-          className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} scroll-smooth`}
+          className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
           {movies.slice(0, 10).map((movie, index) => (
             <div 

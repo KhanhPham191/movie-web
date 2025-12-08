@@ -75,7 +75,10 @@ export function LoginModal({ open, onOpenChange, onSwitchToSignup }: LoginModalP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0f0f0f]/95 backdrop-blur border-gray-800">
+      <DialogContent 
+        className="bg-[#0f0f0f]/95 backdrop-blur border-gray-800"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader className="space-y-1.5 sm:space-y-2">
           <div className="flex justify-center">
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center bg-[linear-gradient(135deg,#FF2EBC,#D946EF)]">
