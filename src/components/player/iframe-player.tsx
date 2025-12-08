@@ -135,12 +135,6 @@ export function IframePlayer({
     const container = containerRef.current;
     if (!container) return;
 
-    // Kiểm tra nếu click vào iframe, không chặn gesture để cho phép tương tác với iframe
-    const target = e.target as HTMLElement;
-    if (target.tagName === 'IFRAME' || target === iframeRef.current) {
-      return; // Cho phép click vào iframe
-    }
-
     const startX = e.clientX;
     const startY = e.clientY;
     const video = videoControlRef.current.video;
@@ -329,20 +323,18 @@ export function IframePlayer({
         key={retry}
         ref={iframeRef}
         src={src}
-        className="h-full w-full border-0"
+        className="h-full w-full border-0 pointer-events-auto"
         style={{
           width: '100%',
           height: '100%',
           display: 'block',
           position: 'relative',
-          pointerEvents: 'auto',
-          zIndex: 1,
         }}
         allowFullScreen
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         title={title}
         loading="eager"
-        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-presentation allow-top-navigation-by-user-activation allow-pointer-lock allow-modals allow-downloads"
+        sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
         referrerPolicy="no-referrer-when-downgrade"
       />
 

@@ -1,6 +1,6 @@
 import { MovieSection } from "@/components/movie-section";
+import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import {
-  getNewlyUpdatedFilmsMultiple,
   getFilmsByCategoryMultiple,
   CATEGORIES,
   type FilmItem,
@@ -19,21 +19,11 @@ function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
 export async function Top10PhimLe() {
   try {
     console.log("[Top10PhimLe] Starting to fetch data...");
-
-    // Ưu tiên dùng API phim mới cập nhật để trigger nhanh
-    const phimLeUpdated = await getNewlyUpdatedFilmsMultiple(3).catch((error) => {
-      console.error("[Top10PhimLe] Failed to fetch newly updated films:", error);
+    
+    const phimLeRaw = await getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 3).catch((error) => {
+      console.error("[Top10PhimLe] Failed to fetch phim le:", error);
       return [];
     });
-
-    // Fallback sang category nếu updated rỗng
-    const phimLeRaw =
-      phimLeUpdated.length > 0
-        ? phimLeUpdated
-        : await getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 3).catch((error) => {
-            console.error("[Top10PhimLe] Failed to fetch phim le category:", error);
-            return [];
-          });
 
     console.log("[Top10PhimLe] Fetched phimLeRaw length:", phimLeRaw?.length || 0);
 
