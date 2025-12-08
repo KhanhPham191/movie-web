@@ -92,39 +92,52 @@ async function CategoryContent({
 
     return (
       <>
-        {/* Netflix-style responsive grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
+        {/* Premium Responsive Grid - Max 5 columns */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5 md:gap-6">
           {movies.map((movie, index) => (
-            <MovieCard key={`${movie.slug}-${index}`} movie={movie} index={index} variant="portrait" />
+            <div key={`${movie.slug}-${index}`} className="animate-fade-in" style={{ animationDelay: `${index * 0.05}s` }}>
+              <MovieCard movie={movie} index={index} variant="portrait" />
+            </div>
           ))}
         </div>
 
-        {/* Pagination - centered, mobile friendly */}
-        <div className="mt-8 flex flex-col items-center gap-4">
-          <div className="flex items-center justify-center gap-2">
+        {/* Premium Pagination */}
+        <div className="mt-12 sm:mt-16 flex flex-col items-center gap-6">
+          <div className="flex items-center justify-center gap-2 sm:gap-3">
             {page > 1 && (
               <Link href={`/danh-sach/${slug}?page=${page - 1}`}>
-                <Button variant="outline" size="sm" className="rounded-full px-4 py-1 text-xs sm:text-sm">
-                  <ChevronLeft className="w-4 h-4 mr-1" />
-                  Trang trước
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="relative group/prev rounded-full px-5 py-2 text-sm sm:text-base border-[#FF2EBC]/40 hover:border-[#FF2EBC] hover:bg-[#FF2EBC]/10 backdrop-blur-md transition-all duration-300"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#FF2EBC]/5 to-transparent rounded-full opacity-0 group-hover/prev:opacity-100 transition-opacity" />
+                  <ChevronLeft className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  <span className="relative z-10">Trang trước</span>
                 </Button>
               </Link>
             )}
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 const pageNum = page <= 3 ? i + 1 : page - 2 + i;
                 if (pageNum > totalPages || pageNum < 1) return null;
+                const isActive = pageNum === page;
                 return (
                   <Link key={pageNum} href={`/danh-sach/${slug}?page=${pageNum}`}>
                     <Button
-                      variant={pageNum === page ? "default" : "outline"}
+                      variant={isActive ? "default" : "outline"}
                       size="icon"
-                      className={`h-8 w-8 rounded-full text-xs sm:text-sm ${
-                        pageNum === page ? "bg-primary text-black" : "bg-transparent"
+                      className={`relative h-10 w-10 sm:h-12 sm:w-12 rounded-full text-sm sm:text-base font-semibold transition-all duration-300 ${
+                        isActive 
+                          ? "bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] text-white shadow-[0_4px_15px_rgba(255,46,188,0.4)] hover:shadow-[0_6px_20px_rgba(255,46,188,0.5)]" 
+                          : "bg-transparent border-[#FF2EBC]/30 hover:border-[#FF2EBC] hover:bg-[#FF2EBC]/10 text-white"
                       }`}
                     >
-                      {pageNum}
+                      {isActive && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-full" />
+                      )}
+                      <span className="relative z-10">{pageNum}</span>
                     </Button>
                   </Link>
                 );
@@ -133,17 +146,26 @@ async function CategoryContent({
 
             {page < totalPages && (
               <Link href={`/danh-sach/${slug}?page=${page + 1}`}>
-                <Button variant="outline" size="sm" className="rounded-full px-4 py-1 text-xs sm:text-sm">
-                  Trang sau
-                  <ChevronRight className="w-4 h-4 ml-1" />
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="relative group/next rounded-full px-5 py-2 text-sm sm:text-base border-[#FF2EBC]/40 hover:border-[#FF2EBC] hover:bg-[#FF2EBC]/10 backdrop-blur-md transition-all duration-300"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#FF2EBC]/5 rounded-full opacity-0 group-hover/next:opacity-100 transition-opacity" />
+                  <span className="relative z-10">Trang sau</span>
+                  <ChevronRight className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 ml-2" />
                 </Button>
               </Link>
             )}
           </div>
 
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Trang {page} / {totalPages}
-          </p>
+          {/* Premium Page Info */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#FF2EBC]/10 via-transparent to-[#D946EF]/10 rounded-full blur-xl" />
+            <p className="relative z-10 px-6 py-2 text-sm sm:text-base text-gray-300 font-medium bg-black/40 backdrop-blur-md border border-[#FF2EBC]/20 rounded-full">
+              Trang <span className="text-[#FF2EBC] font-bold">{page}</span> / <span className="text-white">{totalPages}</span>
+            </p>
+          </div>
         </div>
       </>
     );
@@ -174,29 +196,50 @@ export default async function CategoryPage({
       <Header />
 
       <div className="pt-16 sm:pt-20 md:pt-24">
-        {/* Netflix-style category hero header */}
-        <section className="bg-gradient-to-b from-black/70 via-[#141414] to-[#141414] border-b border-white/10">
-          <div className="container mx-auto px-4 py-5 sm:py-7 md:py-8 flex flex-col gap-3 sm:gap-4">
-            <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.25em] text-[#fb743E]">
-              Danh sách phim
-            </p>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white">
-              {categoryName}
+        {/* Premium Category Hero Header */}
+        <section className="relative bg-gradient-to-b from-[#05050a] via-[#0a0a0f] to-[#0f0f0f] border-b border-[#FF2EBC]/10 overflow-hidden">
+          {/* Premium Background Effects */}
+          <div className="absolute inset-0">
+            <div className="absolute left-0 top-0 h-full w-1/3 bg-gradient-to-r from-[#FF2EBC]/5 via-transparent to-transparent" />
+            <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-[#D946EF]/5 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,46,188,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,46,188,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" />
+          </div>
+          <div className="container relative z-10 mx-auto px-4 py-8 sm:py-10 md:py-12 flex flex-col gap-4 sm:gap-5">
+            {/* Premium Badge */}
+            <div className="inline-flex items-center gap-2">
+              <div className="w-1.5 h-6 sm:h-8 bg-gradient-to-b from-[#FF2EBC] to-[#D946EF] rounded-full" />
+              <p className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.3em] text-gradient-premium">
+                Danh sách phim
+              </p>
+            </div>
+            {/* Premium Title */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white leading-tight tracking-tight">
+              <span className="bg-gradient-to-r from-white via-white to-white/90 bg-clip-text text-transparent">
+                {categoryName}
+              </span>
             </h1>
-            <p className="text-xs sm:text-sm text-gray-300 max-w-2xl">
+            <p className="text-sm sm:text-base text-gray-300 max-w-2xl leading-relaxed">
               Khám phá những bộ phim mới được cập nhật liên tục, đề xuất theo xu hướng xem hiện tại trên Phim7.
             </p>
           </div>
         </section>
 
-        {/* Genre pills row */}
-        <div className="bg-[#0f0f0f]">
-          <GenreSection />
+        {/* Premium Genre pills row */}
+        <div className="relative bg-[#0f0f0f] border-b border-[#FF2EBC]/5">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#FF2EBC]/3 via-transparent to-[#D946EF]/3" />
+          <div className="relative z-10">
+            <GenreSection />
+          </div>
         </div>
 
-        {/* Content grid */}
-        <section className="py-6 sm:py-8">
-          <div className="container mx-auto px-2 sm:px-4">
+        {/* Premium Content grid */}
+        <section className="relative py-8 sm:py-10 md:py-12">
+          {/* Premium Background Effects */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="absolute left-0 top-20 h-96 w-96 rounded-full bg-gradient-to-r from-[#FF2EBC]/8 via-transparent to-transparent blur-3xl" />
+            <div className="absolute right-0 top-1/2 h-80 w-80 rounded-full bg-gradient-to-l from-[#D946EF]/8 via-transparent to-transparent blur-3xl" />
+          </div>
+          <div className="container relative z-10 mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
             <Suspense fallback={<MovieSectionSkeleton />}>
               <CategoryContent slug={slug} page={page} />
             </Suspense>

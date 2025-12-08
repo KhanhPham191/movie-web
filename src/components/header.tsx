@@ -279,7 +279,7 @@ export function Header() {
               />
             </div>
             <div className="hidden xs:flex flex-col leading-tight">
-              <span className="text-base xs:text-lg sm:text-xl font-extrabold text-[#fb743E] tracking-tight">
+              <span className="text-base xs:text-lg sm:text-xl font-extrabold text-[#FF2EBC] tracking-tight">
                 MovPey
               </span>
               <span className="text-[9px] xs:text-[10px] sm:text-xs font-medium text-gray-200 tracking-wide">
@@ -382,7 +382,7 @@ export function Header() {
                           <span className="truncate font-semibold text-sm sm:text-base">
                             {s.name || "Không rõ tên phim"}
                           </span>
-                          <span className="text-xs text-[#fb743E] uppercase tracking-wide shrink-0">
+                          <span className="text-xs text-[#FF2EBC] uppercase tracking-wide shrink-0">
                             Xem
                           </span>
                         </div>
@@ -492,7 +492,7 @@ export function Header() {
                             <span className="truncate font-semibold text-sm sm:text-base">
                               {s.name || "Không rõ tên phim"}
                             </span>
-                            <span className="text-xs text-[#fb743E] uppercase tracking-wide shrink-0">
+                            <span className="text-xs text-[#FF2EBC] uppercase tracking-wide shrink-0">
                               Xem
                             </span>
                           </div>
@@ -552,7 +552,7 @@ export function Header() {
                   <h3 className="text-sm font-semibold text-white">Thông báo</h3>
                   <button
                     type="button"
-                    className="text-xs text-[#fb743E] hover:text-white transition-colors"
+                    className="text-xs text-[#FF2EBC] hover:text-white transition-colors"
                     onClick={() => {
                       setHasNewNotifications(false);
                     }}
@@ -632,7 +632,7 @@ export function Header() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="flex items-center gap-1 sm:gap-2 group shrink-0">
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-[linear-gradient(135deg,#fb743E,#ff9d6b)] flex items-center justify-center">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-[linear-gradient(135deg,#FF2EBC,#D946EF)] flex items-center justify-center">
                         <span className="text-xs sm:text-sm font-bold">
                           {(user?.user_metadata?.username || 
                             user?.email?.replace('@movpey.local', '') || 
@@ -769,7 +769,7 @@ export function Header() {
                         <span className="truncate font-semibold text-sm sm:text-base">
                           {s.name || "Không rõ tên phim"}
                         </span>
-                        <span className="text-xs text-[#fb743E] uppercase tracking-wide shrink-0">
+                        <span className="text-xs text-[#FF2EBC] uppercase tracking-wide shrink-0">
                           Xem
                         </span>
                       </div>

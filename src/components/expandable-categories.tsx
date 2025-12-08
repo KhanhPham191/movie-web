@@ -45,7 +45,7 @@ export function ExpandableCategories({
             <Link key={catId} href={`/the-loai/${catSlug}`}>
               <Badge
                 variant="outline"
-                className="bg-[#151515] border-[#fb743E]/30 text-white hover:border-[#fb743E] hover:bg-[#fb743E]/15 cursor-pointer transition-all rounded-full"
+                className="bg-[#151515] border-[#FF2EBC]/30 text-white hover:border-[#FF2EBC] hover:bg-[#FF2EBC]/15 cursor-pointer transition-all rounded-full"
               >
                 {catName}
               </Badge>
@@ -56,7 +56,7 @@ export function ExpandableCategories({
       {hasMore && (
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-1 text-[#fb743E] hover:text-[#fb743E]/80 text-xs sm:text-sm font-medium transition-colors mt-1"
+          className="flex items-center gap-1 text-[#FF2EBC] hover:text-[#FF2EBC]/80 text-xs sm:text-sm font-medium transition-colors mt-1"
         >
           <span>{isExpanded ? "Thu gọn" : "Xem thêm thể loại >"}</span>
           {isExpanded ? (

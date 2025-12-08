@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { MovieCard } from "@/components/movie-card";
@@ -32,6 +32,15 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
   });
   const animationFrameRef = useRef<number | null>(null);
   const momentumRef = useRef<number | null>(null);
+  const touchState = useRef<{
+    startX: number;
+    startY: number;
+    isScrollingHorizontal: boolean | null;
+  }>({
+    startX: 0,
+    startY: 0,
+    isScrollingHorizontal: null,
+  });
 
   if (!movies || movies.length === 0) {
     return null;
@@ -117,6 +126,60 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
     dragState.current.lastTime = 0;
   }, [isDragging]);
 
+  // Touch handlers cho iPad/mobile
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!scrollRef.current || e.touches.length === 0) return;
+    
+    const touch = e.touches[0];
+    touchState.current = {
+      startX: touch.clientX,
+      startY: touch.clientY,
+      isScrollingHorizontal: null,
+    };
+    dragState.current.scrollLeft = scrollRef.current.scrollLeft;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!scrollRef.current || e.touches.length === 0 || touchState.current.isScrollingHorizontal === null) {
+      const touch = e.touches[0];
+      const dx = Math.abs(touch.clientX - touchState.current.startX);
+      const dy = Math.abs(touch.clientY - touchState.current.startY);
+      
+      // Phát hiện hướng scroll sau khi di chuyển ít nhất 10px
+      if (dx > 10 || dy > 10) {
+        touchState.current.isScrollingHorizontal = dx > dy;
+        
+        // Nếu scroll dọc, không preventDefault để cho phép scroll trang
+        if (!touchState.current.isScrollingHorizontal) {
+          return;
+        }
+      } else {
+        return;
+      }
+    }
+    
+    // Chỉ preventDefault khi scroll ngang
+    if (touchState.current.isScrollingHorizontal && scrollRef.current) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const dx = touch.clientX - touchState.current.startX;
+      
+      if (Math.abs(dx) > 1) {
+        hasDragged.current = true;
+      }
+      
+      scrollRef.current.scrollLeft = dragState.current.scrollLeft - dx;
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    touchState.current = {
+      startX: 0,
+      startY: 0,
+      isScrollingHorizontal: null,
+    };
+  }, []);
+
   // Get card width based on variant
   const getCardWidth = () => {
     switch (variant) {
@@ -136,25 +199,32 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
   };
 
   return (
-    <section className="relative py-3 xs:py-4 sm:py-5 group/section">
-      {/* Section Header */}
-      <div className="px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 mb-2 sm:mb-3 md:mb-4">
+    <section className="relative py-4 xs:py-5 sm:py-6 lg:py-8 group/section">
+      {/* Premium Section Header */}
+      <div className="px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 mb-3 sm:mb-4 md:mb-6">
         {href ? (
           <Link
             href={href}
-            className="group/title inline-flex items-center gap-1"
+            className="group/title inline-flex items-center gap-3 relative"
           >
-            <h2 className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white">
-              {title}
-            </h2>
-            <span className="hidden sm:flex items-center text-[#fb743E] text-xs sm:text-sm font-medium opacity-0 max-w-0 group-hover/title:opacity-100 group-hover/title:max-w-[120px] transition-all duration-300 overflow-hidden whitespace-nowrap">
-              Xem tất cả
-              <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
-            </span>
+            {/* Premium accent line */}
+            <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-1 h-8 sm:h-10 bg-gradient-to-b from-[#FF2EBC] to-[#D946EF] rounded-full opacity-0 group-hover/title:opacity-100 transition-opacity duration-300" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <h2 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold text-white tracking-tight relative">
+                <span className="relative z-10">{title}</span>
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] group-hover/title:w-full transition-all duration-500" />
+              </h2>
+              <span className="hidden sm:flex items-center gap-1.5 text-[#FF2EBC] text-xs sm:text-sm font-medium opacity-0 max-w-0 group-hover/title:opacity-100 group-hover/title:max-w-[120px] transition-all duration-300 overflow-hidden whitespace-nowrap">
+                Xem tất cả
+                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover/title:translate-x-1" />
+              </span>
+            </div>
           </Link>
         ) : (
-          <div className="inline-flex items-center gap-1">
-            <h2 className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white">
+          <div className="inline-flex items-center gap-3 relative">
+            {/* Premium accent line */}
+            <div className="w-1 h-8 sm:h-10 bg-gradient-to-b from-[#FF2EBC] to-[#D946EF] rounded-full" />
+            <h2 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold text-white tracking-tight">
               {title}
             </h2>
           </div>
@@ -195,6 +265,9 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
           }}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           onClick={(e) => {
             // Nếu đã drag thì prevent click vào movie card
             if (hasDragged.current) {
@@ -207,7 +280,7 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
             willChange: isDragging ? 'scroll-position' : 'auto',
             overscrollBehaviorX: 'contain',
             WebkitOverflowScrolling: 'touch',
-            touchAction: 'pan-x',
+            touchAction: 'pan-x pan-y',
           }}
           className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
@@ -250,6 +323,15 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
   });
   const animationFrameRef = useRef<number | null>(null);
   const momentumRef = useRef<number | null>(null);
+  const touchState = useRef<{
+    startX: number;
+    startY: number;
+    isScrollingHorizontal: boolean | null;
+  }>({
+    startX: 0,
+    startY: 0,
+    isScrollingHorizontal: null,
+  });
 
   if (!movies || movies.length === 0) return null;
 
@@ -340,6 +422,60 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
     }
   }, [isDragging]);
 
+  // Touch handlers cho iPad/mobile
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!scrollRef.current || e.touches.length === 0) return;
+    
+    const touch = e.touches[0];
+    touchState.current = {
+      startX: touch.clientX,
+      startY: touch.clientY,
+      isScrollingHorizontal: null,
+    };
+    dragState.current.scrollLeft = scrollRef.current.scrollLeft;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!scrollRef.current || e.touches.length === 0 || touchState.current.isScrollingHorizontal === null) {
+      const touch = e.touches[0];
+      const dx = Math.abs(touch.clientX - touchState.current.startX);
+      const dy = Math.abs(touch.clientY - touchState.current.startY);
+      
+      // Phát hiện hướng scroll sau khi di chuyển ít nhất 10px
+      if (dx > 10 || dy > 10) {
+        touchState.current.isScrollingHorizontal = dx > dy;
+        
+        // Nếu scroll dọc, không preventDefault để cho phép scroll trang
+        if (!touchState.current.isScrollingHorizontal) {
+          return;
+        }
+      } else {
+        return;
+      }
+    }
+    
+    // Chỉ preventDefault khi scroll ngang
+    if (touchState.current.isScrollingHorizontal && scrollRef.current) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const dx = touch.clientX - touchState.current.startX;
+      
+      if (Math.abs(dx) > 1) {
+        hasDragged.current = true;
+      }
+      
+      scrollRef.current.scrollLeft = dragState.current.scrollLeft - dx;
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    touchState.current = {
+      startX: 0,
+      startY: 0,
+      isScrollingHorizontal: null,
+    };
+  }, []);
+
   return (
     <section className="relative py-4 group/section">
       {/* Header */}
@@ -389,6 +525,9 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
           }}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           onClick={(e) => {
             // Nếu đã drag thì prevent click vào movie card
             if (hasDragged.current) {
@@ -401,7 +540,7 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
             willChange: isDragging ? 'scroll-position' : 'auto',
             overscrollBehaviorX: 'contain',
             WebkitOverflowScrolling: 'touch',
-            touchAction: 'pan-x',
+            touchAction: 'pan-x pan-y',
           }}
           className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >

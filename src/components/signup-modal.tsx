@@ -105,7 +105,7 @@ export function SignupModal({ open, onOpenChange, onSwitchToLogin }: SignupModal
       <DialogContent className="bg-[#0f0f0f]/95 backdrop-blur border-gray-800">
         <DialogHeader className="space-y-1.5 sm:space-y-2">
           <div className="flex justify-center">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center bg-[linear-gradient(135deg,#fb743E,#ff9d6b)]">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center bg-[linear-gradient(135deg,#FF2EBC,#D946EF)]">
               <Image
                 src="/logo.ico"
                 alt="MovPey"
@@ -195,7 +195,7 @@ export function SignupModal({ open, onOpenChange, onSwitchToLogin }: SignupModal
               </div>
               <Button
                 type="submit"
-                className="w-full bg-[#fb743E] hover:bg-[#fb743E]/90 text-white h-9 text-sm"
+                className="w-full bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] hover:from-[#FF2EBC]/90 hover:to-[#D946EF]/90 text-white h-9 text-sm"
                 disabled={isLoading || isGoogleLoading}
               >
                 {isLoading ? "Đang đăng ký..." : "Đăng ký"}
@@ -248,7 +248,7 @@ export function SignupModal({ open, onOpenChange, onSwitchToLogin }: SignupModal
                 Đã có tài khoản?{" "}
                 <button
                   type="button"
-                  className="text-[#fb743E] hover:underline"
+                  className="text-[#FF2EBC] hover:underline"
                   onClick={() => {
                     onOpenChange(false);
                     if (onSwitchToLogin) {

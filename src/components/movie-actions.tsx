@@ -120,7 +120,7 @@ export function MovieActions({ movie, onRatingChange }: MovieActionsProps) {
         onClick={handleFavorite}
         disabled={loading}
         className={`bg-white/5 border-white/20 text-white hover:bg-white/10 ${
-          favorited ? "bg-[#fb743E]/20 border-[#fb743E] text-[#fb743E]" : ""
+          favorited ? "bg-[#FF2EBC]/20 border-[#FF2EBC] text-[#FF2EBC]" : ""
         }`}
       >
         <Heart className={`w-4 h-4 mr-2 ${favorited ? "fill-current" : ""}`} />

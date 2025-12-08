@@ -76,7 +76,7 @@ export function ExpandableContent({
       {(needsTruncation || !isString) && (
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-1 text-[#fb743E] hover:text-[#fb743E]/80 text-xs sm:text-sm font-medium transition-colors mt-1"
+          className="flex items-center gap-1 text-[#FF2EBC] hover:text-[#FF2EBC]/80 text-xs sm:text-sm font-medium transition-colors mt-1"
         >
           <span>{isExpanded ? "Thu gọn" : title}</span>
           {isExpanded ? (

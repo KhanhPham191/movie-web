@@ -52,20 +52,20 @@
   --card-foreground: #ffffff;
   --popover: #0f0f0f;
   --popover-foreground: #ffffff;
-  --primary: #fb743E;
+  --primary: #FF2EBC;
   --primary-foreground: #ffffff;
   --secondary: #FFF8F0;
   --secondary-foreground: #141414;
   --muted: #2a2a2a;
   --muted-foreground: #a3a3a3;
-  --accent: #ff9d6b;
+  --accent: #D946EF;
   --accent-foreground: #141414;
   --destructive: #b91c1c;
   --border: #333333;
   --input: #333333;
-  --ring: #fb743E;
-  --cta: #fb743E;
-  --accent-light: #ff9d6b;
+  --ring: #FF2EBC;
+  --cta: #FF2EBC;
+  --accent-light: #D946EF;
 }
 
 @layer base {
@@ -164,9 +164,9 @@
   -webkit-backdrop-filter: blur(20px);
   }
 
-/* Selection color */
+/* Premium Selection color */
 ::selection {
-  background: rgba(251, 116, 62, 0.25);
+  background: rgba(255, 46, 188, 0.3);
   color: white;
 }
 
@@ -351,7 +351,7 @@ img, video, iframe {
   [class*="overflow-x-auto"],
   [class*="overflow-x-scroll"] {
     -webkit-overflow-scrolling: touch;
-    touch-action: pan-x;
+    touch-action: pan-x pan-y;
     overscroll-behavior-x: contain;
   }
   
@@ -376,4 +376,68 @@ img, video, iframe {
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
   isolation: isolate;
+}
+
+/* Premium Animations & Effects */
+@keyframes premium-glow {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes premium-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.premium-glow {
+  animation: premium-glow 3s ease-in-out infinite;
+}
+
+.premium-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 46, 188, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: premium-shimmer 3s ease-in-out infinite;
+}
+
+/* Premium Glass Effect */
+.glass-premium {
+  background: rgba(15, 15, 15, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 46, 188, 0.1);
+}
+
+/* Premium Text Gradient */
+.text-gradient-premium {
+  background: linear-gradient(135deg, #FF2EBC 0%, #D946EF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Premium Section Divider */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 46, 188, 0.3) 50%,
+    transparent 100%
+  );
+  margin: 2rem 0;
 }

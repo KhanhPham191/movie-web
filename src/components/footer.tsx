@@ -39,7 +39,7 @@ export function Footer() {
             />
           </div>
           <div className="flex flex-col leading-tight">
-            <span className="text-sm font-semibold text-[#fb743E]">
+            <span className="text-sm font-semibold text-[#FF2EBC]">
               MovPey
             </span>
             <span className="text-[10px] text-gray-300">

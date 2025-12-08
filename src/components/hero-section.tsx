@@ -135,9 +135,12 @@ export function HeroSection({ movies }: HeroSectionProps) {
           </div>
         ))}
         
-        {/* Vignette & Gradients - Tối ưu cho mobile */}
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,15,15,0.1)_0%,rgba(15,15,15,0)_20%,rgba(15,15,15,0)_50%,rgba(15,15,15,0.6)_75%,rgba(15,15,15,0.95)_100%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,15,15,0.4)_0%,rgba(15,15,15,0.1)_25%,rgba(15,15,15,0)_45%)]" />
+        {/* Premium Vignette & Gradients */}
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,5,10,0.1)_0%,rgba(5,5,10,0)_25%,rgba(5,5,10,0)_50%,rgba(5,5,10,0.7)_80%,rgba(5,5,10,0.98)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,5,10,0.5)_0%,rgba(5,5,10,0.15)_30%,rgba(5,5,10,0)_50%)]" />
+        {/* Premium accent gradient */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_70%,rgba(255,46,188,0.15),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(217,70,239,0.12),transparent_60%)]" />
       </div>
 
       {/* Content */}
@@ -146,18 +149,23 @@ export function HeroSection({ movies }: HeroSectionProps) {
           isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
         }`}
       >
-        {/* Badge + Series indicator */}
-        <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-3">
-          <div className="flex items-center gap-0.5 sm:gap-1">
-            <span className="text-[9px] sm:text-xs font-semibold text-gray-200 tracking-widest uppercase">
-              Phim hot
-            </span>
+        {/* Premium Badge */}
+        <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] blur-md opacity-50" />
+            <div className="relative px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-gradient-to-r from-[#FF2EBC]/20 to-[#D946EF]/20 backdrop-blur-md border border-[#FF2EBC]/30">
+              <span className="text-[9px] sm:text-xs font-bold text-white tracking-widest uppercase bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] bg-clip-text text-transparent">
+                Phim hot
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Title */}
-        <h1 className="text-base sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-black text-white mb-1 sm:mb-3 drop-shadow-lg line-clamp-2">
-          {movie.name}
+        {/* Premium Title */}
+        <h1 className="text-base sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-black text-white mb-2 sm:mb-4 drop-shadow-2xl line-clamp-2 leading-tight tracking-tight">
+          <span className="bg-gradient-to-r from-white via-white to-white/90 bg-clip-text text-transparent">
+            {movie.name}
+          </span>
         </h1>
 
         {/* Original Title */}
@@ -204,24 +212,25 @@ export function HeroSection({ movies }: HeroSectionProps) {
           </div>
         )}
 
-        {/* Action Buttons - Tối ưu cho mobile */}
-        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-0">
+        {/* Premium Action Buttons */}
+        <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-0">
           <Link href={`/phim/${movie.slug}`}>
             <Button
               size="lg"
-              className="bg-white hover:bg-white/90 text-black font-bold text-[10px] sm:text-sm md:text-base px-3 sm:px-5 md:px-8 h-8 sm:h-10 md:h-12 rounded-md flex-1 sm:flex-initial"
+              className="relative group/btn bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] hover:from-[#FF2EBC]/90 hover:to-[#D946EF]/90 text-white font-bold text-[10px] sm:text-sm md:text-base px-4 sm:px-6 md:px-8 h-9 sm:h-11 md:h-12 rounded-full shadow-[0_8px_30px_rgba(255,46,188,0.4)] hover:shadow-[0_12px_40px_rgba(255,46,188,0.5)] transition-all duration-300 flex-1 sm:flex-initial border border-[#FF2EBC]/30"
             >
-              <Play className="w-3 h-3 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1 sm:mr-2 fill-black" />
-              Phát
+              <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-full opacity-0 group-hover/btn:opacity-100 transition-opacity" />
+              <Play className="relative z-10 w-3 h-3 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2 fill-white" />
+              <span className="relative z-10">Phát ngay</span>
             </Button>
           </Link>
           <Link href={`/phim/${movie.slug}`}>
             <Button
               size="lg"
               variant="secondary"
-              className="bg-gray-500/70 hover:bg-gray-500/90 text-white font-bold text-[10px] sm:text-sm md:text-base px-3 sm:px-5 md:px-8 h-8 sm:h-10 md:h-12 rounded-md"
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-semibold text-[10px] sm:text-sm md:text-base px-4 sm:px-6 md:px-8 h-9 sm:h-11 md:h-12 rounded-full transition-all duration-300"
             >
-              <Info className="w-3 h-3 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1 sm:mr-2" />
+              <Info className="w-3 h-3 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2" />
               <span className="hidden sm:inline">Thông tin</span>
               <span className="sm:hidden">Info</span>
             </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback, useEffect } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { CurrentlyWatchingCard } from "@/components/currently-watching-card";
@@ -29,6 +29,15 @@ export function CurrentlyWatchingSection() {
   });
   const animationFrameRef = useRef<number | null>(null);
   const momentumRef = useRef<number | null>(null);
+  const touchState = useRef<{
+    startX: number;
+    startY: number;
+    isScrollingHorizontal: boolean | null;
+  }>({
+    startX: 0,
+    startY: 0,
+    isScrollingHorizontal: null,
+  });
 
   // Smooth scroll với momentum - Phải đặt trước early returns
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -106,6 +115,60 @@ export function CurrentlyWatchingSection() {
     dragState.current.lastTime = 0;
   }, [isDragging]);
 
+  // Touch handlers cho iPad/mobile
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!scrollRef.current || e.touches.length === 0) return;
+    
+    const touch = e.touches[0];
+    touchState.current = {
+      startX: touch.clientX,
+      startY: touch.clientY,
+      isScrollingHorizontal: null,
+    };
+    dragState.current.scrollLeft = scrollRef.current.scrollLeft;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!scrollRef.current || e.touches.length === 0 || touchState.current.isScrollingHorizontal === null) {
+      const touch = e.touches[0];
+      const dx = Math.abs(touch.clientX - touchState.current.startX);
+      const dy = Math.abs(touch.clientY - touchState.current.startY);
+      
+      // Phát hiện hướng scroll sau khi di chuyển ít nhất 10px
+      if (dx > 10 || dy > 10) {
+        touchState.current.isScrollingHorizontal = dx > dy;
+        
+        // Nếu scroll dọc, không preventDefault để cho phép scroll trang
+        if (!touchState.current.isScrollingHorizontal) {
+          return;
+        }
+      } else {
+        return;
+      }
+    }
+    
+    // Chỉ preventDefault khi scroll ngang
+    if (touchState.current.isScrollingHorizontal && scrollRef.current) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const dx = touch.clientX - touchState.current.startX;
+      
+      if (Math.abs(dx) > 1) {
+        hasDragged.current = true;
+      }
+      
+      scrollRef.current.scrollLeft = dragState.current.scrollLeft - dx;
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    touchState.current = {
+      startX: 0,
+      startY: 0,
+      isScrollingHorizontal: null,
+    };
+  }, []);
+
   useEffect(() => {
     if (!isAuthenticated) {
       setIsLoading(false);
@@ -168,18 +231,18 @@ export function CurrentlyWatchingSection() {
   // Hiển thị message nếu chưa đăng nhập
   if (!isAuthenticated) {
     return (
-      <section className="relative py-4 xs:py-5 sm:py-6 group/section bg-gradient-to-b from-[#fb743E]/5 via-transparent to-transparent -mx-3 sm:-mx-4 md:-mx-8 lg:-mx-12 px-3 sm:px-4 md:px-8 lg:px-12 rounded-lg">
+      <section className="relative py-4 xs:py-5 sm:py-6 group/section bg-gradient-to-b from-[#FF2EBC]/5 via-transparent to-transparent -mx-3 sm:-mx-4 md:-mx-8 lg:-mx-12 px-3 sm:px-4 md:px-8 lg:px-12 rounded-lg">
         <div className="px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 mb-3 sm:mb-4">
           <div className="inline-flex items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-2">
-              <div className="w-1 h-6 sm:h-8 bg-gradient-to-b from-[#fb743E] to-[#ff9d6b] rounded-full"></div>
+              <div className="w-1 h-6 sm:h-8 bg-gradient-to-b from-[#FF2EBC] to-[#D946EF] rounded-full"></div>
               <h2 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white">
                 Bạn đang xem
               </h2>
             </div>
           </div>
           <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-400">
-            <Link href="/dang-nhap" className="text-[#fb743E] hover:text-[#ff9d6b] underline">
+            <Link href="/dang-nhap" className="text-[#FF2EBC] hover:text-[#D946EF] underline">
               Đăng nhập
             </Link> để lưu tiến độ xem và tiếp tục xem các phim yêu thích của bạn
           </p>
@@ -194,20 +257,32 @@ export function CurrentlyWatchingSection() {
   }
 
   return (
-    <section className="relative py-4 xs:py-5 sm:py-6 group/section bg-gradient-to-b from-[#fb743E]/5 via-transparent to-transparent -mx-3 sm:-mx-4 md:-mx-8 lg:-mx-12 px-3 sm:px-4 md:px-8 lg:px-12 rounded-lg">
-      {/* Section Header - Nổi bật hơn */}
-      <div className="px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 mb-3 sm:mb-4 md:mb-5">
-        <div className="inline-flex items-center gap-2 sm:gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-1 h-6 sm:h-8 bg-gradient-to-b from-[#fb743E] to-[#ff9d6b] rounded-full"></div>
-            <h2 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white">
+    <section className="relative py-6 xs:py-7 sm:py-8 group/section -mx-3 sm:-mx-4 md:-mx-8 lg:-mx-12 px-3 sm:px-4 md:px-8 lg:px-12">
+      {/* Premium Background Glass Effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#FF2EBC]/8 via-[#D946EF]/5 to-transparent rounded-2xl backdrop-blur-sm" />
+      <div className="absolute inset-0 border border-[#FF2EBC]/20 rounded-2xl" />
+      
+      {/* Premium Section Header */}
+      <div className="relative px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 mb-4 sm:mb-5 md:mb-6">
+        <div className="inline-flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-3">
+            {/* Premium accent line with glow */}
+            <div className="relative">
+              <div className="absolute inset-0 w-1.5 h-10 sm:h-12 bg-gradient-to-b from-[#FF2EBC] to-[#D946EF] rounded-full blur-sm opacity-75" />
+              <div className="relative w-1.5 h-10 sm:h-12 bg-gradient-to-b from-[#FF2EBC] to-[#D946EF] rounded-full" />
+            </div>
+            <h2 className="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
               Bạn đang xem
             </h2>
           </div>
-          <div className="px-2 py-1 bg-[#fb743E]/20 border border-[#fb743E]/30 rounded-full">
-            <span className="text-[10px] xs:text-xs text-[#fb743E] font-semibold uppercase tracking-wide">
-              Xem tiếp
-            </span>
+          {/* Premium Badge */}
+          <div className="relative group/badge">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#FF2EBC]/30 to-[#D946EF]/30 rounded-full blur-md group-hover/badge:blur-lg transition-all" />
+            <div className="relative px-3 py-1.5 bg-gradient-to-r from-[#FF2EBC]/20 to-[#D946EF]/20 backdrop-blur-md border border-[#FF2EBC]/40 rounded-full">
+              <span className="text-[10px] xs:text-xs text-[#FF2EBC] font-bold uppercase tracking-wider bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] bg-clip-text text-transparent">
+                Xem tiếp
+              </span>
+            </div>
           </div>
         </div>
         <p className="mt-1.5 sm:mt-2 text-[10px] xs:text-xs text-gray-400">
@@ -246,6 +321,9 @@ export function CurrentlyWatchingSection() {
           }}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           onClick={(e) => {
             if (hasDragged.current) {
               e.preventDefault();
@@ -257,7 +335,7 @@ export function CurrentlyWatchingSection() {
             willChange: isDragging ? 'scroll-position' : 'auto',
             overscrollBehaviorX: 'contain',
             WebkitOverflowScrolling: 'touch',
-            touchAction: 'pan-x',
+            touchAction: 'pan-x pan-y',
           }}
           className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >

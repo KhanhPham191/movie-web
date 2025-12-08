@@ -43,7 +43,7 @@ export function CurrentlyWatchingCard({ item, index = 0 }: CurrentlyWatchingCard
       <div className="group relative flex flex-col h-full cursor-pointer">
         {/* Poster với progress bar - Nổi bật hơn */}
         <div 
-          className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-muted transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_8px_30px_rgba(251,116,62,0.4)] group-hover:border-2 group-hover:border-[#fb743E]/50 flex-shrink-0 border border-transparent"
+          className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-muted transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_8px_30px_rgba(255,46,188,0.4)] group-hover:border-2 group-hover:border-[#FF2EBC]/50 flex-shrink-0 border border-transparent"
           style={{
             willChange: "transform",
             backfaceVisibility: "hidden",
@@ -66,7 +66,7 @@ export function CurrentlyWatchingCard({ item, index = 0 }: CurrentlyWatchingCard
           {progress > 0 && (
             <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-black/60 backdrop-blur-sm">
               <div 
-                className="h-full bg-gradient-to-r from-[#fb743E] to-[#ff9d6b] transition-all duration-300 shadow-[0_0_8px_rgba(251,116,62,0.6)]"
+                className="h-full bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] transition-all duration-300 shadow-[0_0_8px_rgba(255,46,188,0.6)]"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -74,22 +74,22 @@ export function CurrentlyWatchingCard({ item, index = 0 }: CurrentlyWatchingCard
 
           {/* Play button overlay khi hover - Nổi bật hơn */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-            <div className="w-14 h-14 rounded-full bg-[#fb743E] flex items-center justify-center shadow-[0_4px_20px_rgba(251,116,62,0.6)] transform scale-90 group-hover:scale-100 transition-all duration-300 group-hover:shadow-[0_6px_30px_rgba(251,116,62,0.8)]">
+            <div className="w-14 h-14 rounded-full bg-[#FF2EBC] flex items-center justify-center shadow-[0_4px_20px_rgba(255,46,188,0.6)] transform scale-90 group-hover:scale-100 transition-all duration-300 group-hover:shadow-[0_6px_30px_rgba(255,46,188,0.8)]">
               <Play className="w-7 h-7 text-white fill-white ml-1" />
             </div>
           </div>
 
           {/* Episode badge nếu có - Cải thiện */}
           {item.episode_name && (
-            <div className="absolute top-2 right-2 bg-[#fb743E]/90 backdrop-blur-sm px-2 py-1 rounded-md text-white text-[10px] font-bold shadow-lg border border-[#ff9d6b]/30">
+            <div className="absolute top-2 right-2 bg-[#FF2EBC]/90 backdrop-blur-sm px-2 py-1 rounded-md text-white text-[10px] font-bold shadow-lg border border-[#D946EF]/30">
               {item.episode_name}
             </div>
           )}
 
           {/* "Xem tiếp" badge */}
           {progress > 0 && progress < 100 && (
-            <div className="absolute top-2 left-2 bg-black/80 backdrop-blur-sm px-2 py-1 rounded-md border border-[#fb743E]/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <span className="text-[9px] text-[#fb743E] font-bold uppercase tracking-wide">
+            <div className="absolute top-2 left-2 bg-black/80 backdrop-blur-sm px-2 py-1 rounded-md border border-[#FF2EBC]/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span className="text-[9px] text-[#FF2EBC] font-bold uppercase tracking-wide">
                 Xem tiếp
               </span>
             </div>
@@ -107,20 +107,20 @@ export function CurrentlyWatchingCard({ item, index = 0 }: CurrentlyWatchingCard
             <div className="space-y-1">
               <div className="flex items-center justify-between text-[10px]">
                 <span className="text-gray-400">{formatTime(item.watch_time)} / {formatTime(item.total_duration)}</span>
-                <span className="text-[#fb743E] font-bold">{Math.round(progress)}%</span>
+                <span className="text-[#FF2EBC] font-bold">{Math.round(progress)}%</span>
               </div>
               {progress > 0 && progress < 100 && (
                 <div className="flex items-center gap-1.5">
                   <div className="flex-1 h-1 bg-gray-700 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-[#fb743E] to-[#ff9d6b] transition-all duration-300"
+                      className="h-full bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] transition-all duration-300"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
                 </div>
               )}
               {item.total_duration > 0 && (
-                <p className="text-[9px] text-[#fb743E] font-medium">
+                <p className="text-[9px] text-[#FF2EBC] font-medium">
                   {formatRemainingTime(item.watch_time, item.total_duration)}
                 </p>
               )}

@@ -67,7 +67,7 @@ export default function LoginPage() {
         <Card className="w-full max-w-md bg-[#0f0f0f]/95 backdrop-blur border-gray-800">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center bg-[linear-gradient(135deg,#fb743E,#ff9d6b)]">
+              <div className="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center bg-[linear-gradient(135deg,#FF2EBC,#D946EF)]">
                 <Image
                   src="/logo.ico"
                   alt="MovPey"
@@ -121,7 +121,7 @@ export default function LoginPage() {
               </div>
               <Button
                 type="submit"
-                className="w-full bg-[#fb743E] hover:bg-[#fb743E]/90 text-white"
+                className="w-full bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] hover:from-[#FF2EBC]/90 hover:to-[#D946EF]/90 text-white"
                 disabled={isLoading || isGoogleLoading}
               >
                 {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
@@ -173,13 +173,13 @@ export default function LoginPage() {
           <CardFooter className="flex flex-col space-y-2">
             <p className="text-sm text-gray-400 text-center">
               Chưa có tài khoản?{" "}
-              <Link href="/dang-ky" className="text-[#fb743E] hover:underline">
+              <Link href="/dang-ky" className="text-[#FF2EBC] hover:underline">
                 Đăng ký ngay
               </Link>
             </p>
             <Link
               href="/quen-mat-khau"
-              className="text-sm text-gray-400 hover:text-[#fb743E] transition-colors"
+              className="text-sm text-gray-400 hover:text-[#FF2EBC] transition-colors"
             >
               Quên mật khẩu?
             </Link>
