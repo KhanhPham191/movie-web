@@ -3,10 +3,27 @@ import { getDailyUpdatedFilms, type FilmItem } from "@/lib/api";
 
 export async function DailyUpdated() {
   try {
-    const dailyUpdatedRes = await getDailyUpdatedFilms(1);
+    console.log("[DailyUpdated] Starting to fetch data...");
+    
+    const dailyUpdatedRes = await getDailyUpdatedFilms(1).catch((error) => {
+      console.error("[DailyUpdated] Failed to fetch daily updated:", error);
+      return { status: "error", items: [], paginate: { current_page: 1, total_page: 1, total_items: 0, items_per_page: 20 } };
+    });
+
+    // Kiểm tra nếu API trả về lỗi
+    if (dailyUpdatedRes.status === "error") {
+      console.warn("[DailyUpdated] API returned error status:", dailyUpdatedRes.message);
+      return null; // Return null thay vì <></>
+    }
+
     const dailyUpdated = dailyUpdatedRes.items || [];
 
-    if (dailyUpdated.length === 0) return <></>;
+    console.log("[DailyUpdated] Fetched items length:", dailyUpdated.length);
+
+    if (dailyUpdated.length === 0) {
+      console.warn("[DailyUpdated] No movies found, returning null");
+      return null; // Return null thay vì <></>
+    }
 
     return (
       <MovieSection
@@ -17,7 +34,8 @@ export async function DailyUpdated() {
       />
     );
   } catch (error) {
-    console.error("Error fetching daily updated:", error);
-    return <></>;
+    console.error("[DailyUpdated] Unexpected error:", error);
+    // Throw error để Suspense có thể catch và hiển thị skeleton/error
+    throw error;
   }
 }

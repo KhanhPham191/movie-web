@@ -18,13 +18,25 @@ function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
 
 export async function Top10PhimLe() {
   try {
-    // Giảm từ 5 pages xuống 3 pages để tối ưu
-    const phimLeRaw = await getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 3);
+    console.log("[Top10PhimLe] Starting to fetch data...");
+    
+    const phimLeRaw = await getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 3).catch((error) => {
+      console.error("[Top10PhimLe] Failed to fetch phim le:", error);
+      return [];
+    });
+
+    console.log("[Top10PhimLe] Fetched phimLeRaw length:", phimLeRaw?.length || 0);
+
     const phimLeSorted = sortByModifiedDesc(phimLeRaw || []);
     const phimLeFiltered = await filterPhimLeByCurrentYear(phimLeSorted, 10);
     const phimLe = phimLeFiltered.slice(0, 10);
 
-    if (phimLe.length === 0) return <></>;
+    console.log("[Top10PhimLe] Final phimLe length:", phimLe.length);
+
+    if (phimLe.length === 0) {
+      console.warn("[Top10PhimLe] No movies found, returning null");
+      return null; // Return null thay vì <></> để Suspense có thể catch
+    }
 
     return (
       <MovieSection
@@ -34,7 +46,8 @@ export async function Top10PhimLe() {
       />
     );
   } catch (error) {
-    console.error("Error fetching Top 10 phim lẻ:", error);
-    return <></>;
+    console.error("[Top10PhimLe] Unexpected error:", error);
+    // Throw error để Suspense có thể catch và hiển thị skeleton/error
+    throw error;
   }
 }

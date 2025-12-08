@@ -16,16 +16,51 @@ function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
 
 export async function Top10PhimBo() {
   try {
-    // Giảm số pages để tối ưu: 1 page mỗi country
-    const [hanQuoc, trungQuoc, thaiLan, auMy] = await Promise.all([
-      getFilmsByCountryMultiple("han-quoc", 1),
-      getFilmsByCountryMultiple("trung-quoc", 1),
-      getFilmsByCountryMultiple("thai-lan", 1),
-      getFilmsByCountryMultiple("au-my", 2),
+    console.log("[Top10PhimBo] Starting to fetch data...");
+    
+    // Sử dụng Promise.allSettled để không fail khi một promise fail
+    const results = await Promise.allSettled([
+      getFilmsByCountryMultiple("han-quoc", 1).catch((err) => {
+        console.warn("[Top10PhimBo] Failed to fetch han-quoc:", err);
+        return [];
+      }),
+      getFilmsByCountryMultiple("trung-quoc", 1).catch((err) => {
+        console.warn("[Top10PhimBo] Failed to fetch trung-quoc:", err);
+        return [];
+      }),
+      getFilmsByCountryMultiple("thai-lan", 1).catch((err) => {
+        console.warn("[Top10PhimBo] Failed to fetch thai-lan:", err);
+        return [];
+      }),
+      getFilmsByCountryMultiple("au-my", 2).catch((err) => {
+        console.warn("[Top10PhimBo] Failed to fetch au-my:", err);
+        return [];
+      }),
     ]);
 
+    // Xử lý kết quả từ Promise.allSettled
+    const hanQuoc = results[0].status === "fulfilled" ? results[0].value : [];
+    const trungQuoc = results[1].status === "fulfilled" ? results[1].value : [];
+    const thaiLan = results[2].status === "fulfilled" ? results[2].value : [];
+    const auMy = results[3].status === "fulfilled" ? results[3].value : [];
+
+    // Log nếu có request fail
+    results.forEach((result, index) => {
+      if (result.status === "rejected") {
+        const countries = ["han-quoc", "trung-quoc", "thai-lan", "au-my"];
+        console.error(`[Top10PhimBo] ${countries[index]} promise rejected:`, result.reason);
+      }
+    });
+
+    console.log("[Top10PhimBo] Fetched data:", {
+      hanQuoc: hanQuoc?.length || 0,
+      trungQuoc: trungQuoc?.length || 0,
+      thaiLan: thaiLan?.length || 0,
+      auMy: auMy?.length || 0,
+    });
+
     // Lọc Trung Quốc
-    const trungQuocFiltered = await filterChinaNonAnimation(trungQuoc);
+    const trungQuocFiltered = await filterChinaNonAnimation(trungQuoc || []);
     const trungQuocDisplay: FilmItem[] = sortByModifiedDesc(trungQuocFiltered || []).slice(0, 10);
 
     // Top 10 phim bộ
@@ -67,7 +102,12 @@ export async function Top10PhimBo() {
       }
     }
 
-    if (top10Series.length === 0) return <></>;
+    console.log("[Top10PhimBo] Final top10Series length:", top10Series.length);
+
+    if (top10Series.length === 0) {
+      console.warn("[Top10PhimBo] No series found, returning null");
+      return null; // Return null thay vì <></> để Suspense có thể catch
+    }
 
     return (
       <MovieSection
@@ -77,7 +117,8 @@ export async function Top10PhimBo() {
       />
     );
   } catch (error) {
-    console.error("Error fetching Top 10 phim bộ:", error);
-    return <></>;
+    console.error("[Top10PhimBo] Unexpected error:", error);
+    // Throw error để Suspense có thể catch và hiển thị skeleton/error
+    throw error;
   }
 }
