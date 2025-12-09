@@ -253,11 +253,12 @@ export function Header() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 will-change-transform ${
         isScrolled
           ? "bg-black/60 backdrop-blur-md"
           : "bg-gradient-to-b from-black/40 via-black/10 to-transparent"
       }`}
+      style={{ transform: 'translateZ(0)' }}
     >
       <div className={`flex items-center justify-between px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 transition-all duration-500 ${
         isScrolled
@@ -701,7 +702,7 @@ export function Header() {
 
       {/* Mobile search overlay */}
       {isMobileSearchOpen && !hideSearch && (
-        <div className="sm:hidden fixed inset-x-0 top-0 z-50 bg-[#0f0f0f] border-b border-white/10 mobile-search">
+        <div className="sm:hidden fixed inset-x-0 top-0 z-[100] bg-[#0f0f0f] border-b border-white/10 mobile-search">
           <div className="px-3 py-2 flex items-center gap-2">
             <button
               className="px-2 py-1 text-sm text-gray-300 active:scale-95"

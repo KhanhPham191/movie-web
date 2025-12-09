@@ -58,14 +58,12 @@ export default async function Home() {
             <CurrentlyWatchingSection />
           </div>
 
-          {/* Top 10 phim lẻ - Premium Priority Section */}
+          {/* Top 10 phim lẻ - Premium Priority Section (render without Suspense to avoid layout shift) */}
           <div className="mt-4 sm:mt-6 md:mt-8 lg:mt-10 animate-stagger-2">
             <div className="relative">
               <div className="absolute -inset-4 bg-gradient-to-r from-[#F6C453]/5 via-transparent to-[#D3A13A]/5 rounded-3xl blur-2xl opacity-50" />
               <div className="relative">
-                <Suspense fallback={<MovieSectionSkeleton />}>
-                  <Top10PhimLe />
-                </Suspense>
+                <Top10PhimLe />
               </div>
             </div>
           </div>

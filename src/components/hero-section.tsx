@@ -148,8 +148,8 @@ export function HeroSection({ movies }: HeroSectionProps) {
       >
         {/* Premium Badge */}
         <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
-          <div className="px-2 py-0.5 sm:px-4 sm:py-1.5 rounded-full bg-gradient-to-r from-[#F6C453]/90 to-[#D3A13A]/90 backdrop-blur-sm border border-[#F6C453]/40 shadow-md sm:shadow-lg">
-            <span className="text-[8px] sm:text-xs font-bold text-white tracking-widest uppercase">
+          <div className="inline-flex px-1 py-0.5 xs:px-1.5 xs:py-0.5 sm:px-3 sm:py-1 md:px-4 md:py-1.5 rounded-full bg-gradient-to-r from-[#F6C453]/90 to-[#D3A13A]/90 backdrop-blur-sm border-[0.5px] xs:border border-[#F6C453]/40 shadow-sm xs:shadow-md sm:shadow-lg">
+            <span className="text-[7px] xs:text-[8px] sm:text-xs font-bold text-white tracking-tight xs:tracking-wide sm:tracking-widest uppercase whitespace-nowrap">
               Phim hot
             </span>
           </div>

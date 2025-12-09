@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/auth-context";
 export function CurrentlyWatchingSection() {
   const [items, setItems] = useState<CurrentlyWatching[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   const { isAuthenticated } = useAuth();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -179,27 +180,19 @@ export function CurrentlyWatchingSection() {
     };
   }, [isAuthenticated]);
 
-  // Hiển thị message nếu chưa đăng nhập
+  // Kick off enter animation when data sẵn sàng
+  useEffect(() => {
+    if (!isLoading && items.length > 0) {
+      const timer = requestAnimationFrame(() => setIsVisible(true));
+      return () => cancelAnimationFrame(timer);
+    } else {
+      setIsVisible(false);
+    }
+  }, [isLoading, items.length]);
+
+  // Ẩn hoàn toàn nếu chưa đăng nhập
   if (!isAuthenticated) {
-    return (
-      <section className="relative py-4 xs:py-5 sm:py-6 group/section bg-gradient-to-b from-[#F6C453]/5 via-transparent to-transparent -mx-3 sm:-mx-4 md:-mx-8 lg:-mx-12 px-3 sm:px-4 md:px-8 lg:px-12 rounded-lg">
-        <div className="px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 mb-3 sm:mb-4">
-          <div className="inline-flex items-center gap-2 sm:gap-3">
-            <div className="flex items-center gap-2">
-              <div className="w-1 h-6 sm:h-8 bg-gradient-to-b from-[#F6C453] to-[#D3A13A] rounded-full"></div>
-              <h2 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white">
-                Bạn đang xem
-              </h2>
-            </div>
-          </div>
-          <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-400">
-            <Link href="/dang-nhap" className="text-[#F6C453] hover:text-[#D3A13A] underline">
-              Đăng nhập
-            </Link> để lưu tiến độ xem và tiếp tục xem các phim yêu thích của bạn
-          </p>
-        </div>
-      </section>
-    );
+    return null;
   }
 
   // Không hiển thị nếu đang loading hoặc không có dữ liệu
@@ -208,10 +201,11 @@ export function CurrentlyWatchingSection() {
   }
 
   return (
-    <section className="relative py-6 xs:py-7 sm:py-8 group/section -mx-3 sm:-mx-4 md:-mx-8 lg:-mx-12 px-3 sm:px-4 md:px-8 lg:px-12">
-      {/* Premium Background Glass Effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#F6C453]/8 via-[#D3A13A]/5 to-transparent rounded-2xl backdrop-blur-sm" />
-      <div className="absolute inset-0 border border-[#F6C453]/20 rounded-2xl" />
+    <section
+      className={`relative py-6 xs:py-7 sm:py-8 group/section px-0 transition-all duration-500 ease-out ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
+      }`}
+    >
       
       {/* Premium Section Header */}
       <div className="relative px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 mb-4 sm:mb-5 md:mb-6">
@@ -229,8 +223,8 @@ export function CurrentlyWatchingSection() {
           {/* Premium Badge */}
           <div className="relative group/badge">
             <div className="absolute inset-0 bg-gradient-to-r from-[#F6C453]/30 to-[#D3A13A]/30 rounded-full blur-md group-hover/badge:blur-lg transition-all" />
-            <div className="relative px-3 py-1.5 bg-gradient-to-r from-[#F6C453]/20 to-[#D3A13A]/20 backdrop-blur-md border border-[#F6C453]/40 rounded-full">
-              <span className="text-[10px] xs:text-xs text-[#F6C453] font-bold uppercase tracking-wider bg-gradient-to-r from-[#F6C453] to-[#D3A13A] bg-clip-text text-transparent">
+            <div className="relative inline-flex px-1 py-0.5 xs:px-1.5 xs:py-0.5 sm:px-2.5 sm:py-1.5 md:px-3 md:py-1.5 bg-gradient-to-r from-[#F6C453]/20 to-[#D3A13A]/20 backdrop-blur-md border-[0.5px] xs:border border-[#F6C453]/40 rounded-full">
+              <span className="text-[9px] xs:text-[10px] sm:text-xs text-[#F6C453] font-bold uppercase tracking-tight xs:tracking-wide sm:tracking-wider bg-gradient-to-r from-[#F6C453] to-[#D3A13A] bg-clip-text text-transparent whitespace-nowrap">
                 Xem tiếp
               </span>
             </div>
@@ -328,4 +322,3 @@ export function CurrentlyWatchingSection() {
     </section>
   );
 }
-

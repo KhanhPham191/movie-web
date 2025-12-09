@@ -86,10 +86,10 @@ export function CurrentlyWatchingCard({ item, index = 0 }: CurrentlyWatchingCard
             </div>
           )}
 
-          {/* "Xem tiếp" badge */}
+          {/* "Xem tiếp" badge - luôn hiển thị, gọn trên mobile */}
           {progress > 0 && progress < 100 && (
-            <div className="absolute top-2 left-2 bg-black/80 backdrop-blur-sm px-2 py-1 rounded-md border border-[#F6C453]/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <span className="text-[9px] text-[#F6C453] font-bold uppercase tracking-wide">
+            <div className="absolute top-2 left-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/80 backdrop-blur-sm border border-white/10 shadow-sm">
+              <span className="text-[8px] sm:text-[9px] text-white font-semibold uppercase tracking-wide whitespace-nowrap">
                 Xem tiếp
               </span>
             </div>

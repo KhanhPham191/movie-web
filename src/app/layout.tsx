@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { URLCleaner } from "@/components/url-cleaner";
 import { PageTransition } from "@/components/page-transition";
+import { Header } from "@/components/header";
 import "./globals.css";
 
 const siteUrl =
@@ -99,6 +100,8 @@ export default function RootLayout({
             <Suspense fallback={null}>
               <URLCleaner />
             </Suspense>
+            {/* Header outside PageTransition to avoid transform stacking context issues */}
+            <Header />
             <PageTransition>{children}</PageTransition>
           </AuthProvider>
         </ThemeProvider>
