@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { Header } from "@/components/header";
 import { CategoryPills } from "@/components/category-pills";
 import { Footer } from "@/components/footer";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
@@ -14,6 +13,7 @@ import { AuMySection } from "@/components/home-sections/au-my";
 import { ThaiLanSection } from "@/components/home-sections/thai-lan";
 import { HongKongSection } from "@/components/home-sections/hong-kong";
 import { AnimeSection } from "@/components/home-sections/anime";
+import { ChristmasTheme } from "@/components/christmas-theme";
 
 // ISR: Revalidate every 5 minutes để giảm số lần gọi API
 export const revalidate = 300;
@@ -21,17 +21,17 @@ export const revalidate = 300;
 export default async function Home() {
 
   return (
-    <main className="min-h-screen bg-[#0D0D0D] relative overflow-hidden">
-      {/* Header */}
-      <Header />
+    <main className="min-h-screen bg-[#0D0D0D] relative overflow-x-hidden">
+        {/* Christmas Theme - Để tắt: xóa dòng này hoặc set ENABLE_CHRISTMAS_THEME = false trong christmas-theme.tsx */}
+        <ChristmasTheme />
+        
+        {/* Hero - Priority load */}
+        <Suspense fallback={<div className="h-[60vh] bg-[#0D0D0D]" />}>
+          <HeroSectionWrapper />
+        </Suspense>
 
-      {/* Hero - Priority load */}
-      <Suspense fallback={<div className="h-[60vh] bg-[#0D0D0D]" />}>
-        <HeroSectionWrapper />
-      </Suspense>
-
-      {/* Content Rows - Premium Layout */}
-      <div className="relative z-20 -mt-4 sm:-mt-12 md:-mt-18 lg:-mt-24 pb-20 sm:pb-24">
+        {/* Content Rows - Premium Layout */}
+        <div className="relative z-20 -mt-4 sm:-mt-12 md:-mt-18 lg:-mt-24 pb-20 sm:pb-24">
         {/* Premium Background Effects */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           {/* Animated gradient orbs */}
