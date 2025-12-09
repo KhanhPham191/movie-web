@@ -40,7 +40,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
         <div className="group relative flex flex-col h-full">
           {/* Poster */}
           <div 
-            className="relative aspect-[2/3] w-full rounded-md overflow-hidden transition-transform duration-300 group-hover:scale-105 bg-muted flex-shrink-0"
+            className="relative aspect-[2/3] w-full rounded-[10px] overflow-hidden transition-all duration-300 group-hover:scale-105 bg-muted flex-shrink-0 border border-transparent group-hover:border-[rgba(246,196,83,0.3)]"
             style={{
               willChange: "transform",
               backfaceVisibility: "hidden",
@@ -48,6 +48,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               transform: "translateZ(0)",
             }}
           >
+            {/* Overlay vàng khi hover */}
+            <div className="absolute inset-0 bg-[rgba(246,196,83,0.15)] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10" />
             <Image
               src={imageUrl}
               alt={movie.name}
@@ -100,7 +102,9 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div className="relative aspect-[2/3] w-full rounded-md overflow-hidden bg-muted transition-all duration-300 group-hover:scale-105 group-hover:z-10 flex-shrink-0">
+          <div className="relative aspect-[2/3] w-full rounded-[10px] overflow-hidden bg-muted transition-all duration-300 group-hover:scale-105 group-hover:z-10 flex-shrink-0 border border-transparent group-hover:border-[rgba(246,196,83,0.3)]">
+            {/* Overlay vàng khi hover */}
+            <div className="absolute inset-0 bg-[rgba(246,196,83,0.15)] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10" />
             <Image
               src={imageUrl}
               alt={movie.name}
@@ -147,12 +151,14 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
         >
           {/* Poster */}
           <div
-            className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-muted transition-transform duration-150 ease-out group-hover:shadow-2xl flex-shrink-0"
+            className="relative aspect-[2/3] w-full rounded-[10px] overflow-hidden bg-muted transition-all duration-150 ease-out group-hover:shadow-2xl flex-shrink-0 border border-transparent group-hover:border-[rgba(246,196,83,0.3)]"
             style={{
               transform: `perspective(900px) rotateY(${tiltDeg}deg) scale(${isHovered ? 1.06 : 1})`,
               transformStyle: "preserve-3d",
             }}
           >
+            {/* Overlay vàng khi hover */}
+            <div className="absolute inset-0 bg-[rgba(246,196,83,0.15)] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10" />
             <Image
               src={imageUrl}
               alt={movie.name}
@@ -170,7 +176,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
           {/* Rank + Info */}
           <div className="mt-3 flex items-start gap-2 w-full flex-shrink-0">
             {rank && (
-              <div className="text-3xl xs:text-4xl sm:text-5xl font-black text-[#FF2EBC] leading-none flex-shrink-0">
+              <div className="text-3xl xs:text-4xl sm:text-5xl font-black text-[#F6C453] leading-none flex-shrink-0">
                 {rank}
               </div>
             )}
@@ -207,7 +213,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
         >
           {/* Poster */}
           <div
-            className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-muted transition-transform duration-150 ease-out group-hover:shadow-2xl flex-shrink-0"
+            className="relative aspect-[2/3] w-full rounded-[10px] overflow-hidden bg-muted transition-all duration-150 ease-out group-hover:shadow-2xl flex-shrink-0 border border-transparent group-hover:border-[rgba(246,196,83,0.3)]"
             style={{
               transform: isHovered
                 ? "perspective(900px) rotateY(8deg) scale(1.04)"
@@ -215,6 +221,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               transformStyle: "preserve-3d",
             }}
           >
+            {/* Overlay vàng khi hover */}
+            <div className="absolute inset-0 bg-[rgba(246,196,83,0.15)] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10" />
             <Image
               src={imageUrl}
               alt={movie.name}
@@ -258,7 +266,9 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
       <Link href={`/phim/${movie.slug}`}>
         <div className="group relative w-full max-w-full h-full flex flex-col">
           {/* Wide backdrop */}
-          <div className="relative aspect-[16/9] w-full rounded-xl sm:rounded-2xl overflow-hidden bg-muted transition-transform duration-300 group-hover:scale-[1.02] group-hover:shadow-2xl flex-shrink-0">
+          <div className="relative aspect-[16/9] w-full rounded-[10px] overflow-hidden bg-muted transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-2xl flex-shrink-0 border border-transparent group-hover:border-[rgba(246,196,83,0.3)]">
+            {/* Overlay vàng khi hover */}
+            <div className="absolute inset-0 bg-[rgba(246,196,83,0.15)] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10" />
             <Image
               src={backdropUrl}
               alt={movie.name}
@@ -323,16 +333,16 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
   // Default variant - Netflix 2024 horizontal thumbnail
   return (
     <div
-      className="group relative flex flex-col h-full"
+      className="group relative flex flex-col h-full premium-hover"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <Link href={`/phim/${movie.slug}`}>
         <div
-          className={`relative rounded-md overflow-hidden bg-muted transition-all duration-300 ease-out flex-shrink-0 ${
+          className={`relative rounded-[10px] overflow-hidden bg-muted transition-all duration-300 ease-out flex-shrink-0 border border-transparent ${
             isHovered
-              ? "scale-[1.25] sm:scale-[1.35] md:scale-[1.4] z-50 shadow-2xl shadow-black/80 rounded-t-md rounded-b-none"
-              : "scale-100 z-10"
+              ? "scale-[1.25] sm:scale-[1.35] md:scale-[1.4] z-50 shadow-2xl shadow-black/80 border-[rgba(246,196,83,0.3)] rounded-t-[10px] rounded-b-none"
+              : "scale-100 z-10 group-hover:border-[rgba(246,196,83,0.3)]"
           }`}
           style={{
             transformOrigin: index === 0 ? "left center" : "center center",
@@ -342,8 +352,12 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
             transform: "translateZ(0)",
           }}
         >
+          {/* Overlay vàng khi hover */}
+          <div className={`absolute inset-0 bg-[rgba(246,196,83,0.15)] transition-opacity duration-300 pointer-events-none z-10 ${
+            isHovered ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          }`} />
           {/* Thumbnail - 16:9 using thumb_url (crop center) */}
-          <div className="relative aspect-video w-full overflow-hidden rounded-md">
+          <div className="relative aspect-video w-full overflow-hidden rounded-[10px]">
             <Image
               src={imageUrl}
               alt={movie.name}
@@ -374,10 +388,10 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               <div className="flex items-center gap-2">
                 <Button
                   size="icon"
-                  className="w-9 h-9 rounded-full bg-white hover:bg-white/90 text-black"
+                  className="w-9 h-9 rounded-full bg-gradient-to-br from-[#F6C453] to-[#D3A13A] hover:brightness-110 text-white border-0"
                   onClick={(e) => e.preventDefault()}
                 >
-                  <Play className="w-5 h-5 fill-black" />
+                  <Play className="w-5 h-5 fill-white" />
                 </Button>
                 <Button
                   size="icon"

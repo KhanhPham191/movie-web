@@ -92,7 +92,7 @@ export default function SignUpPage() {
         <Card className="w-full max-w-md bg-[#0f0f0f]/95 backdrop-blur border-gray-800">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center bg-[linear-gradient(135deg,#FF2EBC,#D946EF)]">
+              <div className="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center bg-[linear-gradient(135deg,#F6C453,#D3A13A)]">
                 <Image
                   src="/logo.ico"
                   alt="MovPey"
@@ -182,7 +182,7 @@ export default function SignUpPage() {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] hover:from-[#FF2EBC]/90 hover:to-[#D946EF]/90 text-white"
+                  className="w-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white"
                   disabled={isLoading || isGoogleLoading}
                 >
                   {isLoading ? "Đang đăng ký..." : "Đăng ký"}
@@ -235,7 +235,7 @@ export default function SignUpPage() {
           <CardFooter className="flex flex-col space-y-2">
             <p className="text-sm text-gray-400 text-center">
               Đã có tài khoản?{" "}
-              <Link href="/dang-nhap" className="text-[#FF2EBC] hover:underline">
+              <Link href="/dang-nhap" className="text-[#F6C453] hover:underline">
                 Đăng nhập ngay
               </Link>
             </p>

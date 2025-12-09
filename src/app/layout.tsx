@@ -4,7 +4,12 @@ import { Noto_Sans, Noto_Sans_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { URLCleaner } from "@/components/url-cleaner";
+import { PageTransition } from "@/components/page-transition";
 import "./globals.css";
+
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
 
 const notoSans = Noto_Sans({
   variable: "--font-geist-sans",
@@ -24,10 +29,46 @@ export const metadata: Metadata = {
   title: "MovPey - Phim xịn mỗi ngày",
   description:
     "MovPey - Phim xịn mỗi ngày. Nền tảng xem phim trực tuyến với hàng nghìn bộ phim hấp dẫn, cập nhật liên tục.",
+  keywords: [
+    "xem phim",
+    "phim lẻ",
+    "phim bộ",
+    "phim vietsub",
+    "xem phim online",
+    "phim hd",
+  ],
+  metadataBase: new URL(siteUrl),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "MovPey - Phim xịn mỗi ngày",
+    description:
+      "Xem phim online chất lượng cao, cập nhật liên tục, đầy đủ thể loại với Vietsub/Thuyết minh.",
+    url: siteUrl,
+    siteName: "MovPey",
+    locale: "vi_VN",
+    type: "website",
+    images: [
+      {
+        url: "/logo.svg",
+        width: 128,
+        height: 128,
+        alt: "MovPey",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MovPey - Phim xịn mỗi ngày",
+    description:
+      "Xem phim online chất lượng cao, cập nhật liên tục, đầy đủ thể loại với Vietsub/Thuyết minh.",
+    images: ["/logo.svg"],
+  },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
+    icon: [{ url: "/logo.svg", type: "image/svg+xml" }],
+    shortcut: ["/logo.svg"],
+    apple: "/logo.svg",
   },
   viewport: {
     width: "device-width",
@@ -58,7 +99,7 @@ export default function RootLayout({
             <Suspense fallback={null}>
               <URLCleaner />
             </Suspense>
-            {children}
+            <PageTransition>{children}</PageTransition>
           </AuthProvider>
         </ThemeProvider>
       </body>

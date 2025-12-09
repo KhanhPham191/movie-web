@@ -175,13 +175,13 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
             className="group/title inline-flex items-center gap-3 relative"
           >
             {/* Premium accent line */}
-            <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-1 h-8 sm:h-10 bg-gradient-to-b from-[#FF2EBC] to-[#D946EF] rounded-full opacity-0 group-hover/title:opacity-100 transition-opacity duration-300" />
+            <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-1 h-8 sm:h-10 bg-gradient-to-b from-[#F6C453] to-[#D3A13A] rounded-full opacity-0 group-hover/title:opacity-100 transition-opacity duration-300" />
             <div className="flex items-center gap-2 sm:gap-3">
               <h2 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold text-white tracking-tight relative">
                 <span className="relative z-10">{title}</span>
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] group-hover/title:w-full transition-all duration-500" />
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#F6C453] to-[#D3A13A] group-hover/title:w-full transition-all duration-500" />
               </h2>
-              <span className="hidden sm:flex items-center gap-1.5 text-[#FF2EBC] text-xs sm:text-sm font-medium opacity-0 max-w-0 group-hover/title:opacity-100 group-hover/title:max-w-[120px] transition-all duration-300 overflow-hidden whitespace-nowrap">
+              <span className="hidden sm:flex items-center gap-1.5 text-[#F6C453] text-xs sm:text-sm font-medium opacity-0 max-w-0 group-hover/title:opacity-100 group-hover/title:max-w-[120px] transition-all duration-300 overflow-hidden whitespace-nowrap">
                 Xem tất cả
                 <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover/title:translate-x-1" />
               </span>
@@ -190,7 +190,7 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
         ) : (
           <div className="inline-flex items-center gap-3 relative">
             {/* Premium accent line */}
-            <div className="w-1 h-8 sm:h-10 bg-gradient-to-b from-[#FF2EBC] to-[#D946EF] rounded-full" />
+            <div className="w-1 h-8 sm:h-10 bg-gradient-to-b from-[#F6C453] to-[#D3A13A] rounded-full" />
             <h2 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold text-white tracking-tight">
               {title}
             </h2>
@@ -281,12 +281,14 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
                 }
               }}
             >
-              <MovieCard 
-                movie={movie} 
-                index={index} 
-                variant={variant}
-                rank={variant === "top10" || variant === "newRelease" ? index + 1 : undefined}
-              />
+              <div className="card-reveal" style={{ animationDelay: `${index * 0.03}s`, opacity: 0 }}>
+                <MovieCard 
+                  movie={movie} 
+                  index={index} 
+                  variant={variant}
+                  rank={variant === "top10" || variant === "newRelease" ? index + 1 : undefined}
+                />
+              </div>
             </div>
           ))}
         </div>
@@ -525,7 +527,9 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
                 }
               }}
             >
-              <MovieCard movie={movie} index={index} variant="top10" rank={index + 1} />
+              <div className="card-reveal" style={{ animationDelay: `${index * 0.03}s`, opacity: 0 }}>
+                <MovieCard movie={movie} index={index} variant="top10" rank={index + 1} />
+              </div>
             </div>
           ))}
         </div>

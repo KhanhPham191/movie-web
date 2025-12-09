@@ -223,7 +223,7 @@ export default function AccountPage() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] hover:from-[#FF2EBC]/90 hover:to-[#D946EF]/90 text-white"
+                  className="w-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white"
                   disabled={isUpdating}
                 >
                   {isUpdating ? "Đang cập nhật..." : "Cập nhật hồ sơ"}
@@ -278,7 +278,7 @@ export default function AccountPage() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] hover:from-[#FF2EBC]/90 hover:to-[#D946EF]/90 text-white"
+                  className="w-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white"
                   disabled={isChangingPassword}
                 >
                   {isChangingPassword ? "Đang đổi mật khẩu..." : "Đổi mật khẩu"}

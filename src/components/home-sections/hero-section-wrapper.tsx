@@ -16,17 +16,24 @@ function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
 
 export async function HeroSectionWrapper() {
   try {
-    // Giảm từ 5 pages xuống 3 pages để tối ưu
-    const phimLeRaw = await getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 3);
+    // Tăng từ 3 pages lên 5 pages để có nhiều phim lẻ hơn sau khi filter
+    const phimLeRaw = await getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 5);
     const phimLeSorted = sortByModifiedDesc(phimLeRaw || []);
+    
+    // Filter để lấy phim lẻ theo năm phát hành hiện tại, target 10 phim (HeroSection cần 5 phim)
     const phimLeFiltered = await filterPhimLeByCurrentYear(phimLeSorted, 10);
+    
+    // Lấy 10 phim đầu (HeroSection sẽ lấy 5 phim đầu)
     const phimLe = phimLeFiltered.slice(0, 10);
-
-    if (phimLe.length === 0) return <div className="h-[60vh] bg-[#05050a]" />;
+    
+    // Chỉ hiển thị nếu có ít nhất 1 phim lẻ theo năm phát hành (không fallback)
+    if (phimLe.length === 0) {
+      return <div className="h-[60vh] bg-[#0D0D0D]" />;
+    }
 
     return <HeroSection movies={phimLe} />;
   } catch (error) {
     console.error("Error fetching Hero section:", error);
-    return <div className="h-[60vh] bg-[#05050a]" />;
+    return <div className="h-[60vh] bg-[#0D0D0D]" />;
   }
 }

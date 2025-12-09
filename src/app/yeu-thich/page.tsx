@@ -81,7 +81,7 @@ export default function FavoritesPage() {
             <Heart className="w-16 h-16 text-gray-600 mx-auto mb-4" />
             <p className="text-gray-400 text-lg mb-4">Danh sách yêu thích trống</p>
             <Link href="/">
-              <Button className="bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] hover:from-[#FF2EBC]/90 hover:to-[#D946EF]/90 text-white">
+              <Button className="bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white">
                 Khám phá phim
               </Button>
             </Link>
@@ -119,7 +119,7 @@ export default function FavoritesPage() {
                 {/* Title */}
                 <div className="p-3">
                   <Link href={`/phim/${favorite.movie_slug}`}>
-                    <h3 className="text-sm font-semibold text-white line-clamp-2 hover:text-[#FF2EBC] transition-colors">
+                    <h3 className="text-sm font-semibold text-white line-clamp-2 hover:text-[#F6C453] transition-colors">
                       {favorite.movie_name}
                     </h3>
                   </Link>

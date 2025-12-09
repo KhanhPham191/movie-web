@@ -310,7 +310,7 @@ export function IframePlayer({
             <p className="mb-4 text-sm">Không thể tải video</p>
             <button
               onClick={handleRetry}
-              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] px-4 py-2 font-semibold text-white transition-all hover:from-[#FF2EBC]/90 hover:to-[#D946EF]/90 shadow-[0_4px_15px_rgba(255,46,188,0.3)]"
+              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#F6C453] to-[#D3A13A] px-4 py-2 font-semibold text-white transition-all hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 shadow-[0_4px_15px_rgba(246,196,83,0.3)]"
             >
               <RefreshCw className="h-4 w-4" />
               Thử lại

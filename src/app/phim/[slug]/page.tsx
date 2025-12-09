@@ -158,8 +158,8 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
             />
             {/* Premium Gradients */}
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,5,10,0.1)_0%,rgba(5,5,10,0.4)_40%,rgba(5,5,10,0.9)_80%,rgba(5,5,10,1)_100%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,46,188,0.2),transparent_60%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(217,70,239,0.15),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(246,196,83,0.2),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(211,161,58,0.15),transparent_60%)]" />
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,5,10,0.5)_0%,rgba(5,5,10,0.15)_30%,rgba(5,5,10,0)_50%)]" />
           </div>
 
@@ -174,7 +174,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                   </span>
                 )}
                 {movie.current_episode && (
-                  <span className="text-[#FF2EBC] text-[9px] sm:text-[10px] font-semibold">
+                  <span className="text-[#F6C453] text-[9px] sm:text-[10px] font-semibold">
                     {movie.current_episode}
                   </span>
                 )}
@@ -241,7 +241,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                   >
                     <Button
                       size="lg"
-                      className="relative group/btn bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] hover:from-[#FF2EBC]/90 hover:to-[#D946EF]/90 text-white font-bold text-xs sm:text-sm md:text-base px-4 sm:px-6 md:px-8 h-9 sm:h-11 md:h-12 rounded-full shadow-[0_18px_40px_rgba(255,46,188,0.4)] hover:shadow-[0_24px_50px_rgba(255,46,188,0.5)] transition-all duration-300 w-full sm:w-auto border border-[#FF2EBC]/30"
+                      className="relative group/btn bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white font-bold text-xs sm:text-sm md:text-base px-4 sm:px-6 md:px-8 h-9 sm:h-11 md:h-12 rounded-full shadow-[0_18px_40px_rgba(246,196,83,0.4)] hover:shadow-[0_24px_50px_rgba(246,196,83,0.5)] transition-all duration-300 w-full sm:w-auto border border-[#F6C453]/30"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-full opacity-0 group-hover/btn:opacity-100 transition-opacity" />
                       <Play className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2 fill-white" />
@@ -264,9 +264,9 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
         <div className="relative z-10 -mt-16 sm:-mt-20 pt-5 sm:pt-28 pb-16 sm:pb-20 bg-gradient-to-b from-[#05050a] via-[#05050a] to-[#05050a]">
           {/* Premium Background Effects */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute left-0 top-20 h-96 w-96 rounded-full bg-gradient-to-r from-[#FF2EBC]/8 via-transparent to-transparent blur-3xl" />
-            <div className="absolute right-0 top-1/2 h-80 w-80 rounded-full bg-gradient-to-l from-[#D946EF]/8 via-transparent to-transparent blur-3xl" />
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,46,188,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,46,188,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" />
+            <div className="absolute left-0 top-20 h-96 w-96 rounded-full bg-gradient-to-r from-[#F6C453]/8 via-transparent to-transparent blur-3xl" />
+            <div className="absolute right-0 top-1/2 h-80 w-80 rounded-full bg-gradient-to-l from-[#D3A13A]/8 via-transparent to-transparent blur-3xl" />
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(246,196,83,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(246,196,83,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" />
           </div>
           <div className="container relative z-10 mx-auto px-3 sm:px-4 md:px-12 space-y-6 sm:space-y-8 lg:space-y-12">
             {/* Mobile title + meta block trong nền đen dưới hero (tránh bị che trên poster) */}
@@ -281,7 +281,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                   </span>
                 )}
                 {movie.current_episode && (
-                  <span className="text-[#FF2EBC] font-semibold">{movie.current_episode}</span>
+                  <span className="text-[#F6C453] font-semibold">{movie.current_episode}</span>
                 )}
                 {movie.time && <span className="text-white/70">{movie.time}</span>}
               </div>
@@ -302,7 +302,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                 <div className="space-y-1.5 sm:space-y-2">
                   <div className="flex items-center gap-2">
                     <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-white">
-                      <span className="text-[#FF2EBC]">Các phần khác</span>
+                      <span className="text-[#F6C453]">Các phần khác</span>
                     </h2>
                     <span className="text-[10px] sm:text-xs text-gray-400">
                       ({relatedParts.length} {relatedParts.length === 1 ? "phần" : "phần"})
@@ -316,7 +316,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                     <Link
                       key={part.slug}
                       href={`/phim/${part.slug}`}
-                      className="group relative aspect-[2/3] rounded-md sm:rounded-lg md:rounded-xl overflow-hidden bg-[#151515] border border-white/10 hover:border-[#FF2EBC]/50 transition-all duration-300 hover:scale-[1.02] sm:hover:scale-105 hover:shadow-[0_8px_30px_rgba(255,46,188,0.3)]"
+                      className="group relative aspect-[2/3] rounded-md sm:rounded-lg md:rounded-xl overflow-hidden bg-[#151515] border border-white/10 hover:border-[#F6C453]/50 transition-all duration-300 hover:scale-[1.02] sm:hover:scale-105 hover:shadow-[0_8px_30px_rgba(246,196,83,0.3)]"
                     >
                       <Image
                         src={getImageUrl(part.thumb_url || part.poster_url)}
@@ -348,20 +348,20 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
             {/* Premium About Section */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-10 items-start animate-slide-up">
               {/* Left Column - Premium Info */}
-              <div className="md:col-span-2 space-y-3 sm:space-y-4 rounded-xl sm:rounded-2xl bg-white/5 glass-premium border border-[#FF2EBC]/10 p-4 sm:p-6 lg:p-8 relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#FF2EBC]/5 via-transparent to-[#D946EF]/5 rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="md:col-span-2 space-y-3 sm:space-y-4 rounded-xl sm:rounded-2xl bg-white/5 glass-premium border border-[#F6C453]/10 p-4 sm:p-6 lg:p-8 relative group">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#F6C453]/5 via-transparent to-[#D3A13A]/5 rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10">
                 {/* Cast & Crew */}
                 <div className="space-y-3 text-sm">
                   {movie.director && (
                     <div>
-                      <span className="text-[#FF2EBC]/70">Đạo diễn: </span>
+                      <span className="text-[#F6C453]/70">Đạo diễn: </span>
                       <span className="text-white font-medium">{movie.director}</span>
                     </div>
                   )}
                   {movie.casts && (
                     <div>
-                      <span className="text-[#FF2EBC]/70">Diễn viên: </span>
+                      <span className="text-[#F6C453]/70">Diễn viên: </span>
                       <span className="text-white font-medium">{movie.casts}</span>
                     </div>
                   )}
@@ -371,7 +371,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                 {movie.description && (
                   <div className="pt-2">
                     <h3 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
-                      <span className="text-[#FF2EBC]">Về phim này</span>
+                      <span className="text-[#F6C453]">Về phim này</span>
                     </h3>
                     <div
                       className="text-gray-200 text-sm leading-relaxed"
@@ -385,12 +385,12 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
               </div>
 
               {/* Right Column - Premium Details */}
-              <div className="space-y-3 sm:space-y-4 rounded-xl sm:rounded-2xl bg-white/5 glass-premium border border-[#FF2EBC]/10 p-4 sm:p-6 lg:p-8 text-xs sm:text-sm relative group">
-                <div className="absolute inset-0 bg-gradient-to-tl from-[#D946EF]/5 via-transparent to-[#FF2EBC]/5 rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="space-y-3 sm:space-y-4 rounded-xl sm:rounded-2xl bg-white/5 glass-premium border border-[#F6C453]/10 p-4 sm:p-6 lg:p-8 text-xs sm:text-sm relative group">
+                <div className="absolute inset-0 bg-gradient-to-tl from-[#D3A13A]/5 via-transparent to-[#F6C453]/5 rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10">
                 {categories.length > 0 && (
                   <div>
-                    <span className="text-[#FF2EBC]/70 text-sm block mb-1">Thể loại</span>
+                    <span className="text-[#F6C453]/70 text-sm block mb-1">Thể loại</span>
                     <div className="flex flex-wrap gap-2">
                       {categories.map((cat, index) => {
                         const catId =
@@ -412,7 +412,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                           <Link key={catId} href={`/the-loai/${catSlug}`}>
                             <Badge
                               variant="outline"
-                              className="bg-[#151515] border-[#FF2EBC]/30 text-white hover:border-[#FF2EBC] hover:bg-[#FF2EBC]/15 cursor-pointer transition-all rounded-full"
+                              className="bg-[#151515] border-[#F6C453]/30 text-white hover:border-[#F6C453] hover:bg-[#F6C453]/15 cursor-pointer transition-all rounded-full"
                             >
                               {catName}
                             </Badge>
@@ -425,7 +425,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
 
                 {countries.length > 0 && (
                   <div>
-                    <span className="text-[#FF2EBC]/70 text-sm block mb-1">Quốc gia</span>
+                    <span className="text-[#F6C453]/70 text-sm block mb-1">Quốc gia</span>
                     <div className="flex flex-wrap gap-2">
                       {countries.map((country, index) => {
                         const countryId =
@@ -451,7 +451,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                           <Link key={countryId} href={`/quoc-gia/${countrySlug}`}>
                             <Badge
                               variant="outline"
-                              className="bg-[#151515] border-[#FF2EBC]/30 text-white hover:border-[#FF2EBC] hover:bg-[#FF2EBC]/15 cursor-pointer transition-all rounded-full"
+                              className="bg-[#151515] border-[#F6C453]/30 text-white hover:border-[#F6C453] hover:bg-[#F6C453]/15 cursor-pointer transition-all rounded-full"
                             >
                               {countryName}
                             </Badge>
@@ -464,7 +464,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
 
                 {movie.created && (
                   <div>
-                    <span className="text-[#FF2EBC]/70 text-sm block mb-1">Năm phát hành</span>
+                    <span className="text-[#F6C453]/70 text-sm block mb-1">Năm phát hành</span>
                     <span className="text-white">
                       {new Date(movie.created).getFullYear()}
                     </span>
@@ -473,14 +473,14 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
 
                 {movie.time && (
                   <div>
-                    <span className="text-[#FF2EBC]/70 text-sm block mb-1">Thời lượng</span>
+                    <span className="text-[#F6C453]/70 text-sm block mb-1">Thời lượng</span>
                     <span className="text-white">{movie.time}</span>
                   </div>
                 )}
 
                 {movie.language && (
                   <div>
-                    <span className="text-[#FF2EBC]/70 text-sm block mb-1">Ngôn ngữ</span>
+                    <span className="text-[#F6C453]/70 text-sm block mb-1">Ngôn ngữ</span>
                     <span className="text-white">{movie.language}</span>
                   </div>
                 )}

@@ -103,12 +103,12 @@ export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSe
   }
 
   return (
-    <div className="rounded-xl sm:rounded-2xl bg-white/5 glass border border-[#FF2EBC]/15 p-2.5 sm:p-4 shadow-[0_24px_80px_rgba(0,0,0,0.85)] animate-slide-up">
+    <div className="rounded-xl sm:rounded-2xl bg-white/5 glass border border-[#F6C453]/15 p-2.5 sm:p-4 shadow-[0_24px_80px_rgba(0,0,0,0.85)] animate-slide-up">
       {/* Header với tabs server */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2 sm:mb-3">
         <div className="flex items-center gap-1.5">
           <h2 className="text-base sm:text-lg md:text-xl font-semibold text-white flex items-center gap-1.5">
-            <span className="text-[#FF2EBC]">Tập phim</span>
+            <span className="text-[#F6C453]">Tập phim</span>
           </h2>
         </div>
         
@@ -126,14 +126,14 @@ export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSe
                   className={`flex-1 sm:flex-none px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ease-in-out flex items-center justify-center gap-1 sm:gap-1.5 ${
                     isActive
                       ? "bg-[#1a1a2e] text-white"
-                      : "bg-[#0a0a0a] text-white/70 border border-white/10 hover:bg-[#FF2EBC] hover:text-white hover:border-[#FF2EBC]"
+                      : "bg-[#0a0a0a] text-white/70 border border-white/10 hover:bg-[#F6C453] hover:text-white hover:border-[#F6C453]"
                   }`}
                   style={
                     isActive
                       ? {
                           border: "2px solid transparent",
                           backgroundImage:
-                            "linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #FF2EBC, #D946EF)",
+                            "linear-gradient(#1a1a2e, #1a1a2e), linear-gradient(135deg, #F6C453, #D3A13A)",
                           backgroundOrigin: "border-box",
                           backgroundClip: "padding-box, border-box",
                         }
@@ -181,11 +181,11 @@ export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSe
               }
             }
           `}</style>
-          <div className="flex items-center justify-between text-[10px] sm:text-xs text-[#FF2EBC]/70 mb-1.5 sm:mb-2">
+          <div className="flex items-center justify-between text-[10px] sm:text-xs text-[#F6C453]/70 mb-1.5 sm:mb-2">
             <span className="font-semibold uppercase tracking-wider truncate mr-2">
               {getServerDisplayName(currentServer.server_name)}
             </span>
-            <span className="text-[#FF2EBC]/50 whitespace-nowrap">{currentEpisodes.length === 1 ? "FULL" : `${currentEpisodes.length} TẬP`}</span>
+            <span className="text-[#F6C453]/50 whitespace-nowrap">{currentEpisodes.length === 1 ? "FULL" : `${currentEpisodes.length} TẬP`}</span>
           </div>
           
           <div className="grid grid-cols-4 xs:grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-1.5 sm:gap-2">
@@ -199,7 +199,7 @@ export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSe
                   <Link 
                     key={`${currentServer.server_name}-${episode.slug}`} 
                     href={href}
-                    className="flex items-center justify-center gap-1 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.65)] min-w-0 bg-[#0a0a0a] border border-white/10 text-white hover:bg-[#FF2EBC] hover:text-white hover:border-[#FF2EBC]"
+                    className="flex items-center justify-center gap-1 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.65)] min-w-0 bg-[#0a0a0a] border border-white/10 text-white hover:bg-[#F6C453] hover:text-white hover:border-[#F6C453]"
                     style={{
                       animation: "fadeInUp 0.2s ease-out",
                       animationDelay: `${Math.min(index * 15, 300)}ms`,

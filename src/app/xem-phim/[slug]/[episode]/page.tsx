@@ -340,15 +340,17 @@ async function VideoPlayer({
         : String(value || "");
 
     return (
-      <div className="space-y-10 animate-fade-in">
+      <div className="space-y-10">
         {/* Watch Progress Tracker - Lưu tiến độ xem */}
-        <WatchProgressTracker
-          movie={movie}
-          episodeSlug={currentEpisode.slug}
-          episodeName={currentEpisode.name}
-        />
+        <div className="animate-fade-in">
+          <WatchProgressTracker
+            movie={movie}
+            episodeSlug={currentEpisode.slug}
+            episodeName={currentEpisode.name}
+          />
+        </div>
         
-        <div className="relative overflow-hidden rounded-3xl bg-[#050505] glass-premium border border-[#FF2EBC]/20 shadow-[0_24px_80px_rgba(255,46,188,0.2)] animate-scale-in">
+        <div className="relative overflow-hidden rounded-3xl bg-[#050505] glass-premium border border-[#F6C453]/20 shadow-[0_24px_80px_rgba(246,196,83,0.2)] animate-fade-in-scale">
           {/* Premium Background Effects */}
           <div className="absolute inset-0">
             <Image
@@ -360,23 +362,23 @@ async function VideoPlayer({
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-[#050505]/90 to-[#050505]" />
             {/* Premium accent gradients */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,46,188,0.15),transparent_60%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(217,70,239,0.12),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(246,196,83,0.15),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(211,161,58,0.12),transparent_60%)]" />
           </div>
 
           <div className="relative z-10 p-4 sm:p-6 lg:p-10 space-y-6 sm:space-y-8 text-white">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-white/70">
-              {movie.quality && <Badge className="bg-[#FF2EBC] text-black font-semibold">{movie.quality}</Badge>}
-              {movie.current_episode && <span className="text-[#FF2EBC]">{movie.current_episode}</span>}
+              {movie.quality && <Badge className="bg-[#F6C453] text-black font-semibold">{movie.quality}</Badge>}
+              {movie.current_episode && <span className="text-[#F6C453]">{movie.current_episode}</span>}
               {movie.time && <span>{movie.time}</span>}
               {countries[0] && <span>{formatLabel(countries[0])}</span>}
             </div>
 
-            <div className="space-y-4 sm:space-y-6 animate-slide-up max-w-full">
+            <div className="space-y-4 sm:space-y-6 max-w-full">
               {/* Premium Video Player */}
-              <div className="relative rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_rgba(255,46,188,0.3)] border-2 border-[#FF2EBC]/40 group/player card-hover max-w-full">
+              <div className="relative rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_rgba(246,196,83,0.3)] border-2 border-[#F6C453]/40 group/player card-hover max-w-full animate-zoom-in">
                 {/* Premium glow effect */}
-                <div className="absolute -inset-1 bg-gradient-to-r from-[#FF2EBC]/20 via-[#D946EF]/20 to-[#FF2EBC]/20 rounded-xl sm:rounded-2xl lg:rounded-[28px] blur-xl opacity-0 group-hover/player:opacity-100 transition-opacity duration-500" />
+                <div className="absolute -inset-1 bg-gradient-to-r from-[#F6C453]/20 via-[#D3A13A]/20 to-[#F6C453]/20 rounded-xl sm:rounded-2xl lg:rounded-[28px] blur-xl opacity-0 group-hover/player:opacity-100 transition-opacity duration-500" />
                 <div className="aspect-video bg-black rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden w-full">
                   <IframePlayer
                     src={currentEpisode.embed}
@@ -389,16 +391,16 @@ async function VideoPlayer({
                 <div className="absolute top-0 left-0 right-0 p-3 sm:p-4 lg:p-6 pointer-events-none bg-gradient-to-b from-black/90 via-black/70 to-transparent">
                   <div className="flex items-center justify-between text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em]">
                     <div className="flex items-center gap-2 sm:gap-2.5">
-                      <Badge className="relative bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] text-white text-[10px] sm:text-xs px-3 py-1 font-bold shadow-[0_4px_15px_rgba(255,46,188,0.4)]">
+                      <Badge className="relative bg-gradient-to-r from-[#F6C453] to-[#D3A13A] text-white text-[10px] sm:text-xs px-3 py-1 font-bold shadow-[0_4px_15px_rgba(246,196,83,0.4)]">
                         <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-full" />
                         <span className="relative z-10">{currentServer ? getServerDisplayName(currentServer.server_name) : ""}</span>
                       </Badge>
                       <span className="flex items-center gap-1.5 text-white font-semibold">
-                        <div className="w-2 h-2 rounded-full bg-[#FF2EBC] animate-pulse" />
+                        <div className="w-2 h-2 rounded-full bg-[#F6C453] animate-pulse" />
                         <span>ĐANG PHÁT</span>
                       </span>
                     </div>
-                    <span className="text-[#FF2EBC] font-bold bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
+                    <span className="text-[#F6C453] font-bold bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
                       {allEpisodes.length === 1 ? "FULL" : `${episodeIndex + 1}/${allEpisodes.length}`}
                     </span>
                   </div>
@@ -406,16 +408,16 @@ async function VideoPlayer({
               </div>
 
               {/* Premium Episode Navigation */}
-              <div className="mt-4 flex items-center justify-between gap-2 sm:gap-4">
+              <div className="mt-4 flex items-center justify-between gap-2 sm:gap-4 animate-fade-in-up" style={{ animationDelay: '0.2s', opacity: 0 }}>
                 {prevEpisode && (
                   <Button
                     asChild
                     variant="outline"
                     size="lg"
-                    className="relative group/prev min-w-[130px] sm:min-w-[150px] bg-black/60 text-white border-[#FF2EBC]/40 hover:bg-[#FF2EBC]/10 hover:border-[#FF2EBC] backdrop-blur-md text-xs sm:text-sm transition-all duration-300"
+                    className="relative group/prev min-w-[130px] sm:min-w-[150px] bg-black/60 text-white border-[#F6C453]/40 hover:bg-[#F6C453]/10 hover:border-[#F6C453] backdrop-blur-md text-xs sm:text-sm transition-all duration-300"
                   >
                     <Link href={`/xem-phim/${slug}/${prevEpisode.slug}`}>
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#FF2EBC]/5 to-transparent rounded-lg opacity-0 group-hover/prev:opacity-100 transition-opacity" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#F6C453]/5 to-transparent rounded-lg opacity-0 group-hover/prev:opacity-100 transition-opacity" />
                       <ChevronLeft className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 mr-1" />
                       <span className="relative z-10 truncate">Tập trước</span>
                     </Link>
@@ -425,7 +427,7 @@ async function VideoPlayer({
                   <Button
                     asChild
                     size="lg"
-                    className="relative group/next ml-auto min-w-[130px] sm:min-w-[150px] bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] hover:from-[#FF2EBC]/90 hover:to-[#D946EF]/90 text-white font-semibold text-xs sm:text-sm shadow-[0_8px_25px_rgba(255,46,188,0.4)] hover:shadow-[0_12px_35px_rgba(255,46,188,0.5)] transition-all duration-300"
+                    className="relative group/next ml-auto min-w-[130px] sm:min-w-[150px] bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white font-semibold text-xs sm:text-sm shadow-[0_8px_25px_rgba(246,196,83,0.4)] hover:shadow-[0_12px_35px_rgba(246,196,83,0.5)] transition-all duration-300"
                   >
                     <Link href={`/xem-phim/${slug}/${nextEpisode.slug}`}>
                       <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-lg opacity-0 group-hover/next:opacity-100 transition-opacity" />
@@ -440,7 +442,7 @@ async function VideoPlayer({
               <div className="flex flex-wrap gap-2 sm:gap-3">
                 <Button 
                   size="lg" 
-                  className="relative group/btn bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] hover:from-[#FF2EBC]/90 hover:to-[#D946EF]/90 text-white font-semibold flex-1 sm:flex-none text-sm sm:text-base shadow-[0_8px_25px_rgba(255,46,188,0.3)] hover:shadow-[0_12px_35px_rgba(255,46,188,0.4)] transition-all duration-300" 
+                  className="relative group/btn bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white font-semibold flex-1 sm:flex-none text-sm sm:text-base shadow-[0_8px_25px_rgba(246,196,83,0.3)] hover:shadow-[0_12px_35px_rgba(246,196,83,0.4)] transition-all duration-300" 
                   asChild
                 >
                   <Link href={`/phim/${slug}`}>
@@ -452,11 +454,11 @@ async function VideoPlayer({
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="relative group/home border-[#FF2EBC]/40 text-white hover:bg-[#FF2EBC]/10 hover:border-[#FF2EBC] backdrop-blur-md flex-1 sm:flex-none text-sm sm:text-base transition-all duration-300" 
+                  className="relative group/home border-[#F6C453]/40 text-white hover:bg-[#F6C453]/10 hover:border-[#F6C453] backdrop-blur-md flex-1 sm:flex-none text-sm sm:text-base transition-all duration-300" 
                   asChild
                 >
                   <Link href="/">
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#FF2EBC]/5 to-transparent rounded-lg opacity-0 group-hover/home:opacity-100 transition-opacity" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#F6C453]/5 to-transparent rounded-lg opacity-0 group-hover/home:opacity-100 transition-opacity" />
                     <Home className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" /> 
                     <span className="relative z-10">Trang chủ</span>
                   </Link>
@@ -487,11 +489,11 @@ async function VideoPlayer({
             {/* Premium Header */}
             <div className="space-y-2 sm:space-y-3">
               <div className="flex items-center gap-3">
-                <div className="w-1.5 h-8 sm:h-10 bg-gradient-to-b from-[#FF2EBC] to-[#D946EF] rounded-full" />
+                <div className="w-1.5 h-8 sm:h-10 bg-gradient-to-b from-[#F6C453] to-[#D3A13A] rounded-full" />
                 <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
                   <span className="text-gradient-premium">Các phần khác</span>
                 </h2>
-                <span className="px-3 py-1 bg-[#FF2EBC]/10 border border-[#FF2EBC]/30 rounded-full text-[10px] sm:text-xs text-[#FF2EBC] font-semibold">
+                <span className="px-3 py-1 bg-[#F6C453]/10 border border-[#F6C453]/30 rounded-full text-[10px] sm:text-xs text-[#F6C453] font-semibold">
                   {relatedParts.length} {relatedParts.length === 1 ? "phần" : "phần"}
                 </span>
               </div>
@@ -503,7 +505,7 @@ async function VideoPlayer({
                 <Link
                   key={part.slug}
                   href={`/phim/${part.slug}`}
-                  className="group relative aspect-[2/3] rounded-md sm:rounded-lg md:rounded-xl overflow-hidden bg-[#151515] border border-white/10 hover:border-[#FF2EBC]/60 transition-all duration-300 hover:scale-[1.02] sm:hover:scale-105 hover:shadow-[0_12px_40px_rgba(255,46,188,0.4)]"
+                  className="group relative aspect-[2/3] rounded-md sm:rounded-lg md:rounded-xl overflow-hidden bg-[#151515] border border-white/10 hover:border-[#F6C453]/60 transition-all duration-300 hover:scale-[1.02] sm:hover:scale-105 hover:shadow-[0_12px_40px_rgba(246,196,83,0.4)]"
                 >
                   <Image
                     src={getImageUrl(part.thumb_url || part.poster_url)}
@@ -568,8 +570,8 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
       {/* Cinematic background */}
       <div className="relative pt-20 md:pt-24 pb-16 overflow-hidden">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-40 -top-40 h-72 w-72 rounded-full bg-[#FF2EBC]/15 blur-3xl animate-fade-in" />
-          <div className="absolute right-0 top-1/4 h-80 w-80 rounded-full bg-[#D946EF]/10 blur-3xl animate-fade-in" />
+          <div className="absolute -left-40 -top-40 h-72 w-72 rounded-full bg-[#F6C453]/15 blur-3xl animate-fade-in" />
+          <div className="absolute right-0 top-1/4 h-80 w-80 rounded-full bg-[#D3A13A]/10 blur-3xl animate-fade-in" />
           <div className="absolute inset-0 bg-gradient-to-b from-black via-black/90 to-[#05050a]" />
         </div>
 
@@ -578,7 +580,7 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm text-white/60 animate-fade-in">
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center rounded-full bg-white/5 px-3 py-1 glass">
-                <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-[#FF2EBC] animate-pulse" />
+                <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-[#F6C453] animate-pulse" />
                 <span className="uppercase tracking-[0.16em] text-[10px] sm:text-[11px] text-white/80">
                   Đang xem
                 </span>

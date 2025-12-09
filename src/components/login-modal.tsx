@@ -81,7 +81,7 @@ export function LoginModal({ open, onOpenChange, onSwitchToSignup }: LoginModalP
       >
         <DialogHeader className="space-y-1.5 sm:space-y-2">
           <div className="flex justify-center">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center bg-[linear-gradient(135deg,#FF2EBC,#D946EF)]">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center bg-[linear-gradient(135deg,#F6C453,#D3A13A)]">
               <Image
                 src="/logo.ico"
                 alt="MovPey"
@@ -134,7 +134,7 @@ export function LoginModal({ open, onOpenChange, onSwitchToSignup }: LoginModalP
           </div>
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-[#FF2EBC] to-[#D946EF] hover:from-[#FF2EBC]/90 hover:to-[#D946EF]/90 text-white h-9 text-sm"
+            className="w-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white h-9 text-sm"
             disabled={isLoading || isGoogleLoading}
           >
             {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
@@ -187,7 +187,7 @@ export function LoginModal({ open, onOpenChange, onSwitchToSignup }: LoginModalP
             Chưa có tài khoản?{" "}
             <button
               type="button"
-              className="text-[#FF2EBC] hover:underline"
+              className="text-[#F6C453] hover:underline"
               onClick={() => {
                 onOpenChange(false);
                 if (onSwitchToSignup) {
@@ -200,7 +200,7 @@ export function LoginModal({ open, onOpenChange, onSwitchToSignup }: LoginModalP
           </p>
           <Link
             href="/quen-mat-khau"
-            className="text-xs text-gray-400 hover:text-[#FF2EBC] transition-colors"
+            className="text-xs text-gray-400 hover:text-[#F6C453] transition-colors"
             onClick={() => onOpenChange(false)}
           >
             Quên mật khẩu?

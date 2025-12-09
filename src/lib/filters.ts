@@ -26,13 +26,13 @@ function getReleaseYearFromCategory(detail: any): number | null {
 
   const groups = Object.values(detail.category as Record<string, any>);
   
-  // Debug: log structure để hiểu rõ hơn
-  if (groups.length > 0) {
-    console.log(`[getReleaseYearFromCategory] ${detail.slug || 'unknown'}: Found ${groups.length} groups`);
-    groups.forEach((g: any, idx: number) => {
-      console.log(`  Group ${idx}: ${g?.group?.name || 'unnamed'}, items: ${g?.list?.length || 0}`);
-    });
-  }
+  // Giảm log spam - chỉ log khi cần debug
+  // if (groups.length > 0) {
+  //   console.log(`[getReleaseYearFromCategory] ${detail.slug || 'unknown'}: Found ${groups.length} groups`);
+  //   groups.forEach((g: any, idx: number) => {
+  //     console.log(`  Group ${idx}: ${g?.group?.name || 'unnamed'}, items: ${g?.list?.length || 0}`);
+  //   });
+  // }
 
   // Tìm group "Năm phát hành" - thử nhiều cách:
   // 1. Tìm theo tên group có chứa "năm" và "phát hành"
@@ -47,7 +47,7 @@ function getReleaseYearFromCategory(detail: any): number | null {
   // 2. Nếu không tìm thấy, thử lấy group thứ 3 (mục số 3 theo yêu cầu)
   if (!namPhatHanhGroup && groups.length >= 3) {
     namPhatHanhGroup = groups[2]; // Index 2 = mục số 3
-    console.log(`[getReleaseYearFromCategory] Using group 3 (index 2): ${namPhatHanhGroup?.group?.name || 'unnamed'}`);
+    // console.log(`[getReleaseYearFromCategory] Using group 3 (index 2): ${namPhatHanhGroup?.group?.name || 'unnamed'}`);
   }
 
   // 3. Tìm trong tất cả groups xem có group nào có list chứa năm không
@@ -62,7 +62,7 @@ function getReleaseYearFromCategory(detail: any): number | null {
         });
         if (hasYear) {
           namPhatHanhGroup = group;
-          console.log(`[getReleaseYearFromCategory] Found year group by scanning: ${group?.group?.name || 'unnamed'}`);
+          // console.log(`[getReleaseYearFromCategory] Found year group by scanning: ${group?.group?.name || 'unnamed'}`);
           break;
         }
       }
@@ -100,14 +100,14 @@ function getReleaseYearFromCategory(detail: any): number | null {
     if (years.length > 0) {
       // Trả về năm mới nhất từ list
       const maxYear = Math.max(...years);
-      console.log(`[getReleaseYearFromCategory] Found year: ${maxYear} from ${namPhatHanhGroup.group?.name || 'unnamed'}`);
+      // console.log(`[getReleaseYearFromCategory] Found year: ${maxYear} from ${namPhatHanhGroup.group?.name || 'unnamed'}`);
       return maxYear;
     }
   }
 
   // KHÔNG fallback về created - chỉ lấy từ category
   // Nếu không tìm thấy năm trong category, return null để bỏ qua phim này
-  console.log(`[getReleaseYearFromCategory] No year found in category for: ${detail.slug || 'unknown'}`);
+  // console.log(`[getReleaseYearFromCategory] No year found in category for: ${detail.slug || 'unknown'}`);
   return null;
 }
 
@@ -220,49 +220,77 @@ export async function filterNonAnimationByCountries(
 
 // Lọc phim lẻ chỉ lấy những phim có năm phát hành = năm hiện tại (UTC+7)
 // Kiểm tra năm phát hành từ category detail (mục số 3)
-// Tối ưu: dừng sớm khi đã có đủ số lượng phim cần thiết
+// Tối ưu: gọi API detail song song (parallel) với batch size để tránh quá tải và timeout
 export async function filterPhimLeByCurrentYear(
   movies: FilmItem[],
   targetCount: number = 10
 ): Promise<FilmItem[]> {
   const currentYear = getCurrentYearUTC7();
-  console.log(`[filterPhimLeByCurrentYear] Filtering for year: ${currentYear} (UTC+7), target: ${targetCount} movies`);
+  console.log(`[filterPhimLeByCurrentYear] Filtering phim lẻ for year: ${currentYear} (UTC+7), target: ${targetCount} movies, processing ${movies.length} movies`);
+  
+  // Fetch nhiều phim hơn để có đủ sau khi filter (ước tính cần 3-4x số lượng target vì nhiều phim không có năm hoặc không phải năm hiện tại)
+  const moviesToProcess = movies.slice(0, Math.min(movies.length, targetCount * 4));
   
   const results: FilmItem[] = [];
+  const BATCH_SIZE = 5; // Gọi 5 API detail cùng lúc để tránh quá tải
   
-  // Xử lý từng phim một để có thể dừng sớm khi đã đủ
-  for (const movie of movies) {
+  // Xử lý theo batch để gọi API song song
+  for (let i = 0; i < moviesToProcess.length; i += BATCH_SIZE) {
     // Nếu đã đủ số lượng, dừng lại
     if (results.length >= targetCount) {
       break;
     }
     
-    try {
-      const detailRes = await getFilmDetail(movie.slug);
-      const detail = detailRes?.movie;
+    const batch = moviesToProcess.slice(i, i + BATCH_SIZE);
+    
+    // Gọi API detail song song cho batch này với timeout handling
+    const batchResults = await Promise.allSettled(
+      batch.map(async (movie) => {
+        try {
+          // Thêm timeout cho mỗi request (15 giây)
+          const timeoutPromise = new Promise<null>((resolve) => {
+            setTimeout(() => resolve(null), 15000);
+          });
+          
+          const detailPromise = getFilmDetail(movie.slug).then(res => res?.movie || null);
+          
+          const detail = await Promise.race([detailPromise, timeoutPromise]);
+          
+          if (!detail) {
+            return null;
+          }
 
-      if (!detail) {
-        continue;
+          const releaseYear = getReleaseYearFromCategory(detail);
+          
+          if (releaseYear === null) {
+            return null;
+          }
+          
+          // Chỉ lấy phim có năm phát hành = năm hiện tại
+          if (releaseYear === currentYear) {
+            return movie;
+          }
+          
+          return null;
+        } catch (error) {
+          // Không log từng lỗi để tránh spam, chỉ log tổng hợp
+          return null;
+        }
+      })
+    );
+    
+    // Lọc kết quả từ batch
+    for (const result of batchResults) {
+      if (result.status === 'fulfilled' && result.value !== null) {
+        results.push(result.value);
+        if (results.length >= targetCount) {
+          break;
+        }
       }
-
-      const releaseYear = getReleaseYearFromCategory(detail);
-      
-      if (releaseYear === null) {
-        continue;
-      }
-      
-      // Chỉ lấy phim có năm phát hành = năm hiện tại
-      if (releaseYear === currentYear) {
-        results.push(movie);
-        console.log(`[filterPhimLeByCurrentYear] ✓ ${movie.slug}: ${releaseYear} (${results.length}/${targetCount})`);
-      }
-    } catch (error) {
-      console.error(`[filterPhimLeByCurrentYear] Error processing ${movie.slug}:`, error);
-      continue;
     }
   }
 
-  console.log(`[filterPhimLeByCurrentYear] Filtered ${results.length} movies out of ${movies.length} processed`);
+  console.log(`[filterPhimLeByCurrentYear] Filtered ${results.length} phim lẻ (năm ${currentYear}) out of ${moviesToProcess.length} processed`);
   return results;
 }
 
