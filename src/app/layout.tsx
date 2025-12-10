@@ -72,13 +72,14 @@ export const metadata: Metadata = {
     shortcut: ["/logo.svg"],
     apple: "/logo.svg",
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-    viewportFit: "cover",
-  },
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -101,7 +102,9 @@ export default function RootLayout({
             <Suspense fallback={null}>
               <URLCleaner />
             </Suspense>
-            <RouteLoader />
+            <Suspense fallback={null}>
+              <RouteLoader />
+            </Suspense>
             {/* Header outside PageTransition to avoid transform stacking context issues */}
             <Header />
             <PageTransition>{children}</PageTransition>
