@@ -29,9 +29,9 @@ export function Footer() {
     <footer className="bg-transparent pt-16 pb-8 px-4 md:px-12">
       <div className="max-w-[980px] mx-auto">
         <div className="flex items-center gap-3 mb-1">
-          <div className="w-8 h-8 rounded-full overflow-hidden bg-transparent flex items-center justify-center">
+          <div className="w-9 h-9 rounded-full overflow-hidden bg-transparent flex items-center justify-center">
             <Image
-            src="/logo.ico"
+            src="/logo.svg"
               alt="MovPey logo"
               width={32}
               height={32}

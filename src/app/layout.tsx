@@ -6,6 +6,7 @@ import { AuthProvider } from "@/contexts/auth-context";
 import { URLCleaner } from "@/components/url-cleaner";
 import { PageTransition } from "@/components/page-transition";
 import { Header } from "@/components/header";
+import { RouteLoader } from "@/components/route-loader";
 import "./globals.css";
 
 const siteUrl =
@@ -53,8 +54,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/logo.svg",
-        width: 128,
-        height: 128,
+        width: 256,
+        height: 256,
         alt: "MovPey",
       },
     ],
@@ -100,6 +101,7 @@ export default function RootLayout({
             <Suspense fallback={null}>
               <URLCleaner />
             </Suspense>
+            <RouteLoader />
             {/* Header outside PageTransition to avoid transform stacking context issues */}
             <Header />
             <PageTransition>{children}</PageTransition>

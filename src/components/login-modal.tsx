@@ -83,7 +83,7 @@ export function LoginModal({ open, onOpenChange, onSwitchToSignup }: LoginModalP
           <div className="flex justify-center">
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center bg-[linear-gradient(135deg,#F6C453,#D3A13A)]">
               <Image
-                src="/logo.ico"
+                src="/logo.svg"
                 alt="MovPey"
                 width={36}
                 height={36}

@@ -269,9 +269,9 @@ export function Header() {
         <div className="flex items-center gap-2 sm:gap-4 lg:gap-10 min-w-0">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-1 xs:gap-1.5 shrink-0">
-            <div className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-xl overflow-hidden flex items-center justify-center">
+            <div className="w-9 h-9 xs:w-10 xs:h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 lg:w-13 lg:h-13 rounded-xl overflow-hidden flex items-center justify-center">
               <Image
-                src="/logo.ico"
+                src="/logo.svg"
                 alt="MovPey logo"
                 width={64}
                 height={64}
