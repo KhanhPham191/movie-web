@@ -90,11 +90,8 @@ async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T
   
   // Nếu đã có request đang chạy cho cùng URL, reuse nó
   if (requestCache.has(cacheKey)) {
-    console.log("[API] Reusing cached request:", url);
     return requestCache.get(cacheKey) as Promise<T>;
   }
-  
-  console.log("[API] Fetching:", url);
   
   // Tạo promise và cache nó
   const fetchPromise = (async () => {
@@ -114,8 +111,6 @@ async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T
       }),
       createTimeoutPromise(timeoutMs),
     ]) as Response;
-
-    console.log("[API] Response status:", res.status, res.statusText);
 
     if (!res.ok) {
       const errorText = await res.text();
@@ -137,16 +132,6 @@ async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T
       }
       
       // Thay vì throw error, trả về error response object để caller có thể xử lý
-      // Chỉ log warning cho các lỗi client (4xx) trừ 404, log error cho server errors (5xx)
-      if (res.status >= 400 && res.status < 500) {
-        // Client errors (404, etc.) - không log 404 để tránh spam
-        if (res.status !== 404) {
-          console.warn(`[API] ${res.status} ${res.statusText}: ${errorMessage}`);
-        }
-      } else {
-        // Server errors (500, etc.) - log error
-        console.error(`[API] ${res.status} ${res.statusText}: ${errorMessage}`);
-      }
       
       // Trả về error response object thay vì throw
       // Kiểm tra endpoint để trả về đúng type
@@ -173,11 +158,9 @@ async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T
     }
 
     const data = await res.json();
-    console.log("[API] Response data keys:", Object.keys(data));
     
     // Check if response has error status - but return it instead of throwing
     if (data.status === "error") {
-      console.warn("[API] API returned error status:", data.message);
       // Return the error response as is, don't throw
       return data;
     }
@@ -187,13 +170,6 @@ async function fetchAPI<T>(endpoint: string, base: string = API_BASE): Promise<T
     // Network errors, timeout errors hoặc các lỗi khác - trả về error response thay vì throw
     const errorMessage = error instanceof Error ? error.message : String(error);
     
-    // Kiểm tra nếu là timeout error
-    if (errorMessage.includes('timeout')) {
-      const timeoutMs = endpoint.includes('phim-moi-cap-nhat') ? 15000 : 30000;
-      console.warn(`[API] Request timeout after ${timeoutMs}ms:`, url);
-    } else {
-      console.warn("[API] Fetch error:", errorMessage);
-    }
     
     // Trả về error response object để caller có thể xử lý
     if (endpoint.includes('/films/') || endpoint.includes('/danh-sach/')) {
@@ -262,7 +238,6 @@ export async function getFilmsByCategory(
 ): Promise<FilmListResponse> {
   // Validate slug trước khi gọi API để tránh lỗi không cần thiết
   if (!VALID_CATEGORY_SLUGS.includes(slug as any)) {
-    console.warn(`[getFilmsByCategory] Invalid category slug: ${slug}`);
     return {
       status: "error",
       message: `Category ${slug} doesn't exist!`,
@@ -321,7 +296,6 @@ export async function searchFilmsMerged(keyword: string): Promise<FilmItem[]> {
     const res = await searchFilms(keyword);
     return res.items || [];
   } catch (error) {
-    console.error("[API] Search error:", error);
     return [];
   }
 }
@@ -392,16 +366,11 @@ export async function getMultiplePages(
       firstPage = await fetchFn(1);
     } catch (fetchError) {
       // Nếu fetch throw error (network error, etc.), return empty array
-      console.warn("[getMultiplePages] Fetch error on page 1:", fetchError instanceof Error ? fetchError.message : String(fetchError));
       return [];
     }
     
     // Kiểm tra nếu API trả về lỗi
     if (firstPage.status === "error") {
-      // Chỉ log warning nếu không phải lỗi category không tồn tại (để tránh spam log)
-      if (!firstPage.message?.includes("doesn't exist")) {
-        console.warn("[getMultiplePages] API returned error status:", firstPage.message);
-      }
       return [];
     }
     
@@ -436,7 +405,6 @@ export async function getMultiplePages(
     return allResults.flatMap((r) => r.items || []);
   } catch (error) {
     // If even page 1 fails, return empty array
-    console.error("[getMultiplePages] Error:", error);
     return [];
   }
 }

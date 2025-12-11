@@ -17,8 +17,10 @@ export async function HongKongSection() {
       />
     );
   } catch (error) {
-    console.error("Error fetching Hồng Kông:", error);
     return <></>;
   }
 }
+
+
+
 

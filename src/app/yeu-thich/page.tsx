@@ -31,7 +31,6 @@ export default function FavoritesPage() {
     setIsLoading(true);
     const { data, error } = await getFavorites();
     if (error) {
-      console.error("Error loading favorites:", error);
     } else {
       setFavorites(data || []);
     }

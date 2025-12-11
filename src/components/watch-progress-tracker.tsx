@@ -54,14 +54,12 @@ export function WatchProgressTracker({
           totalDurationRef.current || 0
         );
 
-        if (error) {
-          console.error("Error adding to currently watching:", error);
-        } else {
+        if (!error) {
           hasInitializedRef.current = true;
           startTimeRef.current = Date.now();
         }
       } catch (error) {
-        console.error("Error initializing watch:", error);
+        // Error initializing watch
       }
     };
 
@@ -82,10 +80,7 @@ export function WatchProgressTracker({
         // Nếu đã xem xong (progress >= 100%), xóa khỏi currently_watching
         if (totalDuration > 0 && currentWatchTime >= totalDuration) {
           const { removeFromCurrentlyWatching } = await import("@/lib/supabase/movies");
-          const { error } = await removeFromCurrentlyWatching(movie.slug);
-          if (error) {
-            console.error("Error removing completed movie:", error);
-          }
+          await removeFromCurrentlyWatching(movie.slug);
           // Dừng interval vì đã xem xong
           if (intervalRef.current) {
             clearInterval(intervalRef.current);
@@ -102,14 +97,12 @@ export function WatchProgressTracker({
           episodeSlug
         );
 
-        if (error) {
-          console.error("Error updating watch progress:", error);
-        } else {
+        if (!error) {
           watchTimeRef.current = currentWatchTime;
           startTimeRef.current = Date.now(); // Reset để tính lại từ điểm hiện tại
         }
       } catch (error) {
-        console.error("Error in watch progress interval:", error);
+        // Error in watch progress interval
       }
     }, 10000); // Cập nhật mỗi 10 giây
 
@@ -144,7 +137,7 @@ export function WatchProgressTracker({
           episodeSlug
         );
       } catch (error) {
-        console.error("Error saving progress on unload:", error);
+        // Error saving progress on unload
       }
     };
 
@@ -185,9 +178,7 @@ export function WatchProgressTracker({
       // Nếu đã xem xong, xóa khỏi currently_watching
       if (totalDuration > 0 && currentWatchTime >= totalDuration) {
         import("@/lib/supabase/movies").then(({ removeFromCurrentlyWatching }) => {
-          removeFromCurrentlyWatching(movie.slug).catch((error) => {
-            console.error("Error removing completed movie on unmount:", error);
-          });
+          removeFromCurrentlyWatching(movie.slug).catch(() => {});
         });
         return;
       }
@@ -197,9 +188,7 @@ export function WatchProgressTracker({
         currentWatchTime,
         totalDuration,
         episodeSlug
-      ).catch((error) => {
-        console.error("Error saving progress on unmount:", error);
-      });
+      ).catch(() => {});
     };
   }, [isAuthenticated, movie.slug, episodeSlug, hasInitializedRef.current]);
 

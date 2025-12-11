@@ -23,7 +23,6 @@ export class MovieActionsWrapper extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: any) {
-    console.error("[MovieActionsWrapper] Error:", error, errorInfo);
   }
 
   render() {
@@ -35,5 +34,8 @@ export class MovieActionsWrapper extends Component<Props, State> {
     return <MovieActions movie={this.props.movie} />;
   }
 }
+
+
+
 
 

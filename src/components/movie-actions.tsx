@@ -51,7 +51,6 @@ export function MovieActions({ movie, onRatingChange }: MovieActionsProps) {
       const favorite = await isFavorite(movie.slug);
       setFavorited(favorite);
     } catch (error) {
-      console.error("[checkFavorite] Error:", error);
       setFavorited(false);
     }
   };
@@ -61,7 +60,6 @@ export function MovieActions({ movie, onRatingChange }: MovieActionsProps) {
       const { data } = await getUserRating(movie.slug);
       if (data) setUserRating(data.rating);
     } catch (error) {
-      console.error("[loadUserRating] Error:", error);
       setUserRating(null);
     }
   };

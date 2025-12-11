@@ -33,7 +33,6 @@ export async function HeroSectionWrapper() {
 
     return <HeroSection movies={phimLe} />;
   } catch (error) {
-    console.error("Error fetching Hero section:", error);
     return <div className="h-[60vh] bg-[#0D0D0D]" />;
   }
 }

@@ -17,8 +17,10 @@ export async function AuMySection() {
       />
     );
   } catch (error) {
-    console.error("Error fetching Âu Mỹ:", error);
     return <></>;
   }
 }
+
+
+
 

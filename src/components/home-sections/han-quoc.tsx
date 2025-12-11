@@ -17,8 +17,10 @@ export async function HanQuocSection() {
       />
     );
   } catch (error) {
-    console.error("Error fetching Hàn Quốc:", error);
     return <></>;
   }
 }
+
+
+
 

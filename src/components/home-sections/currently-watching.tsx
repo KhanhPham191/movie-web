@@ -13,6 +13,7 @@ export function CurrentlyWatchingSection() {
   const [isVisible, setIsVisible] = useState(false);
   const { isAuthenticated } = useAuth();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const previousItemsRef = useRef<CurrentlyWatching[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const hasDragged = useRef(false);
   const dragStartTime = useRef<number>(0);
@@ -132,7 +133,6 @@ export function CurrentlyWatchingSection() {
         setIsLoading(true);
         const { data, error } = await getCurrentlyWatching();
         if (error) {
-          console.error("Error fetching currently watching:", error);
           setItems([]);
         } else {
           // Filter ra các phim đã xem xong (progress >= 100%)
@@ -147,9 +147,9 @@ export function CurrentlyWatchingSection() {
             return progress < 100;
           });
           setItems(filtered);
+          previousItemsRef.current = filtered;
         }
       } catch (error) {
-        console.error("Error fetching currently watching:", error);
         setItems([]);
       } finally {
         setIsLoading(false);
@@ -195,16 +195,15 @@ export function CurrentlyWatchingSection() {
     return null;
   }
 
-  // Không hiển thị nếu đang loading hoặc không có dữ liệu
-  if (isLoading || items.length === 0) {
-    return null;
-  }
+  const hasContent = items.length > 0 || previousItemsRef.current.length > 0;
+  const displayItems = items.length > 0 ? items : previousItemsRef.current;
 
   return (
     <section
-      className={`relative py-6 xs:py-7 sm:py-8 group/section px-0 transition-all duration-500 ease-out ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
+      className={`relative py-6 xs:py-7 sm:py-8 group/section px-0 transition-opacity duration-400 ease-out ${
+        isVisible ? "opacity-100" : "opacity-0"
       }`}
+      style={{ minHeight: hasContent ? undefined : 240 }}
     >
       
       {/* Premium Section Header */}
@@ -295,7 +294,7 @@ export function CurrentlyWatchingSection() {
           }}
           className={`flex items-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
-          {items.slice(0, 10).map((item, index) => (
+          {displayItems.slice(0, 10).map((item, index) => (
             <div
               key={`${item.id}-${index}`}
               className="shrink-0 flex flex-col w-[135px] xs:w-[140px] sm:w-[145px] md:w-[165px] lg:w-[195px] scroll-snap-align-start"
@@ -317,6 +316,18 @@ export function CurrentlyWatchingSection() {
               <CurrentlyWatchingCard item={item} index={index} />
             </div>
           ))}
+
+          {displayItems.length === 0 &&
+            Array.from({ length: 6 }).map((_, index) => (
+              <div
+                key={`cw-skeleton-${index}`}
+                className="shrink-0 flex flex-col w-[135px] xs:w-[140px] sm:w-[145px] md:w-[165px] lg:w-[195px] scroll-snap-align-start"
+              >
+                <div className="w-full aspect-[2/3] rounded-2xl bg-white/5 animate-pulse" />
+                <div className="mt-3 h-4 w-4/5 rounded bg-white/5 animate-pulse" />
+                <div className="mt-2 h-3 w-2/3 rounded bg-white/5 animate-pulse" />
+              </div>
+            ))}
         </div>
       </div>
     </section>

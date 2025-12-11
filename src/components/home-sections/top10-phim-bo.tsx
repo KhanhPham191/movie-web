@@ -16,24 +16,19 @@ function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
 
 export async function Top10PhimBo() {
   try {
-    console.log("[Top10PhimBo] Starting to fetch data...");
     
     // Sử dụng Promise.allSettled để không fail khi một promise fail
     const results = await Promise.allSettled([
       getFilmsByCountryMultiple("han-quoc", 1).catch((err) => {
-        console.warn("[Top10PhimBo] Failed to fetch han-quoc:", err);
         return [];
       }),
       getFilmsByCountryMultiple("trung-quoc", 1).catch((err) => {
-        console.warn("[Top10PhimBo] Failed to fetch trung-quoc:", err);
         return [];
       }),
       getFilmsByCountryMultiple("thai-lan", 1).catch((err) => {
-        console.warn("[Top10PhimBo] Failed to fetch thai-lan:", err);
         return [];
       }),
       getFilmsByCountryMultiple("au-my", 2).catch((err) => {
-        console.warn("[Top10PhimBo] Failed to fetch au-my:", err);
         return [];
       }),
     ]);
@@ -48,11 +43,9 @@ export async function Top10PhimBo() {
     results.forEach((result, index) => {
       if (result.status === "rejected") {
         const countries = ["han-quoc", "trung-quoc", "thai-lan", "au-my"];
-        console.error(`[Top10PhimBo] ${countries[index]} promise rejected:`, result.reason);
       }
     });
 
-    console.log("[Top10PhimBo] Fetched data:", {
       hanQuoc: hanQuoc?.length || 0,
       trungQuoc: trungQuoc?.length || 0,
       thaiLan: thaiLan?.length || 0,
@@ -102,10 +95,8 @@ export async function Top10PhimBo() {
       }
     }
 
-    console.log("[Top10PhimBo] Final top10Series length:", top10Series.length);
 
     if (top10Series.length === 0) {
-      console.warn("[Top10PhimBo] No series found, returning null");
       return null; // Return null thay vì <></> để Suspense có thể catch
     }
 
@@ -117,7 +108,6 @@ export async function Top10PhimBo() {
       />
     );
   } catch (error) {
-    console.error("[Top10PhimBo] Unexpected error:", error);
     // Throw error để Suspense có thể catch và hiển thị skeleton/error
     throw error;
   }

@@ -44,19 +44,6 @@ async function VideoPlayer({
     const response = await getFilmDetail(slug);
     const movie = response.movie;
 
-    console.log("[VideoPlayer] ===== DEBUG START =====");
-    console.log("[VideoPlayer] slug:", slug);
-    console.log("[VideoPlayer] episodeSlug from URL:", episodeSlug);
-    console.log(
-      "[VideoPlayer] servers:",
-      Array.isArray(movie?.episodes)
-        ? movie.episodes.map((s: any, i: number) => ({
-            index: i,
-            server_name: s?.server_name,
-            itemsCount: Array.isArray(s?.items) ? s.items.length : 0,
-          }))
-        : "movie.episodes is not an array"
-    );
 
     if (!movie) {
       notFound();
@@ -89,17 +76,10 @@ async function VideoPlayer({
     const baseName = getBaseName(movie.name);
     let relatedParts: FilmItem[] = [];
     
-    console.log("[VideoPlayer] Movie name:", movie.name);
-    console.log("[VideoPlayer] Base name:", baseName);
-    console.log("[VideoPlayer] Base name different:", baseName !== movie.name);
-    console.log("[VideoPlayer] Base name length:", baseName.length);
-    
     // Chỉ tìm nếu base name khác với tên gốc (có nghĩa là có phần số)
     if (baseName !== movie.name && baseName.length > 3) {
       try {
-        console.log("[VideoPlayer] Searching for related parts with base name:", baseName);
         const searchResults = await searchFilmsMerged(baseName);
-        console.log("[VideoPlayer] Search results count:", searchResults.length);
         
         // Lọc các phim có cùng base name và loại bỏ phim hiện tại
         // Sử dụng fuzzy matching để tìm các phim có base name tương tự
@@ -110,22 +90,15 @@ async function VideoPlayer({
             const normalizedBase = baseName.toLowerCase().trim();
             const normalizedMBase = mBaseName.toLowerCase().trim();
             const matches = normalizedMBase === normalizedBase && m.slug !== movie.slug;
-            if (matches) {
-              console.log("[VideoPlayer] Found related part:", m.name, "-> base:", mBaseName);
-            }
             return matches;
           })
           .slice(0, 10); // Giới hạn 10 phần
         
-        console.log("[VideoPlayer] Related parts found:", relatedParts.length);
-        
         // Sắp xếp theo tên để dễ tìm
         relatedParts.sort((a, b) => a.name.localeCompare(b.name, "vi"));
       } catch (error) {
-        console.error("[VideoPlayer] Error fetching related parts:", error);
+        // Error fetching related parts
       }
-    } else {
-      console.log("[VideoPlayer] Skipping search - base name same as movie name or too short");
     }
 
     // Lọc giữ lại 3 server: Vietsub, Thuyết minh và Lồng tiếng
@@ -139,13 +112,6 @@ async function VideoPlayer({
       );
     });
 
-    console.log(
-      "[VideoPlayer] Filtered servers (Vietsub + Thuyết minh only):",
-      filteredEpisodes.map((s: any) => ({
-        server_name: s?.server_name,
-        itemsCount: Array.isArray(s?.items) ? s.items.length : 0,
-      }))
-    );
 
     // Kiểm tra xem có phải phim lẻ không (chỉ có 1 episode)
     const isPhimLe = filteredEpisodes.length > 0 && 
@@ -197,12 +163,6 @@ async function VideoPlayer({
           );
         }) || null;
         
-        console.log(
-          "[VideoPlayer] Server param from URL:",
-          serverParam,
-          "Found server:",
-          selectedServer?.server_name
-        );
       }
       
       // Nếu đã chọn server từ serverParam, tìm episode trong server đó
@@ -217,14 +177,6 @@ async function VideoPlayer({
           episodeIndex = selectedIndex;
           allEpisodes = items;
           
-          console.log(
-            "[VideoPlayer] Found episode in selected server:",
-            selectedServer.server_name,
-            "at index:",
-            idx,
-            "episode:",
-            selectedEpisode.name
-          );
         }
       }
       
@@ -237,25 +189,9 @@ async function VideoPlayer({
         }> = [];
         
         for (const server of filteredEpisodes) {
-          console.log(
-            "[VideoPlayer] Checking server:",
-            server?.server_name,
-            "- total items:",
-            Array.isArray(server?.items) ? server.items.length : 0
-          );
           const items = Array.isArray(server.items) ? server.items : [];
           const idx = items.findIndex((ep) => ep.slug === episodeSlug);
           if (idx !== -1) {
-            console.log(
-              "[VideoPlayer] FOUND episode in server:",
-              server?.server_name,
-              "at index:",
-              idx,
-              "ep slug:",
-              items[idx]?.slug,
-              "ep name:",
-              items[idx]?.name
-            );
             serversWithEpisode.push({
               server,
               index: idx,
@@ -272,12 +208,6 @@ async function VideoPlayer({
           episodeIndex = selected.index;
           allEpisodes = Array.isArray(selected.server.items) ? selected.server.items : [];
           
-          console.log(
-            "[VideoPlayer] Selected server (fallback):",
-            selected.server.server_name,
-            "at index:",
-            selected.index
-          );
         }
       }
     }
@@ -293,12 +223,6 @@ async function VideoPlayer({
           filteredEpisodes[0]
         : undefined;
 
-      console.log(
-        "[VideoPlayer] currentEpisode NOT FOUND, using defaultServer:",
-        defaultServer?.server_name,
-        "items:",
-        Array.isArray(defaultServer?.items) ? defaultServer.items.length : 0
-      );
 
       if (defaultServer?.items?.[0]) {
         currentEpisode = defaultServer.items[0];

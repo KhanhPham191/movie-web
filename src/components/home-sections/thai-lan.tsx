@@ -17,8 +17,10 @@ export async function ThaiLanSection() {
       />
     );
   } catch (error) {
-    console.error("Error fetching Thái Lan:", error);
     return <></>;
   }
 }
+
+
+
 

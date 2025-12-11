@@ -94,12 +94,10 @@ export async function addToFavorites(movie: FilmItem): Promise<{ error: any }> {
       });
 
     if (error) {
-      console.error("[addToFavorites] Error:", error);
     }
 
     return { error };
   } catch (error) {
-    console.error("[addToFavorites] Exception:", error);
     return { error: { message: "Có lỗi xảy ra khi thêm vào yêu thích" } };
   }
 }
@@ -120,12 +118,10 @@ export async function removeFromFavorites(movieSlug: string): Promise<{ error: a
       .eq("movie_slug", movieSlug);
 
     if (error) {
-      console.error("[removeFromFavorites] Error:", error);
     }
 
     return { error };
   } catch (error) {
-    console.error("[removeFromFavorites] Exception:", error);
     return { error: { message: "Có lỗi xảy ra khi xóa khỏi yêu thích" } };
   }
 }
@@ -146,13 +142,11 @@ export async function isFavorite(movieSlug: string): Promise<boolean> {
 
     // Nếu bảng chưa tồn tại hoặc có lỗi, trả về false
     if (error) {
-      console.warn("[isFavorite] Error:", error);
       return false;
     }
 
     return !!data;
   } catch (error) {
-    console.warn("[isFavorite] Exception:", error);
     return false;
   }
 }
@@ -173,7 +167,6 @@ export async function getFavorites(): Promise<{ data: Favorite[] | null; error: 
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("[getFavorites] Error:", error);
       // Nếu bảng chưa tồn tại, trả về mảng rỗng thay vì null
       if (error.code === "42P01") {
         return { data: [], error: null };
@@ -182,7 +175,6 @@ export async function getFavorites(): Promise<{ data: Favorite[] | null; error: 
 
     return { data, error };
   } catch (error) {
-    console.error("[getFavorites] Exception:", error);
     return { data: [], error: { message: "Có lỗi xảy ra khi lấy danh sách yêu thích" } };
   }
 }
@@ -331,12 +323,10 @@ export async function getUserRating(movieSlug: string): Promise<{ data: Rating |
       if (error.code === "PGRST116" || error.code === "42P01") {
         return { data: null, error: null };
       }
-      console.error("[getUserRating] Error:", error);
     }
 
     return { data, error: error && error.code !== "PGRST116" ? error : null };
   } catch (error) {
-    console.error("[getUserRating] Exception:", error);
     return { data: null, error: { message: "Có lỗi xảy ra khi lấy đánh giá" } };
   }
 }
@@ -423,7 +413,6 @@ export async function addToCurrentlyWatching(
 
   return { error };
   } catch (error: any) {
-    console.error("Error adding to currently watching:", error);
     return { error: null }; // Không throw error
   }
 }
@@ -470,7 +459,6 @@ export async function updateCurrentlyWatching(
 
   return { error };
   } catch (error: any) {
-    console.error("Error updating currently watching:", error);
     return { error: null };
   }
 }
@@ -511,7 +499,6 @@ export async function getCurrentlyWatching(): Promise<{ data: CurrentlyWatching[
   return { data, error };
   } catch (error: any) {
     // Nếu có lỗi network hoặc Supabase chưa cấu hình, trả về empty array
-    console.error("Error getting currently watching:", error);
     return { data: [], error: null };
   }
 }
@@ -548,7 +535,6 @@ export async function removeFromCurrentlyWatching(movieSlug: string): Promise<{ 
 
   return { error };
   } catch (error: any) {
-    console.error("Error removing from currently watching:", error);
     return { error: null };
   }
 }
@@ -596,7 +582,6 @@ export async function getPlaylists(): Promise<{ data: Playlist[] | null; error: 
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("[getPlaylists] Error:", error);
       // Nếu bảng chưa tồn tại, trả về mảng rỗng
       if (error.code === "42P01") {
         return { data: [], error: null };
@@ -605,7 +590,6 @@ export async function getPlaylists(): Promise<{ data: Playlist[] | null; error: 
 
     return { data, error };
   } catch (error) {
-    console.error("[getPlaylists] Exception:", error);
     return { data: [], error: { message: "Có lỗi xảy ra khi lấy danh sách phát" } };
   }
 }

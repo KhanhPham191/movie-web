@@ -28,9 +28,7 @@ function getReleaseYearFromCategory(detail: any): number | null {
   
   // Giảm log spam - chỉ log khi cần debug
   // if (groups.length > 0) {
-  //   console.log(`[getReleaseYearFromCategory] ${detail.slug || 'unknown'}: Found ${groups.length} groups`);
   //   groups.forEach((g: any, idx: number) => {
-  //     console.log(`  Group ${idx}: ${g?.group?.name || 'unnamed'}, items: ${g?.list?.length || 0}`);
   //   });
   // }
 
@@ -47,7 +45,6 @@ function getReleaseYearFromCategory(detail: any): number | null {
   // 2. Nếu không tìm thấy, thử lấy group thứ 3 (mục số 3 theo yêu cầu)
   if (!namPhatHanhGroup && groups.length >= 3) {
     namPhatHanhGroup = groups[2]; // Index 2 = mục số 3
-    // console.log(`[getReleaseYearFromCategory] Using group 3 (index 2): ${namPhatHanhGroup?.group?.name || 'unnamed'}`);
   }
 
   // 3. Tìm trong tất cả groups xem có group nào có list chứa năm không
@@ -62,7 +59,6 @@ function getReleaseYearFromCategory(detail: any): number | null {
         });
         if (hasYear) {
           namPhatHanhGroup = group;
-          // console.log(`[getReleaseYearFromCategory] Found year group by scanning: ${group?.group?.name || 'unnamed'}`);
           break;
         }
       }
@@ -100,14 +96,12 @@ function getReleaseYearFromCategory(detail: any): number | null {
     if (years.length > 0) {
       // Trả về năm mới nhất từ list
       const maxYear = Math.max(...years);
-      // console.log(`[getReleaseYearFromCategory] Found year: ${maxYear} from ${namPhatHanhGroup.group?.name || 'unnamed'}`);
       return maxYear;
     }
   }
 
   // KHÔNG fallback về created - chỉ lấy từ category
   // Nếu không tìm thấy năm trong category, return null để bỏ qua phim này
-  // console.log(`[getReleaseYearFromCategory] No year found in category for: ${detail.slug || 'unknown'}`);
   return null;
 }
 
@@ -226,7 +220,6 @@ export async function filterPhimLeByCurrentYear(
   targetCount: number = 10
 ): Promise<FilmItem[]> {
   const currentYear = getCurrentYearUTC7();
-  console.log(`[filterPhimLeByCurrentYear] Filtering phim lẻ for year: ${currentYear} (UTC+7), target: ${targetCount} movies, processing ${movies.length} movies`);
   
   // Fetch nhiều phim hơn để có đủ sau khi filter (ước tính cần 3-4x số lượng target vì nhiều phim không có năm hoặc không phải năm hiện tại)
   const moviesToProcess = movies.slice(0, Math.min(movies.length, targetCount * 4));
@@ -290,7 +283,6 @@ export async function filterPhimLeByCurrentYear(
     }
   }
 
-  console.log(`[filterPhimLeByCurrentYear] Filtered ${results.length} phim lẻ (năm ${currentYear}) out of ${moviesToProcess.length} processed`);
   return results;
 }
 

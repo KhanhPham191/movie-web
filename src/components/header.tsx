@@ -72,7 +72,6 @@ export function Header() {
         setNotifications(items.slice(0, 10));
         setHasNewNotifications(items.length > 0);
       } catch (error) {
-        console.error("[Notifications] Fetch error:", error);
         setNotifications([]);
       } finally {
         setIsLoadingNotifications(false);

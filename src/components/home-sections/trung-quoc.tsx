@@ -40,8 +40,10 @@ export async function TrungQuocSection() {
       />
     );
   } catch (error) {
-    console.error("Error fetching Trung Quốc:", error);
     return <></>;
   }
 }
+
+
+
 

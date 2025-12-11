@@ -36,16 +36,15 @@ export async function safeSupabaseCall<T>(
   try {
     return await fn();
   } catch (error: any) {
-    console.error(errorMessage || "Supabase call error:", error);
-    
     // Nếu bảng chưa tồn tại, trả về fallback
     if (error?.code === "42P01" || error?.message?.includes("does not exist")) {
-      console.warn(`Table may not exist yet. Please run supabase-schema.sql`);
       return fallback;
     }
     
     return fallback;
   }
 }
+
+
 
 

@@ -169,7 +169,6 @@ export default function SearchPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          console.error("[Search] error:", err);
           setError("Có lỗi khi gọi API tìm kiếm. Vui lòng thử lại sau.");
           setMovies([]);
         }

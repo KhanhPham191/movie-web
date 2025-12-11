@@ -23,8 +23,10 @@ export async function AnimeSection() {
       />
     );
   } catch (error) {
-    console.error("Error fetching Anime:", error);
     return <></>;
   }
 }
+
+
+
 

@@ -41,7 +41,6 @@ export function ShakaPlayer({ src, poster, className = "w-full h-full" }: ShakaP
 
         await player.load(src);
       } catch (err) {
-        console.error("[Shaka] error", err);
         if (!destroyed) {
           setError("Không phát được video (m3u8).");
         }

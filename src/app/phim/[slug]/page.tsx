@@ -28,12 +28,9 @@ interface MoviePageProps {
 
 async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: string }) {
   try {
-    console.log("[MovieDetail] Fetching movie with slug:", slug);
     const response = await getFilmDetail(slug);
-    console.log("[MovieDetail] API Response status:", response?.status);
     
     if (!response || !response.movie) {
-      console.error("[MovieDetail] Missing response or movie data:", response);
       throw new Error("Không lấy được dữ liệu chi tiết phim từ API.");
     }
     
@@ -51,16 +48,6 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
         ? [movie.country] 
         : [];
     
-    console.log("[MovieDetail] Movie data:", {
-      name: movie.name,
-      slug: movie.slug,
-      hasEpisodes: !!movie.episodes,
-      episodeCount: movie.episodes?.length || 0,
-      hasCategory: categories.length > 0,
-      categoryCount: categories.length,
-      categoryType: Array.isArray(movie.category) ? "array" : typeof movie.category,
-      countryType: Array.isArray(movie.country) ? "array" : typeof movie.country,
-    });
 
     // backdropUrl: prefer thumb_url (landscape/backdrop), fallback to poster_url
     // posterUrl: prefer poster_url (portrait/poster), fallback to thumb_url
@@ -101,17 +88,10 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
     const baseName = getBaseName(movie.name);
     let relatedParts: FilmItem[] = [];
     
-    console.log("[MovieDetail] Movie name:", movie.name);
-    console.log("[MovieDetail] Base name:", baseName);
-    console.log("[MovieDetail] Base name different:", baseName !== movie.name);
-    console.log("[MovieDetail] Base name length:", baseName.length);
-    
     // Chỉ tìm nếu base name khác với tên gốc (có nghĩa là có phần số)
     if (baseName !== movie.name && baseName.length > 3) {
       try {
-        console.log("[MovieDetail] Searching for:", baseName);
         const searchResults = await searchFilmsMerged(baseName);
-        console.log("[MovieDetail] Search results count:", searchResults.length);
         
         // Lọc các phim có cùng base name và loại bỏ phim hiện tại
         // Sử dụng fuzzy matching để tìm các phim có base name tương tự
@@ -122,22 +102,15 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
             const normalizedBase = baseName.toLowerCase().trim();
             const normalizedMBase = mBaseName.toLowerCase().trim();
             const matches = normalizedMBase === normalizedBase && m.slug !== movie.slug;
-            if (matches) {
-              console.log("[MovieDetail] Found related part:", m.name, "->", mBaseName);
-            }
             return matches;
           })
           .slice(0, 10); // Giới hạn 10 phần
         
-        console.log("[MovieDetail] Related parts count:", relatedParts.length);
-        
         // Sắp xếp theo tên để dễ tìm
         relatedParts.sort((a, b) => a.name.localeCompare(b.name, "vi"));
       } catch (error) {
-        console.error("[MovieDetail] Error fetching related parts:", error);
+        // Error fetching related parts
       }
-    } else {
-      console.log("[MovieDetail] Skipping search - base name same or too short");
     }
 
     return (
@@ -493,13 +466,6 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
       </>
     );
   } catch (error) {
-    console.error("[MovieDetail] Error rendering movie detail:", error);
-    console.error("[MovieDetail] Error details:", {
-      message: error instanceof Error ? error.message : String(error),
-      status: (error as any)?.status,
-      slug: slug,
-    });
-    
     // If it's a 404 error or "doesn't exist" message, show not found
     if (
       (error as any)?.status === 404 ||
@@ -509,7 +475,6 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
         error.message.includes("404")
       ))
     ) {
-      console.log("[MovieDetail] Treating as 404, calling notFound()");
       notFound();
     }
     
@@ -594,12 +559,10 @@ export default async function MoviePage({ params, searchParams }: MoviePageProps
 export async function generateMetadata({ params }: MoviePageProps) {
   const { slug } = await params;
   try {
-    console.log("[generateMetadata] Fetching metadata for slug:", slug);
     const response = await getFilmDetail(slug);
     
     // Check if API returned error status
     if (!response || !response.movie) {
-      console.error("[generateMetadata] No movie found for slug:", slug);
       return {
         title: "Chi tiết phim | Phim7.xyz",
       };
@@ -614,7 +577,6 @@ export async function generateMetadata({ params }: MoviePageProps) {
         `Xem phim ${movie.name} tại Phim7.xyz`,
     };
   } catch (error) {
-    console.error("[generateMetadata] Error generating metadata:", error);
     // Don't throw error in metadata, just return default
     return {
       title: "Chi tiết phim | Phim7.xyz",

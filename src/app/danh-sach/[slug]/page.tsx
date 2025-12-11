@@ -49,7 +49,6 @@ async function CategoryContent({
 
       // Kiểm tra nếu API trả về lỗi
       if (response.status === "error") {
-        console.error("[CategoryContent] API Error:", response.message);
         return (
           <div className="text-center py-20">
             <p className="text-muted-foreground">
@@ -66,7 +65,6 @@ async function CategoryContent({
       
       // Kiểm tra nếu API trả về lỗi
       if (response.status === "error") {
-        console.error("[CategoryContent] API Error:", response.message);
         return (
           <div className="text-center py-20">
             <p className="text-muted-foreground">
