@@ -39,19 +39,6 @@ export async function Top10PhimBo() {
     const thaiLan = results[2].status === "fulfilled" ? results[2].value : [];
     const auMy = results[3].status === "fulfilled" ? results[3].value : [];
 
-    // Log nếu có request fail
-    results.forEach((result, index) => {
-      if (result.status === "rejected") {
-        const countries = ["han-quoc", "trung-quoc", "thai-lan", "au-my"];
-      }
-    });
-
-      hanQuoc: hanQuoc?.length || 0,
-      trungQuoc: trungQuoc?.length || 0,
-      thaiLan: thaiLan?.length || 0,
-      auMy: auMy?.length || 0,
-    });
-
     // Lọc Trung Quốc
     const trungQuocFiltered = await filterChinaNonAnimation(trungQuoc || []);
     const trungQuocDisplay: FilmItem[] = sortByModifiedDesc(trungQuocFiltered || []).slice(0, 10);
