@@ -94,7 +94,7 @@ export default function SignUpPage() {
             <div className="flex justify-center mb-4">
               <div className="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center bg-[linear-gradient(135deg,#F6C453,#D3A13A)]">
                 <Image
-                  src="/logo.svg"
+                  src="/logo.ico"
                   alt="MovPey"
                   width={64}
                   height={64}

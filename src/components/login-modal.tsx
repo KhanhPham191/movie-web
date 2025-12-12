@@ -211,3 +211,6 @@ export function LoginModal({ open, onOpenChange, onSwitchToSignup }: LoginModalP
   );
 }
 
+// Giữ default export để các import mặc định không bị lỗi
+export default LoginModal;
+

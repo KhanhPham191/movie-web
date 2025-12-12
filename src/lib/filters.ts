@@ -220,6 +220,8 @@ export async function filterPhimLeByCurrentYear(
   targetCount: number = 10
 ): Promise<FilmItem[]> {
   const currentYear = getCurrentYearUTC7();
+  // Cho phép fallback sang năm trước để tránh trống dữ liệu khi vừa sang năm mới
+  const allowedYears = new Set([currentYear, currentYear - 1]);
   
   // Fetch nhiều phim hơn để có đủ sau khi filter (ước tính cần 3-4x số lượng target vì nhiều phim không có năm hoặc không phải năm hiện tại)
   const moviesToProcess = movies.slice(0, Math.min(movies.length, targetCount * 4));
@@ -259,8 +261,8 @@ export async function filterPhimLeByCurrentYear(
             return null;
           }
           
-          // Chỉ lấy phim có năm phát hành = năm hiện tại
-          if (releaseYear === currentYear) {
+          // Chỉ lấy phim có năm phát hành nằm trong window cho phép
+          if (allowedYears.has(releaseYear)) {
             return movie;
           }
           

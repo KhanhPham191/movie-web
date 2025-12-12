@@ -215,3 +215,4 @@ CREATE POLICY "Users can delete their own currently watching"
   USING (auth.uid() = user_id);
 
 
+
