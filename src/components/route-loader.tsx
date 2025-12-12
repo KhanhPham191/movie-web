@@ -13,8 +13,16 @@ export function RouteLoader() {
   const searchParams = useSearchParams();
   const [visible, setVisible] = useState(false);
   const hideTimer = useRef<NodeJS.Timeout | null>(null);
+  const isFirstLoad = useRef(true);
+  const searchParamsKey = searchParams?.toString() ?? "";
 
   useEffect(() => {
+    // Bỏ qua render đầu tiên để tránh flash overlay khi load page
+    if (isFirstLoad.current) {
+      isFirstLoad.current = false;
+      return;
+    }
+
     // Khi URL (path hoặc query) đổi, show loader trong thời gian ngắn
     setVisible(true);
 
@@ -25,7 +33,7 @@ export function RouteLoader() {
     return () => {
       if (hideTimer.current) clearTimeout(hideTimer.current);
     };
-  }, [pathname, searchParams]);
+  }, [pathname, searchParamsKey]);
 
   if (!visible) return null;
 
@@ -47,6 +55,7 @@ export function RouteLoader() {
     </div>
   );
 }
+
 
 
 

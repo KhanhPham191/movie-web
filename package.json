@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "clear-cache": "rm -rf .next && echo '✅ Cache cleared successfully!'",
+    "clean": "rm -rf .next node_modules/.cache && echo '✅ All caches cleared!'"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.11",

@@ -195,6 +195,14 @@ export function CurrentlyWatchingSection() {
     return null;
   }
 
+  // Ẩn hoàn toàn nếu không có data (tài khoản mới chưa có phim đang xem)
+  // Chỉ hiển thị khi có data thực sự để đẩy các layout danh mục lên
+  // Khi có data mới, component sẽ tự động hiển thị với animation
+  const hasAnyData = items.length > 0 || previousItemsRef.current.length > 0;
+  if (!hasAnyData) {
+    return null;
+  }
+
   const hasContent = items.length > 0 || previousItemsRef.current.length > 0;
   const displayItems = items.length > 0 ? items : previousItemsRef.current;
 
