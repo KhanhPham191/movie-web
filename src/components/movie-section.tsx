@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
@@ -45,6 +45,13 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
   });
   const animationFrameRef = useRef<number | null>(null);
   const momentumRef = useRef<number | null>(null);
+
+  // Luôn reset scroll về đầu khi section được mount (tránh trường hợp Top 1 bị trôi sang giữa trên mobile)
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = 0;
+    }
+  }, [title]);
 
   if (!movies || movies.length === 0) {
     return null;
@@ -268,7 +275,7 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
             WebkitTransform: 'translate3d(0, 0, 0)',
             transform: 'translate3d(0, 0, 0)',
           }}
-          className={`flex items-start justify-center lg:justify-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          className={`flex items-start justify-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
           {movies.slice(0, 10).map((movie, index) => (
             <div
@@ -416,6 +423,13 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
   });
   const animationFrameRef = useRef<number | null>(null);
   const momentumRef = useRef<number | null>(null);
+
+  // Reset scroll về đầu cho dãy Top 10 khi mount
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = 0;
+    }
+  }, [title]);
 
   if (!movies || movies.length === 0) return null;
 
