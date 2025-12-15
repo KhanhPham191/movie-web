@@ -274,7 +274,7 @@ async function VideoPlayer({
           />
         </div>
         
-        <div className="relative overflow-hidden rounded-3xl bg-[#050505] glass-premium border border-[#F6C453]/20 shadow-[0_24px_80px_rgba(246,196,83,0.2)] animate-fade-in-scale">
+        <div className="relative overflow-hidden card-surface animate-fade-in-scale">
           {/* Premium Background Effects */}
           <div className="absolute inset-0">
             <Image
@@ -284,7 +284,7 @@ async function VideoPlayer({
               className="object-cover opacity-40 blur-3xl scale-110"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-[#050505]/90 to-[#050505]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#191b24]/90 via-[#191b24]/92 to-[#191b24]" />
             {/* Premium accent gradients */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(246,196,83,0.15),transparent_60%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(211,161,58,0.12),transparent_60%)]" />
@@ -303,7 +303,7 @@ async function VideoPlayer({
               <div className="relative rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_rgba(246,196,83,0.3)] border-2 border-[#F6C453]/40 group/player card-hover max-w-full animate-zoom-in">
                 {/* Premium glow effect */}
                 <div className="absolute -inset-1 bg-gradient-to-r from-[#F6C453]/20 via-[#D3A13A]/20 to-[#F6C453]/20 rounded-xl sm:rounded-2xl lg:rounded-[28px] blur-xl opacity-0 group-hover/player:opacity-100 transition-opacity duration-500" />
-                <div className="aspect-video bg-black rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden w-full">
+                <div className="aspect-video bg-[#191b24] rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden w-full">
                   <IframePlayer
                     src={currentEpisode.embed}
                     title={`${movie.name} - ${currentEpisode.name}`}
@@ -312,7 +312,7 @@ async function VideoPlayer({
                 </div>
                 
                 {/* Premium Episode Info Overlay */}
-                <div className="absolute top-0 left-0 right-0 p-3 sm:p-4 lg:p-6 pointer-events-none bg-gradient-to-b from-black/90 via-black/70 to-transparent">
+                <div className="absolute top-0 left-0 right-0 p-3 sm:p-4 lg:p-6 pointer-events-none bg-gradient-to-b from-[#191b24]/92 via-[#191b24]/78 to-transparent">
                   <div className="flex items-center justify-between text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em]">
                     <div className="flex items-center gap-2 sm:gap-2.5">
                       <Badge className="relative bg-gradient-to-r from-[#F6C453] to-[#D3A13A] text-white text-[10px] sm:text-xs px-3 py-1 font-bold shadow-[0_4px_15px_rgba(246,196,83,0.4)]">
@@ -324,7 +324,7 @@ async function VideoPlayer({
                         <span>ĐANG PHÁT</span>
                       </span>
                     </div>
-                    <span className="text-[#F6C453] font-bold bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
+                    <span className="text-[#F6C453] font-bold bg-[#191b24]/70 px-2 py-1 rounded backdrop-blur-sm">
                       {allEpisodes.length === 1 ? "FULL" : `${episodeIndex + 1}/${allEpisodes.length}`}
                     </span>
                   </div>
@@ -338,7 +338,7 @@ async function VideoPlayer({
                     asChild
                     variant="outline"
                     size="lg"
-                    className="relative group/prev min-w-[130px] sm:min-w-[150px] bg-black/60 text-white border-[#F6C453]/40 hover:bg-[#F6C453]/10 hover:border-[#F6C453] backdrop-blur-md text-xs sm:text-sm transition-all duration-300"
+                    className="relative group/prev min-w-[130px] sm:min-w-[150px] bg-[#191b24]/80 text-white border-[#F6C453]/40 hover:bg-[#F6C453]/10 hover:border-[#F6C453] backdrop-blur-md text-xs sm:text-sm transition-all duration-300"
                   >
                     <Link href={`/xem-phim/${slug}/${prevEpisode.slug}`}>
                       <div className="absolute inset-0 bg-gradient-to-r from-[#F6C453]/5 to-transparent rounded-lg opacity-0 group-hover/prev:opacity-100 transition-opacity" />
@@ -488,7 +488,7 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
   const { server } = await searchParams;
 
   return (
-    <main className="min-h-screen bg-[#05050a]">
+    <main className="min-h-screen bg-[#191b24]">
       <Header />
 
       {/* Cinematic background */}
@@ -496,7 +496,7 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -left-40 -top-40 h-72 w-72 rounded-full bg-[#F6C453]/15 blur-3xl animate-fade-in" />
           <div className="absolute right-0 top-1/4 h-80 w-80 rounded-full bg-[#D3A13A]/10 blur-3xl animate-fade-in" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black via-black/90 to-[#05050a]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black via-black/90 to-[#191b24]" />
         </div>
 
         <div className="relative z-10 container mx-auto px-3 sm:px-4 lg:px-6 max-w-[1600px] space-y-10 lg:space-y-14">
@@ -528,7 +528,7 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
           </Suspense>
 
           {/* Floating bottom gradient to merge with footer */}
-          <div className="pointer-events-none h-32 w-full bg-gradient-to-b from-transparent via-[#05050a] to-[#05050a]" />
+          <div className="pointer-events-none h-32 w-full bg-gradient-to-b from-transparent via-[#191b24] to-[#191b24]" />
         </div>
       </div>
 

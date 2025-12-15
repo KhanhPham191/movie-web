@@ -103,7 +103,7 @@ export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSe
   }
 
   return (
-    <div className="rounded-xl sm:rounded-2xl bg-white/5 glass border border-[#F6C453]/15 p-2.5 sm:p-4 shadow-[0_24px_80px_rgba(0,0,0,0.85)] animate-slide-up">
+    <div className="card-surface p-2.5 sm:p-4 animate-slide-up">
       {/* Header với tabs server */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2 sm:mb-3">
         <div className="flex items-center gap-1.5">
@@ -188,7 +188,7 @@ export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSe
             <span className="text-[#F6C453]/50 whitespace-nowrap">{currentEpisodes.length === 1 ? "FULL" : `${currentEpisodes.length} TẬP`}</span>
           </div>
           
-          <div className="grid grid-cols-4 xs:grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-1.5 sm:gap-2">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(78px,1fr))] sm:grid-cols-[repeat(auto-fit,minmax(88px,1fr))] md:grid-cols-[repeat(auto-fit,minmax(96px,1fr))] gap-1.5 sm:gap-2">
               {currentEpisodes.map((episode, index) => {
                 const serverParam = getServerParam(currentServer.server_name);
                 const href = serverParam

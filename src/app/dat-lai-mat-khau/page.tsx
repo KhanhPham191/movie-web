@@ -94,7 +94,7 @@ export default function ResetPasswordPage() {
 
   if (!isValidSession) {
     return (
-      <main className="min-h-screen bg-[#05050a]">
+      <main className="min-h-screen bg-[#191b24]">
         <Header />
         <div className="flex items-center justify-center min-h-[calc(100vh-200px)] pt-20 pb-16 px-4">
           <Card className="w-full max-w-md bg-[#0f0f0f]/95 backdrop-blur border-gray-800">
@@ -116,7 +116,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#05050a]">
+    <main className="min-h-screen bg-[#191b24]">
       <Header />
       <div className="flex items-center justify-center min-h-[calc(100vh-200px)] pt-20 pb-16 px-4">
         <Card className="w-full max-w-md bg-[#0f0f0f]/95 backdrop-blur border-gray-800">

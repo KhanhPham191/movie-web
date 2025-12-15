@@ -48,7 +48,7 @@ export default function FavoritesPage() {
 
   if (authLoading || isLoading) {
     return (
-      <main className="min-h-screen bg-[#05050a]">
+      <main className="min-h-screen bg-[#191b24]">
         <Header />
         <div className="flex items-center justify-center min-h-[calc(100vh-200px)] pt-20">
           <div className="text-white">Đang tải...</div>
@@ -63,7 +63,7 @@ export default function FavoritesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#05050a]">
+    <main className="min-h-screen bg-[#191b24]">
       <Header />
       <div className="container mx-auto px-4 py-20 max-w-7xl">
         <div className="mb-8">

@@ -190,12 +190,12 @@ export default async function CategoryPage({
   }
 
   return (
-    <main className="min-h-screen bg-[#0f0f0f]">
+    <main className="min-h-screen bg-[#191b24]">
       <Header />
 
       <div className="pt-16 sm:pt-20 md:pt-24">
         {/* Premium Category Hero Header */}
-        <section className="relative bg-gradient-to-b from-[#05050a] via-[#0a0a0f] to-[#0f0f0f] border-b border-[#F6C453]/10 overflow-hidden">
+        <section className="relative bg-gradient-to-b from-[#191b24] via-[#191b24] to-[#191b24] border-b border-[#F6C453]/10 overflow-hidden">
           {/* Premium Background Effects */}
           <div className="absolute inset-0">
             <div className="absolute left-0 top-0 h-full w-1/3 bg-gradient-to-r from-[#F6C453]/5 via-transparent to-transparent" />
@@ -223,7 +223,7 @@ export default async function CategoryPage({
         </section>
 
         {/* Premium Genre pills row */}
-        <div className="relative bg-[#0f0f0f] border-b border-[#F6C453]/5">
+        <div className="relative bg-[#191b24] border-b border-[#F6C453]/5">
           <div className="absolute inset-0 bg-gradient-to-r from-[#F6C453]/3 via-transparent to-[#D3A13A]/3" />
           <div className="relative z-10">
             <GenreSection />

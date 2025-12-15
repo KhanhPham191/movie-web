@@ -28,11 +28,11 @@ export async function HeroSectionWrapper() {
     
     // Chỉ hiển thị nếu có ít nhất 1 phim lẻ theo năm phát hành (không fallback)
     if (phimLe.length === 0) {
-      return <div className="h-[60vh] bg-[#0D0D0D]" />;
+      return <div className="h-[60vh] bg-[#191b24]" />;
     }
 
     return <HeroSection movies={phimLe} />;
   } catch (error) {
-    return <div className="h-[60vh] bg-[#0D0D0D]" />;
+    return <div className="h-[60vh] bg-[#191b24]" />;
   }
 }

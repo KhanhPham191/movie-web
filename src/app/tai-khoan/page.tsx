@@ -109,7 +109,7 @@ export default function AccountPage() {
 
   if (authLoading) {
     return (
-      <main className="min-h-screen bg-[#05050a]">
+      <main className="min-h-screen bg-[#191b24]">
         <Header />
         <div className="flex items-center justify-center min-h-[calc(100vh-200px)] pt-20">
           <div className="text-white">Đang tải...</div>
@@ -131,7 +131,7 @@ export default function AccountPage() {
   const avatarUrl = user.user_metadata?.avatar_url || avatar;
 
   return (
-    <main className="min-h-screen bg-[#05050a]">
+    <main className="min-h-screen bg-[#191b24]">
       <Header />
       <div className="container mx-auto px-4 py-20 max-w-4xl">
         <h1 className="text-3xl font-bold text-white mb-8">Tài khoản</h1>

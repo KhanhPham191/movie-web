@@ -21,7 +21,6 @@ const categories = [
   { name: "Phim lẻ", slug: "phim-le", href: "/danh-sach/phim-le" },
   { name: "Phim bộ", slug: "phim-bo", href: "/danh-sach/phim-bo" },
   { name: "Đang chiếu", slug: "phim-dang-chieu", href: "/danh-sach/phim-dang-chieu" },
-  { name: "Cập nhật hôm nay", slug: "phim-cap-nhat-hang-ngay", href: "/danh-sach/phim-cap-nhat-hang-ngay" },
 ];
 
 export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
@@ -151,7 +150,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
               <Link href="/danh-sach/phim-le" className="sm:hidden">
                 <Button
                   variant="ghost"
-                  className="h-7 px-3 text-xs font-medium whitespace-nowrap shrink-0 rounded-full bg-white/10 hover:bg-white/20 text-white"
+                  className="h-7 px-3 text-xs font-medium whitespace-nowrap shrink-0 rounded-full bg-white/10 hover:bg-white/20 text-[#F6C453]"
                 >
                   Xem tất cả
                 </Button>

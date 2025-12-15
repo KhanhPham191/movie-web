@@ -70,7 +70,7 @@ export function MovieInfoPanel({
   const episodeInfo = parseEpisode(movie.current_episode);
 
   return (
-    <div className="bg-white/5 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 border border-[#F6C453]/10">
+    <div className="card-surface p-2.5 sm:p-3">
       <div className="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-3 sm:gap-4 items-start">
         {/* Cột trái: Thông tin phim - Cố định để không bị ảnh hưởng */}
         <div className="space-y-2 min-w-0">

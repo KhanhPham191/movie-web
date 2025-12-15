@@ -24,6 +24,27 @@ function formatEpisodeLabel(episode?: string) {
   return episode;
 }
 
+function getShortDescription(description?: string, maxLength: number = 120) {
+  if (!description) return "";
+  const clean = description.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+  if (clean.length <= maxLength) return clean;
+  return `${clean.slice(0, Math.max(0, maxLength - 3))}...`;
+}
+
+// Rút gọn nhãn ngôn ngữ giống "VS-LT"
+function getLanguageBadge(language?: string) {
+  if (!language) return "";
+  const lang = language.toLowerCase();
+  const hasVS = lang.includes("viet") || lang.includes("vs");
+  const hasLT = lang.includes("lồng") || lang.includes("lt");
+  const hasTM = lang.includes("thuyết minh") || lang.includes("tm");
+  const parts = [];
+  if (hasVS) parts.push("VS");
+  if (hasLT) parts.push("LT");
+  if (hasTM) parts.push("TM");
+  return parts.length ? parts.join("-") : language;
+}
+
 export function MovieCard({ movie, index = 0, variant = "default", rank }: MovieCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPortraitImage, setIsPortraitImage] = useState(false);
@@ -261,14 +282,30 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
     // - poster nhỏ bên dưới dùng thumb_url để khác hình
     const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
     const thumbUrl = getImageUrl(movie.thumb_url || movie.poster_url);
+    const shortDescription = getShortDescription(movie.description, 110);
+    const languageBadge = getLanguageBadge(movie.language);
+    const qualityLabel = movie.quality ? movie.quality.toUpperCase() : "";
+
+    const year =
+      movie.created && !Number.isNaN(new Date(movie.created).getFullYear())
+        ? new Date(movie.created).getFullYear()
+        : undefined;
+    const episodeLabel = formatEpisodeLabel(movie.current_episode);
 
     return (
       <Link href={`/phim/${movie.slug}`}>
         <div className="group relative w-full max-w-full h-full flex flex-col">
+          {/* Glow frame */}
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#F6C453]/20 via-transparent to-[#DB2777]/15 blur-xl opacity-0 group-hover:opacity-100 transition duration-500" />
+
           {/* Wide backdrop */}
-          <div className="relative aspect-[16/9] w-full rounded-[10px] overflow-hidden bg-muted transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-2xl flex-shrink-0 border border-transparent group-hover:border-[rgba(246,196,83,0.3)]">
+          <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-[#0a0a0a] transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-2xl flex-shrink-0 border border-white/5 group-hover:border-[rgba(246,196,83,0.35)]">
+            {/* Top accent bar */}
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#F6C453] via-[#DB2777] to-[#6D28D9] opacity-70" />
+
             {/* Overlay vàng khi hover */}
-            <div className="absolute inset-0 bg-[rgba(246,196,83,0.15)] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10" />
+            <div className="absolute inset-0 bg-[rgba(246,196,83,0.12)] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10" />
+
             <Image
               src={backdropUrl}
               alt={movie.name}
@@ -278,8 +315,23 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
               unoptimized
             />
 
+            {(languageBadge || qualityLabel) && (
+              <div className="absolute top-2 left-2 flex items-center gap-1 z-20">
+                {languageBadge && (
+                  <Badge className="bg-gradient-to-r from-[#7C3AED] to-[#DB2777] text-white border-0 text-[10px] font-bold shadow-lg">
+                    {languageBadge}
+                  </Badge>
+                )}
+                {qualityLabel && (
+                  <Badge className="bg-white/15 text-white border border-white/20 text-[10px] font-semibold">
+                    {qualityLabel}
+                  </Badge>
+                )}
+              </div>
+            )}
+
             {/* Dark gradient bar at bottom */}
-            <div className="absolute inset-x-0 bottom-0 h-20 sm:h-24 bg-gradient-to-t from-[#050505] via-[#050505e6] to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-[96px] sm:h-[108px] bg-gradient-to-t from-[#050505] via-[#050505e6] to-transparent" />
 
             {/* Poster + text overlay on bottom bar */}
             <div className="absolute left-3 right-3 sm:left-4 sm:right-4 bottom-3 flex items-end gap-2 sm:gap-3">
@@ -302,9 +354,14 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
                       {movie.language}
                     </Badge>
                   )}
-                  {movie.current_episode && (
+                  {episodeLabel && (
                     <Badge className="bg-red-600 text-white text-[9px] xs:text-[10px] font-semibold border-0">
-                      {formatEpisodeLabel(movie.current_episode)}
+                      {episodeLabel}
+                    </Badge>
+                  )}
+                  {qualityLabel && (
+                    <Badge className="bg-white/10 text-white text-[9px] xs:text-[10px] font-semibold border border-white/20">
+                      {qualityLabel}
                     </Badge>
                   )}
                 </div>
@@ -316,11 +373,22 @@ export function MovieCard({ movie, index = 0, variant = "default", rank }: Movie
                     {movie.original_name}
                   </p>
                 )}
-                <p className="mt-0.5 sm:mt-1 text-[10px] xs:text-xs text-gray-300 flex flex-wrap items-center gap-x-1.5 sm:gap-x-2 gap-y-0.5">
+                {shortDescription && (
+                  <p className="mt-0.5 text-[10px] xs:text-xs text-gray-300 line-clamp-2">
+                    {shortDescription}
+                  </p>
+                )}
+                <p className="mt-0.5 sm:mt-1 text-[10px] xs:text-xs text-gray-200 flex flex-wrap items-center gap-x-1.5 sm:gap-x-2 gap-y-0.5">
                   <span className="px-1 py-0.5 rounded border border-gray-500 text-[9px] xs:text-[10px]">
                     18+
                   </span>
+                  {year && <span>{year}</span>}
                   {movie.time && <span>{movie.time}</span>}
+                  {episodeLabel && (
+                    <span className="px-1 py-0.5 rounded bg-white/10 border border-white/10 text-[9px] xs:text-[10px]">
+                      {episodeLabel}
+                    </span>
+                  )}
                 </p>
               </div>
             </div>

@@ -214,8 +214,8 @@ export function EpisodeSelectorWatch({
         )}
       </div>
 
-      {/* Episode Grid - Mobile 4 tập, iPad/Desktop 5 tập mỗi hàng */}
-      <div className="grid grid-cols-4 md:grid-cols-5 gap-1.5 sm:gap-2 pb-1">
+      {/* Episode Grid - dùng auto-fit để tránh bể layout trên iPad */}
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(78px,1fr))] sm:grid-cols-[repeat(auto-fit,minmax(88px,1fr))] md:grid-cols-[repeat(auto-fit,minmax(96px,1fr))] gap-1.5 sm:gap-2 pb-1">
         {currentEpisodes.map((ep, index) => {
           // Tạo tham số server từ server_name của server được chọn
           const serverParam = getServerParam(currentServer.server_name);

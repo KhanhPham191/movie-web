@@ -138,6 +138,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
         {/* Premium Vignette & Gradients */}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(13,13,13,0.1)_0%,rgba(13,13,13,0)_25%,rgba(13,13,13,0)_50%,rgba(13,13,13,0.7)_80%,rgba(13,13,13,0.98)_100%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(13,13,13,0.5)_0%,rgba(13,13,13,0.15)_30%,rgba(13,13,13,0)_50%)]" />
+        <div className="hero-dot-overlay" aria-hidden />
       </div>
 
       {/* Content */}

@@ -130,10 +130,10 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
               unoptimized
             />
             {/* Premium Gradients */}
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,5,10,0.1)_0%,rgba(5,5,10,0.4)_40%,rgba(5,5,10,0.9)_80%,rgba(5,5,10,1)_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(25,27,36,0.1)_0%,rgba(25,27,36,0.45)_40%,rgba(25,27,36,0.92)_80%,rgba(25,27,36,1)_100%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(246,196,83,0.2),transparent_60%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(211,161,58,0.15),transparent_60%)]" />
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,5,10,0.5)_0%,rgba(5,5,10,0.15)_30%,rgba(5,5,10,0)_50%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(25,27,36,0.55)_0%,rgba(25,27,36,0.18)_30%,rgba(25,27,36,0)_50%)]" />
           </div>
 
           {/* Content Overlay - ẩn trên mobile, chỉ dùng hero text cho tablet/desktop */}
@@ -142,7 +142,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
               {/* Meta chips - chỉ hiển thị trên tablet/desktop, mobile sẽ có block riêng phía dưới hero */}
               <div className="hidden sm:flex flex-wrap items-center gap-2 text-[10px] sm:text-xs text-white/70">
                 {movie.quality && (
-                  <span className="rounded-full border border-white/40 bg-black/40 px-2 py-0.5 text-[9px] sm:text-[10px]">
+                  <span className="rounded-full border border-white/40 bg-[#191b24]/70 px-2 py-0.5 text-[9px] sm:text-[10px]">
                     {movie.quality}
                   </span>
                 )}
@@ -234,7 +234,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
         </section>
 
         {/* Main Content - Premium Layout */}
-        <div className="relative z-10 -mt-16 sm:-mt-20 pt-5 sm:pt-28 pb-16 sm:pb-20 bg-gradient-to-b from-[#05050a] via-[#05050a] to-[#05050a]">
+        <div className="relative z-10 -mt-16 sm:-mt-20 pt-5 sm:pt-28 pb-16 sm:pb-20 bg-gradient-to-b from-[#191b24] via-[#191b24] to-[#191b24]">
           {/* Premium Background Effects */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <div className="absolute left-0 top-20 h-96 w-96 rounded-full bg-gradient-to-r from-[#F6C453]/8 via-transparent to-transparent blur-3xl" />
@@ -249,7 +249,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
               </h1>
               <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-white/70">
                 {movie.quality && (
-                  <span className="rounded-full border border-white/30 bg-black/40 px-1.5 py-0.5">
+                  <span className="rounded-full border border-white/30 bg-[#191b24]/70 px-1.5 py-0.5">
                     {movie.quality}
                   </span>
                 )}
@@ -321,7 +321,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
             {/* Premium About Section */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-10 items-start animate-slide-up">
               {/* Left Column - Premium Info */}
-              <div className="md:col-span-2 space-y-3 sm:space-y-4 rounded-xl sm:rounded-2xl bg-white/5 glass-premium border border-[#F6C453]/10 p-4 sm:p-6 lg:p-8 relative group">
+              <div className="md:col-span-2 space-y-3 sm:space-y-4 card-surface p-4 sm:p-6 lg:p-8 relative group">
                 <div className="absolute inset-0 bg-gradient-to-br from-[#F6C453]/5 via-transparent to-[#D3A13A]/5 rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10">
                 {/* Cast & Crew */}
@@ -358,7 +358,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
               </div>
 
               {/* Right Column - Premium Details */}
-              <div className="space-y-3 sm:space-y-4 rounded-xl sm:rounded-2xl bg-white/5 glass-premium border border-[#F6C453]/10 p-4 sm:p-6 lg:p-8 text-xs sm:text-sm relative group">
+              <div className="space-y-3 sm:space-y-4 card-surface p-4 sm:p-6 lg:p-8 text-xs sm:text-sm relative group">
                 <div className="absolute inset-0 bg-gradient-to-tl from-[#D3A13A]/5 via-transparent to-[#F6C453]/5 rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10">
                 {categories.length > 0 && (
@@ -500,7 +500,7 @@ function MovieDetailSkeleton() {
   return (
     <>
       {/* Hero Skeleton */}
-      <section className="relative h-[55vh] sm:h-[70vh] md:h-[85vh] min-h-[350px] sm:min-h-[450px] md:min-h-[500px] flex items-end bg-[#0f0f0f]">
+        <section className="relative h-[55vh] sm:h-[70vh] md:h-[85vh] min-h-[350px] sm:min-h-[450px] md:min-h-[500px] flex items-end bg-[#191b24]">
         <div className="container mx-auto px-4 md:px-12 pb-24">
           <div className="max-w-2xl space-y-4">
             <Skeleton className="h-12 w-3/4" />
@@ -514,7 +514,7 @@ function MovieDetailSkeleton() {
       </section>
 
       {/* Content Skeleton */}
-      <div className="bg-[#0f0f0f] -mt-32 pt-40">
+      <div className="bg-[#191b24] -mt-32 pt-40">
         <div className="container mx-auto px-4 md:px-12">
           <Skeleton className="h-8 w-48 mb-6" />
           <div className="flex gap-2 mb-12">
@@ -544,7 +544,7 @@ export default async function MoviePage({ params, searchParams }: MoviePageProps
   const { server } = await searchParams;
 
   return (
-    <main className="min-h-screen bg-[#0f0f0f]">
+    <main className="min-h-screen bg-[#191b24]">
       <Header />
 
       <Suspense fallback={<MovieDetailSkeleton />}>
