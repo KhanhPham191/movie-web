@@ -1,4 +1,4 @@
-import { MovieSection } from "@/components/movie-section";
+import { MovieSectionWithNav } from "@/components/movie-section-with-nav";
 import {
   getFilmsByCountryMultiple,
   type FilmItem,
@@ -88,7 +88,7 @@ export async function Top10PhimBo() {
     }
 
     return (
-      <MovieSection
+      <MovieSectionWithNav
         title="Top 10 phim bộ"
         movies={top10Series}
         variant="newRelease"

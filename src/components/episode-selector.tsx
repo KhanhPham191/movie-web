@@ -2,7 +2,9 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Play } from "lucide-react";
+import { getImageUrl } from "@/lib/api";
 
 interface Episode {
   name: string;
@@ -20,9 +22,17 @@ interface EpisodeSelectorProps {
   servers: Server[];
   movieSlug: string;
   defaultServer?: string;
+  movieName?: string;
+  posterUrl?: string;
 }
 
-export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSelectorProps) {
+export function EpisodeSelector({
+  servers,
+  movieSlug,
+  defaultServer,
+  movieName,
+  posterUrl,
+}: EpisodeSelectorProps) {
   // Lọc giữ lại 3 server: Vietsub, Thuyết minh và Lồng tiếng
   const filteredServers = useMemo(() => {
     return servers.filter((server) => {
@@ -76,6 +86,9 @@ export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSe
   const currentServer = filteredServers[selectedServerIndex];
   const currentEpisodes = currentServer?.items || [];
 
+  // Kiểm tra xem có phải phim lẻ không (chỉ có 1 episode ở server hiện tại)
+  const isPhimLe = currentEpisodes.length === 1;
+
   // Tạo tham số server từ server_name
   const getServerParam = (serverName: string) => {
     const name = serverName.toLowerCase();
@@ -100,6 +113,55 @@ export function EpisodeSelector({ servers, movieSlug, defaultServer }: EpisodeSe
 
   if (filteredServers.length === 0) {
     return null;
+  }
+
+  // UI đặc biệt cho phim lẻ (FULL) - dùng card giống trang xem phim
+  if (isPhimLe && currentServer && movieName && posterUrl) {
+    const firstEpisode = currentEpisodes[0];
+    const serverParam = getServerParam(currentServer.server_name);
+    const href = serverParam
+      ? `/xem-phim/${movieSlug}/${firstEpisode.slug}?server=${serverParam}`
+      : `/xem-phim/${movieSlug}/${firstEpisode.slug}`;
+    const imageUrl = getImageUrl(posterUrl);
+
+    return (
+      <Link href={href} className="block w-full lg:w-1/2">
+        <div className="relative w-full aspect-[16/9] sm:aspect-[2.5/1] rounded-xl overflow-hidden border border-[#F6C453]/50 shadow-lg hover:shadow-[#F6C453]/30 transition-all hover:scale-[1.01] group cursor-pointer">
+          {/* Background Image */}
+          <div className="absolute inset-0">
+            <Image
+              src={imageUrl}
+              alt={movieName}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1200px"
+            />
+            {/* Ombre gradient overlay bên trái - mờ dần sang phải */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#1a1a2e] via-[#1a1a2e]/90 via-[#1a1a2e]/70 via-[#1a1a2e]/40 to-transparent" />
+          </div>
+
+          {/* Content bên trái */}
+          <div className="relative z-10 h-full flex flex-col justify-center p-4 sm:p-6 md:p-8 max-w-[55%] sm:max-w-[45%] md:max-w-[40%]">
+            {/* Label Phụ đề */}
+            <div className="flex items-center gap-1.5 mb-3 sm:mb-4">
+              <div className="w-2 h-2 rounded-full bg-purple-400 shadow-sm" />
+              <span className="text-white/90 text-xs sm:text-sm font-medium">Phụ đề</span>
+            </div>
+
+            {/* Tên phim */}
+            <h3 className="text-white font-bold text-base sm:text-lg md:text-xl lg:text-2xl mb-4 sm:mb-6 line-clamp-3 leading-tight group-hover:text-[#F6C453] transition-colors">
+              {movieName}
+            </h3>
+
+            {/* Nút Đang xem */}
+            <div className="inline-flex items-center justify-center px-4 sm:px-5 py-2 sm:py-2.5 bg-white/95 hover:bg-white text-[#1a1a2e] font-semibold text-sm sm:text-base rounded-lg transition-all shadow-md group-hover:shadow-lg w-fit">
+              <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2 fill-current" />
+              <span>Play</span>
+            </div>
+          </div>
+        </div>
+      </Link>
+    );
   }
 
   return (

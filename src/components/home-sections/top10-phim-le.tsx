@@ -1,4 +1,4 @@
-import { MovieSection } from "@/components/movie-section";
+import { MovieSectionWithNav } from "@/components/movie-section-with-nav";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import {
   getFilmsByCategoryMultiple,
@@ -44,7 +44,7 @@ export async function Top10PhimLe() {
     }
 
     return (
-      <MovieSection
+      <MovieSectionWithNav
         title="Top 10 phim lẻ"
         movies={phimLe}
         variant="newRelease"

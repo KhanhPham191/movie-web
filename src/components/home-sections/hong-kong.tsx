@@ -1,4 +1,4 @@
-import { MovieSection } from "@/components/movie-section";
+import { MovieSectionWithNav } from "@/components/movie-section-with-nav";
 import { getFilmsByCountryMultiple } from "@/lib/api";
 
 export async function HongKongSection() {
@@ -9,7 +9,7 @@ export async function HongKongSection() {
     if (hongKong.length === 0) return <></>;
 
     return (
-      <MovieSection
+      <MovieSectionWithNav
         title="Phim Hồng Kông"
         movies={hongKong}
         href="/quoc-gia/hong-kong"
@@ -20,6 +20,7 @@ export async function HongKongSection() {
     return <></>;
   }
 }
+
 
 
 

@@ -1,4 +1,4 @@
-import { MovieSection } from "@/components/movie-section";
+import { MovieSectionWithNav } from "@/components/movie-section-with-nav";
 import { getFilmsByCountryMultiple, type FilmItem } from "@/lib/api";
 import { filterChinaNonAnimation } from "@/lib/filters";
 
@@ -32,7 +32,7 @@ export async function TrungQuocSection() {
     if (trungQuocDisplay.length === 0) return <></>;
 
     return (
-      <MovieSection
+      <MovieSectionWithNav
         title="Phim Trung Quốc"
         movies={trungQuocDisplay}
         href="/quoc-gia/trung-quoc"
@@ -43,6 +43,7 @@ export async function TrungQuocSection() {
     return <></>;
   }
 }
+
 
 
 

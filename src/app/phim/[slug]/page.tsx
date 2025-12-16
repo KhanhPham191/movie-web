@@ -265,6 +265,8 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                 servers={movie.episodes}
                 movieSlug={movie.slug}
                 defaultServer={serverParam}
+                movieName={movie.name}
+                posterUrl={movie.poster_url}
               />
             )}
 

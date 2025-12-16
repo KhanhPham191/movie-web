@@ -1,4 +1,4 @@
-import { MovieSection } from "@/components/movie-section";
+import { MovieSectionWithNav } from "@/components/movie-section-with-nav";
 import { getFilmsByGenreMultiple } from "@/lib/api";
 
 export async function AnimeSection() {
@@ -15,7 +15,7 @@ export async function AnimeSection() {
     if (movies.length === 0) return <></>;
 
     return (
-      <MovieSection
+      <MovieSectionWithNav
         title="Phim Anime"
         movies={movies}
         href={href}
@@ -26,6 +26,7 @@ export async function AnimeSection() {
     return <></>;
   }
 }
+
 
 
 
