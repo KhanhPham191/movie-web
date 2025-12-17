@@ -329,7 +329,7 @@ function CinemaCard({ movie }: { movie: FilmItem }) {
   const episodeLabel = formatEpisodeLabel(movie.current_episode);
 
   return (
-    <Link href={`/phim/${movie.slug}`} className="group block h-full">
+    <Link href={`/phim/${movie.slug}`} className="group block h-full cursor-pointer">
       <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/5 bg-[#0b0b0f] shadow-[0_15px_35px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:-translate-y-1">
         {/* Top artwork */}
         <div className="relative aspect-[4/5] w-full overflow-hidden">
@@ -544,7 +544,7 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
     <section className="relative py-4 group/section">
       {/* Header */}
       <div className="px-3 sm:px-4 md:px-12 mb-2">
-        <Link href={href || "#"} className="group/title inline-flex items-center gap-1">
+        <Link href={href || "#"} className="group/title inline-flex items-center gap-1 cursor-pointer">
           <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white">
             {title}
           </h2>

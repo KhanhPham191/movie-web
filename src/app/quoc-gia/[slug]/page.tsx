@@ -234,8 +234,8 @@ export async function generateMetadata({ params }: CountryPageProps) {
   const country = COUNTRIES.find((c) => c.slug === slug);
   const countryName = country?.name || slug;
   return {
-    title: `Phim ${countryName} | Phim7.xyz`,
-    description: `Xem phim ${countryName} hay nhất tại Phim7.xyz`,
+    title: `Phim ${countryName} - Xem phim ${countryName} Vietsub | MovPey`,
+    description: `Kho phim ${countryName} full HD Vietsub, thuyết minh, cập nhật liên tục trên MovPey.`,
   };
 }
 

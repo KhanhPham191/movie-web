@@ -185,7 +185,7 @@ export function EpisodeSelector({
                 <button
                   key={server.server_name}
                   onClick={() => setSelectedServerIndex(index)}
-                  className={`flex-1 sm:flex-none px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ease-in-out flex items-center justify-center gap-1 sm:gap-1.5 ${
+                  className={`flex-1 sm:flex-none px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ease-in-out flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer ${
                     isActive
                       ? "bg-[#1a1a2e] text-white"
                       : "bg-[#0a0a0a] text-white/70 border border-white/10 hover:bg-[#F6C453] hover:text-white hover:border-[#F6C453]"
@@ -250,29 +250,29 @@ export function EpisodeSelector({
             <span className="text-[#F6C453]/50 whitespace-nowrap">{currentEpisodes.length === 1 ? "FULL" : `${currentEpisodes.length} TẬP`}</span>
           </div>
           
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(78px,1fr))] sm:grid-cols-[repeat(auto-fit,minmax(88px,1fr))] md:grid-cols-[repeat(auto-fit,minmax(96px,1fr))] gap-1.5 sm:gap-2">
-              {currentEpisodes.map((episode, index) => {
-                const serverParam = getServerParam(currentServer.server_name);
-                const href = serverParam
-                  ? `/xem-phim/${movieSlug}/${episode.slug}?server=${serverParam}`
-                  : `/xem-phim/${movieSlug}/${episode.slug}`;
-                
-                return (
-                  <Link 
-                    key={`${currentServer.server_name}-${episode.slug}`} 
-                    href={href}
-                    className="flex items-center justify-center gap-1 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.65)] min-w-0 bg-[#0a0a0a] border border-white/10 text-white hover:bg-[#F6C453] hover:text-white hover:border-[#F6C453]"
-                    style={{
-                      animation: "fadeInUp 0.2s ease-out",
-                      animationDelay: `${Math.min(index * 15, 300)}ms`,
-                      animationFillMode: "both",
-                    }}
-                  >
-                    <Play className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                    <span className="whitespace-nowrap">{currentEpisodes.length === 1 ? "FULL" : `Tập ${index + 1}`}</span>
-                  </Link>
-                );
-              })}
+          <div className="flex flex-wrap justify-start gap-1.5 sm:gap-2">
+            {currentEpisodes.map((episode, index) => {
+              const serverParam = getServerParam(currentServer.server_name);
+              const href = serverParam
+                ? `/xem-phim/${movieSlug}/${episode.slug}?server=${serverParam}`
+                : `/xem-phim/${movieSlug}/${episode.slug}`;
+              
+              return (
+                <Link 
+                  key={`${currentServer.server_name}-${episode.slug}`} 
+                  href={href}
+                  className="flex w-[96px] sm:w-[104px] md:w-[112px] items-center justify-center gap-1 px-2 sm:px-2.5 md:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.65)] bg-[#0a0a0a] border border-white/10 text-white hover:bg-[#F6C453] hover:text-white hover:border-[#F6C453] cursor-pointer"
+                  style={{
+                    animation: "fadeInUp 0.2s ease-out",
+                    animationDelay: `${Math.min(index * 15, 300)}ms`,
+                    animationFillMode: "both",
+                  }}
+                >
+                  <Play className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="whitespace-nowrap">{currentEpisodes.length === 1 ? "FULL" : `Tập ${index + 1}`}</span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       )}

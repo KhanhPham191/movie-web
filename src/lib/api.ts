@@ -66,7 +66,7 @@ export interface FilmDetailResponse {
 const API_BASE = "https://phim.nguonc.com/api";
 
 const DEFAULT_FETCH_HEADERS: HeadersInit = {
-  "User-Agent": "Mozilla/5.0 (compatible; Phim7Bot/1.0; +https://phim7.xyz)",
+  "User-Agent": "Mozilla/5.0 (compatible; MovPeyBot/1.0; +https://movpey.example.com)",
   Accept: "application/json",
   "Accept-Language": "vi,en;q=0.9",
 };

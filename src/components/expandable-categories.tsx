@@ -56,7 +56,7 @@ export function ExpandableCategories({
       {hasMore && (
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-1 text-[#F6C453] hover:text-[#F6C453]/80 text-xs sm:text-sm font-medium transition-colors mt-1"
+          className="flex items-center gap-1 text-[#F6C453] hover:text-[#F6C453]/80 text-xs sm:text-sm font-medium transition-colors mt-1 cursor-pointer"
         >
           <span>{isExpanded ? "Thu gọn" : "Xem thêm thể loại >"}</span>
           {isExpanded ? (

@@ -545,7 +545,8 @@ export async function generateMetadata({ params }: WatchPageProps) {
 
     if (!movie) {
       return {
-        title: "Xem phim | Phim7.xyz",
+        title: "Xem phim | MovPey",
+        description: "Xem phim online chất lượng cao, Vietsub, thuyết minh trên MovPey.",
       };
     }
 
@@ -558,13 +559,15 @@ export async function generateMetadata({ params }: WatchPageProps) {
       }
     }
 
+    const baseTitle = `Xem ${movie.name}${episodeName}`;
     return {
       title: `Xem ${movie.name}${episodeName} | Phim7.xyz`,
-      description: `Xem phim ${movie.name} tập ${episodeName} tại Phim7.xyz`,
+      description: `Xem phim ${movie.name}${episodeName} online full HD Vietsub, thuyết minh miễn phí trên MovPey.`,
     };
   } catch {
     return {
-      title: "Xem phim | Phim7.xyz",
+      title: "Xem phim | MovPey",
+      description: "Xem phim online Vietsub, thuyết minh chất lượng cao trên MovPey.",
     };
   }
 }

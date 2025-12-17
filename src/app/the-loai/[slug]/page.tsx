@@ -132,8 +132,8 @@ export async function generateMetadata({ params }: GenrePageProps) {
   const genre = GENRES.find((g) => g.slug === slug);
   const genreName = genre?.name || slug;
   return {
-    title: `Phim ${genreName} | Phim7.xyz`,
-    description: `Xem phim ${genreName.toLowerCase()} hay nhất tại Phim7.xyz`,
+    title: `Phim ${genreName} - Xem phim ${genreName.toLowerCase()} Vietsub | MovPey`,
+    description: `Xem phim ${genreName.toLowerCase()} full HD Vietsub, thuyết minh miễn phí trên MovPey.`,
   };
 }
 

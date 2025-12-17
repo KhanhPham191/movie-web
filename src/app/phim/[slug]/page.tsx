@@ -214,7 +214,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                   >
                     <Button
                       size="lg"
-                      className="relative group/btn bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white font-bold text-xs sm:text-sm md:text-base px-4 sm:px-6 md:px-8 h-9 sm:h-11 md:h-12 rounded-full shadow-[0_18px_40px_rgba(246,196,83,0.4)] hover:shadow-[0_24px_50px_rgba(246,196,83,0.5)] transition-all duration-300 w-full sm:w-auto border border-[#F6C453]/30"
+                      className="relative group/btn bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white font-bold text-xs sm:text-sm md:text-base px-4 sm:px-6 md:px-8 h-9 sm:h-11 md:h-12 rounded-full shadow-[0_18px_40px_rgba(246,196,83,0.4)] hover:shadow-[0_24px_50px_rgba(246,196,83,0.5)] transition-all duration-300 w-full sm:w-auto border border-[#F6C453]/30 cursor-pointer"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-full opacity-0 group-hover/btn:opacity-100 transition-opacity" />
                       <Play className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2 fill-white" />
@@ -566,22 +566,26 @@ export async function generateMetadata({ params }: MoviePageProps) {
     // Check if API returned error status
     if (!response || !response.movie) {
       return {
-        title: "Chi tiết phim | Phim7.xyz",
+        title: "Chi tiết phim | MovPey",
+        description: "Xem chi tiết phim, nội dung, diễn viên và thông tin đầy đủ trên MovPey.",
       };
     }
     
     const movie = response.movie;
-    
+    const plainDescription =
+      movie.description?.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim() ?? "";
+
     return {
-      title: `${movie.name} | Phim7.xyz`,
+      title: `${movie.name} - Thông tin, nội dung phim | MovPey`,
       description:
-        movie.description?.replace(/<[^>]*>/g, "").slice(0, 160) ||
-        `Xem phim ${movie.name} tại Phim7.xyz`,
+        plainDescription.slice(0, 160) ||
+        `Xem thông tin chi tiết, nội dung và diễn viên phim ${movie.name} trên MovPey.`,
     };
   } catch (error) {
     // Don't throw error in metadata, just return default
     return {
-      title: "Chi tiết phim | Phim7.xyz",
+      title: "Chi tiết phim | MovPey",
+      description: "Xem chi tiết phim, nội dung và thông tin diễn viên trên MovPey.",
     };
   }
 }

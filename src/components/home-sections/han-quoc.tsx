@@ -14,6 +14,7 @@ export async function HanQuocSection() {
         movies={hanQuoc}
         href="/quoc-gia/han-quoc"
         variant="series"
+        disableTilt={true}
       />
     );
   } catch (error) {

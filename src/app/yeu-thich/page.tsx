@@ -109,7 +109,7 @@ export default function FavoritesPage() {
                 <button
                   onClick={() => handleRemove(favorite.movie_slug, favorite.id)}
                   disabled={removingId === favorite.id}
-                  className="absolute top-2 right-2 p-2 bg-black/60 hover:bg-red-600/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  className="absolute top-2 right-2 p-2 bg-black/60 hover:bg-red-600/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-pointer"
                   title="Xóa khỏi yêu thích"
                 >
                   <Trash2 className="w-4 h-4 text-white" />

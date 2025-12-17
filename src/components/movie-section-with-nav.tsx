@@ -12,6 +12,7 @@ interface MovieSectionWithNavProps {
   href?: string;
   variant?: "default" | "portrait" | "top10" | "newRelease" | "series" | "cinema";
   showViewAll?: boolean;
+  disableTilt?: boolean;
 }
 
 // Chuẩn hoá nhãn tập giống bên movie-card
@@ -27,7 +28,8 @@ export function MovieSectionWithNav({
   movies, 
   href, 
   variant = "default",
-  showViewAll = true 
+  showViewAll = true,
+  disableTilt = false
 }: MovieSectionWithNavProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -200,7 +202,8 @@ export function MovieSectionWithNav({
       case "portrait":
         return "w-[clamp(150px,15vw,230px)] xl:w-[clamp(175px,12vw,255px)]";
       case "newRelease":
-        return "w-[clamp(180px,16vw,270px)] xl:w-[clamp(210px,13vw,300px)]";
+        // Giảm width để card cao hơn và hẹp hơn
+        return "w-[clamp(140px,12vw,200px)] xl:w-[clamp(160px,10vw,220px)]";
       case "series":
         return "w-[clamp(190px,16vw,285px)] xl:w-[clamp(220px,13vw,315px)]";
       default:
@@ -249,7 +252,7 @@ export function MovieSectionWithNav({
         {canScrollLeft && (
           <button
             onClick={scrollLeft}
-            className="absolute left-2 sm:left-4 md:left-8 lg:left-12 top-1/2 -translate-y-1/2 z-20 h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm border border-white/20 hover:border-white/40 text-white transition-all duration-300 shadow-lg hover:shadow-xl opacity-0 group-hover/container:opacity-100 flex items-center justify-center"
+            className="absolute left-2 sm:left-4 md:left-8 lg:left-12 top-1/2 -translate-y-1/2 z-20 h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm border border-white/20 hover:border-white/40 text-white transition-all duration-300 shadow-lg hover:shadow-xl opacity-0 group-hover/container:opacity-100 flex items-center justify-center cursor-pointer"
             aria-label="Cuộn trái"
           >
             <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -260,7 +263,7 @@ export function MovieSectionWithNav({
         {canScrollRight && (
           <button
             onClick={scrollRight}
-            className="absolute right-2 sm:right-4 md:right-8 lg:right-12 top-1/2 -translate-y-1/2 z-20 h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm border border-white/20 hover:border-white/40 text-white transition-all duration-300 shadow-lg hover:shadow-xl opacity-0 group-hover/container:opacity-100 flex items-center justify-center"
+            className="absolute right-2 sm:right-4 md:right-8 lg:right-12 top-1/2 -translate-y-1/2 z-20 h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm border border-white/20 hover:border-white/40 text-white transition-all duration-300 shadow-lg hover:shadow-xl opacity-0 group-hover/container:opacity-100 flex items-center justify-center cursor-pointer"
             aria-label="Cuộn phải"
           >
             <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -321,7 +324,8 @@ export function MovieSectionWithNav({
             transform: 'translate3d(0, 0, 0)',
           }}
           // Giảm padding dưới của hàng phim để khoảng cách với section kế tiếp bớt trống
-          className={`flex items-start justify-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-6 sm:pb-8 pt-1 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          // Tăng padding-top cho newRelease để tránh clipping khi card nghiêng nhiều hơn
+          className={`flex items-start justify-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-6 sm:pb-8 ${variant === "newRelease" ? "pt-6 sm:pt-8" : "pt-1"} select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
           {movies.slice(0, 20).map((movie, index) => (
             <div
@@ -349,6 +353,7 @@ export function MovieSectionWithNav({
                 index={index}
                 variant={variant}
                 rank={variant === "top10" || variant === "newRelease" ? index + 1 : undefined}
+                disableTilt={disableTilt}
               />
             </div>
           ))}

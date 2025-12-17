@@ -254,8 +254,8 @@ export async function generateMetadata({ params }: CategoryPageProps) {
   const { slug } = await params;
   const categoryName = CATEGORY_NAMES[slug] || "Danh sách phim";
   return {
-    title: `${categoryName} | Phim7.xyz`,
-    description: `Xem ${categoryName.toLowerCase()} hay nhất tại Phim7.xyz`,
+    title: `${categoryName} - Xem phim online Vietsub | MovPey`,
+    description: `Xem ${categoryName.toLowerCase()} full HD Vietsub, thuyết minh miễn phí trên MovPey.`,
   };
 }
 

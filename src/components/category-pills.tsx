@@ -64,7 +64,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="h-7 sm:h-8 px-2 sm:px-3 bg-transparent border-white/40 hover:border-white hover:bg-white/10 text-xs sm:text-sm font-medium gap-0.5 sm:gap-1"
+                  className="h-7 sm:h-8 px-2 sm:px-3 bg-transparent border-white/40 hover:border-white hover:bg-white/10 text-xs sm:text-sm font-medium gap-0.5 sm:gap-1 cursor-pointer"
                 >
                   <span>Thể loại</span>
                   <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -91,7 +91,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="h-7 sm:h-8 px-2 sm:px-3 bg-transparent border-white/40 hover:border-white hover:bg-white/10 text-xs sm:text-sm font-medium gap-0.5 sm:gap-1"
+                  className="h-7 sm:h-8 px-2 sm:px-3 bg-transparent border-white/40 hover:border-white hover:bg-white/10 text-xs sm:text-sm font-medium gap-0.5 sm:gap-1 cursor-pointer"
                 >
                   <span>Quốc gia</span>
                   <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -119,7 +119,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
           {showLeftArrow && (
             <button
               onClick={() => scroll("left")}
-              className="absolute left-0 top-0 bottom-0 z-10 w-6 sm:w-8 items-center justify-start bg-gradient-to-r from-background to-transparent hidden md:flex"
+              className="absolute left-0 top-0 bottom-0 z-10 w-6 sm:w-8 items-center justify-start bg-gradient-to-r from-background to-transparent hidden md:flex cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
@@ -135,7 +135,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
                 <Link key={cat.slug} href={cat.href}>
                   <Button
                     variant={activeCategory === cat.slug ? "default" : "ghost"}
-                    className={`h-7 sm:h-8 px-2.5 sm:px-4 text-xs sm:text-sm font-medium whitespace-nowrap shrink-0 rounded-full ${
+                    className={`h-7 sm:h-8 px-2.5 sm:px-4 text-xs sm:text-sm font-medium whitespace-nowrap shrink-0 rounded-full cursor-pointer ${
                       activeCategory === cat.slug
                         ? "bg-white text-black hover:bg-white/90"
                         : "bg-white/10 hover:bg-white/20 text-white"
@@ -150,7 +150,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
               <Link href="/danh-sach/phim-le" className="sm:hidden">
                 <Button
                   variant="ghost"
-                  className="h-7 px-3 text-xs font-medium whitespace-nowrap shrink-0 rounded-full bg-white/10 hover:bg-white/20 text-[#F6C453]"
+                  className="h-7 px-3 text-xs font-medium whitespace-nowrap shrink-0 rounded-full bg-white/10 hover:bg-white/20 text-[#F6C453] cursor-pointer"
                 >
                   Xem tất cả
                 </Button>
@@ -162,7 +162,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
                 <Link key={genre.slug} href={`/the-loai/${genre.slug}`}>
                   <Button
                     variant="ghost"
-                    className="h-7 sm:h-8 px-2.5 sm:px-4 text-xs sm:text-sm font-medium whitespace-nowrap shrink-0 rounded-full bg-white/10 hover:bg-white/20 text-white"
+                    className="h-7 sm:h-8 px-2.5 sm:px-4 text-xs sm:text-sm font-medium whitespace-nowrap shrink-0 rounded-full bg-white/10 hover:bg-white/20 text-white cursor-pointer"
                   >
                     {genre.name}
                   </Button>
@@ -175,7 +175,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
           {showRightArrow && (
             <button
               onClick={() => scroll("right")}
-              className="absolute right-0 top-0 bottom-0 z-10 w-6 sm:w-8 items-center justify-end bg-gradient-to-l from-background to-transparent hidden md:flex"
+              className="absolute right-0 top-0 bottom-0 z-10 w-6 sm:w-8 items-center justify-end bg-gradient-to-l from-background to-transparent hidden md:flex cursor-pointer"
             >
               <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>

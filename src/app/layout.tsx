@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Noto_Sans, Noto_Sans_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { URLCleaner } from "@/components/url-cleaner";
@@ -12,20 +11,6 @@ import "./globals.css";
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
-
-const notoSans = Noto_Sans({
-  variable: "--font-geist-sans",
-  subsets: ["latin", "vietnamese"],
-  display: "swap",
-  weight: ["300", "400", "500", "600", "700", "800"],
-});
-
-const notoSansMono = Noto_Sans_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin", "vietnamese"],
-  display: "swap",
-  weight: ["400", "500", "600", "700"],
-});
 
 export const metadata: Metadata = {
   title: "MovPey - Phim xịn mỗi ngày",
@@ -90,7 +75,7 @@ export default function RootLayout({
   return (
     <html lang="vi" suppressHydrationWarning>
       <body
-        className={`${notoSans.variable} ${notoSansMono.variable} font-sans antialiased`}
+        className="font-sans antialiased"
       >
         <ThemeProvider
           attribute="class"
