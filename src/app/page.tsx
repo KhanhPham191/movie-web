@@ -12,7 +12,6 @@ import { AuMySection } from "@/components/home-sections/au-my";
 import { ThaiLanSection } from "@/components/home-sections/thai-lan";
 import { HongKongSection } from "@/components/home-sections/hong-kong";
 import { AnimeSection } from "@/components/home-sections/anime";
-import { ChristmasTheme } from "@/components/christmas-theme";
 import { TopicTags, DEFAULT_TOPIC_TAGS } from "@/components/topic-tags";
 
 // ISR: Revalidate every 5 minutes để giảm số lần gọi API
@@ -22,9 +21,6 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-[#191b24] relative overflow-x-hidden">
-      {/* Christmas Theme - Để tắt: xóa dòng này hoặc set ENABLE_CHRISTMAS_THEME = false trong christmas-theme.tsx */}
-      <ChristmasTheme />
-
       {/* Hero - Priority load (full-width) */}
       <Suspense fallback={<div className="h-[60vh] bg-[#191b24]" />}>
         <HeroSectionWrapper />
