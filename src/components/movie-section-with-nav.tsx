@@ -35,6 +35,7 @@ export function MovieSectionWithNav({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
+  const [isScrollingByButton, setIsScrollingByButton] = useState(false);
   const hasDragged = useRef(false);
   const dragDistance = useRef<number>(0);
   const dragState = useRef<{ 
@@ -85,16 +86,25 @@ export function MovieSectionWithNav({
 
   // Navigation handlers
   const scrollLeft = useCallback(() => {
-    if (!scrollRef.current) return;
+    if (!scrollRef.current || isScrollingByButton) return;
+    setIsScrollingByButton(true);
     const scrollAmount = scrollRef.current.clientWidth * 0.8;
     scrollRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-  }, []);
+    // Thời gian animation scroll mượt ~300–400ms
+    window.setTimeout(() => {
+      setIsScrollingByButton(false);
+    }, 400);
+  }, [isScrollingByButton]);
 
   const scrollRight = useCallback(() => {
-    if (!scrollRef.current) return;
+    if (!scrollRef.current || isScrollingByButton) return;
+    setIsScrollingByButton(true);
     const scrollAmount = scrollRef.current.clientWidth * 0.8;
     scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-  }, []);
+    window.setTimeout(() => {
+      setIsScrollingByButton(false);
+    }, 400);
+  }, [isScrollingByButton]);
 
   // Smooth scroll với momentum
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -252,7 +262,10 @@ export function MovieSectionWithNav({
         {canScrollLeft && (
           <button
             onClick={scrollLeft}
-            className="absolute left-2 sm:left-4 md:left-8 lg:left-12 top-1/2 -translate-y-1/2 z-20 h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm border border-white/20 hover:border-white/40 text-white transition-all duration-300 shadow-lg hover:shadow-xl opacity-0 group-hover/container:opacity-100 flex items-center justify-center cursor-pointer"
+            disabled={isScrollingByButton}
+            className={`absolute left-2 sm:left-4 md:left-8 lg:left-12 top-1/2 -translate-y-1/2 z-20 h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm border border-white/20 hover:border-white/40 text-white transition-all duration-300 shadow-lg hover:shadow-xl opacity-0 group-hover/container:opacity-100 flex items-center justify-center ${
+              isScrollingByButton ? "cursor-not-allowed opacity-40 hover:bg-black/60 hover:border-white/20" : "cursor-pointer"
+            }`}
             aria-label="Cuộn trái"
           >
             <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -263,7 +276,10 @@ export function MovieSectionWithNav({
         {canScrollRight && (
           <button
             onClick={scrollRight}
-            className="absolute right-2 sm:right-4 md:right-8 lg:right-12 top-1/2 -translate-y-1/2 z-20 h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm border border-white/20 hover:border-white/40 text-white transition-all duration-300 shadow-lg hover:shadow-xl opacity-0 group-hover/container:opacity-100 flex items-center justify-center cursor-pointer"
+            disabled={isScrollingByButton}
+            className={`absolute right-2 sm:right-4 md:right-8 lg:right-12 top-1/2 -translate-y-1/2 z-20 h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm border border-white/20 hover:border-white/40 text-white transition-all duration-300 shadow-lg hover:shadow-xl opacity-0 group-hover/container:opacity-100 flex items-center justify-center ${
+              isScrollingByButton ? "cursor-not-allowed opacity-40 hover:bg-black/60 hover:border-white/20" : "cursor-pointer"
+            }`}
             aria-label="Cuộn phải"
           >
             <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />

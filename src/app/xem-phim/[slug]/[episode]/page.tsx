@@ -274,121 +274,88 @@ async function VideoPlayer({
           />
         </div>
         
-        <div className="relative overflow-hidden card-surface animate-fade-in-scale">
-          {/* Premium Background Effects */}
-          <div className="absolute inset-0">
-            <Image
-              src={background}
-              alt={movie.name}
-              fill
-              className="object-cover opacity-40 blur-3xl scale-110"
-              priority
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#191b24]/90 via-[#191b24]/92 to-[#191b24]" />
-            {/* Premium accent gradients */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(246,196,83,0.15),transparent_60%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(211,161,58,0.12),transparent_60%)]" />
+        {/* Khối player + meta đơn giản, bỏ nền blur phía sau */}
+        <div className="space-y-4 sm:space-y-6 max-w-full text-white">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-white/70">
+            {movie.quality && (
+              <Badge className="bg-[#F6C453] text-black font-semibold">
+                {movie.quality}
+              </Badge>
+            )}
+            {movie.current_episode && (
+              <span className="text-[#F6C453]">{movie.current_episode}</span>
+            )}
+            {movie.time && <span>{movie.time}</span>}
+            {countries[0] && <span>{formatLabel(countries[0])}</span>}
           </div>
 
-          <div className="relative z-10 p-4 sm:p-6 lg:p-10 space-y-6 sm:space-y-8 text-white">
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-white/70">
-              {movie.quality && <Badge className="bg-[#F6C453] text-black font-semibold">{movie.quality}</Badge>}
-              {movie.current_episode && <span className="text-[#F6C453]">{movie.current_episode}</span>}
-              {movie.time && <span>{movie.time}</span>}
-              {countries[0] && <span>{formatLabel(countries[0])}</span>}
+          {/* Simple Video Player - chỉ giữ 1 khung đen + video, canh giữa, to hơn một chút trên desktop */}
+          <div className="relative mx-auto w-full md:w-full lg:w-[88%] xl:w-[82%] 2xl:w-[78%] rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.65)] border border-white/10">
+            <div className="relative aspect-[16/8.5] bg-black w-full">
+              <IframePlayer
+                src={currentEpisode.embed}
+                title={`${movie.name} - ${currentEpisode.name}`}
+                className="h-full w-full"
+              />
             </div>
+          </div>
 
-            <div className="space-y-4 sm:space-y-6 max-w-full">
-              {/* Premium Video Player */}
-              <div className="relative rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_rgba(246,196,83,0.3)] border-2 border-[#F6C453]/40 group/player card-hover max-w-full animate-zoom-in">
-                {/* Premium glow effect */}
-                <div className="absolute -inset-1 bg-gradient-to-r from-[#F6C453]/20 via-[#D3A13A]/20 to-[#F6C453]/20 rounded-xl sm:rounded-2xl lg:rounded-[28px] blur-xl opacity-0 group-hover/player:opacity-100 transition-opacity duration-500" />
-                <div className="aspect-video bg-[#191b24] rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden w-full">
-                  <IframePlayer
-                    src={currentEpisode.embed}
-                    title={`${movie.name} - ${currentEpisode.name}`}
-                    className="h-full w-full"
-                  />
-                </div>
-                
-                {/* Premium Episode Info Overlay */}
-                <div className="absolute top-0 left-0 right-0 p-3 sm:p-4 lg:p-6 pointer-events-none bg-gradient-to-b from-[#191b24]/92 via-[#191b24]/78 to-transparent">
-                  <div className="flex items-center justify-between text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em]">
-                    <div className="flex items-center gap-2 sm:gap-2.5">
-                      <Badge className="relative bg-gradient-to-r from-[#F6C453] to-[#D3A13A] text-white text-[10px] sm:text-xs px-3 py-1 font-bold shadow-[0_4px_15px_rgba(246,196,83,0.4)]">
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-full" />
-                        <span className="relative z-10">{currentServer ? getServerDisplayName(currentServer.server_name) : ""}</span>
-                      </Badge>
-                      <span className="flex items-center gap-1.5 text-white font-semibold">
-                        <div className="w-2 h-2 rounded-full bg-[#F6C453] animate-pulse" />
-                        <span>ĐANG PHÁT</span>
-                      </span>
-                    </div>
-                    <span className="text-[#F6C453] font-bold bg-[#191b24]/70 px-2 py-1 rounded backdrop-blur-sm">
-                      {allEpisodes.length === 1 ? "FULL" : `${episodeIndex + 1}/${allEpisodes.length}`}
-                    </span>
-                  </div>
-                </div>
-              </div>
+          {/* Episode Navigation */}
+          <div
+            className="mt-2 flex items-center justify-between gap-2 sm:gap-4"
+          >
+            {prevEpisode && (
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="relative group/prev min-w-[130px] sm:min-w-[150px] bg-[#191b24] text-white border-white/15 hover:bg-white/5 hover:border-[#F6C453] text-xs sm:text-sm transition-all duration-300"
+              >
+                <Link href={`/xem-phim/${slug}/${prevEpisode.slug}`}>
+                  <ChevronLeft className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 mr-1" />
+                  <span className="relative z-10 truncate">Tập trước</span>
+                </Link>
+              </Button>
+            )}
+            {nextEpisode && (
+              <Button
+                asChild
+                size="lg"
+                className="relative group/next ml-auto min-w-[130px] sm:min-w-[150px] bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white font-semibold text-xs sm:text-sm shadow-[0_8px_25px_rgba(246,196,83,0.4)] hover:shadow-[0_12px_35px_rgba(246,196,83,0.5)] transition-all duration-300"
+              >
+                <Link href={`/xem-phim/${slug}/${nextEpisode.slug}`}>
+                  <span className="relative z-10 truncate">
+                    Tập tiếp theo
+                  </span>
+                  <ChevronRight className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 ml-1" />
+                </Link>
+              </Button>
+            )}
+          </div>
 
-              {/* Premium Episode Navigation */}
-              <div className="mt-4 flex items-center justify-between gap-2 sm:gap-4 animate-fade-in-up" style={{ animationDelay: '0.2s', opacity: 0 }}>
-                {prevEpisode && (
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="lg"
-                    className="relative group/prev min-w-[130px] sm:min-w-[150px] bg-[#191b24]/80 text-white border-[#F6C453]/40 hover:bg-[#F6C453]/10 hover:border-[#F6C453] backdrop-blur-md text-xs sm:text-sm transition-all duration-300"
-                  >
-                    <Link href={`/xem-phim/${slug}/${prevEpisode.slug}`}>
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#F6C453]/5 to-transparent rounded-lg opacity-0 group-hover/prev:opacity-100 transition-opacity" />
-                      <ChevronLeft className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 mr-1" />
-                      <span className="relative z-10 truncate">Tập trước</span>
-                    </Link>
-                  </Button>
-                )}
-                {nextEpisode && (
-                  <Button
-                    asChild
-                    size="lg"
-                    className="relative group/next ml-auto min-w-[130px] sm:min-w-[150px] bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white font-semibold text-xs sm:text-sm shadow-[0_8px_25px_rgba(246,196,83,0.4)] hover:shadow-[0_12px_35px_rgba(246,196,83,0.5)] transition-all duration-300"
-                  >
-                    <Link href={`/xem-phim/${slug}/${nextEpisode.slug}`}>
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-lg opacity-0 group-hover/next:opacity-100 transition-opacity" />
-                      <span className="relative z-10 truncate">Tập tiếp theo</span>
-                      <ChevronRight className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 ml-1" />
-                    </Link>
-                  </Button>
-                )}
-              </div>
-
-              {/* Premium Action Buttons */}
-              <div className="flex flex-wrap gap-2 sm:gap-3">
-                <Button 
-                  size="lg" 
-                  className="relative group/btn bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white font-semibold flex-1 sm:flex-none text-sm sm:text-base shadow-[0_8px_25px_rgba(246,196,83,0.3)] hover:shadow-[0_12px_35px_rgba(246,196,83,0.4)] transition-all duration-300" 
-                  asChild
-                >
-                  <Link href={`/phim/${slug}`}>
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-lg opacity-0 group-hover/btn:opacity-100 transition-opacity" />
-                    <Info className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" /> 
-                    <span className="relative z-10">Chi tiết</span>
-                  </Link>
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="relative group/home border-[#F6C453]/40 text-white hover:bg-[#F6C453]/10 hover:border-[#F6C453] backdrop-blur-md flex-1 sm:flex-none text-sm sm:text-base transition-all duration-300" 
-                  asChild
-                >
-                  <Link href="/">
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#F6C453]/5 to-transparent rounded-lg opacity-0 group-hover/home:opacity-100 transition-opacity" />
-                    <Home className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" /> 
-                    <span className="relative z-10">Trang chủ</span>
-                  </Link>
-                </Button>
-              </div>
-            </div>
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            <Button
+              size="lg"
+              className="relative bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white font-semibold flex-1 sm:flex-none text-sm sm:text-base shadow-[0_8px_25px_rgba(246,196,83,0.3)] hover:shadow-[0_12px_35px_rgba(246,196,83,0.4)] transition-all duration-300"
+              asChild
+            >
+              <Link href={`/phim/${slug}`}>
+                <Info className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
+                <span>Chi tiết</span>
+              </Link>
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-[#F6C453]/40 text-white hover:bg-[#F6C453]/10 hover:border-[#F6C453] flex-1 sm:flex-none text-sm sm:text-base transition-all duration-300"
+              asChild
+            >
+              <Link href="/">
+                <Home className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
+                <span>Trang chủ</span>
+              </Link>
+            </Button>
           </div>
         </div>
 
