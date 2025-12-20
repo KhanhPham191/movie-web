@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import { Search, Bell, ChevronDown, LogIn } from "lucide-react";
+import { Search, Bell, ChevronDown, LogIn, Menu, X } from "lucide-react";
 import { getImageUrl, type FilmItem } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
@@ -16,15 +16,23 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LoginModal } from "@/components/login-modal";
 import { SignupModal } from "@/components/signup-modal";
+import { GENRES, COUNTRIES } from "@/lib/api";
 
 const mainNav = [
   { name: "Trang chủ", href: "/" },
   { name: "Mới & Phổ biến", href: "/danh-sach/phim-moi-cap-nhat" },
 ];
 
+const movieCategories = [
+  { name: "Phim lẻ", href: "/danh-sach/phim-le" },
+  { name: "Phim bộ", href: "/danh-sach/phim-bo" },
+  { name: "Đang chiếu", href: "/danh-sach/phim-dang-chieu" },
+];
+
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileHamburgerOpen, setIsMobileHamburgerOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<
@@ -55,6 +63,18 @@ export function Header() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileHamburgerOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileHamburgerOpen]);
 
   // Fetch latest film updates (max 10) when opening notifications
   useEffect(() => {
@@ -251,6 +271,7 @@ export function Header() {
   }, [isSearchOpen, isScrolled]);
 
   return (
+    <>
     <header
       className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 will-change-transform ${
         isScrolled
@@ -625,13 +646,22 @@ export function Header() {
             </DropdownMenu>
           )}
 
-          {/* Profile Dropdown or Login Button */}
+          {/* Mobile Hamburger Menu Button - Góc phải */}
+          <button
+            className="lg:hidden p-1.5 hover:text-gray-300 transition-colors"
+            onClick={() => setIsMobileHamburgerOpen(true)}
+            aria-label="Menu"
+          >
+            <Menu className="w-6 h-6 text-white" />
+          </button>
+
+          {/* Desktop Profile Dropdown or Login Button */}
           {isMounted && (
             <>
               {isAuthenticated ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-1 sm:gap-2 group shrink-0">
+                    <button className="hidden lg:flex items-center gap-1 sm:gap-2 group shrink-0">
                       <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-[linear-gradient(135deg,#F6C453,#D3A13A)] flex items-center justify-center">
                         <span className="text-xs sm:text-sm font-bold">
                           {(user?.user_metadata?.username || 
@@ -675,24 +705,14 @@ export function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <>
-                  <Button 
-                    variant="outline" 
-                    className="hidden sm:flex items-center gap-2 bg-white/5 border-white/20 text-white hover:bg-white/10"
-                    onClick={() => setIsLoginModalOpen(true)}
-                  >
-                    <LogIn className="w-4 h-4" />
-                    Đăng nhập
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    className="sm:hidden"
-                    onClick={() => setIsLoginModalOpen(true)}
-                  >
-                    <LogIn className="w-5 h-5" />
-                  </Button>
-                </>
+                <Button 
+                  variant="outline" 
+                  className="hidden lg:flex items-center gap-2 bg-white/5 border-white/20 text-white hover:bg-white/10"
+                  onClick={() => setIsLoginModalOpen(true)}
+                >
+                  <LogIn className="w-4 h-4" />
+                  Đăng nhập
+                </Button>
               )}
             </>
           )}
@@ -814,5 +834,170 @@ export function Header() {
         onSwitchToLogin={() => setIsLoginModalOpen(true)}
       />
     </header>
+    {/* Mobile Hamburger Menu Overlay - Render outside header */}
+    {isMobileHamburgerOpen && (
+      <>
+        {/* Backdrop */}
+        <div
+          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998] animate-fade-in-backdrop"
+          onClick={() => setIsMobileHamburgerOpen(false)}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+        />
+        {/* Menu Panel - Trượt từ bên phải */}
+        <div 
+          className="lg:hidden fixed top-0 right-0 bottom-0 w-80 max-w-[85vw] bg-gradient-to-b from-[#0a0a0a] to-[#0f0f0f] border-l border-white/10 z-[9999] overflow-y-auto animate-slide-in-from-right shadow-2xl"
+          style={{ position: 'fixed', top: 0, right: 0, bottom: 0 }}
+        >
+          <div className="flex flex-col h-full">
+            {/* Header với nút đóng */}
+            <div className="flex items-center justify-between p-4 border-b border-white/10 sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-sm z-10">
+              <h2 className="text-lg font-bold text-white">Menu</h2>
+              <button
+                onClick={() => setIsMobileHamburgerOpen(false)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                aria-label="Đóng menu"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 p-4 space-y-6 pb-6">
+              {/* Login Section - Nổi bật ở đầu */}
+              <div className="space-y-3">
+                {isAuthenticated ? (
+                  <>
+                    <div className="px-4 py-3 rounded-xl bg-gradient-to-r from-white/10 to-white/5 border border-white/10">
+                      <p className="text-xs text-gray-400 mb-1">Đăng nhập với</p>
+                      <p className="text-sm font-semibold text-white truncate">
+                        {user?.user_metadata?.username || 
+                         (user?.email?.replace('@movpey.local', '') || user?.email || '')}
+                      </p>
+                    </div>
+                    <Link
+                      href="/tai-khoan"
+                      className="block px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors border border-white/5"
+                      onClick={() => setIsMobileHamburgerOpen(false)}
+                    >
+                      Tài khoản
+                    </Link>
+                    <Link
+                      href="/yeu-thich"
+                      className="block px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors border border-white/5"
+                      onClick={() => setIsMobileHamburgerOpen(false)}
+                    >
+                      Danh sách yêu thích
+                    </Link>
+                    <button
+                      onClick={async () => {
+                        await signOut();
+                        router.push("/");
+                        router.refresh();
+                        setIsMobileHamburgerOpen(false);
+                      }}
+                      className="w-full px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors text-left border border-white/5"
+                    >
+                      Đăng xuất
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setIsMobileHamburgerOpen(false);
+                      setIsLoginModalOpen(true);
+                    }}
+                    className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-black font-bold transition-all shadow-lg shadow-[#F6C453]/20 flex items-center justify-center gap-2"
+                  >
+                    <LogIn className="w-5 h-5" />
+                    Đăng nhập
+                  </button>
+                )}
+              </div>
+
+              {/* Danh mục phim chính - Layout 2 cột như UI */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2">
+                  Danh mục phim
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {movieCategories.map((cat) => (
+                    <Link
+                      key={cat.name}
+                      href={cat.href}
+                      className="block px-3 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white text-sm font-medium transition-colors text-center border border-white/5"
+                      onClick={() => setIsMobileHamburgerOpen(false)}
+                    >
+                      {cat.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Thể loại - Dropdown style */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between px-2">
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Thể loại
+                  </h3>
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {GENRES.slice(0, 8).map((genre) => (
+                    <Link
+                      key={genre.slug}
+                      href={`/the-loai/${genre.slug}`}
+                      className="block px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs transition-colors text-center border border-white/5"
+                      onClick={() => setIsMobileHamburgerOpen(false)}
+                    >
+                      {genre.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quốc gia - Dropdown style */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between px-2">
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Quốc gia
+                  </h3>
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {COUNTRIES.map((country) => (
+                    <Link
+                      key={country.slug}
+                      href={`/quoc-gia/${country.slug}`}
+                      className="block px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs transition-colors text-center border border-white/5"
+                      onClick={() => setIsMobileHamburgerOpen(false)}
+                    >
+                      {country.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Main Navigation - Ở cuối */}
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2">
+                  Điều hướng
+                </h3>
+                {mainNav.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className="block px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors border border-white/5"
+                    onClick={() => setIsMobileHamburgerOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    )}
+    </>
   );
 }

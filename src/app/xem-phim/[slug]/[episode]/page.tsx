@@ -290,8 +290,8 @@ async function VideoPlayer({
           </div>
 
           {/* Simple Video Player - chỉ giữ 1 khung đen + video, canh giữa, to hơn một chút trên desktop */}
-          <div className="relative mx-auto w-full md:w-full lg:w-[88%] xl:w-[82%] 2xl:w-[78%] rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.65)] border border-white/10">
-            <div className="relative aspect-[16/8.5] bg-black w-full">
+          <div className="relative mx-auto w-full md:w-full lg:w-[92%] xl:w-[88%] 2xl:w-[85%] rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.65)] border border-white/10">
+            <div className="relative aspect-[16/9] bg-black w-full">
               <IframePlayer
                 src={currentEpisode.embed}
                 title={`${movie.name} - ${currentEpisode.name}`}
