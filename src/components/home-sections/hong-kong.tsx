@@ -13,7 +13,8 @@ export async function HongKongSection() {
         title="Phim Hồng Kông"
         movies={hongKong}
         href="/quoc-gia/hong-kong"
-        variant="portrait"
+        variant="series"
+        disableTilt={true}
       />
     );
   } catch (error) {

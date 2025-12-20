@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import Link from "next/link";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { MovieCard } from "@/components/movie-card";
 import type { FilmItem } from "@/lib/api";
 
@@ -32,10 +32,7 @@ export function MovieSectionWithNav({
   disableTilt = false
 }: MovieSectionWithNavProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
-  const [isScrollingByButton, setIsScrollingByButton] = useState(false);
   const hasDragged = useRef(false);
   const dragDistance = useRef<number>(0);
   const dragState = useRef<{ 
@@ -56,10 +53,7 @@ export function MovieSectionWithNav({
 
   // Check scroll position
   const checkScrollPosition = useCallback(() => {
-    if (!scrollRef.current) return;
-    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-    setCanScrollLeft(scrollLeft > 0);
-    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+    // Function kept for potential future use
   }, []);
 
   // Reset scroll về đầu khi section được mount
@@ -76,35 +70,17 @@ export function MovieSectionWithNav({
     if (!scrollElement) return;
 
     checkScrollPosition();
+    
     scrollElement.addEventListener('scroll', checkScrollPosition);
-    return () => scrollElement.removeEventListener('scroll', checkScrollPosition);
+    
+    return () => {
+      scrollElement.removeEventListener('scroll', checkScrollPosition);
+    };
   }, [checkScrollPosition, movies]);
 
   if (!movies || movies.length === 0) {
     return null;
   }
-
-  // Navigation handlers
-  const scrollLeft = useCallback(() => {
-    if (!scrollRef.current || isScrollingByButton) return;
-    setIsScrollingByButton(true);
-    const scrollAmount = scrollRef.current.clientWidth * 0.8;
-    scrollRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-    // Thời gian animation scroll mượt ~300–400ms
-    window.setTimeout(() => {
-      setIsScrollingByButton(false);
-    }, 400);
-  }, [isScrollingByButton]);
-
-  const scrollRight = useCallback(() => {
-    if (!scrollRef.current || isScrollingByButton) return;
-    setIsScrollingByButton(true);
-    const scrollAmount = scrollRef.current.clientWidth * 0.8;
-    scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    window.setTimeout(() => {
-      setIsScrollingByButton(false);
-    }, 400);
-  }, [isScrollingByButton]);
 
   // Smooth scroll với momentum
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -201,7 +177,6 @@ export function MovieSectionWithNav({
     dragState.current.velocities = [];
     dragState.current.lastX = 0;
     dragState.current.lastTime = 0;
-    checkScrollPosition();
   }, [isDragging, checkScrollPosition]);
 
   // Get card width based on variant
@@ -212,8 +187,8 @@ export function MovieSectionWithNav({
       case "portrait":
         return "w-[clamp(150px,15vw,230px)] xl:w-[clamp(175px,12vw,255px)]";
       case "newRelease":
-        // Giảm width để card cao hơn và hẹp hơn
-        return "w-[clamp(140px,12vw,200px)] xl:w-[clamp(160px,10vw,220px)]";
+        // Đồng bộ kích thước với các danh mục khác trên mobile
+        return "w-[clamp(200px,17vw,320px)] xl:w-[clamp(230px,14vw,360px)]";
       case "series":
         return "w-[clamp(190px,16vw,285px)] xl:w-[clamp(220px,13vw,315px)]";
       default:
@@ -256,36 +231,8 @@ export function MovieSectionWithNav({
         </div>
       </div>
 
-      {/* Scrollable Row with Navigation */}
-      <div className="relative group/container">
-        {/* Left Navigation Button */}
-        {canScrollLeft && (
-          <button
-            onClick={scrollLeft}
-            disabled={isScrollingByButton}
-            className={`absolute left-2 sm:left-4 md:left-8 lg:left-12 top-1/2 -translate-y-1/2 z-20 h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm border border-white/20 hover:border-white/40 text-white transition-all duration-300 shadow-lg hover:shadow-xl opacity-0 group-hover/container:opacity-100 flex items-center justify-center ${
-              isScrollingByButton ? "cursor-not-allowed opacity-40 hover:bg-black/60 hover:border-white/20" : "cursor-pointer"
-            }`}
-            aria-label="Cuộn trái"
-          >
-            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-          </button>
-        )}
-
-        {/* Right Navigation Button */}
-        {canScrollRight && (
-          <button
-            onClick={scrollRight}
-            disabled={isScrollingByButton}
-            className={`absolute right-2 sm:right-4 md:right-8 lg:right-12 top-1/2 -translate-y-1/2 z-20 h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm border border-white/20 hover:border-white/40 text-white transition-all duration-300 shadow-lg hover:shadow-xl opacity-0 group-hover/container:opacity-100 flex items-center justify-center ${
-              isScrollingByButton ? "cursor-not-allowed opacity-40 hover:bg-black/60 hover:border-white/20" : "cursor-pointer"
-            }`}
-            aria-label="Cuộn phải"
-          >
-            <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
-          </button>
-        )}
-
+      {/* Scrollable Row */}
+      <div className="relative">
         <div
           ref={scrollRef}
           onMouseDown={(e) => {
@@ -301,6 +248,7 @@ export function MovieSectionWithNav({
             
             e.preventDefault();
             setIsDragging(true);
+            
             dragState.current = { 
               startX: e.clientX, 
               scrollLeft: scrollRef.current.scrollLeft,

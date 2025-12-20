@@ -14,7 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { createClient } from "@/lib/supabase/client";
 
@@ -110,7 +109,6 @@ export default function AccountPage() {
   if (authLoading) {
     return (
       <main className="min-h-screen bg-[#191b24]">
-        <Header />
         <div className="flex items-center justify-center min-h-[calc(100vh-200px)] pt-20">
           <div className="text-white">Đang tải...</div>
         </div>
@@ -132,7 +130,6 @@ export default function AccountPage() {
 
   return (
     <main className="min-h-screen bg-[#191b24]">
-      <Header />
       <div className="container mx-auto px-4 py-20 max-w-4xl">
         <h1 className="text-3xl font-bold text-white mb-8">Tài khoản</h1>
 

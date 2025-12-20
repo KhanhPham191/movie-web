@@ -19,7 +19,8 @@ export async function AnimeSection() {
         title="Phim Anime"
         movies={movies}
         href={href}
-        variant="portrait"
+        variant="series"
+        disableTilt={true}
       />
     );
   } catch (error) {

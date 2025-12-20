@@ -17,6 +17,7 @@ import {
 import { LoginModal } from "@/components/login-modal";
 import { SignupModal } from "@/components/signup-modal";
 import { GENRES, COUNTRIES } from "@/lib/api";
+import { motion, AnimatePresence } from "framer-motion";
 
 const mainNav = [
   { name: "Trang chủ", href: "/" },
@@ -280,11 +281,12 @@ export function Header() {
       }`}
       style={{ transform: 'translateZ(0)' }}
     >
-      <div className={`flex items-center justify-between px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 transition-all duration-500 ${
-        isScrolled
-          ? "h-10 xs:h-11 sm:h-12 lg:h-14"
-          : "h-12 xs:h-14 sm:h-16 md:h-20 lg:h-[80px]"
-      }`}>
+      <div 
+        className={`flex items-center justify-between px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 transition-all duration-500 ${
+          isScrolled
+            ? "h-10 xs:h-11 sm:h-12 lg:h-14"
+            : "h-12 xs:h-14 sm:h-16 md:h-20 lg:h-[80px]"
+        }`}>
         {/* Left Side */}
         <div className="flex items-center gap-2 sm:gap-4 lg:gap-10 min-w-0">
           {/* Logo */}

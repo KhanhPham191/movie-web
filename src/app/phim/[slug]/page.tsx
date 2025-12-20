@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { MovieSection } from "@/components/movie-section";
 import { EpisodeSelector } from "@/components/episode-selector";
@@ -547,8 +546,6 @@ export default async function MoviePage({ params, searchParams }: MoviePageProps
 
   return (
     <main className="min-h-screen bg-[#191b24]">
-      <Header />
-
       <Suspense fallback={<MovieDetailSkeleton />}>
         <MovieDetail slug={slug} serverParam={server} />
       </Suspense>

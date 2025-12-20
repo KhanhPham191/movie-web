@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { GenreSection } from "@/components/genre-section";
 import { MovieCard } from "@/components/movie-card";
@@ -206,7 +205,6 @@ export default async function CountryPage({
 
   return (
     <main className="min-h-screen">
-      <Header />
 
       <div className="pt-20 md:pt-24">
         <GenreSection />

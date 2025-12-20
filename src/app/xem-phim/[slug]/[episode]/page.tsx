@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -456,8 +455,6 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
 
   return (
     <main className="min-h-screen bg-[#191b24]">
-      <Header />
-
       {/* Cinematic background */}
       <div className="relative pt-20 md:pt-24 pb-16 overflow-hidden">
         <div className="pointer-events-none absolute inset-0">

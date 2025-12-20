@@ -36,7 +36,8 @@ export async function TrungQuocSection() {
         title="Phim Trung Quốc"
         movies={trungQuocDisplay}
         href="/quoc-gia/trung-quoc"
-        variant="portrait"
+        variant="series"
+        disableTilt={true}
       />
     );
   } catch (error) {

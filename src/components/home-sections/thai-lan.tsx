@@ -13,7 +13,8 @@ export async function ThaiLanSection() {
         title="Phim Thái Lan"
         movies={thaiLan}
         href="/quoc-gia/thai-lan"
-        variant="portrait"
+        variant="series"
+        disableTilt={true}
       />
     );
   } catch (error) {

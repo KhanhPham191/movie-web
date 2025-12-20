@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { GenreSection } from "@/components/genre-section";
 import { MovieCard } from "@/components/movie-card";
@@ -191,7 +190,6 @@ export default async function CategoryPage({
 
   return (
     <main className="min-h-screen bg-[#191b24]">
-      <Header />
 
       <div className="pt-16 sm:pt-20 md:pt-24">
         {/* Premium Category Hero Header */}

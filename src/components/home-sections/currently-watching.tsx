@@ -81,6 +81,9 @@ export function CurrentlyWatchingSection() {
   const handleMouseUp = useCallback(() => {
     if (!isDragging) return;
     
+    const wasDragging = hasDragged.current;
+    const dragDist = dragDistance.current;
+    
     setIsDragging(false);
     
     if (animationFrameRef.current) {
@@ -88,6 +91,7 @@ export function CurrentlyWatchingSection() {
       animationFrameRef.current = null;
     }
     
+    // Momentum scrolling - tính average velocity với cải thiện
     if (scrollRef.current && dragState.current.velocities.length > 0) {
       // Lấy velocity trung bình từ các giá trị gần nhất (weighted average)
       const recentVelocities = dragState.current.velocities.slice(-3);
@@ -113,6 +117,20 @@ export function CurrentlyWatchingSection() {
         
         momentumRef.current = requestAnimationFrame(animateMomentum);
       }
+    }
+    
+    // Nếu đã drag, prevent click trong 300ms sau khi thả chuột
+    if (wasDragging || dragDist > 5) {
+      hasDragged.current = true;
+      // Reset sau 300ms để cho phép click bình thường sau đó
+      setTimeout(() => {
+        hasDragged.current = false;
+        dragDistance.current = 0;
+      }, 300);
+    } else {
+      // Nếu không drag, reset ngay
+      hasDragged.current = false;
+      dragDistance.current = 0;
     }
     
     dragState.current.velocities = [];
@@ -287,7 +305,7 @@ export function CurrentlyWatchingSection() {
             overscrollBehaviorX: 'contain',
             WebkitOverflowScrolling: 'touch', // Quan trọng cho iOS momentum scrolling
             touchAction: 'pan-x pan-y',
-            scrollSnapType: 'x proximity', // Đổi từ mandatory sang proximity để mượt hơn
+            scrollSnapType: 'none', // Tắt snap để lướt liên tục mượt hơn
             // Tối ưu cho iPad/iOS - giảm thiểu để browser tự tối ưu
             WebkitTransform: 'translate3d(0, 0, 0)',
             transform: 'translate3d(0, 0, 0)',
@@ -297,7 +315,7 @@ export function CurrentlyWatchingSection() {
           {displayItems.slice(0, 10).map((item, index) => (
             <div
               key={`${item.id}-${index}`}
-              className="shrink-0 flex flex-col w-[135px] xs:w-[140px] sm:w-[145px] md:w-[165px] lg:w-[195px] scroll-snap-align-start"
+              className="shrink-0 flex flex-col w-[135px] xs:w-[140px] sm:w-[145px] md:w-[165px] lg:w-[195px]"
               onClick={(e) => {
                 // Prevent click nếu đã drag
                 if (hasDragged.current || dragDistance.current > 5) {
@@ -321,7 +339,7 @@ export function CurrentlyWatchingSection() {
             Array.from({ length: 6 }).map((_, index) => (
               <div
                 key={`cw-skeleton-${index}`}
-                className="shrink-0 flex flex-col w-[135px] xs:w-[140px] sm:w-[145px] md:w-[165px] lg:w-[195px] scroll-snap-align-start"
+                className="shrink-0 flex flex-col w-[135px] xs:w-[140px] sm:w-[145px] md:w-[165px] lg:w-[195px]"
               >
                 <div className="w-full aspect-[2/3] rounded-2xl bg-white/5 animate-pulse" />
                 <div className="mt-3 h-4 w-4/5 rounded bg-white/5 animate-pulse" />

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { MovieCard } from "@/components/movie-card";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
@@ -188,7 +187,6 @@ export default function SearchPage() {
 
   return (
     <main className="min-h-screen">
-      <Header />
 
       <div className="pt-24 md:pt-28 pb-12">
         <div className="container mx-auto px-4">
