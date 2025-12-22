@@ -56,6 +56,7 @@ export interface FilmListResponse {
     total_items: number;
     items_per_page: number;
   };
+  message?: string;
 }
 
 export interface FilmDetailResponse {
@@ -228,9 +229,21 @@ const normalizeFilmItem = (item: any): any => {
   if (!normalized.description) {
     normalized.description = '';
   }
-  // Normalize time field - loại bỏ NaN và các giá trị không hợp lệ
-  if (normalized.time) {
-    const timeStr = String(normalized.time).trim();
+  // Normalize time field - kiểm tra nhiều field names khác nhau
+  const possibleTimeFields = ['time', 'duration', 'runtime', 'length', 'movie_time', 'film_time'];
+  let timeValue = normalized.time;
+  if (!timeValue || timeValue === '') {
+    for (const field of possibleTimeFields) {
+      if (normalized[field]) {
+        timeValue = normalized[field];
+        break;
+      }
+    }
+  }
+  
+  // Normalize time value - loại bỏ NaN và các giá trị không hợp lệ
+  if (timeValue) {
+    const timeStr = String(timeValue).trim();
     if (timeStr === '') {
       normalized.time = '';
     } else {
@@ -253,10 +266,40 @@ const normalizeFilmItem = (item: any): any => {
   } else {
     normalized.time = '';
   }
+  
   if (!normalized.quality) {
     normalized.quality = '';
   }
-  if (!normalized.language) {
+  
+  // Normalize language field - kiểm tra nhiều field names khác nhau
+  const possibleLanguageFields = ['language', 'lang', 'subtitle', 'subtitles', 'sub', 'subs', 'audio', 'audio_lang', 'lang_audio'];
+  let languageValue = normalized.language;
+  if (!languageValue || languageValue === '') {
+    for (const field of possibleLanguageFields) {
+      if (normalized[field]) {
+        languageValue = normalized[field];
+        break;
+      }
+    }
+  }
+  
+  // Xử lý language value - có thể là string, array, hoặc object
+  if (languageValue) {
+    if (Array.isArray(languageValue)) {
+      // Nếu là array, lấy phần tử đầu tiên
+      languageValue = languageValue[0];
+    } else if (typeof languageValue === 'object' && languageValue !== null) {
+      // Nếu là object, thử lấy các field phổ biến
+      languageValue = languageValue.name || languageValue.label || languageValue.value || languageValue.lang || '';
+    }
+    
+    const languageStr = String(languageValue).trim();
+    if (languageStr !== '' && languageStr.toLowerCase() !== 'null' && languageStr.toLowerCase() !== 'undefined') {
+      normalized.language = languageStr;
+    } else {
+      normalized.language = '';
+    }
+  } else {
     normalized.language = '';
   }
   if (!normalized.director) {

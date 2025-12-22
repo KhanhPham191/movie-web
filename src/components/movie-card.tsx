@@ -192,11 +192,16 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             <h3 className="text-sm font-medium line-clamp-2 min-h-[2.5rem] group-hover:text-[#F6C453] transition-colors duration-500 ease-in-out">
               {movie.name}
             </h3>
-            {(movie.time || movie.total_episodes) && (
+            {(movie.time || movie.total_episodes || movie.language) && (
               <p className="text-xs sm:text-sm text-gray-300 flex items-center gap-2">
                 {isValidTime(movie.time) && (
                   <span className="truncate font-semibold text-white">
                     {movie.time}
+                  </span>
+                )}
+                {movie.language && (
+                  <span className="px-1 py-0.5 rounded bg-white/10 text-[9px] uppercase tracking-wide">
+                    {movie.language}
                   </span>
                 )}
                 <span className="px-1 py-0.5 rounded border border-gray-500 text-[9px] leading-none">
@@ -503,9 +508,15 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                   </span>
                 )}
                 {movie.language && (
-                  <span className="px-1 py-0.5 rounded bg-white/10 text-[10px] uppercase tracking-wide">
-                    {movie.language}
-                  </span>
+                  <>
+                    {isValidTime(movie.time) && <span className="text-white/30">•</span>}
+                    <span className="px-1 py-0.5 rounded bg-white/10 text-[10px] uppercase tracking-wide">
+                      {movie.language}
+                    </span>
+                  </>
+                )}
+                {(isValidTime(movie.time) || movie.language) && (
+                  <span className="text-white/30">•</span>
                 )}
                 <span className="px-1 py-0.5 rounded border border-gray-500 text-[10px]">
                   13+
@@ -719,6 +730,11 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               {isValidTime(movie.time) && (
                 <span className="font-semibold text-white">
                   {movie.time}
+                </span>
+              )}
+              {movie.language && (
+                <span className="px-1 py-0.5 rounded bg-white/10 text-[10px] uppercase tracking-wide">
+                  {movie.language}
                 </span>
               )}
               <span className="px-1 py-0.5 rounded border border-gray-500 text-[10px]">
@@ -952,6 +968,11 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               <div className="flex items-center gap-2 text-xs">
                 <span className="text-green-500 font-semibold">97% Phù hợp</span>
                 {isValidTime(movie.time) && <span className="text-gray-400">{movie.time}</span>}
+                {movie.language && (
+                  <span className="px-1 py-0.5 rounded bg-white/10 text-[9px] uppercase tracking-wide text-gray-400">
+                    {movie.language}
+                  </span>
+                )}
               </div>
 
               {/* Genres */}
