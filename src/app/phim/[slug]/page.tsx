@@ -19,6 +19,7 @@ import {
   Info,
 } from "lucide-react";
 import { getFilmDetail, getImageUrl, getFilmsByGenre, getFilmsByCategory, CATEGORIES, searchFilmsMerged, type FilmItem } from "@/lib/api";
+import { isValidTime } from "@/lib/utils";
 
 interface MoviePageProps {
   params: Promise<{ slug: string }>;
@@ -150,9 +151,15 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                     {movie.current_episode}
                   </span>
                 )}
-                {movie.time && (
+                {isValidTime(movie.time) && (
                   <span className="text-white/70 text-[9px] sm:text-[10px]">
                     {movie.time}
+                  </span>
+                )}
+                {movie.vote_average && typeof movie.vote_average === 'number' && !isNaN(movie.vote_average) && (
+                  <span className="rounded-full border border-[#F6C453]/50 bg-[#F6C453]/20 px-2 py-0.5 text-[9px] sm:text-[10px] font-semibold text-[#F6C453] flex items-center gap-1">
+                    <span>⭐</span>
+                    <span>{movie.vote_average.toFixed(1)}</span>
                   </span>
                 )}
               </div>
@@ -255,7 +262,13 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                 {movie.current_episode && (
                   <span className="text-[#F6C453] font-semibold">{movie.current_episode}</span>
                 )}
-                {movie.time && <span className="text-white/70">{movie.time}</span>}
+                {isValidTime(movie.time) && <span className="text-white/70">{movie.time}</span>}
+                {movie.vote_average && typeof movie.vote_average === 'number' && !isNaN(movie.vote_average) && (
+                  <span className="rounded-full border border-[#F6C453]/50 bg-[#F6C453]/20 px-1.5 py-0.5 font-semibold text-[#F6C453] flex items-center gap-1">
+                    <span>⭐</span>
+                    <span>{movie.vote_average.toFixed(1)}</span>
+                  </span>
+                )}
               </div>
             </div>
             {/* Episodes Section */}
@@ -436,16 +449,23 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                   </div>
                 )}
 
-                {movie.created && (
-                  <div>
-                    <span className="text-[#F6C453]/70 text-sm block mb-1">Năm phát hành</span>
-                    <span className="text-white">
-                      {new Date(movie.created).getFullYear()}
-                    </span>
-                  </div>
-                )}
+                {(() => {
+                  // Ưu tiên lấy từ field year, fallback về created nếu không có
+                  const releaseYear = movie.year 
+                    ? (typeof movie.year === 'number' ? movie.year : parseInt(String(movie.year), 10))
+                    : (movie.created ? new Date(movie.created).getFullYear() : null);
+                  
+                  return releaseYear && !isNaN(releaseYear) && releaseYear >= 1900 && releaseYear <= 2100 ? (
+                    <div>
+                      <span className="text-[#F6C453]/70 text-sm block mb-1">Năm phát hành</span>
+                      <span className="text-white">
+                        {releaseYear}
+                      </span>
+                    </div>
+                  ) : null;
+                })()}
 
-                {movie.time && (
+                {isValidTime(movie.time) && (
                   <div>
                     <span className="text-[#F6C453]/70 text-sm block mb-1">Thời lượng</span>
                     <span className="text-white">{movie.time}</span>
@@ -456,6 +476,24 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                   <div>
                     <span className="text-[#F6C453]/70 text-sm block mb-1">Ngôn ngữ</span>
                     <span className="text-white">{movie.language}</span>
+                  </div>
+                )}
+
+                {(movie.imdb || movie.tmdb) && (
+                  <div>
+                    <span className="text-[#F6C453]/70 text-sm block mb-1">Đánh giá</span>
+                    <div className="flex flex-wrap gap-2">
+                      {movie.imdb && (
+                        <Badge className="bg-yellow-500 text-black font-semibold text-xs px-2 py-1">
+                          IMDb {movie.imdb}
+                        </Badge>
+                      )}
+                      {movie.tmdb && (
+                        <Badge className="bg-blue-500 text-white font-semibold text-xs px-2 py-1">
+                          TMDB {movie.tmdb}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 )}
                 </div>

@@ -8,6 +8,7 @@ import { Play, Info, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { FilmItem } from "@/lib/api";
 import { getImageUrl } from "@/lib/api";
+import { isValidTime } from "@/lib/utils";
 
 interface HeroSectionProps {
   movies: FilmItem[];
@@ -102,7 +103,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
   return (
     <section
-      className="relative h-[260px] xs:h-[300px] sm:h-[56.25vw] max-h-[70vh] sm:max-h-[80vh] min-h-[240px] xs:min-h-[260px] sm:min-h-[400px] lg:h-[70vh] lg:min-h-[460px] xl:h-[75vh] select-none"
+      className="gradient-mask-responsive relative aspect-[16/9] w-full overflow-hidden rounded-none lg:rounded-lg 2xl:aspect-[16/7] h-[260px] xs:h-[300px] sm:h-[56.25vw] max-h-[70vh] sm:max-h-[80vh] min-h-[240px] xs:min-h-[260px] sm:min-h-[400px] lg:h-[70vh] lg:min-h-[460px] xl:h-[75vh] select-none"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -165,7 +166,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
       {/* Content */}
       <div
         key={movie.slug}
-        className={`absolute bottom-0 sm:bottom-[15%] md:bottom-[20%] left-0 right-0 sm:left-4 md:left-12 sm:right-4 md:right-[50%] px-3 sm:px-0 pb-4 sm:pb-0 ${
+        className={`absolute z-10 bottom-0 sm:bottom-[15%] md:bottom-[20%] left-0 right-0 sm:left-4 md:left-12 sm:right-4 md:right-[50%] px-3 sm:px-0 pb-4 sm:pb-0 ${
           isLoaded ? "opacity-100" : "opacity-0"
         }`}
         style={{
@@ -230,7 +231,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
               {formatEpisodeLabel(movie.current_episode)}
             </span>
           )}
-          {movie.time && (
+          {isValidTime(movie.time) && (
             <span className="text-gray-400 text-[10px] sm:text-sm">{movie.time}</span>
           )}
           <span className="px-1 sm:px-1.5 py-0.5 border border-gray-400 text-[9px] sm:text-xs">18+</span>

@@ -79,9 +79,9 @@ export default function SearchPage() {
       try {
         // Gọi trang 1 để lấy tổng số trang
         const firstRes = await fetch(
-          `https://phim.nguonc.com/api/films/search?keyword=${encodeURIComponent(
+          `https://phimapi.com/v1/api/tim-kiem?keyword=${encodeURIComponent(
             query
-          )}&page=1`,
+          )}&page=1&sort_field=modified.time&sort_type=desc&limit=20`,
           {
             headers: {
               Accept: "application/json",
@@ -123,9 +123,9 @@ export default function SearchPage() {
           for (let page = 2; page <= pagesToFetch; page++) {
             promises.push(
               fetch(
-                `https://phim.nguonc.com/api/films/search?keyword=${encodeURIComponent(
+                `https://phimapi.com/v1/api/tim-kiem?keyword=${encodeURIComponent(
                   query
-                )}&page=${page}`,
+                )}&page=${page}&sort_field=modified.time&sort_type=desc&limit=20`,
                 {
                   headers: {
                     Accept: "application/json",

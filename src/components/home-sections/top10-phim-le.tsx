@@ -5,7 +5,6 @@ import {
   CATEGORIES,
   type FilmItem,
 } from "@/lib/api";
-import { filterPhimLeByCurrentYear } from "@/lib/filters";
 
 // Helper: sắp xếp phim theo thời gian cập nhật mới nhất
 function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
@@ -18,24 +17,33 @@ function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
 
 export async function Top10PhimLe() {
   try {
-    
-    // Tăng từ 3 pages lên 5 pages để có nhiều phim lẻ hơn sau khi filter
-    const phimLeRaw = await getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 5).catch((error) => {
+    // Gọi trực tiếp API /v1/api/danh-sach/phim-le với các filter
+    // Ưu tiên phim mới nhất (dựa theo thời gian cập nhật / modified)
+    // Không khóa theo năm, lấy các phim lẻ mới cập nhật nhất
+    const phimLeRaw = await getFilmsByCategoryMultiple(
+      CATEGORIES.PHIM_LE, 
+      1, // Chỉ lấy 1 page
+      {
+        // Ưu tiên sort theo thời gian cập nhật từ API nếu có hỗ trợ
+        // Sau đó vẫn sort lại theo modified ở phía client cho chắc chắn
+        sort_field: "modified",
+        sort_type: 'desc',
+        limit: 10 // Chỉ lấy 10 phim đầu
+      }
+    ).catch((error) => {
       return [];
     });
-
 
     if (!phimLeRaw || phimLeRaw.length === 0) {
       return null;
     }
 
+    // Không filter phim chiếu rạp nữa, lấy tất cả phim lẻ từ API
+    // Sắp xếp theo modified time (mới nhất trước) để hiển thị phim mới cập nhật nhất
     const phimLeSorted = sortByModifiedDesc(phimLeRaw);
     
-    // Filter để lấy phim lẻ theo năm phát hành hiện tại, target 15 phim để có buffer
-    const phimLeFiltered = await filterPhimLeByCurrentYear(phimLeSorted, 15);
-    
-    // Lấy 10 phim đầu (hoặc tất cả nếu ít hơn 10)
-    const phimLe = phimLeFiltered.slice(0, 10);
+    // Lấy tối đa 10 phim đầu (đã được limit từ API)
+    const phimLe = phimLeSorted.slice(0, 10);
 
 
     // Chỉ hiển thị nếu có ít nhất 1 phim lẻ theo năm phát hành (không fallback)

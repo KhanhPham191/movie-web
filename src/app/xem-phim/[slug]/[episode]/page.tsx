@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight, Home, Info, Play } from "lucide-react";
 import { getFilmDetail, getImageUrl, searchFilmsMerged, type FilmItem } from "@/lib/api";
+import { isValidTime } from "@/lib/utils";
 import { IframePlayer } from "@/components/player/iframe-player";
 import { EpisodeSelectorWatch } from "@/components/episode-selector-watch";
 import { MovieInfoPanel } from "@/components/movie-info-panel";
@@ -284,7 +285,7 @@ async function VideoPlayer({
             {movie.current_episode && (
               <span className="text-[#F6C453]">{movie.current_episode}</span>
             )}
-            {movie.time && <span>{movie.time}</span>}
+            {isValidTime(movie.time) && <span>{movie.time}</span>}
             {countries[0] && <span>{formatLabel(countries[0])}</span>}
           </div>
 

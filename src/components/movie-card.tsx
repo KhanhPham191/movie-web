@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Play, Plus, ThumbsUp, ChevronDown, Volume2, VolumeX, Info } from "lucide-react";
+import { Play, Plus, ThumbsUp, ChevronDown, Volume2, VolumeX, Info, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { FilmItem } from "@/lib/api";
 import { getImageUrl } from "@/lib/api";
+import { isValidTime } from "@/lib/utils";
 
 interface MovieCardProps {
   movie: FilmItem;
@@ -23,6 +24,17 @@ function formatEpisodeLabel(episode?: string) {
   const match = episode.match(/Hoàn tất\s*\(([^)]+)\)/i);
   if (match) return match[1]; // chỉ lấy "20/20"
   return episode;
+}
+
+// Parse episode info: extract "Phần X" and "Tập Y" separately
+function parseEpisodeInfo(episode?: string): { part?: string; episode?: string } {
+  if (!episode) return {};
+  const partMatch = episode.match(/Phần\s*(\d+)/i);
+  const epMatch = episode.match(/Tập\s*(\d+)/i) || episode.match(/(\d+)\s*\/\s*\d+/);
+  return {
+    part: partMatch ? `Phần ${partMatch[1]}` : undefined,
+    episode: epMatch ? `Tập ${epMatch[1]}` : undefined,
+  };
 }
 
 function getShortDescription(description?: string, maxLength: number = 120) {
@@ -49,8 +61,66 @@ function getLanguageBadge(language?: string) {
 export function MovieCard({ movie, index = 0, variant = "default", rank, disableTilt = false }: MovieCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPortraitImage, setIsPortraitImage] = useState(false);
+  const cardRef = useRef<HTMLAnchorElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+  const [popupPosition, setPopupPosition] = useState<{ left: number; top: number } | null>(null);
   // Use thumb_url for movie cards in categories (clearer for horizontal display)
   const imageUrl = getImageUrl(movie.thumb_url || movie.poster_url);
+  
+  useEffect(() => {
+    const updatePosition = () => {
+      if (cardRef.current && isHovered && (variant === "newRelease" || variant === "series")) {
+        // Sử dụng requestAnimationFrame để đảm bảo DOM đã render xong
+        requestAnimationFrame(() => {
+          if (cardRef.current) {
+            const rect = cardRef.current.getBoundingClientRect();
+            // Tính toán vị trí chính xác giữa card
+            // Fixed positioning sử dụng viewport coordinates
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            setPopupPosition({
+              left: centerX,
+              top: centerY,
+            });
+          }
+        });
+      } else {
+        setPopupPosition(null);
+      }
+    };
+
+    if (isHovered && (variant === "newRelease" || variant === "series")) {
+      // Tính toán ngay khi hover
+      updatePosition();
+      
+      // Ngăn scroll khi hover vào popup
+      const preventWheel = (e: WheelEvent) => {
+        if (popupRef.current && popupRef.current.contains(e.target as Node)) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      };
+      
+      const preventTouch = (e: TouchEvent) => {
+        if (popupRef.current && popupRef.current.contains(e.target as Node)) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      };
+      
+      document.addEventListener('wheel', preventWheel, { passive: false });
+      document.addEventListener('touchmove', preventTouch, { passive: false });
+      
+      return () => {
+        document.removeEventListener('wheel', preventWheel);
+        document.removeEventListener('touchmove', preventTouch);
+      };
+    } else {
+      setPopupPosition(null);
+    }
+  }, [isHovered, variant]);
+
   useEffect(() => {
     setIsPortraitImage(false);
   }, [imageUrl]);
@@ -124,7 +194,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             </h3>
             {(movie.time || movie.total_episodes) && (
               <p className="text-xs sm:text-sm text-gray-300 flex items-center gap-2">
-                {movie.time && (
+                {isValidTime(movie.time) && (
                   <span className="truncate font-semibold text-white">
                     {movie.time}
                   </span>
@@ -192,7 +262,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             </h3>
             {(movie.time || movie.total_episodes) && (
               <p className="text-xs sm:text-sm text-gray-300 flex items-center gap-2">
-                {movie.time && (
+                {isValidTime(movie.time) && (
                   <span className="truncate font-semibold text-white">
                     {movie.time}
                   </span>
@@ -229,14 +299,138 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
     const clipPathPolygon = "polygon(5.761% 100%, 94.239% 100%, 94.239% 100%, 95.174% 99.95%, 96.06% 99.803%, 96.887% 99.569%, 97.642% 99.256%, 98.313% 98.87%, 98.889% 98.421%, 99.357% 97.915%, 99.706% 97.362%, 99.925% 96.768%, 100% 96.142%, 100% 3.858%, 100% 3.858%, 99.913% 3.185%, 99.662% 2.552%, 99.263% 1.968%, 98.731% 1.442%, 98.08% .984%, 97.328% .602%, 96.488% .306%, 95.577% .105%, 94.609% .008%, 93.6% .024%, 5.121% 6.625%, 5.121% 6.625%, 4.269% 6.732%, 3.468% 6.919%, 2.728% 7.178%, 2.058% 7.503%, 1.467% 7.887%, .962% 8.323%, .555% 8.805%, .253% 9.326%, .065% 9.88%, 0% 10.459%, 0% 96.142%, 0% 96.142%, .075% 96.768%, .294% 97.362%, .643% 97.915%, 1.111% 98.421%, 1.687% 98.87%, 2.358% 99.256%, 3.113% 99.569%, 3.94% 99.803%, 4.826% 99.95%, 5.761% 100%)";
 
     return (
-      <Link href={`/phim/${movie.slug}`} className="relative block cursor-pointer">
-        <div
-          className="group relative flex flex-col items-start h-full pt-4 sm:pt-5"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          {/* Poster - Sử dụng clip-path polygon để tạo hình dạng nghiêng như tramphim */}
+      <>
+        {/* Hover Popup Detail - Fixed positioning tại vị trí card với animation bung ra */}
+        {isHovered && popupPosition && (
           <div
+            ref={popupRef}
+            className="pointer-events-none fixed z-[9999] w-[min(480px,82vw)] hidden md:block"
+            style={{
+              left: `${popupPosition.left}px`,
+              top: `${popupPosition.top}px`,
+              transform: 'translate(-50%, -50%)',
+              opacity: 1,
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            <div className="rounded-xl border border-white/15 bg-[#050509]/95 overflow-hidden shadow-[0_18px_40px_rgba(0,0,0,0.85)] backdrop-blur-md">
+              {/* Poster - Bên trên, tỉ lệ 16:9 */}
+              {backdropUrl && (
+                <div className="relative aspect-video w-full overflow-hidden bg-[#0a0a0a]">
+                  <Image
+                    src={backdropUrl}
+                    alt={movie.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 0px, 480px"
+                    unoptimized
+                  />
+                </div>
+              )}
+
+              {/* Content - Bên dưới */}
+              <div className="px-6 py-5 space-y-4">
+                {/* Title Section */}
+                <div className="space-y-1">
+                  <h3 className="text-[18px] font-bold text-white line-clamp-2">
+                    {movie.name}
+                  </h3>
+                  {movie.original_name && movie.original_name !== movie.name && (
+                    <p className="text-[14px] text-[#F6C453] line-clamp-1">
+                      {movie.original_name}
+                    </p>
+                  )}
+                </div>
+
+                {/* Metadata Tags */}
+                {(() => {
+                  const episodeInfo = parseEpisodeInfo(movie.current_episode);
+                    return (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center rounded-sm bg-black/80 px-2.5 py-1.5 text-[12px] font-semibold text-white border border-white/20">
+                          T16
+                        </span>
+                        {year && (
+                          <span className="inline-flex items-center rounded-sm bg-white px-2.5 py-1.5 text-[12px] font-semibold text-black">
+                            {year}
+                          </span>
+                        )}
+                        {episodeInfo.part && (
+                          <span className="inline-flex items-center rounded-sm bg-white px-2.5 py-1.5 text-[12px] font-semibold text-black">
+                            {episodeInfo.part}
+                          </span>
+                        )}
+                        {episodeInfo.episode && (
+                          <span className="inline-flex items-center rounded-sm bg-white px-2.5 py-1.5 text-[12px] font-semibold text-black">
+                            {episodeInfo.episode}
+                          </span>
+                        )}
+                      </div>
+                    );
+                })()}
+
+              {/* Genres */}
+              {movie.category && movie.category.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1 text-[13px] text-white">
+                  {movie.category.slice(0, 4).map((cat, i) => (
+                    <span key={cat.id}>
+                      {cat.name}
+                      {i < Math.min(movie.category.length, 4) - 1 && (
+                        <span className="mx-2 text-gray-500">•</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+                {/* Action Buttons - Full width */}
+                <div className="flex items-center gap-3 pt-2">
+                  <Link
+                    href={`/phim/${movie.slug}`}
+                    className="pointer-events-auto bg-[#F6C453] hover:bg-[#F6C453]/90 text-black font-bold text-base rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap"
+                    style={{ width: '139.52px', height: '46px' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    <Play className="w-5 h-5 fill-black shrink-0" />
+                    <span>Xem ngay</span>
+                  </Link>
+                  <button
+                    type="button"
+                    className="pointer-events-auto bg-[#1a1a1a] hover:bg-[#252525] text-white border border-white/20 font-semibold text-base px-5 py-3.5 rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap shrink-0"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  >
+                    <Heart className="w-5 h-5 shrink-0" />
+                    <span>Thích</span>
+                  </button>
+                  <Link
+                    href={`/phim/${movie.slug}`}
+                    className="pointer-events-auto bg-[#1a1a1a] hover:bg-[#252525] text-white border border-white/20 font-semibold text-base px-5 py-3.5 rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    <Info className="w-5 h-5 shrink-0" />
+                    <span>Chi tiết</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        <Link ref={cardRef} href={`/phim/${movie.slug}`} className="relative block cursor-pointer">
+          <div
+            className="group relative flex flex-col items-start h-full pt-4 sm:pt-5"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            {/* Poster - Sử dụng clip-path polygon để tạo hình dạng nghiêng như tramphim */}
+            <div
             className="relative aspect-[2/3] w-full bg-muted transition-all duration-500 ease-in-out group-hover:shadow-2xl flex-shrink-0 border border-transparent group-hover:border-[rgba(246,196,83,0.3)]"
             style={{
               clipPath: clipPathPolygon,
@@ -303,7 +497,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                 {movie.name}
               </h3>
               <p className="mt-0.5 text-xs sm:text-sm text-gray-300 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                {movie.time && (
+                {isValidTime(movie.time) && (
                   <span className="font-semibold text-white">
                     {movie.time}
                   </span>
@@ -321,19 +515,153 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
           </div>
         </div>
       </Link>
+      </>
     );
   }
 
   // Series variant - poster + info, không số thứ tự, 3D nhẹ khi hover
   if (variant === "series") {
+    const thumbUrl = getImageUrl(movie.thumb_url || movie.poster_url);
+    const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
+    const year =
+      movie.created && !Number.isNaN(new Date(movie.created).getFullYear())
+        ? new Date(movie.created).getFullYear()
+        : undefined;
+    const episodeLabel = formatEpisodeLabel(movie.current_episode);
+    const shortDescription = getShortDescription(movie.description, 140);
+
     return (
-      <Link href={`/phim/${movie.slug}`} className="cursor-pointer">
-        <div
-          className="group relative flex flex-col items-start h-full"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          {/* Poster */}
+      <>
+        {/* Hover Popup Detail - Fixed positioning tại vị trí card với animation bung ra */}
+        {isHovered && popupPosition && (
+          <div
+            ref={popupRef}
+            className="pointer-events-none fixed z-[9999] w-[min(480px,82vw)] hidden md:block"
+            style={{
+              left: `${popupPosition.left}px`,
+              top: `${popupPosition.top}px`,
+              transform: 'translate(-50%, -50%)',
+              opacity: 1,
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            <div className="rounded-xl border border-white/15 bg-[#050509]/95 overflow-hidden shadow-[0_18px_40px_rgba(0,0,0,0.85)] backdrop-blur-md">
+              {/* Poster - Bên trên, tỉ lệ 16:9 */}
+              {backdropUrl && (
+                <div className="relative aspect-video w-full overflow-hidden bg-[#0a0a0a]">
+                  <Image
+                    src={backdropUrl}
+                    alt={movie.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 0px, 480px"
+                    unoptimized
+                  />
+                </div>
+              )}
+
+              {/* Content - Bên dưới */}
+              <div className="px-6 py-5 space-y-4">
+                {/* Title Section */}
+                <div className="space-y-1">
+                  <h3 className="text-[18px] font-bold text-white line-clamp-2">
+                    {movie.name}
+                  </h3>
+                  {movie.original_name && movie.original_name !== movie.name && (
+                    <p className="text-[14px] text-[#F6C453] line-clamp-1">
+                      {movie.original_name}
+                    </p>
+                  )}
+                </div>
+
+                {/* Metadata Tags */}
+                {(() => {
+                  const episodeInfo = parseEpisodeInfo(movie.current_episode);
+                    return (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center rounded-sm bg-black/80 px-2.5 py-1.5 text-[12px] font-semibold text-white border border-white/20">
+                          T16
+                        </span>
+                        {year && (
+                          <span className="inline-flex items-center rounded-sm bg-white px-2.5 py-1.5 text-[12px] font-semibold text-black">
+                            {year}
+                          </span>
+                        )}
+                        {episodeInfo.part && (
+                          <span className="inline-flex items-center rounded-sm bg-white px-2.5 py-1.5 text-[12px] font-semibold text-black">
+                            {episodeInfo.part}
+                          </span>
+                        )}
+                        {episodeInfo.episode && (
+                          <span className="inline-flex items-center rounded-sm bg-white px-2.5 py-1.5 text-[12px] font-semibold text-black">
+                            {episodeInfo.episode}
+                          </span>
+                        )}
+                      </div>
+                    );
+                })()}
+
+              {/* Genres */}
+              {movie.category && movie.category.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1 text-[13px] text-white">
+                  {movie.category.slice(0, 4).map((cat, i) => (
+                    <span key={cat.id}>
+                      {cat.name}
+                      {i < Math.min(movie.category.length, 4) - 1 && (
+                        <span className="mx-2 text-gray-500">•</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+                {/* Action Buttons - Full width */}
+                <div className="flex items-center gap-3 pt-2">
+                  <Link
+                    href={`/phim/${movie.slug}`}
+                    className="pointer-events-auto bg-[#F6C453] hover:bg-[#F6C453]/90 text-black font-bold text-base rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap"
+                    style={{ width: '139.52px', height: '46px' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    <Play className="w-5 h-5 fill-black shrink-0" />
+                    <span>Xem ngay</span>
+                  </Link>
+                  <button
+                    type="button"
+                    className="pointer-events-auto bg-[#1a1a1a] hover:bg-[#252525] text-white border border-white/20 font-semibold text-base px-5 py-3.5 rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap shrink-0"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  >
+                    <Heart className="w-5 h-5 shrink-0" />
+                    <span>Thích</span>
+                  </button>
+                  <Link
+                    href={`/phim/${movie.slug}`}
+                    className="pointer-events-auto bg-[#1a1a1a] hover:bg-[#252525] text-white border border-white/20 font-semibold text-base px-5 py-3.5 rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    <Info className="w-5 h-5 shrink-0" />
+                    <span>Chi tiết</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        <Link ref={cardRef} href={`/phim/${movie.slug}`} className="cursor-pointer">
+          <div
+            className="group relative flex flex-col items-start h-full"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            {/* Poster */}
           <div
             className="relative aspect-[2/3] w-full rounded-[10px] overflow-hidden bg-muted transition-all duration-500 ease-in-out group-hover:shadow-2xl flex-shrink-0 border border-transparent group-hover:border-[rgba(246,196,83,0.3)]"
             style={{
@@ -388,7 +716,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               {movie.name}
             </h3>
             <p className="mt-1 text-xs sm:text-sm text-gray-300 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-              {movie.time && (
+              {isValidTime(movie.time) && (
                 <span className="font-semibold text-white">
                   {movie.time}
                 </span>
@@ -399,7 +727,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             </p>
           </div>
         </div>
-      </Link>
+        </Link>
+      </>
     );
   }
 
@@ -511,7 +840,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                     18+
                   </span>
                   {year && <span>{year}</span>}
-                  {movie.time && (
+                  {isValidTime(movie.time) && (
                     <span className="font-semibold text-white">
                       {movie.time}
                     </span>
@@ -622,7 +951,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               {/* Meta Info Row */}
               <div className="flex items-center gap-2 text-xs">
                 <span className="text-green-500 font-semibold">97% Phù hợp</span>
-                {movie.time && <span className="text-gray-400">{movie.time}</span>}
+                {isValidTime(movie.time) && <span className="text-gray-400">{movie.time}</span>}
               </div>
 
               {/* Genres */}

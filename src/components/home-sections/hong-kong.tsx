@@ -3,8 +3,12 @@ import { getFilmsByCountryMultiple } from "@/lib/api";
 
 export async function HongKongSection() {
   try {
-    // Giảm từ 2 pages xuống 1 page
-    const hongKong = await getFilmsByCountryMultiple("hong-kong", 1);
+    // Lấy phim Hồng Kông mới cập nhật nhất (phim bộ + lẻ) trong 1 page
+    const hongKong = await getFilmsByCountryMultiple("hong-kong", 1, {
+      sort_field: "modified",
+      sort_type: "desc",
+      limit: 20,
+    });
 
     if (hongKong.length === 0) return <></>;
 

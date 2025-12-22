@@ -1,9 +1,9 @@
 import { MovieSectionWithNav } from "@/components/movie-section-with-nav";
 import {
-  getFilmsByCountryMultiple,
+  getFilmsByCategoryMultiple,
+  CATEGORIES,
   type FilmItem,
 } from "@/lib/api";
-import { filterChinaNonAnimation } from "@/lib/filters";
 
 // Helper: sắp xếp phim theo thời gian cập nhật mới nhất
 function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
@@ -16,72 +16,32 @@ function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
 
 export async function Top10PhimBo() {
   try {
+    // Gọi trực tiếp API /v1/api/danh-sach/phim-bo với các filter
+    // Ưu tiên phim mới nhất (dựa theo thời gian cập nhật / modified)
+    // Không lọc riêng lồng tiếng, lấy tất cả phim bộ mới cập nhật
+    const phimBoRaw = await getFilmsByCategoryMultiple(
+      CATEGORIES.PHIM_BO,
+      1, // Chỉ lấy 1 page
+      {
+        // Ưu tiên sort theo thời gian cập nhật từ API nếu có hỗ trợ
+        // Sau đó vẫn sort lại theo modified ở phía client cho chắc chắn
+        sort_field: "modified",
+        sort_type: 'desc',
+        limit: 10 // Chỉ lấy 10 phim đầu
+      }
+    ).catch((error) => {
+      return [];
+    });
+
+    if (!phimBoRaw || phimBoRaw.length === 0) {
+      return null;
+    }
+
+    // Sắp xếp theo modified time (mới nhất trước) để hiển thị phim mới cập nhật nhất
+    const phimBoSorted = sortByModifiedDesc(phimBoRaw);
     
-    // Sử dụng Promise.allSettled để không fail khi một promise fail
-    const results = await Promise.allSettled([
-      getFilmsByCountryMultiple("han-quoc", 1).catch((err) => {
-        return [];
-      }),
-      getFilmsByCountryMultiple("trung-quoc", 1).catch((err) => {
-        return [];
-      }),
-      getFilmsByCountryMultiple("thai-lan", 1).catch((err) => {
-        return [];
-      }),
-      getFilmsByCountryMultiple("au-my", 2).catch((err) => {
-        return [];
-      }),
-    ]);
-
-    // Xử lý kết quả từ Promise.allSettled
-    const hanQuoc = results[0].status === "fulfilled" ? results[0].value : [];
-    const trungQuoc = results[1].status === "fulfilled" ? results[1].value : [];
-    const thaiLan = results[2].status === "fulfilled" ? results[2].value : [];
-    const auMy = results[3].status === "fulfilled" ? results[3].value : [];
-
-    // Lọc Trung Quốc
-    const trungQuocFiltered = await filterChinaNonAnimation(trungQuoc || []);
-    const trungQuocDisplay: FilmItem[] = sortByModifiedDesc(trungQuocFiltered || []).slice(0, 10);
-
-    // Top 10 phim bộ
-    const top10Series: FilmItem[] = [];
-
-    function pushSeries(source: FilmItem[] | undefined, count: number) {
-      if (!source || count <= 0) return;
-      const sorted = sortByModifiedDesc(source);
-      for (const movie of sorted) {
-        if (!movie?.slug) continue;
-        if ((movie.total_episodes || 0) < 2) continue;
-        top10Series.push(movie);
-        if (top10Series.length >= 10) return;
-        if (--count <= 0) return;
-      }
-    }
-
-    pushSeries(auMy, 3);
-    pushSeries(hanQuoc, 3);
-    pushSeries(trungQuocDisplay, 2);
-    pushSeries(thaiLan, 2);
-
-    // Fallback nếu thiếu
-    if (top10Series.length < 10) {
-      const fallbackPools: FilmItem[][] = [
-        auMy || [],
-        hanQuoc || [],
-        trungQuocDisplay || [],
-        thaiLan || [],
-      ];
-      for (const pool of fallbackPools) {
-        for (const movie of sortByModifiedDesc(pool)) {
-          if (!movie?.slug) continue;
-          if ((movie.total_episodes || 0) < 2) continue;
-          top10Series.push(movie);
-          if (top10Series.length >= 10) break;
-        }
-        if (top10Series.length >= 10) break;
-      }
-    }
-
+    // Lấy tối đa 10 phim đầu (đã được limit từ API)
+    const top10Series = phimBoSorted.slice(0, 10);
 
     if (top10Series.length === 0) {
       return null; // Return null thay vì <></> để Suspense có thể catch

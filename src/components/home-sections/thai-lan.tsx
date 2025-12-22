@@ -3,8 +3,12 @@ import { getFilmsByCountryMultiple } from "@/lib/api";
 
 export async function ThaiLanSection() {
   try {
-    // Giảm từ 2 pages xuống 1 page
-    const thaiLan = await getFilmsByCountryMultiple("thai-lan", 1);
+    // Lấy phim Thái Lan mới cập nhật nhất (phim bộ + lẻ) trong 1 page
+    const thaiLan = await getFilmsByCountryMultiple("thai-lan", 1, {
+      sort_field: "modified",
+      sort_type: "desc",
+      limit: 20,
+    });
 
     if (thaiLan.length === 0) return <></>;
 

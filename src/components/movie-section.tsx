@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { MovieCard } from "@/components/movie-card";
 import { getImageUrl } from "@/lib/api";
 import type { FilmItem } from "@/lib/api";
+import { isValidTime } from "@/lib/utils";
 
 interface MovieSectionProps {
   title: string;
@@ -363,7 +364,7 @@ function CinemaCard({ movie }: { movie: FilmItem }) {
               )}
               <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-gray-200">
                 {year && <span>{year}</span>}
-                {movie.time && (
+                {isValidTime(movie.time) && (
                   <>
                     <span className="text-white/30">•</span>
                     <span>{movie.time}</span>

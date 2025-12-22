@@ -84,7 +84,7 @@ export function Header() {
     const fetchNotifications = async () => {
       try {
         setIsLoadingNotifications(true);
-        const res = await fetch("https://phim.nguonc.com/api/films/phim-moi-cap-nhat?page=1", {
+        const res = await fetch("https://phimapi.com/danh-sach/phim-moi-cap-nhat?page=1", {
           headers: { Accept: "application/json" },
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -214,9 +214,9 @@ export function Header() {
       try {
         setIsSearching(true);
         const res = await fetch(
-          `https://phim.nguonc.com/api/films/search?keyword=${encodeURIComponent(
+          `https://phimapi.com/v1/api/tim-kiem?keyword=${encodeURIComponent(
             searchQuery.trim()
-          )}&page=1`,
+          )}&page=1&sort_field=modified.time&sort_type=desc&limit=20`,
           { headers: { Accept: "application/json" } }
         );
 

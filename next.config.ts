@@ -17,6 +17,18 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "phimapi.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "phimimg.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "img.ophim.live",
         port: "",
         pathname: "/**",

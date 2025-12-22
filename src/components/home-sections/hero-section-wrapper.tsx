@@ -4,7 +4,6 @@ import {
   CATEGORIES,
   type FilmItem,
 } from "@/lib/api";
-import { filterPhimLeByCurrentYear } from "@/lib/filters";
 
 function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
   return [...(movies || [])].sort((a, b) => {
@@ -16,15 +15,27 @@ function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
 
 export async function HeroSectionWrapper() {
   try {
-    // Tăng từ 3 pages lên 5 pages để có nhiều phim lẻ hơn sau khi filter
-    const phimLeRaw = await getFilmsByCategoryMultiple(CATEGORIES.PHIM_LE, 5);
+    // Lấy năm hiện tại để filter
+    const currentYear = new Date().getFullYear();
+    
+    // Sử dụng API với filter năm hiện tại, sort theo _id desc để lấy phim mới nhất
+    // Chỉ lấy 1 page với limit 10
+    const phimLeRaw = await getFilmsByCategoryMultiple(
+      CATEGORIES.PHIM_LE,
+      1, // Chỉ lấy 1 page
+      {
+        sort_field: '_id',
+        sort_type: 'desc',
+        year: currentYear,
+        limit: 10 // Chỉ lấy 10 phim đầu
+      }
+    );
+    
+    // Sắp xếp theo modified time (mới nhất trước) để hiển thị phim mới cập nhật nhất
     const phimLeSorted = sortByModifiedDesc(phimLeRaw || []);
     
-    // Filter để lấy phim lẻ theo năm phát hành hiện tại, target 10 phim (HeroSection cần 5 phim)
-    const phimLeFiltered = await filterPhimLeByCurrentYear(phimLeSorted, 10);
-    
-    // Lấy 10 phim đầu (HeroSection sẽ lấy 5 phim đầu)
-    const phimLe = phimLeFiltered.slice(0, 10);
+    // Lấy tối đa 10 phim đầu (đã được limit từ API, HeroSection sẽ lấy 5 phim đầu)
+    const phimLe = phimLeSorted.slice(0, 10);
     
     // Chỉ hiển thị nếu có ít nhất 1 phim lẻ theo năm phát hành (không fallback)
     if (phimLe.length === 0) {

@@ -39,7 +39,7 @@ async function CategoryContent({
 
     if (slug === "phim-moi-cap-nhat" || slug === "phim-cap-nhat-hang-ngay") {
       // Hai trang "phim mới cập nhật" và "cập nhật hàng ngày" hiện đều dùng chung
-      // endpoint từ NguonC. Nếu sau này có API merge thêm nguồn khác, có thể
+      // endpoint từ phimapi.com (KKPhim). Nếu sau này có API merge thêm nguồn khác, có thể
       // thay thế tại đây mà không ảnh hưởng tới UI.
       const response =
         slug === "phim-moi-cap-nhat"

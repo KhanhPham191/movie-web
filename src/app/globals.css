@@ -794,6 +794,26 @@ img, video, iframe {
   }
 }
 
+/* Popup bounce animation - mượt mà không bị giật */
+@keyframes popupBounceIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  40% {
+    opacity: 0.85;
+    transform: translate(-50%, -50%) scale(1.02);
+  }
+  70% {
+    opacity: 0.95;
+    transform: translate(-50%, -50%) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
 /* Premium Glass Effect */
 .glass-premium {
   background: rgba(13, 13, 13, 0.7);
@@ -830,4 +850,40 @@ img, video, iframe {
     transparent 100%
   );
   margin: 2rem 0;
+}
+
+/* Gradient Mask Responsive */
+.gradient-mask-responsive {
+  position: relative;
+}
+
+.gradient-mask-responsive::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(13, 13, 13, 0.1) 20%,
+    rgba(13, 13, 13, 0.3) 40%,
+    rgba(13, 13, 13, 0.6) 60%,
+    rgba(13, 13, 13, 0.85) 80%,
+    rgba(13, 13, 13, 0.95) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+@media (min-width: 1024px) {
+  .gradient-mask-responsive::before {
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(13, 13, 13, 0.05) 15%,
+      rgba(13, 13, 13, 0.2) 35%,
+      rgba(13, 13, 13, 0.5) 55%,
+      rgba(13, 13, 13, 0.8) 75%,
+      rgba(13, 13, 13, 0.95) 100%
+    );
+  }
 }

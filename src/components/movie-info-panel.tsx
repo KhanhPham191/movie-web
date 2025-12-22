@@ -20,6 +20,7 @@ interface MovieInfoPanelProps {
     created?: string;
     description?: string;
     imdb?: string;
+    tmdb?: string | number;
     total_episodes?: number;
   };
   categories: any[];
@@ -105,6 +106,11 @@ export function MovieInfoPanel({
                 {movie.imdb && (
                   <Badge className="bg-yellow-500 text-black font-semibold text-[10px] sm:text-xs px-2 py-1">
                     IMDb {movie.imdb}
+                  </Badge>
+                )}
+                {movie.tmdb && (
+                  <Badge className="bg-blue-500 text-white font-semibold text-[10px] sm:text-xs px-2 py-1">
+                    TMDB {movie.tmdb}
                   </Badge>
                 )}
                 <Badge className="bg-black text-white font-semibold text-[10px] sm:text-xs px-2 py-1 border border-white/20">

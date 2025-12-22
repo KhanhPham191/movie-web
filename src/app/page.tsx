@@ -8,10 +8,9 @@ import { Top10PhimLe } from "@/components/home-sections/top10-phim-le";
 import { Top10PhimBo } from "@/components/home-sections/top10-phim-bo";
 import { HanQuocSection } from "@/components/home-sections/han-quoc";
 import { TrungQuocSection } from "@/components/home-sections/trung-quoc";
-import { AuMySection } from "@/components/home-sections/au-my";
+import { AnimeSection } from "@/components/home-sections/anime";
 import { ThaiLanSection } from "@/components/home-sections/thai-lan";
 import { HongKongSection } from "@/components/home-sections/hong-kong";
-import { AnimeSection } from "@/components/home-sections/anime";
 import { TopicTags, DEFAULT_TOPIC_TAGS } from "@/components/topic-tags";
 
 // ISR: Revalidate every 5 minutes để giảm số lần gọi API
@@ -96,10 +95,10 @@ export default async function Home() {
               </Suspense>
             </div>
 
-            {/* US-UK Movies */}
+            {/* Anime (dùng layout carousel premium) */}
             <div className="animate-stagger-2 rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
               <Suspense fallback={<MovieSectionSkeleton />}>
-                <AuMySection />
+                <AnimeSection />
               </Suspense>
             </div>
 
@@ -117,12 +116,6 @@ export default async function Home() {
               </Suspense>
             </div>
 
-            {/* Anime */}
-            <div className="animate-stagger-5 rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
-              <Suspense fallback={<MovieSectionSkeleton />}>
-                <AnimeSection />
-              </Suspense>
-            </div>
           </div>
         </div>
 
