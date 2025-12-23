@@ -658,11 +658,45 @@ export async function getFilmDetail(slug: string): Promise<FilmDetailResponse> {
 }
 
 // Search films - using PhimAPI.com
-export async function searchFilms(keyword: string, page: number = 1): Promise<FilmListResponse> {
+export async function searchFilms(
+  keyword: string,
+  page: number = 1,
+  options?: {
+    sort_field?: string;
+    sort_type?: string;
+    sort_lang?: string;
+    category?: string;
+    country?: string;
+    year?: number;
+    limit?: number;
+  }
+): Promise<FilmListResponse> {
   try {
     const params = new URLSearchParams();
     params.append('keyword', keyword);
     params.append('page', String(page));
+    
+    if (options?.sort_field) {
+      params.append('sort_field', options.sort_field);
+    }
+    if (options?.sort_type) {
+      params.append('sort_type', options.sort_type);
+    }
+    if (options?.sort_lang) {
+      params.append('sort_lang', options.sort_lang);
+    }
+    if (options?.category) {
+      params.append('category', options.category);
+    }
+    if (options?.country) {
+      params.append('country', options.country);
+    }
+    if (options?.year) {
+      params.append('year', String(options.year));
+    }
+    if (options?.limit) {
+      params.append('limit', String(options.limit));
+    }
     
     const response = await fetchPhimAPI<PhimAPIResponse>(
       `/tim-kiem?${params.toString()}`

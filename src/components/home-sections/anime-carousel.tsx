@@ -1,11 +1,12 @@
 "use client";
 
 import { useMemo, useRef, useState, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { Play, Heart, Info } from "lucide-react";
-import type { FilmItem } from "@/lib/api";
-import { getImageUrl } from "@/lib/api";
+import type { FilmItem, FilmDetail } from "@/lib/api";
+import { getImageUrl, getFilmDetail } from "@/lib/api";
 import { isValidTime } from "@/lib/utils";
 
 interface AnimeCarouselProps {
@@ -57,7 +58,6 @@ export function AnimeCarousel({ movies }: AnimeCarouselProps) {
   const displayMovies = useMemo(() => movies.slice(0, 20), [movies]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [isPopupVisible, setIsPopupVisible] = useState(false);
   const hasDragged = useRef(false);
   const dragDistance = useRef<number>(0);
   const dragState = useRef<{
@@ -206,11 +206,11 @@ export function AnimeCarousel({ movies }: AnimeCarouselProps) {
           scrollBehavior: "auto",
           overscrollBehaviorX: "contain",
           WebkitOverflowScrolling: "touch",
-          touchAction: isPopupVisible ? "none" : "pan-x pan-y",
+          touchAction: "pan-x pan-y",
           scrollSnapType: "none",
           WebkitTransform: "translate3d(0, 0, 0)",
           transform: "translate3d(0, 0, 0)",
-          overflowX: isPopupVisible ? "hidden" : "auto",
+          overflowX: "auto",
         }}
         className={`flex gap-4 sm:gap-5 pb-4 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] select-none ${
           isDragging ? "cursor-grabbing" : "cursor-grab"
@@ -246,7 +246,6 @@ export function AnimeCarousel({ movies }: AnimeCarouselProps) {
               hasDragged={hasDragged}
               dragDistance={dragDistance}
               scrollRef={scrollRef}
-              onPopupVisibilityChange={setIsPopupVisible}
             />
           );
         })}
@@ -267,7 +266,6 @@ function MovieCardWithPopup({
   hasDragged,
   dragDistance,
   scrollRef,
-  onPopupVisibilityChange,
 }: {
   movie: FilmItem;
   thumbUrl: string;
@@ -280,184 +278,258 @@ function MovieCardWithPopup({
   hasDragged: React.MutableRefObject<boolean>;
   dragDistance: React.MutableRefObject<number>;
   scrollRef: React.RefObject<HTMLDivElement | null>;
-  onPopupVisibilityChange: (visible: boolean) => void;
 }) {
   const cardRef = useRef<HTMLAnchorElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const [popupPosition, setPopupPosition] = useState<{ left: number; top: number } | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const positionFrameRef = useRef<number | null>(null);
+  const hoverDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isNavigatingRef = useRef(false);
+
+  const updatePopupPosition = useCallback(() => {
+    if (!isHovered || !cardRef.current) return;
+    if (positionFrameRef.current) {
+      cancelAnimationFrame(positionFrameRef.current);
+    }
+    positionFrameRef.current = requestAnimationFrame(() => {
+      if (!cardRef.current) return;
+      const rect = cardRef.current.getBoundingClientRect();
+      setPopupPosition({
+        left: rect.left + rect.width / 2,
+        top: rect.top + rect.height / 2,
+      });
+    });
+  }, [isHovered]);
 
   useEffect(() => {
-    const updatePosition = () => {
-      if (cardRef.current && isHovered) {
-        requestAnimationFrame(() => {
-          if (cardRef.current) {
-            const rect = cardRef.current.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            setPopupPosition({
-              left: centerX,
-              top: centerY,
-            });
-          }
-        });
-      } else {
-        setPopupPosition(null);
+    if (!isHovered) {
+      setPopupPosition(null);
+      if (positionFrameRef.current) {
+        cancelAnimationFrame(positionFrameRef.current);
+        positionFrameRef.current = null;
+      }
+      return;
+    }
+
+    updatePopupPosition();
+
+    const handleScrollOrResize = () => updatePopupPosition();
+    const container = scrollRef.current;
+
+    window.addEventListener("scroll", handleScrollOrResize, true);
+    window.addEventListener("resize", handleScrollOrResize);
+    container?.addEventListener("scroll", handleScrollOrResize, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScrollOrResize, true);
+      window.removeEventListener("resize", handleScrollOrResize);
+      container?.removeEventListener("scroll", handleScrollOrResize);
+      if (positionFrameRef.current) {
+        cancelAnimationFrame(positionFrameRef.current);
+        positionFrameRef.current = null;
       }
     };
+  }, [isHovered, scrollRef, updatePopupPosition]);
 
-    if (isHovered) {
-      updatePosition();
-      onPopupVisibilityChange(true);
-      if (scrollRef.current) {
-        scrollRef.current.style.overflowX = 'hidden';
-        scrollRef.current.style.touchAction = 'none';
+  useEffect(() => {
+    return () => {
+      if (hoverDelayRef.current) {
+        clearTimeout(hoverDelayRef.current);
+        hoverDelayRef.current = null;
       }
-      const preventScroll = (e: WheelEvent | TouchEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-      };
-      document.addEventListener('wheel', preventScroll as EventListener, { passive: false });
-      document.addEventListener('touchmove', preventScroll as EventListener, { passive: false });
-      return () => {
-        onPopupVisibilityChange(false);
-        if (scrollRef.current) {
-          scrollRef.current.style.overflowX = 'auto';
-          scrollRef.current.style.touchAction = 'pan-x pan-y';
-        }
-        document.removeEventListener('wheel', preventScroll as EventListener);
-        document.removeEventListener('touchmove', preventScroll as EventListener);
-      };
-    } else {
-      setPopupPosition(null);
-      onPopupVisibilityChange(false);
-      if (scrollRef.current) {
-        scrollRef.current.style.overflowX = 'auto';
-        scrollRef.current.style.touchAction = 'pan-x pan-y';
+    };
+  }, []);
+
+  const selectFirstEpisodeSlug = (detail?: FilmDetail | null) => {
+    const eps = detail?.episodes || [];
+    if (!eps.length) return null;
+    const serverPriority = ["vietsub", "lồng", "long", "thuyết", "thuyet", "tm"];
+    const normalize = (s: string) => s.toLowerCase();
+    const pickServer =
+      eps.find((s) => serverPriority.some((p) => normalize(s.server_name || "").includes(p))) ||
+      eps[0];
+    const firstEpisode = pickServer?.items?.[0];
+    return firstEpisode?.slug || null;
+  };
+
+  const handleWatchNow = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    try {
+      const detailRes = await getFilmDetail(movie.slug);
+      const epSlug = selectFirstEpisodeSlug(detailRes.movie);
+      if (epSlug) {
+        window.location.href = `/xem-phim/${movie.slug}/${epSlug}`;
+      } else {
+        // Không fallback, log để xem chuỗi slug
+        // eslint-disable-next-line no-console
+        console.log("No episode slug found for", movie.slug, detailRes.movie?.episodes);
       }
+    } catch (err) {
+      // Không fallback để quan sát lỗi
+      // eslint-disable-next-line no-console
+      console.error("Failed to fetch detail for watch now:", err);
+    } finally {
+      isNavigatingRef.current = false;
     }
-  }, [isHovered, scrollRef, onPopupVisibilityChange]);
+  };
 
-  return (
-    <>
-      {isHovered && popupPosition && (
-        <div
-          ref={popupRef}
-          className="pointer-events-none fixed z-[9999] w-[min(480px,82vw)] hidden md:block"
-          style={{
-            left: `${popupPosition.left}px`,
-            top: `${popupPosition.top}px`,
-            transform: 'translate(-50%, -50%)',
-            opacity: 1,
-          }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          <div className="rounded-xl border border-white/15 bg-[#050509]/95 overflow-hidden shadow-[0_18px_40px_rgba(0,0,0,0.85)] backdrop-blur-md">
-            {posterUrl && (
-              <div className="relative aspect-video w-full overflow-hidden bg-[#0a0a0a]">
-                <Image
-                  src={posterUrl}
-                  alt={movie.name}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 0px, 480px"
-                  unoptimized
-                />
+  const handleMouseEnterWithDelay = () => {
+    if (hoverDelayRef.current) clearTimeout(hoverDelayRef.current);
+    hoverDelayRef.current = setTimeout(() => {
+      setIsHovered(true);
+    }, 500);
+  };
+
+  const handleMouseLeaveWithCancel = (e?: React.MouseEvent) => {
+    if (hoverDelayRef.current) {
+      clearTimeout(hoverDelayRef.current);
+      hoverDelayRef.current = null;
+    }
+    const nextTarget = e?.relatedTarget as Node | null;
+    if (nextTarget && popupRef.current && popupRef.current.contains(nextTarget)) {
+      return;
+    }
+    setIsHovered(false);
+  };
+
+  const popupContent =
+    isHovered && popupPosition ? (
+      <div
+        ref={popupRef}
+        className="pointer-events-auto fixed z-[9999] w-[min(480px,82vw)] hidden md:block transition-all duration-320 ease-[cubic-bezier(0.22,0.61,0.36,1)]"
+        style={{
+          left: `${popupPosition.left}px`,
+          top: `${popupPosition.top}px`,
+          transform: `translate(-50%, -50%) translateY(${isHovered ? "0px" : "10px"}) scale(${isHovered ? 1 : 0.95})`,
+          opacity: isHovered ? 1 : 0,
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={(e) => {
+          const nextTarget = e?.relatedTarget as Node | null;
+          if (nextTarget && cardRef.current && cardRef.current.contains(nextTarget)) {
+            return;
+          }
+          setIsHovered(false);
+        }}
+      >
+        <div className="rounded-xl border border-white/15 bg-[#050509]/95 overflow-hidden shadow-[0_18px_40px_rgba(0,0,0,0.85)] backdrop-blur-md">
+          {thumbUrl && (
+            <div className="relative aspect-video w-full overflow-hidden bg-[#0a0a0a]">
+              <Image
+                src={thumbUrl}
+                alt={movie.name}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 0px, 480px"
+                unoptimized
+              />
+            </div>
+          )}
+          <div className="px-6 py-5 space-y-4">
+            <div className="space-y-1">
+              <h3 className="text-[18px] font-bold text-white line-clamp-2">
+                {movie.name}
+              </h3>
+              {movie.original_name && movie.original_name !== movie.name && (
+                <p className="text-[14px] text-[#F6C453] line-clamp-1">
+                  {movie.original_name}
+                </p>
+              )}
+            </div>
+            {(() => {
+              const episodeInfo = parseEpisodeInfo(movie.current_episode);
+              return (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center rounded-sm bg-black/80 px-2.5 py-1.5 text-[12px] font-semibold text-white border border-white/20">
+                    T16
+                  </span>
+                  {year && (
+                    <span className="inline-flex items-center rounded-sm bg-white px-2.5 py-1.5 text-[12px] font-semibold text-black">
+                      {year}
+                    </span>
+                  )}
+                  {episodeInfo.part && (
+                    <span className="inline-flex items-center rounded-sm bg-white px-2.5 py-1.5 text-[12px] font-semibold text-black">
+                      {episodeInfo.part}
+                    </span>
+                  )}
+                  {episodeInfo.episode && (
+                    <span className="inline-flex items-center rounded-sm bg-white px-2.5 py-1.5 text-[12px] font-semibold text-black">
+                      {episodeInfo.episode}
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
+            {movie.category && movie.category.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1 text-[13px] text-white">
+                {movie.category.slice(0, 4).map((cat, i) => (
+                  <span key={cat.id}>
+                    {cat.name}
+                    {i < Math.min(movie.category.length, 4) - 1 && (
+                      <span className="mx-2 text-gray-500">•</span>
+                    )}
+                  </span>
+                ))}
               </div>
             )}
-            <div className="px-6 py-5 space-y-4">
-              <div className="space-y-1">
-                <h3 className="text-[18px] font-bold text-white line-clamp-2">
-                  {movie.name}
-                </h3>
-                {movie.original_name && movie.original_name !== movie.name && (
-                  <p className="text-[14px] text-[#F6C453] line-clamp-1">
-                    {movie.original_name}
-                  </p>
-                )}
-              </div>
-              {(() => {
-                const episodeInfo = parseEpisodeInfo(movie.current_episode);
-                return (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center rounded-sm bg-black/80 px-2.5 py-1.5 text-[12px] font-semibold text-white border border-white/20">
-                      T16
-                    </span>
-                    {year && (
-                      <span className="inline-flex items-center rounded-sm bg-white px-2.5 py-1.5 text-[12px] font-semibold text-black">
-                        {year}
-                      </span>
-                    )}
-                    {episodeInfo.part && (
-                      <span className="inline-flex items-center rounded-sm bg-white px-2.5 py-1.5 text-[12px] font-semibold text-black">
-                        {episodeInfo.part}
-                      </span>
-                    )}
-                    {episodeInfo.episode && (
-                      <span className="inline-flex items-center rounded-sm bg-white px-2.5 py-1.5 text-[12px] font-semibold text-black">
-                        {episodeInfo.episode}
-                      </span>
-                    )}
-                  </div>
-                );
-              })()}
-              {movie.category && movie.category.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1 text-[13px] text-white">
-                  {movie.category.slice(0, 4).map((cat, i) => (
-                    <span key={cat.id}>
-                      {cat.name}
-                      {i < Math.min(movie.category.length, 4) - 1 && (
-                        <span className="mx-2 text-gray-500">•</span>
-                      )}
-                    </span>
-                  ))}
-                </div>
-              )}
-              <div className="flex items-center gap-3 pt-2">
-                <Link
-                  href={`/phim/${movie.slug}`}
-                  className="pointer-events-auto bg-[#F6C453] hover:bg-[#F6C453]/90 text-black font-bold text-base rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap"
-                  style={{ width: '139.52px', height: '46px' }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                >
-                  <Play className="w-5 h-5 fill-black shrink-0" />
-                  <span>Xem ngay</span>
-                </Link>
-                <button
-                  type="button"
-                  className="pointer-events-auto bg-[#1a1a1a] hover:bg-[#252525] text-white border border-white/20 font-semibold text-base px-5 py-3.5 rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap shrink-0"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                >
-                  <Heart className="w-5 h-5 shrink-0" />
-                  <span>Thích</span>
-                </button>
-                <Link
-                  href={`/phim/${movie.slug}`}
-                  className="pointer-events-auto bg-[#1a1a1a] hover:bg-[#252525] text-white border border-white/20 font-semibold text-base px-5 py-3.5 rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap shrink-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                >
-                  <Info className="w-5 h-5 shrink-0" />
-                  <span>Chi tiết</span>
-                </Link>
-              </div>
+            <div className="flex items-center gap-3 pt-2">
+               <Link
+                 href={`/phim/${movie.slug}`}
+                 className="pointer-events-auto cursor-pointer bg-[#F6C453] hover:bg-[#F6C453]/90 text-black font-bold text-base rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap"
+                 style={{ width: "139.52px", height: "46px" }}
+                 onClick={(e) => {
+                   e.preventDefault();
+                   e.stopPropagation();
+                   handleWatchNow(e);
+                 }}
+               >
+                <Play className="w-5 h-5 fill-black shrink-0" />
+                <span>Xem ngay</span>
+              </Link>
+              <button
+                type="button"
+                className="pointer-events-auto bg-[#1a1a1a] hover:bg-[#252525] text-white border border-white/20 font-semibold text-base px-5 py-3.5 rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap shrink-0"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
+                <Heart className="w-5 h-5 shrink-0" />
+                <span>Thích</span>
+              </button>
+              <Link
+                href={`/phim/${movie.slug}`}
+                className="pointer-events-auto bg-[#1a1a1a] hover:bg-[#252525] text-white border border-white/20 font-semibold text-base px-5 py-3.5 rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap shrink-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                <Info className="w-5 h-5 shrink-0" />
+                <span>Chi tiết</span>
+              </Link>
             </div>
           </div>
         </div>
-      )}
+      </div>
+    ) : null;
+
+  return (
+    <>
+      {popupContent &&
+        (typeof window !== "undefined"
+          ? createPortal(popupContent, document.body)
+          : popupContent)}
       <Link
         ref={cardRef}
         href={`/phim/${movie.slug}`}
         className="group relative shrink-0 w-[clamp(280px,22vw,400px)] sm:w-[clamp(300px,23vw,420px)] md:w-[clamp(320px,24vw,450px)] lg:w-[clamp(340px,calc((100vw-192px-60px)/4),480px)] cursor-pointer"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={handleMouseEnterWithDelay}
+        onMouseLeave={handleMouseLeaveWithCancel}
         onClick={(e) => {
           if (hasDragged.current || dragDistance.current > 5) {
             e.preventDefault();
@@ -471,10 +543,10 @@ function MovieCardWithPopup({
           }
         }}
       >
-        <div className="flex flex-col h-full rounded-xl overflow-hidden bg-[#1a1a1a] hover:bg-[#1f1f1f] border border-white/10 hover:border-[#F6C453]/60 shadow-[0_4px_18px_rgba(0,0,0,0.6)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.8)] transition-all duration-500 ease-in-out hover:scale-[1.01]">
+          <div className="flex flex-col h-full rounded-xl overflow-hidden bg-[#1a1a1a] hover:bg-[#1f1f1f] border border-white/10 hover:border-[#F6C453]/60 shadow-[0_4px_18px_rgba(0,0,0,0.6)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.8)] transition-all duration-500 ease-in-out hover:scale-[1.01]">
           <div className="relative aspect-video w-full overflow-hidden rounded-t-xl">
             <Image
-              src={posterUrl}
+              src={thumbUrl}
               alt={movie.name}
               fill
               className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-[1.03]"
@@ -506,10 +578,10 @@ function MovieCardWithPopup({
             </div>
           </div>
           <div className="flex-1 flex gap-3 p-3 sm:p-4 bg-[#1a1a1a] rounded-b-xl">
-            {thumbUrl && (
+            {posterUrl && (
               <div className="relative shrink-0 w-16 h-20 sm:w-20 sm:h-28 md:w-24 md:h-32 rounded-md overflow-hidden">
                 <Image
-                  src={thumbUrl}
+                  src={posterUrl}
                   alt={movie.name}
                   fill
                   className="object-cover"

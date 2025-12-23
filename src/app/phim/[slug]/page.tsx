@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Footer } from "@/components/footer";
-import { MovieSection } from "@/components/movie-section";
 import { EpisodeSelector } from "@/components/episode-selector";
 import { MovieActionsWrapper } from "@/components/movie-actions-wrapper";
 import { Badge } from "@/components/ui/badge";
@@ -18,8 +17,36 @@ import {
   VolumeX,
   Info,
 } from "lucide-react";
-import { getFilmDetail, getImageUrl, getFilmsByGenre, getFilmsByCategory, CATEGORIES, searchFilmsMerged, type FilmItem } from "@/lib/api";
+import { getFilmDetail, getImageUrl, searchFilmsMerged } from "@/lib/api";
+import type { FilmItem } from "@/lib/api";
+import { MovieSection } from "@/components/movie-section";
 import { isValidTime } from "@/lib/utils";
+
+// Lấy số "phần" của series từ slug/tên phim (phan-1, (Phần 1), Season 1, ...)
+function getSeriesPartNumber(item: { slug: string; name: string; original_name: string }): number | null {
+  // Ưu tiên đọc từ slug: tai-xe-an-danh-phan-3
+  const slugMatch = item.slug.match(/-phan-(\d+)$/i);
+  if (slugMatch) {
+    const n = parseInt(slugMatch[1], 10);
+    if (!Number.isNaN(n)) return n;
+  }
+
+  // Thử đọc từ tên hiển thị: Tài Xế Ẩn Danh (Phần 3)
+  const nameMatch = item.name.match(/\(Phần\s*(\d+)\)/i);
+  if (nameMatch) {
+    const n = parseInt(nameMatch[1], 10);
+    if (!Number.isNaN(n)) return n;
+  }
+
+  // Thử đọc từ original_name: Taxi Driver Season 3
+  const originalMatch = item.original_name?.match(/Season\s*(\d+)/i);
+  if (originalMatch) {
+    const n = parseInt(originalMatch[1], 10);
+    if (!Number.isNaN(n)) return n;
+  }
+
+  return null;
+}
 
 interface MoviePageProps {
   params: Promise<{ slug: string }>;
@@ -35,8 +62,41 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
     }
     
     const movie = response.movie;
+
+    // Tìm các phần khác trong cùng series (nếu có)
+    // Ưu tiên gom theo base slug: tai-xe-an-danh-phan-1, tai-xe-an-danh-phan-2, ...
+    let seriesParts: FilmItem[] = [];
+    const baseSlug = movie.slug.replace(/-phan-\d+$/i, "");
+    const baseName = movie.name.replace(/\s*\(Phần\s*\d+\)\s*$/i, "");
+    const baseOriginalName = movie.original_name
+      ? movie.original_name.replace(/\s*\(Season\s*\d+\)\s*$/i, "")
+      : "";
+    const searchKeyword = baseOriginalName || baseName || movie.name;
+    try {
+      if (searchKeyword) {
+        const searchResults = await searchFilmsMerged(searchKeyword);
+        const filtered = searchResults.filter((item) => {
+          const itemBaseSlug = item.slug.replace(/-phan-\d+$/i, "");
+          return item.slug !== movie.slug && itemBaseSlug === baseSlug;
+        });
+
+        // Sắp xếp theo thứ tự phần 1, 2, 3,...
+        const withPart = filtered
+          .map((item) => ({
+            item,
+            part: getSeriesPartNumber(item),
+          }))
+          .filter((x) => x.part !== null) as { item: FilmItem; part: number }[];
+
+        withPart.sort((a, b) => a.part - b.part);
+        seriesParts = withPart.map((x) => x.item);
+      }
+    } catch {
+      // Không chặn trang nếu search lỗi
+      seriesParts = [];
+    }
     
-    // Normalize category and country to arrays
+    // Normalize category và country về dạng mảng
     const categories = Array.isArray(movie.category) 
       ? movie.category 
       : movie.category 
@@ -48,7 +108,6 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
         ? [movie.country] 
         : [];
     
-
     // backdropUrl: dùng thumb_url (landscape/backdrop) cho hero section
     // posterUrl: dùng thumb_url cho episode selector
     const backdropUrl = getImageUrl(movie.thumb_url || movie.poster_url);
@@ -61,57 +120,6 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
         movie.episodes.find((s) => /thuyết\s*minh|thuyet\s*minh/i.test(s.server_name)) ||
         movie.episodes[0]
       : undefined;
-
-    // Tìm các phần khác của cùng series
-    const getBaseName = (name: string): string => {
-      // Bỏ các pattern như "phần 5", "part 5", "tap 5", "tập 5", "5", "II", "III", etc.
-      let baseName = name
-        // Xử lý "Phần 5", "phần 5", "Part 5", etc. (có thể ở đầu, giữa hoặc cuối)
-        .replace(/\s*(phần|part|tap|tập|episode|ep)\s*\d+/gi, "")
-        .replace(/\s*-\s*(phần|part|tap|tập|episode|ep)\s*\d+/gi, "")
-        .replace(/\s*:\s*(phần|part|tap|tập|episode|ep)\s*\d+/gi, "")
-        // Xử lý số ở cuối
-        .replace(/\s*\d+\s*$/, "")
-        .replace(/\s*-\s*\d+\s*$/, "")
-        .replace(/\s*:\s*\d+\s*$/, "")
-        // Xử lý số La Mã và số thường ở cuối
-        .replace(/\s*(II|III|IV|V|VI|VII|VIII|IX|X|2|3|4|5|6|7|8|9|10)+$/, "")
-        .replace(/\s*-\s*(II|III|IV|V|VI|VII|VIII|IX|X|2|3|4|5|6|7|8|9|10)+$/, "")
-        .trim();
-      
-      // Loại bỏ các ký tự đặc biệt ở cuối
-      baseName = baseName.replace(/[:\-–—]\s*$/, "").trim();
-      
-      return baseName;
-    };
-
-    const baseName = getBaseName(movie.name);
-    let relatedParts: FilmItem[] = [];
-    
-    // Chỉ tìm nếu base name khác với tên gốc (có nghĩa là có phần số)
-    if (baseName !== movie.name && baseName.length > 3) {
-      try {
-        const searchResults = await searchFilmsMerged(baseName);
-        
-        // Lọc các phim có cùng base name và loại bỏ phim hiện tại
-        // Sử dụng fuzzy matching để tìm các phim có base name tương tự
-        relatedParts = searchResults
-          .filter((m) => {
-            const mBaseName = getBaseName(m.name);
-            // So sánh không phân biệt hoa thường và loại bỏ khoảng trắng thừa
-            const normalizedBase = baseName.toLowerCase().trim();
-            const normalizedMBase = mBaseName.toLowerCase().trim();
-            const matches = normalizedMBase === normalizedBase && m.slug !== movie.slug;
-            return matches;
-          })
-          .slice(0, 10); // Giới hạn 10 phần
-        
-        // Sắp xếp theo tên để dễ tìm
-        relatedParts.sort((a, b) => a.name.localeCompare(b.name, "vi"));
-      } catch (error) {
-        // Error fetching related parts
-      }
-    }
 
     return (
       <>
@@ -282,56 +290,6 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
               />
             )}
 
-            {/* Related Parts Section */}
-            {relatedParts.length > 0 && (
-              <div className="space-y-2 sm:space-y-3 md:space-y-4 animate-slide-up">
-                {/* Header với tiêu đề phim */}
-                <div className="space-y-1.5 sm:space-y-2">
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-white">
-                      <span className="text-[#F6C453]">Các phần khác</span>
-                    </h2>
-                    <span className="text-[10px] sm:text-xs text-gray-400">
-                      ({relatedParts.length} {relatedParts.length === 1 ? "phần" : "phần"})
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Grid responsive cho mobile, tablet và desktop */}
-                <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
-                  {relatedParts.map((part) => (
-                    <Link
-                      key={part.slug}
-                      href={`/phim/${part.slug}`}
-                      className="group relative aspect-[2/3] rounded-md sm:rounded-lg md:rounded-xl overflow-hidden bg-[#151515] border border-white/10 hover:border-[#F6C453]/50 transition-all duration-300 hover:scale-[1.02] sm:hover:scale-105 hover:shadow-[0_8px_30px_rgba(246,196,83,0.3)]"
-                    >
-                      <Image
-                        src={getImageUrl(part.thumb_url || part.poster_url)}
-                        alt={part.name}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-110"
-                        sizes="(max-width: 475px) 50vw, (max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 16vw"
-                      />
-                      {/* Gradient overlay - luôn hiển thị một phần trên mobile */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300" />
-                      
-                      {/* Title overlay - luôn hiển thị trên mobile, hover trên desktop */}
-                      <div className="absolute bottom-0 left-0 right-0 p-1.5 sm:p-2 md:p-3 transform translate-y-0 sm:translate-y-full sm:group-hover:translate-y-0 transition-transform duration-300">
-                        <h3 className="text-[10px] xs:text-xs sm:text-sm font-semibold text-white line-clamp-2 leading-tight">
-                          {part.name}
-                        </h3>
-                        {part.current_episode && (
-                          <p className="text-[9px] xs:text-[10px] sm:text-xs text-gray-300 mt-0.5 sm:mt-1 line-clamp-1">
-                            {part.current_episode}
-                          </p>
-                        )}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Premium About Section */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-10 items-start animate-slide-up">
               {/* Left Column - Premium Info */}
@@ -499,6 +457,15 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                 </div>
               </div>
             </div>
+
+            {/* Series Section - Các phần khác trong series */}
+            {Array.isArray(seriesParts) && seriesParts.length > 0 && (
+              <MovieSection
+                title="Các phần khác trong series"
+                movies={seriesParts}
+                variant="series"
+              />
+            )}
 
           </div>
         </div>

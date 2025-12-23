@@ -11,12 +11,6 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "phim.nguonc.com",
-        port: "",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
         hostname: "phimapi.com",
         port: "",
         pathname: "/**",

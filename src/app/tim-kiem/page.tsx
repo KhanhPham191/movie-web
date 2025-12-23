@@ -6,7 +6,7 @@ import { Footer } from "@/components/footer";
 import { MovieCard } from "@/components/movie-card";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import { Search } from "lucide-react";
-import type { FilmItem } from "@/lib/api";
+import { searchFilms, type FilmItem } from "@/lib/api";
 
 // Hàm chuẩn hóa chuỗi để so sánh (bỏ dấu, lowercase)
 const normalizeString = (str: string): string => {
@@ -78,25 +78,19 @@ export default function SearchPage() {
     async function fetchSearch() {
       try {
         // Gọi trang 1 để lấy tổng số trang
-        const firstRes = await fetch(
-          `https://phimapi.com/v1/api/tim-kiem?keyword=${encodeURIComponent(
-            query
-          )}&page=1&sort_field=modified.time&sort_type=desc&limit=20`,
-          {
-            headers: {
-              Accept: "application/json",
-            },
-          }
-        );
+        const firstRes = await searchFilms(query, 1, {
+          sort_field: "modified.time",
+          sort_type: "desc",
+          limit: 20,
+        });
 
-        if (!firstRes.ok) {
-          throw new Error(`HTTP ${firstRes.status}`);
+        if (firstRes.status === "error") {
+          throw new Error(firstRes.message || "Search failed");
         }
 
-        const firstData = await firstRes.json();
         const totalPages: number =
-          typeof firstData?.paginate?.total_page === "number"
-            ? firstData.paginate.total_page
+          typeof firstRes?.paginate?.total_page === "number"
+            ? firstRes.paginate.total_page
             : 1;
 
         // Giới hạn tối đa 5 trang để tránh quá nặng
@@ -105,7 +99,7 @@ export default function SearchPage() {
         // Nếu chỉ có 1 trang thì dùng luôn
         if (pagesToFetch === 1) {
           if (!cancelled) {
-            const items = firstData.items || [];
+            const items = firstRes.items || [];
             // Sắp xếp theo relevance score
             type FilmWithScore = FilmItem & { score: number };
             const sorted = items
@@ -119,19 +113,14 @@ export default function SearchPage() {
           }
         } else {
           // Gọi song song các trang còn lại
-          const promises: Promise<Response>[] = [];
+          const promises: Promise<Awaited<ReturnType<typeof searchFilms>>>[] = [];
           for (let page = 2; page <= pagesToFetch; page++) {
             promises.push(
-              fetch(
-                `https://phimapi.com/v1/api/tim-kiem?keyword=${encodeURIComponent(
-                  query
-                )}&page=${page}&sort_field=modified.time&sort_type=desc&limit=20`,
-                {
-                  headers: {
-                    Accept: "application/json",
-                  },
-                }
-              )
+              searchFilms(query, page, {
+                sort_field: "modified.time",
+                sort_type: "desc",
+                limit: 20,
+              })
             );
           }
 
@@ -139,17 +128,18 @@ export default function SearchPage() {
 
           const otherItems: FilmItem[] = [];
           for (const r of results) {
-            if (r.status === "fulfilled" && r.value.ok) {
-              const data = await r.value.json();
-              if (Array.isArray(data?.items)) {
-                otherItems.push(...data.items);
-              }
+            if (
+              r.status === "fulfilled" &&
+              r.value.status !== "error" &&
+              Array.isArray(r.value.items)
+            ) {
+              otherItems.push(...r.value.items);
             }
           }
 
           if (!cancelled) {
             const combined = [
-              ...(Array.isArray(firstData?.items) ? firstData.items : []),
+              ...(Array.isArray(firstRes?.items) ? firstRes.items : []),
               ...otherItems,
             ];
             
