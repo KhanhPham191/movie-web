@@ -13,7 +13,6 @@ interface MovieSectionWithNavProps {
   variant?: "default" | "portrait" | "top10" | "newRelease" | "series" | "cinema";
   showViewAll?: boolean;
   disableTilt?: boolean;
-  badgeLabel?: string;
 }
 
 // Chuẩn hoá nhãn tập giống bên movie-card
@@ -30,8 +29,7 @@ export function MovieSectionWithNav({
   href, 
   variant = "default",
   showViewAll = true,
-  disableTilt = false,
-  badgeLabel
+  disableTilt = false
 }: MovieSectionWithNavProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -320,7 +318,6 @@ export function MovieSectionWithNav({
                 variant={variant}
                 rank={variant === "top10" || variant === "newRelease" ? index + 1 : undefined}
                 disableTilt={disableTilt}
-                badgeLabel={badgeLabel}
               />
             </div>
           ))}

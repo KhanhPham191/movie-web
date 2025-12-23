@@ -18,7 +18,6 @@ interface MovieCardProps {
   variant?: "default" | "portrait" | "top10" | "newRelease" | "series" | "cinema";
   rank?: number;
   disableTilt?: boolean;
-  badgeLabel?: string;
 }
 
 // Chuẩn hoá text số tập: "Hoàn tất (20/20)" -> "20/20"
@@ -61,7 +60,7 @@ function getLanguageBadge(language?: string) {
   return parts.length ? parts.join("-") : language;
 }
 
-export function MovieCard({ movie, index = 0, variant = "default", rank, disableTilt = false, badgeLabel }: MovieCardProps) {
+export function MovieCard({ movie, index = 0, variant = "default", rank, disableTilt = false }: MovieCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPortraitImage, setIsPortraitImage] = useState(false);
   const cardRef = useRef<HTMLAnchorElement>(null);
@@ -304,7 +303,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             <div className="flex items-center gap-3 pt-2">
               <button
                 type="button"
-                className="pointer-events-auto cursor-pointer bg-[#F6C453] hover:bg-[#F6C453]/90 text-black font-bold text-base rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap"
+                className="pointer-events-auto bg-[#F6C453] hover:bg-[#F6C453]/90 text-black font-bold text-base rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap"
                 style={{ width: "139.52px", height: "46px" }}
                 onClick={handleWatchNow}
               >
@@ -366,13 +365,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               unoptimized
             />
-              {badgeLabel && (
-                <div className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-black/75 backdrop-blur-sm border border-white/10 shadow-sm z-30">
-                  <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wide text-white">
-                    {badgeLabel}
-                  </span>
-                </div>
-              )}
             
             {/* Rank Badge - Top Left Corner */}
             <div className="absolute top-0 left-0 w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center rounded-br-md shadow-lg z-20">
