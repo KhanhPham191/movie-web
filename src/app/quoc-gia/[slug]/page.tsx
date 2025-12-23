@@ -6,7 +6,7 @@ import { MovieCard } from "@/components/movie-card";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { getFilmsByCountry, getFilmsByCountryMultiple, COUNTRIES } from "@/lib/api";
+import { getFilmsByCountry, getFilmsByCountryMultiple, getFilmsByCountryAll, COUNTRIES } from "@/lib/api";
 import { filterChinaNonAnimation } from "@/lib/filters";
 
 // ISR: Revalidate every 5 minutes for Trung Quốc page
@@ -116,10 +116,24 @@ async function CountryContent({ slug, page }: { slug: string; page: number }) {
       );
     }
 
-    // Các quốc gia khác: giữ nguyên logic cũ
-    const response = await getFilmsByCountry(slug, page);
-    let movies = response.items || [];
-    const totalPages = response.paginate?.total_page || 1;
+    // Các quốc gia khác: lấy tất cả các trang, sau đó phân trang lại
+    const allMovies = await getFilmsByCountryAll(slug);
+    
+    if (!allMovies || allMovies.length === 0) {
+      return (
+        <div className="text-center py-20">
+          <p className="text-muted-foreground">
+            Không có phim nào từ quốc gia này
+          </p>
+        </div>
+      );
+    }
+    
+    // Phân trang lại: 10 phim/trang
+    const totalPages = Math.ceil(allMovies.length / ITEMS_PER_PAGE);
+    const startIndex = (page - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const movies = allMovies.slice(startIndex, endIndex);
 
     if (movies.length === 0) {
       return (
@@ -140,47 +154,51 @@ async function CountryContent({ slug, page }: { slug: string; page: number }) {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-center gap-2 mt-8">
-          {page > 1 && (
-            <Link href={`/quoc-gia/${slug}?page=${page - 1}`}>
-              <Button variant="outline" size="sm">
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                Trang trước
-              </Button>
-            </Link>
-          )}
-          
-          <div className="flex items-center gap-1">
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const pageNum = page <= 3 ? i + 1 : page - 2 + i;
-              if (pageNum > totalPages || pageNum < 1) return null;
-              return (
-                <Link key={pageNum} href={`/quoc-gia/${slug}?page=${pageNum}`}>
-                  <Button
-                    variant={pageNum === page ? "default" : "outline"}
-                    size="sm"
-                    className={pageNum === page ? "bg-primary" : ""}
-                  >
-                    {pageNum}
+        {totalPages > 1 && (
+          <>
+            <div className="flex items-center justify-center gap-2 mt-8">
+              {page > 1 && (
+                <Link href={`/quoc-gia/${slug}?page=${page - 1}`}>
+                  <Button variant="outline" size="sm">
+                    <ChevronLeft className="w-4 h-4 mr-1" />
+                    Trang trước
                   </Button>
                 </Link>
-              );
-            })}
-          </div>
+              )}
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const pageNum = page <= 3 ? i + 1 : Math.max(1, Math.min(page - 2 + i, totalPages));
+                  if (pageNum > totalPages || pageNum < 1) return null;
+                  return (
+                    <Link key={pageNum} href={`/quoc-gia/${slug}?page=${pageNum}`}>
+                      <Button
+                        variant={pageNum === page ? "default" : "outline"}
+                        size="sm"
+                        className={pageNum === page ? "bg-primary" : ""}
+                      >
+                        {pageNum}
+                      </Button>
+                    </Link>
+                  );
+                })}
+              </div>
 
-          {page < totalPages && (
-            <Link href={`/quoc-gia/${slug}?page=${page + 1}`}>
-              <Button variant="outline" size="sm">
-                Trang sau
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            </Link>
-          )}
-        </div>
+              {page < totalPages && (
+                <Link href={`/quoc-gia/${slug}?page=${page + 1}`}>
+                  <Button variant="outline" size="sm">
+                    Trang sau
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+              )}
+            </div>
 
-        <p className="text-center text-sm text-muted-foreground mt-4">
-          Trang {page} / {totalPages}
-        </p>
+            <p className="text-center text-sm text-muted-foreground mt-4">
+              Trang {page} / {totalPages} ({allMovies.length} phim)
+            </p>
+          </>
+        )}
       </>
     );
   } catch {

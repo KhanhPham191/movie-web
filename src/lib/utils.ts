@@ -27,18 +27,26 @@ export function isValidTime(time?: string | null | undefined): boolean {
     return false;
   }
   
-  // Kiểm tra nếu là số không hợp lệ
+  // Chấp nhận các format string như "90 phút", "1h 30m", "120 phút", v.v.
+  // Kiểm tra xem có chứa số và đơn vị thời gian không
+  const hasTimeUnit = /(phút|phut|min|m|giờ|h|giay|s|giây)/i.test(trimmed);
+  const hasNumber = /\d/.test(trimmed);
+  
+  // Nếu có đơn vị thời gian và số, chấp nhận
+  if (hasTimeUnit && hasNumber) {
+    return true;
+  }
+  
+  // Nếu chỉ là số thuần túy, kiểm tra như cũ
   const numValue = Number(trimmed);
-  if (isNaN(numValue) || !isFinite(numValue)) {
-    return false;
+  if (!isNaN(numValue) && isFinite(numValue)) {
+    // Kiểm tra nếu là số âm hoặc quá lớn (không hợp lý cho thời lượng phim)
+    if (numValue >= 0 && numValue <= 10000) {
+      return true;
+    }
   }
   
-  // Kiểm tra nếu là số âm hoặc quá lớn (không hợp lý cho thời lượng phim)
-  if (numValue < 0 || numValue > 10000) {
-    return false;
-  }
-  
-  return true;
+  return false;
 }
 
 // Helper function để format time - trả về time nếu hợp lệ, ngược lại trả về empty string

@@ -64,8 +64,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
   const cardRef = useRef<HTMLAnchorElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const [popupPosition, setPopupPosition] = useState<{ left: number; top: number } | null>(null);
-  // Use thumb_url for movie cards in categories (clearer for horizontal display)
-  const imageUrl = getImageUrl(movie.thumb_url || movie.poster_url);
+  // Use poster_url for movie cards (portrait posters)
+  const imageUrl = getImageUrl(movie.poster_url || movie.thumb_url);
   
   useEffect(() => {
     const updatePosition = () => {
@@ -148,8 +148,9 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               src={imageUrl}
               alt={movie.name}
               fill
-              className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-[1.03]"
+              className="object-cover object-center transition-transform duration-500 ease-in-out group-hover:scale-[1.03]"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+              unoptimized
             />
             
             {/* Rank Badge - Top Left Corner */}
@@ -200,7 +201,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                   </span>
                 )}
                 {movie.language && (
-                  <span className="px-1 py-0.5 rounded bg-white/10 text-[9px] uppercase tracking-wide">
+                  <span className="px-1 py-0.5 rounded bg-white/10 text-white text-[9px] font-semibold uppercase tracking-wide border border-white/20">
                     {movie.language}
                   </span>
                 )}
@@ -233,8 +234,9 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               src={imageUrl}
               alt={movie.name}
               fill
-              className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-[1.03]"
+              className="object-cover object-center transition-transform duration-500 ease-in-out group-hover:scale-[1.03]"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+              unoptimized
             />
             {movie.current_episode && (
               <Badge className="absolute top-2 right-2 bg-red-600 text-white border-0 text-[10px] z-20">
@@ -289,7 +291,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
     // Xác định hướng nghiêng xen kẽ: số lẻ nghiêng trái, số chẵn nghiêng phải
     const order = rank ?? index + 1;
     const isTiltLeft = order % 2 === 1; // Card lẻ (1, 3, 5...) nghiêng trái
-    const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
+    // Use poster_url for main card image, thumb_url for hover popup
+    const backdropUrl = getImageUrl(movie.thumb_url || movie.poster_url); // Hover popup dùng thumb_url
     const thumbUrl = getImageUrl(movie.thumb_url || movie.poster_url);
     const shortDescription = getShortDescription(movie.description, 140);
     const year =
@@ -320,14 +323,14 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             onMouseLeave={() => setIsHovered(false)}
           >
             <div className="rounded-xl border border-white/15 bg-[#050509]/95 overflow-hidden shadow-[0_18px_40px_rgba(0,0,0,0.85)] backdrop-blur-md">
-              {/* Poster - Bên trên, tỉ lệ 16:9 */}
+              {/* Thumbnail - Bên trên, tỉ lệ 16:9 (dùng thumb_url cho hover popup) */}
               {backdropUrl && (
                 <div className="relative aspect-video w-full overflow-hidden bg-[#0a0a0a]">
                   <Image
                     src={backdropUrl}
                     alt={movie.name}
                     fill
-                    className="object-cover"
+                    className="object-cover object-center"
                     sizes="(max-width: 768px) 0px, 480px"
                     unoptimized
                   />
@@ -456,13 +459,14 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               <div className="absolute inset-0 bg-[rgba(246,196,83,0.15)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out pointer-events-none z-10" />
               {/* Hover Overlay - Subtle */}
               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out z-10" />
-              <Image
-                src={imageUrl}
-                alt={movie.name}
-                fill
-                className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-[1.03]"
-                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-              />
+            <Image
+              src={imageUrl}
+              alt={movie.name}
+              fill
+              className="object-cover object-center transition-transform duration-500 ease-in-out group-hover:scale-[1.03]"
+              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+              unoptimized
+            />
               {movie.current_episode && (
                 <Badge className="absolute bottom-2 left-2 bg-red-600 text-white border-0 text-[10px] font-bold z-20">
                   {formatEpisodeLabel(movie.current_episode)}
@@ -510,7 +514,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                 {movie.language && (
                   <>
                     {isValidTime(movie.time) && <span className="text-white/30">•</span>}
-                    <span className="px-1 py-0.5 rounded bg-white/10 text-[10px] uppercase tracking-wide">
+                    <span className="px-1 py-0.5 rounded bg-white/10 text-white text-[10px] font-semibold uppercase tracking-wide border border-white/20">
                       {movie.language}
                     </span>
                   </>
@@ -532,8 +536,9 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
 
   // Series variant - poster + info, không số thứ tự, 3D nhẹ khi hover
   if (variant === "series") {
+    // Use poster_url for main card, thumb_url for popup backdrop (hover)
     const thumbUrl = getImageUrl(movie.thumb_url || movie.poster_url);
-    const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
+    const backdropUrl = getImageUrl(movie.thumb_url || movie.poster_url); // Hover popup dùng thumb_url
     const year =
       movie.created && !Number.isNaN(new Date(movie.created).getFullYear())
         ? new Date(movie.created).getFullYear()
@@ -558,14 +563,14 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             onMouseLeave={() => setIsHovered(false)}
           >
             <div className="rounded-xl border border-white/15 bg-[#050509]/95 overflow-hidden shadow-[0_18px_40px_rgba(0,0,0,0.85)] backdrop-blur-md">
-              {/* Poster - Bên trên, tỉ lệ 16:9 */}
+              {/* Thumbnail - Bên trên, tỉ lệ 16:9 (dùng thumb_url cho hover popup) */}
               {backdropUrl && (
                 <div className="relative aspect-video w-full overflow-hidden bg-[#0a0a0a]">
                   <Image
                     src={backdropUrl}
                     alt={movie.name}
                     fill
-                    className="object-cover"
+                    className="object-cover object-center"
                     sizes="(max-width: 768px) 0px, 480px"
                     unoptimized
                   />
@@ -692,8 +697,9 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               src={imageUrl}
               alt={movie.name}
               fill
-              className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-[1.03]"
+              className="object-cover object-center transition-transform duration-500 ease-in-out group-hover:scale-[1.03]"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+              unoptimized
             />
             {movie.current_episode && (
               <Badge className="absolute bottom-2 left-2 bg-red-600 text-white border-0 text-[10px] font-bold z-20">
@@ -733,7 +739,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                 </span>
               )}
               {movie.language && (
-                <span className="px-1 py-0.5 rounded bg-white/10 text-[10px] uppercase tracking-wide">
+                <span className="px-1 py-0.5 rounded bg-white/10 text-white text-[10px] font-semibold uppercase tracking-wide border border-white/20">
                   {movie.language}
                 </span>
               )}
@@ -750,9 +756,9 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
 
   // Cinema / US-UK variant - wide backdrop + small poster + info (layout giống hình bạn gửi)
   if (variant === "cinema") {
-    // Đổi ngược lại giữa poster và thumb_url:
-    // - backdrop dùng poster_url (nếu có) để rõ nét
-    // - poster nhỏ bên dưới dùng thumb_url để khác hình
+    // Cinema variant:
+    // - backdrop dùng poster_url (wide image)
+    // - poster nhỏ bên dưới dùng thumb_url (portrait thumbnail)
     const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
     const thumbUrl = getImageUrl(movie.thumb_url || movie.poster_url);
     const shortDescription = getShortDescription(movie.description, 110);
@@ -783,7 +789,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               src={backdropUrl}
               alt={movie.name}
               fill
-              className="object-cover"
+              className="object-cover object-center"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               unoptimized
             />
@@ -791,7 +797,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             {(languageBadge || qualityLabel) && (
               <div className="absolute top-2 left-2 flex items-center gap-1 z-20">
                 {languageBadge && (
-                  <Badge className="bg-gradient-to-r from-[#7C3AED] to-[#DB2777] text-white border-0 text-[10px] font-bold shadow-lg">
+                  <Badge className="bg-gradient-to-r from-[#7C3AED] to-[#DB2777] text-white border-0 text-[10px] font-bold shadow-lg [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">
                     {languageBadge}
                   </Badge>
                 )}
@@ -814,8 +820,9 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                   src={thumbUrl}
                   alt={movie.name}
                   fill
-                  className="object-cover"
+                  className="object-cover object-center"
                   sizes="56px"
+                  unoptimized
                 />
               </div>
 
@@ -901,14 +908,15 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
           <div className={`absolute inset-0 bg-[rgba(246,196,83,0.15)] transition-opacity duration-300 pointer-events-none z-10 ${
             isHovered ? "opacity-100" : "opacity-0 group-hover:opacity-100"
           }`} />
-          {/* Thumbnail - 16:9 using thumb_url (crop center) */}
+          {/* Thumbnail - 16:9 using poster_url (crop center) */}
           <div className="relative aspect-video w-full overflow-hidden rounded-[10px]">
             <Image
               src={imageUrl}
               alt={movie.name}
               fill
-              className="object-cover"
+              className="object-cover object-center"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+              unoptimized
             />
 
             {/* Episode badge */}
@@ -969,7 +977,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                 <span className="text-green-500 font-semibold">97% Phù hợp</span>
                 {isValidTime(movie.time) && <span className="text-gray-400">{movie.time}</span>}
                 {movie.language && (
-                  <span className="px-1 py-0.5 rounded bg-white/10 text-[9px] uppercase tracking-wide text-gray-400">
+                  <span className="px-1 py-0.5 rounded bg-white/10 text-white text-[9px] font-semibold uppercase tracking-wide border border-white/20">
                     {movie.language}
                   </span>
                 )}

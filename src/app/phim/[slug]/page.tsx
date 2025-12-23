@@ -49,10 +49,10 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
         : [];
     
 
-    // backdropUrl: prefer thumb_url (landscape/backdrop), fallback to poster_url
-    // posterUrl: prefer poster_url (portrait/poster), fallback to thumb_url
-    const backdropUrl = getImageUrl(movie.poster_url);
-    const posterUrl = getImageUrl(movie.poster_url || movie.thumb_url);
+    // backdropUrl: dùng thumb_url (landscape/backdrop) cho hero section
+    // posterUrl: dùng thumb_url cho episode selector
+    const backdropUrl = getImageUrl(movie.thumb_url || movie.poster_url);
+    const posterUrl = getImageUrl(movie.thumb_url || movie.poster_url);
 
     // Chọn server mặc định: ưu tiên Vietsub, sau đó Lồng tiếng, sau đó Thuyết minh, cuối cùng là server đầu tiên
     const defaultServer = Array.isArray(movie.episodes)
@@ -278,7 +278,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                 movieSlug={movie.slug}
                 defaultServer={serverParam}
                 movieName={movie.name}
-                posterUrl={movie.poster_url}
+                posterUrl={movie.thumb_url || movie.poster_url}
               />
             )}
 

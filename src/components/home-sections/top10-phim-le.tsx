@@ -15,11 +15,33 @@ function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
   });
 }
 
+// Helper: lấy năm phát hành từ phim
+function getReleaseYear(movie: FilmItem): number | null {
+  // Ưu tiên lấy từ field year nếu có
+  if (movie.year) {
+    const yearNum = typeof movie.year === 'string' ? parseInt(movie.year, 10) : movie.year;
+    if (!isNaN(yearNum) && isFinite(yearNum) && yearNum > 1900 && yearNum < 2100) {
+      return yearNum;
+    }
+  }
+  
+  // Fallback: lấy từ created date
+  if (movie.created) {
+    const date = new Date(movie.created);
+    const yearValue = date.getFullYear();
+    if (!isNaN(yearValue) && isFinite(yearValue) && yearValue > 1900 && yearValue < 2100) {
+      return yearValue;
+    }
+  }
+  
+  return null;
+}
+
 export async function Top10PhimLe() {
   try {
     // Gọi trực tiếp API /v1/api/danh-sach/phim-le với các filter
-    // Ưu tiên phim mới nhất (dựa theo thời gian cập nhật / modified)
-    // Không khóa theo năm, lấy các phim lẻ mới cập nhật nhất
+    // Chỉ lấy phim từ năm 2025 trở lên
+    // Lấy nhiều phim hơn để có đủ sau khi filter theo năm
     const phimLeRaw = await getFilmsByCategoryMultiple(
       CATEGORIES.PHIM_LE, 
       1, // Chỉ lấy 1 page
@@ -28,7 +50,8 @@ export async function Top10PhimLe() {
         // Sau đó vẫn sort lại theo modified ở phía client cho chắc chắn
         sort_field: "modified",
         sort_type: 'desc',
-        limit: 10 // Chỉ lấy 10 phim đầu
+        year: 2025, // Filter theo năm 2025
+        limit: 50 // Lấy nhiều hơn để có đủ sau khi filter >= 2025
       }
     ).catch((error) => {
       return [];
@@ -38,15 +61,19 @@ export async function Top10PhimLe() {
       return null;
     }
 
-    // Không filter phim chiếu rạp nữa, lấy tất cả phim lẻ từ API
+    // Filter chỉ lấy phim có năm >= 2025
+    const phimLeFiltered = phimLeRaw.filter((movie) => {
+      const year = getReleaseYear(movie);
+      return year !== null && year >= 2025;
+    });
+
     // Sắp xếp theo modified time (mới nhất trước) để hiển thị phim mới cập nhật nhất
-    const phimLeSorted = sortByModifiedDesc(phimLeRaw);
+    const phimLeSorted = sortByModifiedDesc(phimLeFiltered);
     
-    // Lấy tối đa 10 phim đầu (đã được limit từ API)
+    // Lấy tối đa 10 phim đầu
     const phimLe = phimLeSorted.slice(0, 10);
 
-
-    // Chỉ hiển thị nếu có ít nhất 1 phim lẻ theo năm phát hành (không fallback)
+    // Chỉ hiển thị nếu có ít nhất 1 phim lẻ từ năm 2025 trở lên
     if (phimLe.length === 0) {
       return null; // Return null thay vì <></> để Suspense có thể catch
     }

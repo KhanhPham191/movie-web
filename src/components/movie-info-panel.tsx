@@ -42,9 +42,8 @@ export function MovieInfoPanel({
   currentEpisodeSlug,
   currentServerName,
 }: MovieInfoPanelProps) {
-  // Ưu tiên thumb.url, sau đó thumb_url, cuối cùng poster_url
-  const thumbUrl = (movie as any).thumb?.url || movie.thumb_url;
-  const posterUrl = getImageUrl(thumbUrl || movie.poster_url);
+  // Dùng poster_url cho poster nhỏ trong info panel (ảnh dọc 2:3)
+  const posterUrl = getImageUrl(movie.poster_url || movie.thumb_url);
   const cleanDescription = movie.description?.replace(/<[^>]*>/g, "") || "";
   
   // Tính số tập cao nhất từ tất cả servers (cố định, không thay đổi)
@@ -108,7 +107,7 @@ export function MovieInfoPanel({
                     IMDb {movie.imdb}
                   </Badge>
                 )}
-                {movie.tmdb && (
+                {movie.tmdb && movie.tmdb !== 0 && movie.tmdb !== "0" && String(movie.tmdb).trim() !== "" && (
                   <Badge className="bg-blue-500 text-white font-semibold text-[10px] sm:text-xs px-2 py-1">
                     TMDB {movie.tmdb}
                   </Badge>
@@ -164,7 +163,7 @@ export function MovieInfoPanel({
               currentServerName={currentServerName}
               currentEpisodeIndex={currentEpisodeIndex}
               movieName={movie.name}
-              posterUrl={movie.poster_url}
+              posterUrl={movie.thumb_url || movie.poster_url}
             />
           </div>
         )}

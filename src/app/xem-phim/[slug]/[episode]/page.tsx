@@ -244,7 +244,7 @@ async function VideoPlayer({
         ? allEpisodes[episodeIndex + 1]
         : null;
 
-    // Ưu tiên thumb.url, sau đó thumb_url, cuối cùng poster_url
+    // Dùng thumb_url cho trang xem phim
     const thumbUrl = (movie as any).thumb?.url || movie.thumb_url;
     const background = getImageUrl(thumbUrl || movie.poster_url);
     const cleanDescription = movie.description?.replace(/<[^>]*>/g, "");

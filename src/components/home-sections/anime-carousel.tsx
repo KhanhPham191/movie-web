@@ -220,7 +220,11 @@ export function AnimeCarousel({ movies }: AnimeCarouselProps) {
           const thumbUrl = getImageUrl(movie.thumb_url);
           const posterUrl = getImageUrl(movie.poster_url);
           const year = movie.created
-            ? new Date(movie.created).getFullYear()
+            ? (() => {
+                const date = new Date(movie.created);
+                const yearValue = date.getFullYear();
+                return !isNaN(yearValue) && isFinite(yearValue) ? yearValue : undefined;
+              })()
             : undefined;
           const episodeLabel = formatEpisodeLabel(movie.current_episode);
           const languageBadge = getLanguageBadge(movie.language);
@@ -478,7 +482,7 @@ function MovieCardWithPopup({
               unoptimized
             />
             <div className="absolute bottom-2 left-2 z-10">
-              <span className="inline-block rounded-md bg-[#F6C453] text-black text-xs font-semibold px-2 py-1 shadow-lg">
+              <span className="inline-block rounded-md bg-[#F6C453] text-black text-xs font-bold px-2 py-1 shadow-lg border border-black/20 [text-shadow:0_1px_2px_rgba(0,0,0,0.3)]">
                 {languageBadge}
               </span>
             </div>
