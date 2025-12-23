@@ -303,7 +303,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             <div className="flex items-center gap-3 pt-2">
               <button
                 type="button"
-                className="pointer-events-auto bg-[#F6C453] hover:bg-[#F6C453]/90 text-black font-bold text-base rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap"
+                className="pointer-events-auto cursor-pointer bg-[#F6C453] hover:bg-[#F6C453]/90 text-black font-bold text-base rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap"
                 style={{ width: "139.52px", height: "46px" }}
                 onClick={handleWatchNow}
               >
