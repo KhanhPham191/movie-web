@@ -259,6 +259,8 @@ export function Header() {
     }
   }, [isSearchOpen, isScrolled]);
 
+  const shouldDisableTransform = isMobileHamburgerOpen || isMobileSearchOpen;
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 will-change-transform ${
@@ -266,7 +268,8 @@ export function Header() {
           ? "bg-black/60 backdrop-blur-md"
           : "bg-gradient-to-b from-black/40 via-black/10 to-transparent"
       }`}
-      style={{ transform: 'translateZ(0)' }}
+      // Avoid creating a containing block for fixed-position mobile overlays
+      style={{ transform: shouldDisableTransform ? undefined : 'translateZ(0)' }}
     >
       <div className={`flex items-center justify-between px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12 transition-all duration-500 ${
         isScrolled
@@ -817,8 +820,8 @@ export function Header() {
             onClick={() => setIsMobileHamburgerOpen(false)}
           />
           {/* Menu Panel */}
-          <div className="lg:hidden fixed top-0 right-0 bottom-0 w-80 max-w-[85vw] bg-[#0f0f0f] border-l border-white/10 z-[201] overflow-y-auto animate-slide-in-from-right">
-            <div className="flex flex-col h-full">
+          <div className="lg:hidden fixed top-0 right-0 bottom-0 h-[100vh] w-80 max-w-[85vw] bg-[#0f0f0f] border-l border-white/10 z-[201] overflow-y-auto animate-slide-in-from-right">
+            <div className="flex flex-col h-full min-h-[100vh]">
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-white/10">
                 <h2 className="text-lg font-bold text-white">Menu</h2>
