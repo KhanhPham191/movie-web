@@ -15,6 +15,8 @@ export interface FilmItem {
   poster_url: string;
   created: string;
   modified: string;
+  // Some APIs return year as number, others as string; keep flexible
+  year?: number | string;
   description: string;
   total_episodes: number;
   current_episode: string;
@@ -172,6 +174,7 @@ function convertPhimAPIItemToFilmItem(item: PhimAPIItem): FilmItem {
     poster_url: normalizePhimAPIImageUrl(posterUrl),
     created: item.created?.time || "",
     modified: item.modified?.time || "",
+    year: item.year,
     description: item.description || "",
     total_episodes: item.total_episodes || 0,
     current_episode: item.episode_current || "",
