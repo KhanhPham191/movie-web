@@ -69,7 +69,7 @@ export interface FilmDetailResponse {
 }
 
 // PhimAPI.com base URL
-const PHIMAPI_BASE = "https://phimapi.com/v1/api";
+export const PHIMAPI_BASE = "https://phimapi.com/v1/api";
 const PHIMAPI_CDN = "https://phimimg.com";
 
 // PhimAPI.com response interfaces
@@ -218,7 +218,11 @@ function convertPhimAPIItemToFilmItem(item: PhimAPIItem): FilmItem {
 
 // Fetch from PhimAPI.com
 async function fetchPhimAPI<T>(endpoint: string): Promise<T> {
-  const url = `${PHIMAPI_BASE}${endpoint}`;
+  const isBrowser = typeof window !== "undefined";
+  // Khi chạy trên client (đặc biệt mobile), đi qua proxy để tránh CORS/chặn UA
+  const url = isBrowser
+    ? `/api/phimapi?endpoint=${encodeURIComponent(endpoint)}`
+    : `${PHIMAPI_BASE}${endpoint}`;
   const cacheKey = url;
   
   if (requestCache.has(cacheKey)) {
@@ -228,10 +232,14 @@ async function fetchPhimAPI<T>(endpoint: string): Promise<T> {
   const fetchPromise = (async () => {
     try {
       const timeoutMs = 30000;
+      const headers = isBrowser
+        ? { Accept: "application/json", "Accept-Language": "vi,en;q=0.9" }
+        : DEFAULT_FETCH_HEADERS;
+
       const res = await Promise.race([
         fetch(url, {
-          next: { revalidate: 7200 },
-          headers: DEFAULT_FETCH_HEADERS,
+          ...(isBrowser ? {} : { next: { revalidate: 7200 } }),
+          headers,
         }),
         createTimeoutPromise(timeoutMs),
       ]) as Response;
@@ -258,7 +266,7 @@ async function fetchPhimAPI<T>(endpoint: string): Promise<T> {
   return fetchPromise;
 }
 
-const DEFAULT_FETCH_HEADERS: HeadersInit = {
+export const DEFAULT_FETCH_HEADERS: HeadersInit = {
   "User-Agent": "Mozilla/5.0 (compatible; Phim7Bot/1.0; +https://phim7.xyz)",
   Accept: "application/json",
   "Accept-Language": "vi,en;q=0.9",
