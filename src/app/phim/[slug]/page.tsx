@@ -408,10 +408,13 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                 )}
 
                 {(() => {
-                  // Ưu tiên lấy từ field year, fallback về created nếu không có
-                  const releaseYear = movie.year 
-                    ? (typeof movie.year === 'number' ? movie.year : parseInt(String(movie.year), 10))
-                    : (movie.created ? new Date(movie.created).getFullYear() : null);
+                  // Ưu tiên lấy từ field year (nếu API trả về), fallback về created nếu không có
+                  const movieYear = (movie as { year?: number | string }).year;
+                  const releaseYear = movieYear
+                    ? (typeof movieYear === "number" ? movieYear : parseInt(String(movieYear), 10))
+                    : movie.created
+                      ? new Date(movie.created).getFullYear()
+                      : null;
                   
                   return releaseYear && !isNaN(releaseYear) && releaseYear >= 1900 && releaseYear <= 2100 ? (
                     <div>
