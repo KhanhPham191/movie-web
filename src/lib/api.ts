@@ -21,6 +21,7 @@ export interface FilmItem {
   time: string;
   quality: string;
   language: string;
+  vote_average?: number;
   director: string;
   casts: string;
   category: FilmCategory[];
