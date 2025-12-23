@@ -19,7 +19,7 @@ interface MovieInfoPanelProps {
     time?: string;
     created?: string;
     description?: string;
-    imdb?: string;
+    imdb?: string | number;
     tmdb?: string | number;
     total_episodes?: number;
   };
