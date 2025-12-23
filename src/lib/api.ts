@@ -169,6 +169,19 @@ function normalizePhimAPIImageUrl(url: string): string {
 function convertPhimAPIItemToFilmItem(item: PhimAPIItem): FilmItem {
   const thumbUrl = item.thumb_url || item.poster_url || "";
   const posterUrl = item.poster_url || item.thumb_url || "";
+
+  // Chuẩn hoá các field rating có thể là object (tmdb/imdb: { id, vote_average, ... })
+  const normalizeRating = (value: any): string | number => {
+    if (value == null) return "";
+    if (typeof value === "number" || typeof value === "string") return value;
+    if (typeof value === "object") {
+      if (value.vote_average != null) return value.vote_average;
+      if (value.id != null) return value.id;
+    }
+    return "";
+  };
+  const imdb = normalizeRating(item.imdb);
+  const tmdb = normalizeRating(item.tmdb);
   
   return {
     id: item._id,
@@ -186,8 +199,8 @@ function convertPhimAPIItemToFilmItem(item: PhimAPIItem): FilmItem {
     time: item.time || "",
     quality: item.quality || "",
     language: item.lang || "",
-    imdb: item.imdb,
-    tmdb: item.tmdb,
+    imdb,
+    tmdb,
     director: item.director || "",
     casts: item.casts || "",
     category: (item.category || []).map((cat) => ({
