@@ -23,6 +23,9 @@ export interface FilmItem {
   time: string;
   quality: string;
   language: string;
+  // Optional rating fields (not always present in API)
+  imdb?: number | string;
+  tmdb?: number | string;
   vote_average?: number;
   director: string;
   casts: string;
@@ -85,6 +88,8 @@ interface PhimAPIItem {
   quality?: string;
   lang?: string;
   year?: number;
+  imdb?: number | string;
+  tmdb?: number | string;
   category?: Array<{ id: string; name: string; slug: string }>;
   country?: Array<{ id: string; name: string; slug: string }>;
   director?: string;
@@ -181,6 +186,8 @@ function convertPhimAPIItemToFilmItem(item: PhimAPIItem): FilmItem {
     time: item.time || "",
     quality: item.quality || "",
     language: item.lang || "",
+    imdb: item.imdb,
+    tmdb: item.tmdb,
     director: item.director || "",
     casts: item.casts || "",
     category: (item.category || []).map((cat) => ({
