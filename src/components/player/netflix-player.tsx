@@ -441,7 +441,6 @@ export function NetflixPlayer({
 
     const newVolume = Math.max(0, Math.min(1, video.volume + delta));
     video.volume = newVolume;
-    video.muted = newVolume === 0;
     resetControlsTimeout();
   };
 
@@ -450,7 +449,6 @@ export function NetflixPlayer({
     if (!video) return;
 
     video.volume = value;
-    video.muted = value === 0;
     // Giữ slider mở khi đang kéo, sẽ đóng bằng hover/mouseleave
   };
 
@@ -1123,7 +1121,7 @@ export function NetflixPlayer({
                   }`}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex-1 h-1.5 bg-[#3b3b3b] rounded-full relative min-w-[96px] group/volume-track touch-none">
+                  <div className="flex-1 h-1.5 bg-[#3b3b3b] rounded-full relative min-w-[96px] group/volume-track">
                     {/* Filled volume (solid yellow) */}
                     <div
                       className="absolute left-0 top-0 h-full rounded-full bg-[#F6C453]"
@@ -1142,7 +1140,7 @@ export function NetflixPlayer({
                       step="0.01"
                       value={volume}
                       onChange={(e) => setVolumeValue(parseFloat(e.target.value))}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer touch-none"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       onClick={(e) => e.stopPropagation()}
                     />
                   </div>
