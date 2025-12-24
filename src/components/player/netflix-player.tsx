@@ -1104,18 +1104,18 @@ export function NetflixPlayer({
                   }`}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex-1 h-1.5 bg-[#3b3b3b] rounded-full relative min-w-[96px] group/volume-track py-2">
+                  <div className="flex-1 h-1.5 bg-[#3b3b3b] rounded-full relative min-w-[96px] group/volume-track">
                     {/* Filled volume (solid yellow) */}
                     <div
-                      className="absolute left-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-[#F6C453]"
+                      className="absolute left-0 top-0 h-full rounded-full bg-[#F6C453]"
                       style={{ width: `${volume * 100}%` }}
                     />
-                    {/* Volume handle (bigger, easier to grab) */}
+                    {/* Volume handle (solid yellow circle) */}
                     <div
-                      className="absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-[#F6C453] rounded-full -translate-x-1/2 z-10 cursor-grab active:cursor-grabbing shadow-lg hover:scale-110 transition-transform"
+                      className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-[#F6C453] rounded-full -translate-x-1/2 z-10"
                       style={{ left: `${volume * 100}%` }}
                     />
-                    {/* Invisible range input with larger touch target */}
+                    {/* Invisible range input to capture interactions */}
                     <input
                       type="range"
                       min="0"
@@ -1124,7 +1124,6 @@ export function NetflixPlayer({
                       value={volume}
                       onChange={(e) => setVolumeValue(parseFloat(e.target.value))}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      style={{ padding: '8px 0' }}
                       onClick={(e) => e.stopPropagation()}
                     />
                   </div>
@@ -1132,7 +1131,11 @@ export function NetflixPlayer({
               </div>
 
               {/* Time Display */}
-              <div className="text-white text-sm font-medium select-none">
+              <div
+                className={`text-white text-sm font-medium select-none transition-all duration-200 ${
+                  showVolumeSlider ? "ml-2" : "ml-0"
+                }`}
+              >
                 {formatTime(currentTime)} / {formatTime(duration)}
               </div>
             </div>
