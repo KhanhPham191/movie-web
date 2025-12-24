@@ -448,10 +448,24 @@ export function NetflixPlayer({
     if (!container) return;
 
     try {
-      if (!document.fullscreenElement) {
-        await container.requestFullscreen();
+      // Check for iOS Safari (webkitFullscreen)
+      const doc = document as any;
+      const isWebkit = doc.webkitFullscreenElement !== undefined;
+      
+      if (isWebkit) {
+        // iOS Safari
+        if (!doc.webkitFullscreenElement) {
+          await container.webkitRequestFullscreen();
+        } else {
+          await doc.webkitExitFullscreen();
+        }
       } else {
-        await document.exitFullscreen();
+        // Standard fullscreen API
+        if (!document.fullscreenElement) {
+          await container.requestFullscreen();
+        } else {
+          await document.exitFullscreen();
+        }
       }
       resetControlsTimeout();
     } catch (err) {
@@ -1014,15 +1028,26 @@ export function NetflixPlayer({
               </button>
 
               {/* Volume Control */}
-              <div
-                className="relative"
-                onMouseEnter={() => setShowVolumeSlider(true)}
-                onMouseLeave={() => setShowVolumeSlider(false)}
-              >
+              <div className="relative">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    toggleMute();
+                    // Toggle volume slider on click (mobile-friendly)
+                    if (isMobile) {
+                      setShowVolumeSlider(!showVolumeSlider);
+                    } else {
+                      toggleMute();
+                    }
+                  }}
+                  onMouseEnter={() => {
+                    if (!isMobile) {
+                      setShowVolumeSlider(true);
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    if (!isMobile) {
+                      setShowVolumeSlider(false);
+                    }
                   }}
                   className="p-2 hover:bg-white/20 rounded-full transition-colors"
                 >
@@ -1037,8 +1062,13 @@ export function NetflixPlayer({
                 {showVolumeSlider && (
                   <div
                     ref={volumeSliderRef}
-                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-3 bg-black/90 backdrop-blur-sm rounded-lg"
+                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-3 bg-black/90 backdrop-blur-sm rounded-lg z-40"
                     onClick={(e) => e.stopPropagation()}
+                    onMouseLeave={() => {
+                      if (!isMobile) {
+                        setShowVolumeSlider(false);
+                      }
+                    }}
                   >
                     <div className="w-2 h-24 bg-white/20 rounded-full relative">
                       <div
@@ -1051,7 +1081,13 @@ export function NetflixPlayer({
                         max="1"
                         step="0.01"
                         value={volume}
-                        onChange={(e) => setVolumeValue(parseFloat(e.target.value))}
+                        onChange={(e) => {
+                          const newVolume = parseFloat(e.target.value);
+                          setVolumeValue(newVolume);
+                          if (newVolume > 0 && isMuted) {
+                            toggleMute();
+                          }
+                        }}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         style={{
                           writingMode: 'vertical-lr',
