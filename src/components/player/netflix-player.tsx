@@ -886,11 +886,11 @@ export function NetflixPlayer({
       >
         {/* Top Controls Bar */}
         <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between z-20">
-          {title && (
-            <h3 className="text-white text-lg font-semibold truncate max-w-[60%] select-text cursor-text">
-              {title}
-            </h3>
-          )}
+            {title && (
+              <h3 className="text-white text-lg font-semibold truncate max-w-[60%] select-none pointer-events-none">
+                {title}
+              </h3>
+            )}
           <div className="flex items-center gap-2 ml-auto">
             <button
               onClick={(e) => {
