@@ -914,6 +914,15 @@ export function NetflixPlayer({
         </div>
       )}
 
+      {/* Speed HUD (Mobile) - Fast forward icon on the right */}
+      {isMobile && showSpeedHUD && isForceTouching && playbackSpeed > 1 && (
+        <div className="absolute top-1/2 -translate-y-1/2 right-3 pointer-events-none z-30">
+          <div className="p-1.5 rounded-full bg-black/70 backdrop-blur-sm border border-[#F6C453]/60 animate-pulse">
+            <SkipForward className="w-4 h-4 text-[#F6C453]" />
+          </div>
+        </div>
+      )}
+
       {/* Keyboard Seek HUD (Desktop) - Position based on direction */}
       {!isMobile && showKeyboardHUD && keyboardSeekDelta !== 0 && (
         <div
@@ -1068,7 +1077,7 @@ export function NetflixPlayer({
               </button>
 
               {/* Time Display */}
-              <div className="text-white text-xs sm:text-sm font-medium select-none whitespace-nowrap">
+              <div className="text-white text-sm font-medium select-none">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </div>
 
