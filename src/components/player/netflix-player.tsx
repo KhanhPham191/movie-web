@@ -1036,9 +1036,9 @@ export function NetflixPlayer({
                 <SkipForward className="w-5 h-5 text-white" />
               </button>
 
-              {/* Volume Control */}
+              {/* Volume Control - Icon and Slider together */}
               <div
-                className="relative"
+                className="relative flex items-center gap-2 group/volume"
                 onMouseEnter={() => setShowVolumeSlider(true)}
                 onMouseLeave={() => setShowVolumeSlider(false)}
               >
@@ -1056,34 +1056,31 @@ export function NetflixPlayer({
                   )}
                 </button>
 
-                {/* Volume Slider */}
-                {showVolumeSlider && (
-                  <div
-                    ref={volumeSliderRef}
-                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-3 bg-black/90 backdrop-blur-sm rounded-lg"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="w-2 h-24 bg-white/20 rounded-full relative">
-                      <div
-                        className="absolute bottom-0 left-0 w-full bg-[#F6C453] rounded-full transition-all"
-                        style={{ height: `${volume * 100}%` }}
-                      />
-                      <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                        value={volume}
-                        onChange={(e) => setVolumeValue(parseFloat(e.target.value))}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        style={{
-                          writingMode: 'vertical-lr',
-                          direction: 'rtl'
-                        }}
-                      />
-                    </div>
+                {/* Volume Slider - Slides out from icon */}
+                <div
+                  ref={volumeSliderRef}
+                  className={`flex items-center gap-2 transition-all duration-300 overflow-hidden ${
+                    showVolumeSlider ? "w-24 opacity-100" : "w-0 opacity-0"
+                  }`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex-1 h-1 bg-white/20 rounded-full relative min-w-[80px]">
+                    <div
+                      className="absolute left-0 top-0 h-full bg-[#F6C453] rounded-full transition-all"
+                      style={{ width: `${volume * 100}%` }}
+                    />
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={volume}
+                      onChange={(e) => setVolumeValue(parseFloat(e.target.value))}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                    />
                   </div>
-                )}
+                </div>
               </div>
 
               {/* Time Display */}
