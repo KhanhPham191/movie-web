@@ -459,12 +459,18 @@ export function NetflixPlayer({
     }
   };
 
-  // Mobile gesture handlers
+  // Mobile gesture handlers (works in both normal and fullscreen mode)
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isMobile) return;
 
     const video = videoRef.current;
     if (!video) return;
+
+    // Reset gesture state
+    setIsSeeking(false);
+    setSeekDelta(0);
+    setVolumeDelta(0);
+    gestureType.current = null;
 
     // iOS: Check for force touch (pressure > 0.7 or webkitForce)
     if (isIOS) {
@@ -513,10 +519,6 @@ export function NetflixPlayer({
     startY.current = e.clientY;
     startTime.current = video.currentTime;
     startVolume.current = video.volume;
-    setIsSeeking(false);
-    setSeekDelta(0);
-    setVolumeDelta(0);
-    gestureType.current = null;
     resetControlsTimeout();
   };
 
@@ -525,6 +527,10 @@ export function NetflixPlayer({
 
     const video = videoRef.current;
     if (!video) return;
+
+    // Get container bounds (works in both normal and fullscreen)
+    const container = containerRef.current;
+    if (!container) return;
 
     // Handle force touch / long press speed control
     if (gestureType.current === "speed" && isForceTouching) {
@@ -563,8 +569,11 @@ export function NetflixPlayer({
         }
       } else {
         // Android: Use vertical swipe distance to control speed
+        const container = containerRef.current;
+        if (!container) return;
+        const containerRect = container.getBoundingClientRect();
         const deltaY = startY.current - e.clientY; // Negative = up (faster), positive = down (slower)
-        const maxDelta = 200; // Maximum swipe distance for full speed range
+        const maxDelta = containerRect.height * 0.4; // Use container height for better responsiveness
         const normalizedDelta = Math.max(-1, Math.min(1, deltaY / maxDelta));
         
         // Map -1 to 1 (down to up) to 0.5x to 2.0x speed
@@ -613,31 +622,28 @@ export function NetflixPlayer({
         gestureType.current = "seek";
       } else {
         // Vertical movement = brightness or volume based on position
-        const rect = containerRef.current?.getBoundingClientRect();
-        if (rect) {
-          const touchX = e.clientX - rect.left;
-          const isLeftHalf = touchX < rect.width / 2;
-          gestureType.current = isLeftHalf ? "brightness" : "volume";
-        } else {
-          // Fallback to screen center
-          gestureType.current = e.clientX < window.innerWidth / 2 ? "brightness" : "volume";
-        }
+        const rect = container.getBoundingClientRect();
+        const touchX = e.clientX - rect.left;
+        const isLeftHalf = touchX < rect.width / 2;
+        gestureType.current = isLeftHalf ? "brightness" : "volume";
       }
     }
 
     // Process gestures (only if not in speed mode)
+    const containerRect = container.getBoundingClientRect();
+    
     if (gestureType.current === "seek") {
-      const seekSeconds = (deltaX / window.innerWidth) * duration;
+      const seekSeconds = (deltaX / containerRect.width) * duration;
       setSeekDelta(seekSeconds);
       setIsSeeking(true);
     } else if (gestureType.current === "brightness") {
       // Swipe down = darker, swipe up = brighter
-      const brightnessChange = 1 - (deltaY / (window.innerHeight * 0.5));
+      const brightnessChange = 1 - (deltaY / (containerRect.height * 0.5));
       const newBrightness = Math.max(0.3, Math.min(1, brightnessChange));
       setBrightness(newBrightness);
     } else if (gestureType.current === "volume") {
       // Swipe down = quieter, swipe up = louder
-      const volumeChange = 1 - (deltaY / (window.innerHeight * 0.5));
+      const volumeChange = 1 - (deltaY / (containerRect.height * 0.5));
       const newVolume = Math.max(0, Math.min(1, volumeChange));
       video.volume = newVolume;
       video.muted = newVolume === 0;
