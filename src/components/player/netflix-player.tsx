@@ -68,12 +68,14 @@ export function NetflixPlayer({
   const keyboardHUDTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isForceTouching, setIsForceTouching] = useState(false);
   const forceTouchStartTime = useRef(0);
+  const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const startX = useRef(0);
   const startY = useRef(0);
   const startTime = useRef(0);
   const startVolume = useRef(0);
   const gestureType = useRef<"seek" | "volume" | "brightness" | "speed" | null>(null);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  const isIOS = typeof window !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
   
   // Double tap state
   const lastTapRef = useRef(0);
@@ -137,6 +139,10 @@ export function NetflixPlayer({
       // Cleanup tap timeout
       if (tapTimeoutRef.current) {
         clearTimeout(tapTimeoutRef.current);
+      }
+      // Cleanup long press timeout
+      if (longPressTimeoutRef.current) {
+        clearTimeout(longPressTimeoutRef.current);
       }
     };
   }, [src]);
@@ -460,34 +466,46 @@ export function NetflixPlayer({
     const video = videoRef.current;
     if (!video) return;
 
-    // Check for force touch (pressure > 0.7 or webkitForce)
-    // Pressure: 0.0 (no pressure) to 1.0 (maximum pressure)
-    // Increased threshold to 0.7 for medium sensitivity
-    const pressure = (e as any).pressure || (e.nativeEvent as any).webkitForce || 0;
-    
-    // If force touch detected (pressure > 0.7), activate speed control
-    if (pressure > 0.7) {
-      setIsForceTouching(true);
-      gestureType.current = "speed";
-      forceTouchStartTime.current = Date.now();
-      setShowSpeedHUD(true);
+    // iOS: Check for force touch (pressure > 0.7 or webkitForce)
+    if (isIOS) {
+      const pressure = (e as any).pressure || (e.nativeEvent as any).webkitForce || 0;
       
-      // Set initial speed based on pressure with smoother mapping
-      const minSpeed = 0.5;
-      const maxSpeed = 2.0;
-      const speedRange = maxSpeed - minSpeed;
-      // Normalize pressure from 0.7-1.0 to 0-1, then apply easing for smoother response
-      const normalizedPressure = Math.min(1, Math.max(0, (pressure - 0.7) / 0.3));
-      // Apply easing function for smoother speed changes
-      const easedPressure = normalizedPressure * normalizedPressure; // Quadratic easing
-      const initialSpeed = minSpeed + (easedPressure * speedRange);
-      // Round to nearest 0.25x increment
-      const roundedSpeed = Math.round(initialSpeed * 4) / 4;
-      video.playbackRate = roundedSpeed;
-      setPlaybackSpeed(roundedSpeed);
-      
-      resetControlsTimeout();
-      return;
+      // If force touch detected (pressure > 0.7), activate speed control
+      if (pressure > 0.7) {
+        setIsForceTouching(true);
+        gestureType.current = "speed";
+        forceTouchStartTime.current = Date.now();
+        setShowSpeedHUD(true);
+        
+        // Set initial speed based on pressure with smoother mapping
+        const minSpeed = 0.5;
+        const maxSpeed = 2.0;
+        const speedRange = maxSpeed - minSpeed;
+        // Normalize pressure from 0.7-1.0 to 0-1, then apply easing for smoother response
+        const normalizedPressure = Math.min(1, Math.max(0, (pressure - 0.7) / 0.3));
+        // Apply easing function for smoother speed changes
+        const easedPressure = normalizedPressure * normalizedPressure; // Quadratic easing
+        const initialSpeed = minSpeed + (easedPressure * speedRange);
+        // Round to nearest 0.25x increment
+        const roundedSpeed = Math.round(initialSpeed * 4) / 4;
+        video.playbackRate = roundedSpeed;
+        setPlaybackSpeed(roundedSpeed);
+        
+        resetControlsTimeout();
+        return;
+      }
+    } else {
+      // Android: Use long press (500ms) to activate speed control
+      longPressTimeoutRef.current = setTimeout(() => {
+        setIsForceTouching(true);
+        gestureType.current = "speed";
+        forceTouchStartTime.current = Date.now();
+        setShowSpeedHUD(true);
+        // Start at 1.0x speed
+        video.playbackRate = 1.0;
+        setPlaybackSpeed(1.0);
+        resetControlsTimeout();
+      }, 500);
     }
 
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -508,22 +526,56 @@ export function NetflixPlayer({
     const video = videoRef.current;
     if (!video) return;
 
-    // Handle force touch speed control
+    // Handle force touch / long press speed control
     if (gestureType.current === "speed" && isForceTouching) {
-      const pressure = (e as any).pressure || (e.nativeEvent as any).webkitForce || 0;
-      
-      if (pressure > 0.7) {
-        // Calculate speed based on pressure (0.7-1.0 pressure maps to 0.5x-2.0x speed)
+      if (isIOS) {
+        // iOS: Use pressure sensitivity
+        const pressure = (e as any).pressure || (e.nativeEvent as any).webkitForce || 0;
+        
+        if (pressure > 0.7) {
+          // Calculate speed based on pressure (0.7-1.0 pressure maps to 0.5x-2.0x speed)
+          const minSpeed = 0.5;
+          const maxSpeed = 2.0;
+          const speedRange = maxSpeed - minSpeed;
+          // Normalize pressure from 0.7-1.0 to 0-1
+          const normalizedPressure = Math.min(1, Math.max(0, (pressure - 0.7) / 0.3));
+          // Apply easing function for smoother, more controlled speed changes
+          const easedPressure = normalizedPressure * normalizedPressure; // Quadratic easing
+          const newSpeed = minSpeed + (easedPressure * speedRange);
+          
+          // Round to nearest 0.25x increment for cleaner UI
+          const roundedSpeed = Math.round(newSpeed * 4) / 4;
+          video.playbackRate = roundedSpeed;
+          setPlaybackSpeed(roundedSpeed);
+          setShowSpeedHUD(true);
+          
+          // Clear existing timeout
+          if (speedHUDTimeoutRef.current) {
+            clearTimeout(speedHUDTimeoutRef.current);
+          }
+        } else if (pressure <= 0.7) {
+          // Pressure dropped below threshold, reset speed
+          video.playbackRate = 1;
+          setPlaybackSpeed(1);
+          setShowSpeedHUD(false);
+          setIsForceTouching(false);
+          gestureType.current = null;
+        }
+      } else {
+        // Android: Use vertical swipe distance to control speed
+        const deltaY = startY.current - e.clientY; // Negative = up (faster), positive = down (slower)
+        const maxDelta = 200; // Maximum swipe distance for full speed range
+        const normalizedDelta = Math.max(-1, Math.min(1, deltaY / maxDelta));
+        
+        // Map -1 to 1 (down to up) to 0.5x to 2.0x speed
         const minSpeed = 0.5;
         const maxSpeed = 2.0;
         const speedRange = maxSpeed - minSpeed;
-        // Normalize pressure from 0.7-1.0 to 0-1
-        const normalizedPressure = Math.min(1, Math.max(0, (pressure - 0.7) / 0.3));
-        // Apply easing function for smoother, more controlled speed changes
-        const easedPressure = normalizedPressure * normalizedPressure; // Quadratic easing
-        const newSpeed = minSpeed + (easedPressure * speedRange);
+        // Invert: up (negative delta) = faster, down (positive delta) = slower
+        const speedFactor = (normalizedDelta + 1) / 2; // Convert -1..1 to 0..1
+        const newSpeed = minSpeed + (speedFactor * speedRange);
         
-        // Round to nearest 0.25x increment for cleaner UI
+        // Round to nearest 0.25x increment
         const roundedSpeed = Math.round(newSpeed * 4) / 4;
         video.playbackRate = roundedSpeed;
         setPlaybackSpeed(roundedSpeed);
@@ -533,13 +585,6 @@ export function NetflixPlayer({
         if (speedHUDTimeoutRef.current) {
           clearTimeout(speedHUDTimeoutRef.current);
         }
-      } else if (pressure <= 0.7) {
-        // Pressure dropped below threshold, reset speed
-        video.playbackRate = 1;
-        setPlaybackSpeed(1);
-        setShowSpeedHUD(false);
-        setIsForceTouching(false);
-        gestureType.current = null;
       }
       return;
     }
@@ -582,7 +627,13 @@ export function NetflixPlayer({
     const video = videoRef.current;
     if (!video) return;
 
-    // Handle force touch release
+    // Cancel long press timeout if it exists (Android)
+    if (longPressTimeoutRef.current) {
+      clearTimeout(longPressTimeoutRef.current);
+      longPressTimeoutRef.current = null;
+    }
+
+    // Handle force touch / long press release
     if (gestureType.current === "speed" && isForceTouching) {
       // Reset speed to 1x after a short delay
       if (speedHUDTimeoutRef.current) {
