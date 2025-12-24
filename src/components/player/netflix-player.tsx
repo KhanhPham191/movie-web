@@ -1181,7 +1181,7 @@ export function NetflixPlayer({
                   }}
                   className="p-2 hover:bg-white/20 rounded-full transition-colors"
                 >
-                  {isFullscreen ? (
+                  {isFullscreenMode ? (
                     <Minimize className="w-5 h-5 text-white" />
                   ) : (
                     <Maximize className="w-5 h-5 text-white" />
