@@ -441,6 +441,12 @@ export function NetflixPlayer({
 
     const newVolume = Math.max(0, Math.min(1, video.volume + delta));
     video.volume = newVolume;
+    // Cập nhật muted với ngưỡng nhỏ để tránh giật icon
+    if (newVolume <= 0.02) {
+      video.muted = true;
+    } else if (newVolume >= 0.05 && video.muted) {
+      video.muted = false;
+    }
     resetControlsTimeout();
   };
 
@@ -448,8 +454,15 @@ export function NetflixPlayer({
     const video = videoRef.current;
     if (!video) return;
 
-    video.volume = value;
-    // Giữ slider mở khi đang kéo, sẽ đóng bằng hover/mouseleave
+    const clamped = Math.max(0, Math.min(1, value));
+    video.volume = clamped;
+    // Cập nhật muted với ngưỡng nhỏ để tránh giật icon khi kéo qua 0
+    if (clamped <= 0.02) {
+      video.muted = true;
+    } else if (clamped >= 0.05 && video.muted) {
+      video.muted = false;
+    }
+    // Giữ slider mở khi đang kéo, sẽ đóng bằng hover/mouseleave / tap lại icon
   };
 
   const toggleFullscreen = async () => {
@@ -1097,7 +1110,7 @@ export function NetflixPlayer({
                   onClick={(e) => {
                     e.stopPropagation();
                     if (isMobile) {
-                      // Mobile: tap icon để mở/đóng slider, không toggle mute để tránh nhầm
+                      // Mobile: tap icon để mở/đóng slider, vẫn giữ trạng thái mute theo volume
                       setShowVolumeSlider((prev) => !prev);
                     } else {
                       // Desktop: icon = mute/unmute
@@ -1106,11 +1119,24 @@ export function NetflixPlayer({
                   }}
                   className="p-2 hover:bg-white/20 rounded-full transition-colors"
                 >
-                  {isMuted || volume === 0 ? (
-                    <VolumeX className="w-5 h-5 text-white" />
-                  ) : (
-                    <Volume2 className="w-5 h-5 text-white" />
-                  )}
+                  <span className="relative inline-flex w-5 h-5 items-center justify-center">
+                    {/* Volume on icon */}
+                    <Volume2
+                      className={`absolute inset-0 transition-all duration-150 ${
+                        isMuted || volume <= 0.02
+                          ? "opacity-0 scale-75"
+                          : "opacity-100 scale-100"
+                      }`}
+                    />
+                    {/* Volume muted icon */}
+                    <VolumeX
+                      className={`absolute inset-0 transition-all duration-150 ${
+                        isMuted || volume <= 0.02
+                          ? "opacity-100 scale-100"
+                          : "opacity-0 scale-75"
+                      }`}
+                    />
+                  </span>
                 </button>
 
                 {/* Volume Slider - Slides out from icon with big handle (Netflix-style) */}
