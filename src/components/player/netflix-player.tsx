@@ -528,6 +528,12 @@ export function NetflixPlayer({
     const video = videoRef.current;
     if (!video) return;
 
+    // Nếu user chạm vào khu vực controls (play, volume, slider...), không kích hoạt gesture
+    const target = e.target as HTMLElement;
+    if (target.closest(".netflix-player-controls") || target.closest(".player-controls")) {
+      return;
+    }
+
     // Reset gesture state
     setIsSeeking(false);
     setSeekDelta(0);
@@ -1037,7 +1043,7 @@ export function NetflixPlayer({
           </div>
 
           {/* Controls Row */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-4 netflix-player-controls">
             <div className="flex items-center gap-2">
               {/* Play/Pause */}
               <button
