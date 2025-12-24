@@ -47,8 +47,6 @@ export function NetflixPlayer({
   const [error, setError] = useState<string | null>(null);
   const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  // Pseudo fullscreen for iOS (allows gestures to work)
-  const [isPseudoFullscreenIOS, setIsPseudoFullscreenIOS] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
@@ -219,8 +217,7 @@ export function NetflixPlayer({
     };
   }, [onTimeUpdate]);
 
-  // Fullscreen handler (supports both standard and webkit APIs)
-  // Note: iOS uses pseudo fullscreen, so this only applies to other platforms
+  // Fullscreen handler (supports both standard and webkit APIs for iOS)
   useEffect(() => {
     const handleFullscreenChange = () => {
       const doc = document as any;
@@ -233,26 +230,13 @@ export function NetflixPlayer({
       }
     };
 
-    // Only listen to native fullscreen events if not iOS mobile
-    if (!(isIOS && isMobile)) {
-      document.addEventListener("fullscreenchange", handleFullscreenChange);
-      document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
-    }
-    
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
       document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
     };
-  }, [isIOS, isMobile]);
-
-  // Cleanup pseudo fullscreen on unmount
-  useEffect(() => {
-    return () => {
-      if (isPseudoFullscreenIOS) {
-        document.body.style.overflow = "";
-      }
-    };
-  }, [isPseudoFullscreenIOS]);
+  }, []);
 
   // Auto-hide controls
   const resetControlsTimeout = useCallback(() => {
@@ -690,9 +674,6 @@ export function NetflixPlayer({
       longPressTimeoutRef.current = null;
     }
 
-    // Get container bounds (works in both normal and fullscreen)
-    const containerRect = container.getBoundingClientRect();
-    
     // Determine gesture type on first significant movement
     // Only set gesture type if not already set and movement is significant
     if (!gestureType.current && (absDeltaX > 10 || absDeltaY > 10)) {
@@ -701,31 +682,28 @@ export function NetflixPlayer({
         gestureType.current = "seek";
       } else {
         // Vertical movement = brightness or volume based on position
-        // Use screen coordinates for fullscreen, container for normal
-        const touchX = isFullscreenMode ? e.clientX : e.clientX - containerRect.left;
-        const containerWidth = isFullscreenMode ? window.innerWidth : containerRect.width;
-        const isLeftHalf = touchX < containerWidth / 2;
+        const rect = container.getBoundingClientRect();
+        const touchX = e.clientX - rect.left;
+        const isLeftHalf = touchX < rect.width / 2;
         gestureType.current = isLeftHalf ? "brightness" : "volume";
       }
     }
 
     // Process gestures (only if not in speed mode)
-    // Use window dimensions in fullscreen, container dimensions in normal mode
-    const containerHeight = isFullscreenMode ? window.innerHeight : containerRect.height;
-    const containerWidth = isFullscreenMode ? window.innerWidth : containerRect.width;
+    const containerRect = container.getBoundingClientRect();
     
     if (gestureType.current === "seek") {
-      const seekSeconds = (deltaX / containerWidth) * duration;
+      const seekSeconds = (deltaX / containerRect.width) * duration;
       setSeekDelta(seekSeconds);
       setIsSeeking(true);
     } else if (gestureType.current === "brightness") {
       // Swipe down = darker, swipe up = brighter
-      const brightnessChange = 1 - (deltaY / (containerHeight * 0.5));
+      const brightnessChange = 1 - (deltaY / (containerRect.height * 0.5));
       const newBrightness = Math.max(0.3, Math.min(1, brightnessChange));
       setBrightness(newBrightness);
     } else if (gestureType.current === "volume") {
       // Swipe down = quieter, swipe up = louder
-      const volumeChange = 1 - (deltaY / (containerHeight * 0.5));
+      const volumeChange = 1 - (deltaY / (containerRect.height * 0.5));
       const newVolume = Math.max(0, Math.min(1, volumeChange));
       video.volume = newVolume;
       video.muted = newVolume === 0;
@@ -846,32 +824,16 @@ export function NetflixPlayer({
   }
 
   const progressPercent = duration ? (currentTime / duration) * 100 : 0;
-  
-  // Determine if we're in fullscreen mode (native or pseudo)
-  const isFullscreenMode = isIOS && isMobile ? isPseudoFullscreenIOS : isFullscreen;
 
   return (
     <div
       ref={containerRef}
       className={`${className} relative bg-black group ${
-        isFullscreenMode && isMobile ? "flex items-center justify-center" : ""
+        isFullscreen && isMobile ? "flex items-center justify-center" : ""
       }`}
       style={{ 
         filter: `brightness(${brightness})`,
-        ...(isFullscreenMode && isMobile ? { 
-          display: "flex", 
-          alignItems: "center", 
-          justifyContent: "center",
-          position: isPseudoFullscreenIOS ? "fixed" : "relative",
-          top: isPseudoFullscreenIOS ? 0 : "auto",
-          left: isPseudoFullscreenIOS ? 0 : "auto",
-          right: isPseudoFullscreenIOS ? 0 : "auto",
-          bottom: isPseudoFullscreenIOS ? 0 : "auto",
-          width: isPseudoFullscreenIOS ? "100vw" : "auto",
-          height: isPseudoFullscreenIOS ? "100vh" : "auto",
-          zIndex: isPseudoFullscreenIOS ? 9999 : "auto"
-        } : {}),
-        ...(isMobile ? { touchAction: "none" } : {}) // Allow custom gestures on mobile
+        ...(isFullscreen && isMobile ? { display: "flex", alignItems: "center", justifyContent: "center" } : {})
       }}
       onMouseMove={resetControlsTimeout}
       onMouseLeave={() => {
@@ -884,13 +846,12 @@ export function NetflixPlayer({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerUp}
-      onPointerCancel={handlePointerUp}
     >
       {/* Video Element */}
       <video
         ref={videoRef}
         className={`w-full h-full object-contain ${
-          isFullscreenMode && isMobile ? "object-center" : ""
+          isFullscreen && isMobile ? "object-center" : ""
         }`}
         poster={poster}
         playsInline
@@ -899,7 +860,7 @@ export function NetflixPlayer({
         preload="metadata"
         key={src}
         style={
-          isFullscreenMode && isMobile
+          isFullscreen && isMobile
             ? {
                 objectFit: "contain",
                 objectPosition: "center",
@@ -983,10 +944,6 @@ export function NetflixPlayer({
         className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent transition-opacity duration-300 ${
           showControls ? "opacity-100" : "opacity-0"
         }`}
-        style={{ 
-          pointerEvents: showControls ? "auto" : "none",
-          touchAction: "none" // Allow gestures to work
-        }}
       >
         {/* Top Controls Bar */}
         <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between z-20">
@@ -1014,7 +971,7 @@ export function NetflixPlayer({
                 }}
                 className="p-2 rounded-full hover:bg-white/20 transition-colors"
               >
-                {isFullscreenMode ? (
+                {isFullscreen ? (
                   <Minimize className="w-5 h-5 text-white" />
                 ) : (
                   <Maximize className="w-5 h-5 text-white" />
@@ -1137,19 +1094,26 @@ export function NetflixPlayer({
                   )}
                 </button>
 
-                {/* Volume Slider - Slides out from icon */}
+                {/* Volume Slider - Slides out from icon with big handle */}
                 <div
                   ref={volumeSliderRef}
                   className={`flex items-center gap-2 transition-all duration-300 overflow-hidden ${
-                    showVolumeSlider ? "w-24 opacity-100" : "w-0 opacity-0"
+                    showVolumeSlider ? "w-28 opacity-100" : "w-0 opacity-0"
                   }`}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex-1 h-1 bg-white/20 rounded-full relative min-w-[80px]">
+                  <div className="flex-1 h-1.5 bg-white/20 rounded-full relative min-w-[96px] group/volume-track">
+                    {/* Filled volume */}
                     <div
                       className="absolute left-0 top-0 h-full bg-[#F6C453] rounded-full transition-all"
                       style={{ width: `${volume * 100}%` }}
                     />
+                    {/* Volume handle (big dot) */}
+                    <div
+                      className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-[#F6C453] rounded-full shadow-[0_0_8px_rgba(246,196,83,0.8)] border border-black/60 transition-transform -translate-x-1/2 pointer-events-none"
+                      style={{ left: `${volume * 100}%` }}
+                    />
+                    {/* Invisible range input to capture interactions */}
                     <input
                       type="range"
                       min="0"
@@ -1181,7 +1145,7 @@ export function NetflixPlayer({
                   }}
                   className="p-2 hover:bg-white/20 rounded-full transition-colors"
                 >
-                  {isFullscreenMode ? (
+                  {isFullscreen ? (
                     <Minimize className="w-5 h-5 text-white" />
                   ) : (
                     <Maximize className="w-5 h-5 text-white" />
