@@ -1104,10 +1104,10 @@ export function NetflixPlayer({
                   }`}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex-1 h-2 bg-[#3b3b3b] rounded-full relative min-w-[96px] group/volume-track py-1">
+                  <div className="flex-1 h-1.5 bg-[#3b3b3b] rounded-full relative min-w-[96px] group/volume-track py-2">
                     {/* Filled volume (solid yellow) */}
                     <div
-                      className="absolute left-0 top-0 h-full rounded-full bg-[#F6C453]"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-[#F6C453]"
                       style={{ width: `${volume * 100}%` }}
                     />
                     {/* Volume handle (bigger, easier to grab) */}
@@ -1124,7 +1124,7 @@ export function NetflixPlayer({
                       value={volume}
                       onChange={(e) => setVolumeValue(parseFloat(e.target.value))}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      style={{ padding: '4px 0' }}
+                      style={{ padding: '8px 0' }}
                       onClick={(e) => e.stopPropagation()}
                     />
                   </div>
