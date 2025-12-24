@@ -1104,15 +1104,15 @@ export function NetflixPlayer({
                   }`}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex-1 h-1.5 bg-black/50 rounded-full relative min-w-[96px] group/volume-track">
+                  <div className="flex-1 h-1.5 bg-[#3b3b3b] rounded-full relative min-w-[96px] group/volume-track">
                     {/* Filled volume (solid yellow) */}
                     <div
                       className="absolute left-0 top-0 h-full rounded-full bg-[#F6C453]"
                       style={{ width: `${volume * 100}%` }}
                     />
-                    {/* Volume handle (big dot) - solid yellow */}
+                    {/* Volume handle (solid yellow circle) */}
                     <div
-                      className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-[#F6C453] rounded-full shadow-[0_0_8px_rgba(246,196,83,0.8)] border border-black/60 -translate-x-1/2 z-10"
+                      className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-[#F6C453] rounded-full -translate-x-1/2 z-10"
                       style={{ left: `${volume * 100}%` }}
                     />
                     {/* Invisible range input to capture interactions */}
