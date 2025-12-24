@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight, Home, Info, Play } from "lucide-react";
 import { getFilmDetail, getImageUrl, searchFilmsMerged, type FilmItem } from "@/lib/api";
 import { isValidTime } from "@/lib/utils";
-import { IframePlayer } from "@/components/player/iframe-player";
+import { NetflixPlayer } from "@/components/player/netflix-player";
 import { EpisodeSelectorWatch } from "@/components/episode-selector-watch";
 import { MovieInfoPanel } from "@/components/movie-info-panel";
 import { WatchProgressTracker } from "@/components/watch-progress-tracker";
@@ -289,14 +289,21 @@ async function VideoPlayer({
             {countries[0] && <span>{formatLabel(countries[0])}</span>}
           </div>
 
-          {/* Simple Video Player - chỉ giữ 1 khung đen + video, canh giữa, to hơn một chút trên desktop */}
+          {/* Netflix-style Video Player */}
           <div className="relative mx-auto w-full md:w-full lg:w-[92%] xl:w-[88%] 2xl:w-[85%] rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.65)] border border-white/10">
             <div className="relative aspect-[16/9] bg-black w-full">
-              <IframePlayer
-                src={currentEpisode.embed}
-                title={`${movie.name} - ${currentEpisode.name}`}
-                className="h-full w-full"
-              />
+              {currentEpisode.m3u8 ? (
+                <NetflixPlayer
+                  src={currentEpisode.m3u8}
+                  poster={background}
+                  className="h-full w-full"
+                  title={`${movie.name} - ${currentEpisode.name}`}
+                />
+              ) : (
+                <div className="h-full w-full flex items-center justify-center bg-black text-white">
+                  <p className="text-sm text-white/70">Không có nguồn video m3u8</p>
+                </div>
+              )}
             </div>
           </div>
 
