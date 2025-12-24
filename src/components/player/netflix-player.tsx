@@ -454,31 +454,68 @@ export function NetflixPlayer({
 
   const toggleFullscreen = async () => {
     const container = containerRef.current;
-    if (!container) return;
+    const video = videoRef.current;
+    if (!container || !video) return;
 
     try {
-      // Check for iOS Safari (webkitFullscreen)
       const doc = document as any;
-      const isWebkit = doc.webkitFullscreenElement !== undefined;
       
-      if (isWebkit) {
-        // iOS Safari
-        if (!doc.webkitFullscreenElement) {
-          await (container as any).webkitRequestFullscreen();
-        } else {
+      // Check if already in fullscreen
+      const isFullscreenActive = 
+        document.fullscreenElement || 
+        doc.webkitFullscreenElement || 
+        doc.mozFullScreenElement || 
+        doc.msFullscreenElement;
+
+      if (isFullscreenActive) {
+        // Exit fullscreen
+        if (doc.exitFullscreen) {
+          await doc.exitFullscreen();
+        } else if (doc.webkitExitFullscreen) {
           await doc.webkitExitFullscreen();
+        } else if (doc.mozCancelFullScreen) {
+          await doc.mozCancelFullScreen();
+        } else if (doc.msExitFullscreen) {
+          await doc.msExitFullscreen();
         }
       } else {
-        // Standard fullscreen API
-        if (!document.fullscreenElement) {
-          await container.requestFullscreen();
+        // Enter fullscreen
+        // iOS Safari: Try video element first, then container
+        if (isIOS) {
+          // iOS Safari prefers video element for fullscreen
+          if ((video as any).webkitEnterFullscreen) {
+            (video as any).webkitEnterFullscreen();
+          } else if ((container as any).webkitRequestFullscreen) {
+            await (container as any).webkitRequestFullscreen();
+          } else if (container.requestFullscreen) {
+            await container.requestFullscreen();
+          }
         } else {
-          await document.exitFullscreen();
+          // Standard fullscreen API for other browsers
+          if (container.requestFullscreen) {
+            await container.requestFullscreen();
+          } else if ((container as any).webkitRequestFullscreen) {
+            await (container as any).webkitRequestFullscreen();
+          } else if ((container as any).mozRequestFullScreen) {
+            await (container as any).mozRequestFullScreen();
+          } else if ((container as any).msRequestFullscreen) {
+            await (container as any).msRequestFullscreen();
+          }
         }
       }
       resetControlsTimeout();
     } catch (err) {
       console.error("Fullscreen error:", err);
+      // Fallback: Try video element directly on iOS
+      if (isIOS && video) {
+        try {
+          if ((video as any).webkitEnterFullscreen) {
+            (video as any).webkitEnterFullscreen();
+          }
+        } catch (fallbackErr) {
+          console.error("Fullscreen fallback error:", fallbackErr);
+        }
+      }
     }
   };
 
