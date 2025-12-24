@@ -1077,7 +1077,7 @@ export function NetflixPlayer({
                 {showVolumeSlider && (
                   <div
                     ref={volumeSliderRef}
-                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-black/90 backdrop-blur-sm rounded-lg z-40"
+                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-4 py-3 bg-black/90 backdrop-blur-sm rounded-lg z-40"
                     onClick={(e) => e.stopPropagation()}
                     onMouseEnter={() => {
                       if (!isMobile) {
@@ -1094,7 +1094,7 @@ export function NetflixPlayer({
                       }
                     }}
                   >
-                    <div className="w-32 h-2 bg-white/20 rounded-full relative">
+                    <div className="w-48 sm:w-56 md:w-64 h-3 bg-white/20 rounded-full relative">
                       <div
                         className="absolute left-0 top-0 h-full bg-[#F6C453] rounded-full transition-all"
                         style={{ width: `${volume * 100}%` }}
