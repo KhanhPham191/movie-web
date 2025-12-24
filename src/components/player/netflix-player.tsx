@@ -589,30 +589,54 @@ export function NetflixPlayer({
       return;
     }
 
+    // Don't process other gestures if speed control is active
+    if (gestureType.current === "speed") {
+      return;
+    }
+
     const deltaX = e.clientX - startX.current;
     const deltaY = e.clientY - startY.current;
     const absDeltaX = Math.abs(deltaX);
     const absDeltaY = Math.abs(deltaY);
 
+    // Cancel long press timeout if user starts moving (not a long press)
+    if (longPressTimeoutRef.current && (absDeltaX > 5 || absDeltaY > 5)) {
+      clearTimeout(longPressTimeoutRef.current);
+      longPressTimeoutRef.current = null;
+    }
+
     // Determine gesture type on first significant movement
+    // Only set gesture type if not already set and movement is significant
     if (!gestureType.current && (absDeltaX > 10 || absDeltaY > 10)) {
       if (absDeltaX > absDeltaY) {
+        // Horizontal movement = seek
         gestureType.current = "seek";
-      } else if (e.clientX < window.innerWidth / 2) {
-        gestureType.current = "brightness";
       } else {
-        gestureType.current = "volume";
+        // Vertical movement = brightness or volume based on position
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (rect) {
+          const touchX = e.clientX - rect.left;
+          const isLeftHalf = touchX < rect.width / 2;
+          gestureType.current = isLeftHalf ? "brightness" : "volume";
+        } else {
+          // Fallback to screen center
+          gestureType.current = e.clientX < window.innerWidth / 2 ? "brightness" : "volume";
+        }
       }
     }
 
+    // Process gestures (only if not in speed mode)
     if (gestureType.current === "seek") {
       const seekSeconds = (deltaX / window.innerWidth) * duration;
       setSeekDelta(seekSeconds);
       setIsSeeking(true);
     } else if (gestureType.current === "brightness") {
+      // Swipe down = darker, swipe up = brighter
       const brightnessChange = 1 - (deltaY / (window.innerHeight * 0.5));
-      setBrightness(Math.max(0.3, Math.min(1, brightnessChange)));
+      const newBrightness = Math.max(0.3, Math.min(1, brightnessChange));
+      setBrightness(newBrightness);
     } else if (gestureType.current === "volume") {
+      // Swipe down = quieter, swipe up = louder
       const volumeChange = 1 - (deltaY / (window.innerHeight * 0.5));
       const newVolume = Math.max(0, Math.min(1, volumeChange));
       video.volume = newVolume;
