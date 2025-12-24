@@ -449,7 +449,7 @@ export function NetflixPlayer({
 
     video.volume = value;
     video.muted = value === 0;
-    setShowVolumeSlider(false);
+    // Giữ slider mở khi đang kéo, sẽ đóng bằng hover/mouseleave
   };
 
   const toggleFullscreen = async () => {
@@ -1094,7 +1094,7 @@ export function NetflixPlayer({
                   )}
                 </button>
 
-                {/* Volume Slider - Slides out from icon with big handle */}
+                {/* Volume Slider - Slides out from icon with big handle (Netflix-style) */}
                 <div
                   ref={volumeSliderRef}
                   className={`flex items-center gap-2 transition-all duration-300 overflow-hidden ${
@@ -1102,15 +1102,19 @@ export function NetflixPlayer({
                   }`}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex-1 h-1.5 bg-white/20 rounded-full relative min-w-[96px] group/volume-track">
-                    {/* Filled volume */}
+                  <div className="flex-1 h-1.5 bg-transparent rounded-full relative min-w-[96px] group/volume-track">
+                    {/* Base track (dark, semi-transparent) */}
                     <div
-                      className="absolute left-0 top-0 h-full bg-[#F6C453] rounded-full transition-all"
+                      className="absolute inset-0 rounded-full bg-black/50"
+                    />
+                    {/* Filled volume (yellow gradient) */}
+                    <div
+                      className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-[#F6C453] via-[#FFD66B] to-[#F6C453] transition-all"
                       style={{ width: `${volume * 100}%` }}
                     />
-                    {/* Volume handle (big dot) */}
+                    {/* Volume handle (big dot) - gradient and always visible */}
                     <div
-                      className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-[#F6C453] rounded-full shadow-[0_0_8px_rgba(246,196,83,0.8)] border border-black/60 transition-transform -translate-x-1/2 pointer-events-none"
+                      className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-gradient-to-r from-[#F6C453] via-[#FFD66B] to-[#F6C453] rounded-full shadow-[0_0_10px_rgba(246,196,83,0.9)] border border-black/60 transition-transform -translate-x-1/2 z-10"
                       style={{ left: `${volume * 100}%` }}
                     />
                     {/* Invisible range input to capture interactions */}
