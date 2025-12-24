@@ -1076,10 +1076,12 @@ export function NetflixPlayer({
                 <SkipForward className="w-5 h-5 text-white" />
               </button>
 
-              {/* Time Display */}
-              <div className="text-white text-sm font-medium select-none">
-                {formatTime(currentTime)} / {formatTime(duration)}
-              </div>
+              {/* Time Display - only show on desktop, hide on mobile */}
+              {!isMobile && (
+                <div className="text-white text-sm font-medium select-none">
+                  {formatTime(currentTime)} / {formatTime(duration)}
+                </div>
+              )}
 
               {/* Volume Control - Icon and Slider together */}
               <div
