@@ -329,17 +329,11 @@ export function NetflixPlayer({
     if (!video) return;
 
     if (video.paused) {
-      // Play: cho phép auto-hide sau một thời gian
       video.play();
-      resetControlsTimeout();
     } else {
-      // Pause: dừng auto-hide và giữ controls hiện ngay lập tức
       video.pause();
-      if (controlsTimeoutRef.current) {
-        clearTimeout(controlsTimeoutRef.current);
-      }
-      setShowControls(true);
     }
+    resetControlsTimeout();
   };
 
   const seek = (seconds: number, showHUD = false) => {
@@ -1014,18 +1008,18 @@ export function NetflixPlayer({
           <div className="relative w-full h-1 bg-white/20 rounded-full cursor-pointer group/progress">
             {/* Buffered Progress */}
             <div
-              className="absolute left-0 top-0 h-full bg-white/30 rounded-full transition-all"
+              className="absolute left-0 top-0 h-full bg-white/30 rounded-full"
               style={{ width: `${buffered}%` }}
             />
             {/* Current Progress */}
             <div
               ref={progressBarRef}
-              className="absolute left-0 top-0 h-full bg-[#F6C453] rounded-full transition-all"
+              className="absolute left-0 top-0 h-full bg-[#F6C453] rounded-full"
               style={{ width: `${progressPercent}%` }}
             />
             {/* Progress Handle */}
             <div
-              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-[#F6C453] rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity -translate-x-1/2"
+              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-[#F6C453] rounded-full opacity-0 group-hover/progress:opacity-100 -translate-x-1/2"
               style={{ left: `${progressPercent}%` }}
             />
             {/* Clickable Area */}
@@ -1111,12 +1105,12 @@ export function NetflixPlayer({
                   <div className="flex-1 h-1.5 bg-black/50 rounded-full relative min-w-[96px] group/volume-track">
                     {/* Filled volume (solid yellow) */}
                     <div
-                      className="absolute left-0 top-0 h-full rounded-full bg-[#F6C453] transition-all"
+                      className="absolute left-0 top-0 h-full rounded-full bg-[#F6C453]"
                       style={{ width: `${volume * 100}%` }}
                     />
                     {/* Volume handle (big dot) - solid yellow */}
                     <div
-                      className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-[#F6C453] rounded-full shadow-[0_0_8px_rgba(246,196,83,0.8)] border border-black/60 transition-transform -translate-x-1/2 z-10"
+                      className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-[#F6C453] rounded-full shadow-[0_0_8px_rgba(246,196,83,0.8)] border border-black/60 -translate-x-1/2 z-10"
                       style={{ left: `${volume * 100}%` }}
                     />
                     {/* Invisible range input to capture interactions */}
