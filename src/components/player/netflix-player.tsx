@@ -217,15 +217,24 @@ export function NetflixPlayer({
     };
   }, [onTimeUpdate]);
 
-  // Fullscreen handler
+  // Fullscreen handler (supports both standard and webkit APIs for iOS)
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const doc = document as any;
+      const isWebkit = doc.webkitFullscreenElement !== undefined;
+      
+      if (isWebkit) {
+        setIsFullscreen(!!doc.webkitFullscreenElement);
+      } else {
+        setIsFullscreen(!!document.fullscreenElement);
+      }
     };
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
     };
   }, []);
 
