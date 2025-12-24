@@ -329,11 +329,17 @@ export function NetflixPlayer({
     if (!video) return;
 
     if (video.paused) {
+      // Play: cho phép auto-hide sau một thời gian
       video.play();
+      resetControlsTimeout();
     } else {
+      // Pause: dừng auto-hide và giữ controls hiện ngay lập tức
       video.pause();
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current);
+      }
+      setShowControls(true);
     }
-    resetControlsTimeout();
   };
 
   const seek = (seconds: number, showHUD = false) => {
