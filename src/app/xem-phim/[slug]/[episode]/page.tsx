@@ -10,6 +10,7 @@ import { ChevronLeft, ChevronRight, Home, Info, Play } from "lucide-react";
 import { getFilmDetail, getImageUrl, searchFilmsMerged, type FilmItem } from "@/lib/api";
 import { isValidTime } from "@/lib/utils";
 import { M3u8Player } from "@/components/player/m3u8-player";
+import { VideoJsPlayer } from "@/components/player/videojs-player";
 import { EpisodeSelectorWatch } from "@/components/episode-selector-watch";
 import { MovieInfoPanel } from "@/components/movie-info-panel";
 import { WatchProgressTracker } from "@/components/watch-progress-tracker";
@@ -289,14 +290,15 @@ async function VideoPlayer({
             {countries[0] && <span>{formatLabel(countries[0])}</span>}
           </div>
 
-        {/* Simple M3u8 Player */}
+        {/* Video.js Player (HLS m3u8) */}
           <div className="relative mx-auto w-full md:w-full lg:w-[92%] xl:w-[88%] 2xl:w-[85%] rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.65)] border border-white/10">
             <div className="relative aspect-[16/9] bg-black w-full">
               {currentEpisode.m3u8 ? (
-              <M3u8Player
+              <VideoJsPlayer
                 src={currentEpisode.m3u8}
-                title={`${movie.name} - ${currentEpisode.name}`}
+                poster={background}
                 className="h-full w-full"
+                autoplay
               />
               ) : (
                 <div className="h-full w-full flex items-center justify-center bg-black text-white">
