@@ -855,6 +855,7 @@ export function NetflixPlayer({
         }`}
         poster={poster}
         playsInline
+        {...(isIOS ? { 'webkit-playsinline': 'true' } : {})}
         autoPlay
         preload="metadata"
         key={src}
