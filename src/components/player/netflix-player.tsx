@@ -1076,12 +1076,13 @@ export function NetflixPlayer({
                 <SkipForward className="w-5 h-5 text-white" />
               </button>
 
-              {/* Volume Control - Icon and Slider together */}
+              {/* Volume Control + Time Display */}
               <div
                 className="relative flex items-center gap-2 group/volume"
                 onMouseEnter={() => setShowVolumeSlider(true)}
                 onMouseLeave={() => setShowVolumeSlider(false)}
               >
+                {/* Volume Icon */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1095,6 +1096,11 @@ export function NetflixPlayer({
                     <Volume2 className="w-5 h-5 text-white" />
                   )}
                 </button>
+
+                {/* Time Display - nằm ngay sau icon volume */}
+                <div className="text-white text-sm font-medium select-none whitespace-nowrap">
+                  {formatTime(currentTime)} / {formatTime(duration)}
+                </div>
 
                 {/* Volume Slider - Slides out from icon with big handle (Netflix-style) */}
                 <div
@@ -1128,15 +1134,6 @@ export function NetflixPlayer({
                     />
                   </div>
                 </div>
-              </div>
-
-              {/* Time Display */}
-              <div
-                className={`text-white text-sm font-medium select-none transition-all duration-200 ${
-                  showVolumeSlider ? "ml-2" : "ml-0"
-                }`}
-              >
-                {formatTime(currentTime)} / {formatTime(duration)}
               </div>
             </div>
 
