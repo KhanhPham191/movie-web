@@ -414,6 +414,8 @@ export function NetflixPlayer({
     if (!videoDuration || isNaN(videoDuration) || videoDuration === 0) return;
 
     const targetTime = (percent / 100) * videoDuration;
+    // Cập nhật state ngay để thumb chạy mượt theo tay kéo
+    setCurrentTime(targetTime);
     
     // Use requestAnimationFrame to ensure video is ready
     requestAnimationFrame(() => {
