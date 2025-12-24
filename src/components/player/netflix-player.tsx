@@ -464,7 +464,7 @@ export function NetflixPlayer({
       if (isWebkit) {
         // iOS Safari
         if (!doc.webkitFullscreenElement) {
-          await container.webkitRequestFullscreen();
+          await (container as any).webkitRequestFullscreen();
         } else {
           await doc.webkitExitFullscreen();
         }
@@ -1037,32 +1037,12 @@ export function NetflixPlayer({
               </button>
 
               {/* Volume Control */}
-              <div 
-                className="relative"
-                onMouseEnter={() => {
-                  if (!isMobile) {
-                    setShowVolumeSlider(true);
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isMobile) {
-                    // Only hide if mouse is not moving to slider
-                    const relatedTarget = e.relatedTarget as HTMLElement;
-                    if (!volumeSliderRef.current?.contains(relatedTarget)) {
-                      setShowVolumeSlider(false);
-                    }
-                  }
-                }}
-              >
+              <div className="relative">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Toggle volume slider on click (mobile-friendly)
-                    if (isMobile) {
-                      setShowVolumeSlider(!showVolumeSlider);
-                    } else {
-                      toggleMute();
-                    }
+                    // Toggle volume slider on click
+                    setShowVolumeSlider(!showVolumeSlider);
                   }}
                   className="p-2 hover:bg-white/20 rounded-full transition-colors"
                 >
@@ -1073,31 +1053,24 @@ export function NetflixPlayer({
                   )}
                 </button>
 
-                {/* Volume Slider - Horizontal */}
+                {/* Volume Slider */}
                 {showVolumeSlider && (
                   <div
                     ref={volumeSliderRef}
-                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-4 py-3 bg-black/90 backdrop-blur-sm rounded-lg z-40"
+                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-3 bg-black/90 backdrop-blur-sm rounded-lg z-40"
                     onClick={(e) => e.stopPropagation()}
-                    onMouseEnter={() => {
+                    onMouseEnter={() => setShowVolumeSlider(true)}
+                    onMouseLeave={() => {
+                      // Only hide on desktop, keep open on mobile
                       if (!isMobile) {
-                        setShowVolumeSlider(true);
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isMobile) {
-                        const relatedTarget = e.relatedTarget as HTMLElement;
-                        // Only hide if mouse is not moving back to button or container
-                        if (!relatedTarget || (!relatedTarget.closest('.relative') && relatedTarget !== e.currentTarget)) {
-                          setShowVolumeSlider(false);
-                        }
+                        setShowVolumeSlider(false);
                       }
                     }}
                   >
-                    <div className="w-48 sm:w-56 md:w-64 h-3 bg-white/20 rounded-full relative">
+                    <div className="w-2 h-24 bg-white/20 rounded-full relative">
                       <div
-                        className="absolute left-0 top-0 h-full bg-[#F6C453] rounded-full transition-all"
-                        style={{ width: `${volume * 100}%` }}
+                        className="absolute bottom-0 left-0 w-full bg-[#F6C453] rounded-full transition-all"
+                        style={{ height: `${volume * 100}%` }}
                       />
                       <input
                         type="range"
@@ -1105,18 +1078,12 @@ export function NetflixPlayer({
                         max="1"
                         step="0.01"
                         value={volume}
-                        onChange={(e) => {
-                          const newVolume = parseFloat(e.target.value);
-                          setVolumeValue(newVolume);
-                          // Auto unmute when volume > 0
-                          if (newVolume > 0 && isMuted) {
-                            const video = videoRef.current;
-                            if (video) {
-                              video.muted = false;
-                            }
-                          }
-                        }}
+                        onChange={(e) => setVolumeValue(parseFloat(e.target.value))}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        style={{
+                          writingMode: 'vertical-lr',
+                          direction: 'rtl'
+                        }}
                       />
                     </div>
                   </div>
