@@ -833,7 +833,8 @@ export function NetflixPlayer({
       }`}
       style={{ 
         filter: `brightness(${brightness})`,
-        ...(isFullscreen && isMobile ? { display: "flex", alignItems: "center", justifyContent: "center" } : {})
+        ...(isFullscreen && isMobile ? { display: "flex", alignItems: "center", justifyContent: "center" } : {}),
+        ...(isMobile ? { touchAction: "none" } : {}) // Allow custom gestures on mobile
       }}
       onMouseMove={resetControlsTimeout}
       onMouseLeave={() => {
@@ -846,6 +847,7 @@ export function NetflixPlayer({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerUp}
+      onPointerCancel={handlePointerUp}
     >
       {/* Video Element */}
       <video
@@ -944,6 +946,28 @@ export function NetflixPlayer({
         className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent transition-opacity duration-300 ${
           showControls ? "opacity-100" : "opacity-0"
         }`}
+        style={{ pointerEvents: showControls ? "auto" : "none" }}
+        onPointerDown={(e) => {
+          // Allow gestures to pass through when controls are hidden
+          if (!showControls && isMobile) {
+            e.stopPropagation();
+            handlePointerDown(e as any);
+          }
+        }}
+        onPointerMove={(e) => {
+          // Allow gestures to pass through when controls are hidden
+          if (!showControls && isMobile) {
+            e.stopPropagation();
+            handlePointerMove(e as any);
+          }
+        }}
+        onPointerUp={(e) => {
+          // Allow gestures to pass through when controls are hidden
+          if (!showControls && isMobile) {
+            e.stopPropagation();
+            handlePointerUp(e as any);
+          }
+        }}
       >
         {/* Top Controls Bar */}
         <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between z-20">
