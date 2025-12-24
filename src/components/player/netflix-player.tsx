@@ -972,7 +972,10 @@ export function NetflixPlayer({
                         value={volume}
                         onChange={(e) => setVolumeValue(parseFloat(e.target.value))}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        orient="vertical"
+                        style={{
+                          writingMode: 'vertical-lr',
+                          direction: 'rtl'
+                        }}
                       />
                     </div>
                   </div>
