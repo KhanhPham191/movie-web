@@ -952,27 +952,9 @@ export function NetflixPlayer({
         className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent transition-opacity duration-300 ${
           showControls ? "opacity-100" : "opacity-0"
         }`}
-        style={{ pointerEvents: showControls ? "auto" : "none" }}
-        onPointerDown={(e) => {
-          // Allow gestures to pass through when controls are hidden
-          if (!showControls && isMobile) {
-            e.stopPropagation();
-            handlePointerDown(e as any);
-          }
-        }}
-        onPointerMove={(e) => {
-          // Allow gestures to pass through when controls are hidden
-          if (!showControls && isMobile) {
-            e.stopPropagation();
-            handlePointerMove(e as any);
-          }
-        }}
-        onPointerUp={(e) => {
-          // Allow gestures to pass through when controls are hidden
-          if (!showControls && isMobile) {
-            e.stopPropagation();
-            handlePointerUp(e as any);
-          }
+        style={{ 
+          pointerEvents: showControls ? "auto" : "none",
+          touchAction: "none" // Allow gestures to work
         }}
       >
         {/* Top Controls Bar */}
