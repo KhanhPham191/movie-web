@@ -1068,7 +1068,7 @@ export function NetflixPlayer({
               </button>
 
               {/* Time Display */}
-              <div className="text-white text-sm font-medium select-none">
+              <div className="text-white text-xs sm:text-sm font-medium select-none whitespace-nowrap">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </div>
 
