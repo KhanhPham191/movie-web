@@ -1037,12 +1037,15 @@ export function NetflixPlayer({
               </button>
 
               {/* Volume Control */}
-              <div className="relative">
+              <div
+                className="relative"
+                onMouseEnter={() => setShowVolumeSlider(true)}
+                onMouseLeave={() => setShowVolumeSlider(false)}
+              >
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Toggle volume slider on click
-                    setShowVolumeSlider(!showVolumeSlider);
+                    toggleMute();
                   }}
                   className="p-2 hover:bg-white/20 rounded-full transition-colors"
                 >
@@ -1057,15 +1060,8 @@ export function NetflixPlayer({
                 {showVolumeSlider && (
                   <div
                     ref={volumeSliderRef}
-                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-3 bg-black/90 backdrop-blur-sm rounded-lg z-40"
+                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-3 bg-black/90 backdrop-blur-sm rounded-lg"
                     onClick={(e) => e.stopPropagation()}
-                    onMouseEnter={() => setShowVolumeSlider(true)}
-                    onMouseLeave={() => {
-                      // Only hide on desktop, keep open on mobile
-                      if (!isMobile) {
-                        setShowVolumeSlider(false);
-                      }
-                    }}
                   >
                     <div className="w-2 h-24 bg-white/20 rounded-full relative">
                       <div
