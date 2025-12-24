@@ -289,9 +289,9 @@ async function VideoPlayer({
             {countries[0] && <span>{formatLabel(countries[0])}</span>}
           </div>
 
-          {/* Netflix-style Video Player */}
-          <div className="relative mx-auto w-full md:w-full lg:w-[92%] xl:w-[88%] 2xl:w-[85%] rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.65)] border border-white/10">
-            <div className="relative aspect-[16/9] bg-black w-full">
+        {/* Netflix-style Video Player */}
+        <div className="relative -mx-3 sm:mx-auto w-[100vw] sm:w-full md:w-full lg:w-[92%] xl:w-[88%] 2xl:w-[85%] rounded-none sm:rounded-xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.65)] border border-white/10">
+          <div className="relative aspect-[9/16] sm:aspect-[16/9] bg-black w-full">
               {currentEpisode.m3u8 ? (
                 <NetflixPlayer
                   src={currentEpisode.m3u8}
