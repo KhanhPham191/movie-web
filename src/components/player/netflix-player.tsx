@@ -1092,13 +1092,19 @@ export function NetflixPlayer({
               {/* Volume Control - Icon and Slider together */}
               <div
                 className="relative flex items-center gap-2 group/volume"
-                onMouseEnter={() => setShowVolumeSlider(true)}
-                onMouseLeave={() => setShowVolumeSlider(false)}
+                onMouseEnter={!isMobile ? () => setShowVolumeSlider(true) : undefined}
+                onMouseLeave={!isMobile ? () => setShowVolumeSlider(false) : undefined}
               >
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    toggleMute();
+                    if (isMobile) {
+                      // Mobile: tap icon để mở/đóng slider, không toggle mute để tránh nhầm
+                      setShowVolumeSlider((prev) => !prev);
+                    } else {
+                      // Desktop: icon = mute/unmute
+                      toggleMute();
+                    }
                   }}
                   className="p-2 hover:bg-white/20 rounded-full transition-colors"
                 >
