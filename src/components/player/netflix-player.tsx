@@ -449,9 +449,16 @@ export function NetflixPlayer({
     const video = videoRef.current;
     if (!video) return;
 
-    video.volume = value;
-    video.muted = value === 0;
-    // Giữ slider mở khi đang kéo, sẽ đóng bằng hover/mouseleave
+    // Clamp giá trị volume để tránh vượt quá 0-1
+    const clamped = Math.max(0, Math.min(1, value));
+
+    // Cập nhật trực tiếp vào video element
+    video.volume = clamped;
+    video.muted = clamped === 0;
+
+    // Cập nhật state ngay để thumb chạy đúng vị trí khi đang kéo
+    setVolume(clamped);
+    setIsMuted(clamped === 0);
   };
 
   const toggleFullscreen = async () => {
@@ -1024,14 +1031,14 @@ export function NetflixPlayer({
               className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-[#F6C453] rounded-full opacity-0 group-hover/progress:opacity-100 -translate-x-1/2"
               style={{ left: `${progressPercent}%` }}
             />
-            {/* Clickable Area (resize cursor for scrubbing) */}
+            {/* Clickable Area */}
             <input
               type="range"
               min="0"
               max="100"
               value={progressPercent}
               onChange={(e) => seekTo(parseFloat(e.target.value))}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               onClick={(e) => e.stopPropagation()}
             />
           </div>
@@ -1115,7 +1122,7 @@ export function NetflixPlayer({
                       className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-[#F6C453] rounded-full -translate-x-1/2 z-10"
                       style={{ left: `${volume * 100}%` }}
                     />
-                    {/* Invisible range input to capture interactions (resize cursor instead of pointer) */}
+                    {/* Invisible range input to capture interactions */}
                     <input
                       type="range"
                       min="0"
@@ -1123,7 +1130,7 @@ export function NetflixPlayer({
                       step="0.01"
                       value={volume}
                       onChange={(e) => setVolumeValue(parseFloat(e.target.value))}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       onClick={(e) => e.stopPropagation()}
                     />
                   </div>
