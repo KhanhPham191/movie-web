@@ -441,12 +441,13 @@ export function NetflixPlayer({
 
     const newVolume = Math.max(0, Math.min(1, video.volume + delta));
     video.volume = newVolume;
-    // Cập nhật muted với ngưỡng nhỏ để tránh giật icon
+    // Cập nhật muted + state ngay lập tức để icon và slider phản hồi mượt
     if (newVolume <= 0.02) {
       video.muted = true;
     } else if (newVolume >= 0.05 && video.muted) {
       video.muted = false;
     }
+    setVolume(newVolume);
     resetControlsTimeout();
   };
 
@@ -462,6 +463,8 @@ export function NetflixPlayer({
     } else if (clamped >= 0.05 && video.muted) {
       video.muted = false;
     }
+    // Update state để thumb chạy theo tay kéo ngay lập tức
+    setVolume(clamped);
     // Giữ slider mở khi đang kéo, sẽ đóng bằng hover/mouseleave / tap lại icon
   };
 
