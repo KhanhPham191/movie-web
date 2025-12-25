@@ -26,6 +26,7 @@ export function M3u8Player({
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showSpeedIndicator, setShowSpeedIndicator] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -44,7 +45,7 @@ export function M3u8Player({
   const touchStartTimeRef = useRef<number>(0);
   const isLongPressActiveRef = useRef<boolean>(false);
 
-  // Detect mobile device
+  // Detect mobile device and iOS
   useEffect(() => {
     const checkMobile = () => {
       const mobile = 
@@ -52,6 +53,9 @@ export function M3u8Player({
         ('ontouchstart' in window) ||
         (navigator.maxTouchPoints > 0);
       setIsMobile(mobile);
+      
+      const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      setIsIOS(ios);
     };
     checkMobile();
   }, []);
@@ -112,12 +116,25 @@ export function M3u8Player({
   // Fullscreen change listener
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const isFullscreenActive = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+      setIsFullscreen(isFullscreenActive);
     };
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("mozfullscreenchange", handleFullscreenChange);
+    document.addEventListener("MSFullscreenChange", handleFullscreenChange);
+    
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
     };
   }, []);
 
@@ -286,13 +303,46 @@ export function M3u8Player({
   };
 
   const handleToggleFullscreen = () => {
+    const video = videoRef.current;
     const container = containerRef.current;
     if (!container) return;
 
-    if (!document.fullscreenElement) {
-      container.requestFullscreen().catch(() => {});
+    // iOS Safari requires webkitEnterFullscreen on video element
+    if (isIOS && video) {
+      if ((video as any).webkitEnterFullscreen) {
+        (video as any).webkitEnterFullscreen();
+      }
+      return;
+    }
+
+    // Standard fullscreen API for other browsers
+    const isFullscreenActive = !!(
+      document.fullscreenElement ||
+      (document as any).webkitFullscreenElement ||
+      (document as any).mozFullScreenElement ||
+      (document as any).msFullscreenElement
+    );
+
+    if (!isFullscreenActive) {
+      const requestFullscreen = 
+        container.requestFullscreen ||
+        (container as any).webkitRequestFullscreen ||
+        (container as any).mozRequestFullScreen ||
+        (container as any).msRequestFullscreen;
+      
+      if (requestFullscreen) {
+        requestFullscreen.call(container).catch(() => {});
+      }
     } else {
-      document.exitFullscreen().catch(() => {});
+      const exitFullscreen = 
+        document.exitFullscreen ||
+        (document as any).webkitExitFullscreen ||
+        (document as any).mozCancelFullScreen ||
+        (document as any).msExitFullscreen;
+      
+      if (exitFullscreen) {
+        exitFullscreen.call(document).catch(() => {});
+      }
     }
   };
 

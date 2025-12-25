@@ -36,6 +36,9 @@ export function NetflixPlayer({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
+  const isHoveringRef = useRef(false);
+  const isDraggingRef = useRef(false);
+  const showSettingsRef = useRef(false);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -50,10 +53,11 @@ export function NetflixPlayer({
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showSettings, setShowSettings] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [hoverTime, setHoverTime] = useState<number | null>(null);
 
-  // Detect mobile device
+  // Detect mobile device and iOS
   useEffect(() => {
     const checkMobile = () => {
       const mobile = 
@@ -61,27 +65,51 @@ export function NetflixPlayer({
         ('ontouchstart' in window) ||
         (navigator.maxTouchPoints > 0);
       setIsMobile(mobile);
+      
+      const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      setIsIOS(ios);
     };
     checkMobile();
   }, []);
 
-  // Auto-hide controls - hide immediately when playing, show only on hover
+  // Auto-hide controls - hide with delay when playing, but not when interacting
   const hideControls = useCallback(() => {
-    if (isPlaying && !isHovering && !isDragging) {
-      setShowControls(false);
-    }
-  }, [isPlaying, isHovering, isDragging]);
-
-  const showControlsWithTimeout = useCallback(() => {
-    // Only show if hovering
-    if (isHovering || !isPlaying) {
-      setShowControls(true);
-    }
     // Clear any existing timeout
     if (controlsTimeoutRef.current) {
       clearTimeout(controlsTimeoutRef.current);
     }
-  }, [isHovering, isPlaying]);
+    
+    // Only hide if playing and not interacting
+    if (isPlaying && !isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
+      controlsTimeoutRef.current = setTimeout(() => {
+        // Double check before hiding
+        const video = videoRef.current;
+        if (video && !video.paused && !isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
+          setShowControls(false);
+        }
+      }, 2000); // 2 second delay
+    }
+  }, [isPlaying]);
+
+  const showControlsWithTimeout = useCallback(() => {
+    // Show controls immediately
+    setShowControls(true);
+    
+    // Clear any existing timeout
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    
+    // Set timeout to hide after 2 seconds if playing and not interacting
+    if (isPlaying) {
+      controlsTimeoutRef.current = setTimeout(() => {
+        const video = videoRef.current;
+        if (video && !video.paused && !isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
+          setShowControls(false);
+        }
+      }, 2000);
+    }
+  }, [isPlaying]);
 
   // Mouse movement handler
   useEffect(() => {
@@ -94,16 +122,22 @@ export function NetflixPlayer({
 
     const handleMouseLeave = () => {
       setIsHovering(false);
-      // Hide immediately when leaving if playing
+      isHoveringRef.current = false;
+      // Hide with delay when leaving if playing
       if (isPlaying) {
-        setShowControls(false);
+        hideControls();
       }
     };
 
     const handleMouseEnter = () => {
       setIsHovering(true);
+      isHoveringRef.current = true;
       // Show immediately when entering
       setShowControls(true);
+      // Clear timeout when entering
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current);
+      }
     };
 
     container.addEventListener("mousemove", handleMouseMove);
@@ -124,9 +158,9 @@ export function NetflixPlayer({
 
     const handlePlay = () => {
       setIsPlaying(true);
-      // Hide controls immediately when video starts playing (unless hovering)
-      if (!isHovering && !isDragging) {
-        setShowControls(false);
+      // Hide controls with delay when video starts playing (unless interacting)
+      if (!isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
+        hideControls();
       }
     };
     const handlePause = () => {
@@ -176,12 +210,25 @@ export function NetflixPlayer({
   // Fullscreen change listener
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const isFullscreenActive = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+      setIsFullscreen(isFullscreenActive);
     };
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("mozfullscreenchange", handleFullscreenChange);
+    document.addEventListener("MSFullscreenChange", handleFullscreenChange);
+    
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
     };
   }, []);
 
@@ -218,6 +265,11 @@ export function NetflixPlayer({
       video.playbackRate = playbackRate;
     }
   }, [playbackRate]);
+
+  // Sync showSettings state with ref
+  useEffect(() => {
+    showSettingsRef.current = showSettings;
+  }, [showSettings]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -303,13 +355,47 @@ export function NetflixPlayer({
   };
 
   const handleToggleFullscreen = () => {
+    const video = videoRef.current;
     const container = containerRef.current;
     if (!container) return;
 
-    if (!document.fullscreenElement) {
-      container.requestFullscreen().catch(() => {});
+    // iOS Safari requires webkitEnterFullscreen on video element
+    if (isIOS && video) {
+      if ((video as any).webkitEnterFullscreen) {
+        (video as any).webkitEnterFullscreen();
+      }
+      showControlsWithTimeout();
+      return;
+    }
+
+    // Standard fullscreen API for other browsers
+    const isFullscreenActive = !!(
+      document.fullscreenElement ||
+      (document as any).webkitFullscreenElement ||
+      (document as any).mozFullScreenElement ||
+      (document as any).msFullscreenElement
+    );
+
+    if (!isFullscreenActive) {
+      const requestFullscreen = 
+        container.requestFullscreen ||
+        (container as any).webkitRequestFullscreen ||
+        (container as any).mozRequestFullScreen ||
+        (container as any).msRequestFullscreen;
+      
+      if (requestFullscreen) {
+        requestFullscreen.call(container).catch(() => {});
+      }
     } else {
-      document.exitFullscreen().catch(() => {});
+      const exitFullscreen = 
+        document.exitFullscreen ||
+        (document as any).webkitExitFullscreen ||
+        (document as any).mozCancelFullScreen ||
+        (document as any).msExitFullscreen;
+      
+      if (exitFullscreen) {
+        exitFullscreen.call(document).catch(() => {});
+      }
     }
     showControlsWithTimeout();
   };
@@ -367,9 +453,13 @@ export function NetflixPlayer({
       }}
       onTouchEnd={() => {
         if (isMobile && isPlaying) {
-          // Hide controls immediately after touch ends on mobile
-          setTimeout(() => {
-            if (isPlaying && !isDragging) {
+          // Hide controls after 2 seconds if not interacting
+          if (controlsTimeoutRef.current) {
+            clearTimeout(controlsTimeoutRef.current);
+          }
+          controlsTimeoutRef.current = setTimeout(() => {
+            const video = videoRef.current;
+            if (video && !video.paused && !isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
               setShowControls(false);
             }
           }, 2000);
@@ -450,20 +540,24 @@ export function NetflixPlayer({
               setIsHoveringProgress(false);
               setHoverTime(null);
               setIsDragging(false);
+              isDraggingRef.current = false;
             }}
             onMouseMove={handleProgressMouseMove}
             onMouseDown={(e) => {
               e.stopPropagation();
               setIsDragging(true);
+              isDraggingRef.current = true;
               handleProgressClick(e);
             }}
             onMouseUp={() => {
               setIsDragging(false);
+              isDraggingRef.current = false;
             }}
             onTouchStart={(e) => {
               e.preventDefault();
               e.stopPropagation();
               setIsDragging(true);
+              isDraggingRef.current = true;
               // Set hover time for mobile tooltip
               const video = videoRef.current;
               const progressBar = progressBarRef.current;
@@ -497,8 +591,8 @@ export function NetflixPlayer({
               e.preventDefault();
               e.stopPropagation();
               setIsDragging(false);
+              isDraggingRef.current = false;
               // Keep tooltip visible briefly on mobile, then hide
-              const wasDragging = true;
               setTimeout(() => {
                 setHoverTime(null);
               }, 800);
@@ -556,9 +650,11 @@ export function NetflixPlayer({
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   setIsDragging(true);
+                  isDraggingRef.current = true;
                 }}
                 onMouseUp={() => {
                   setIsDragging(false);
+                  isDraggingRef.current = false;
                 }}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10
                   [&::-webkit-slider-thumb]:appearance-none
@@ -598,10 +694,10 @@ export function NetflixPlayer({
                   e.stopPropagation();
                   handleSkip(-10);
                 }}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-gradient-to-r hover:from-[#F6C453]/20 hover:to-[#D3A13A]/20 hover:border hover:border-[#F6C453]/50 transition-all"
+                className={`flex items-center justify-center rounded-full bg-white/10 hover:bg-gradient-to-r hover:from-[#F6C453]/20 hover:to-[#D3A13A]/20 hover:border hover:border-[#F6C453]/50 active:bg-gradient-to-r active:from-[#F6C453]/30 active:to-[#D3A13A]/30 transition-all ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}`}
                 aria-label="Lùi 10 giây"
               >
-                <SkipBack className="w-4 h-4 text-white" />
+                <SkipBack className={`text-white ${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} />
               </button>
 
               {/* Skip Forward */}
@@ -610,23 +706,23 @@ export function NetflixPlayer({
                   e.stopPropagation();
                   handleSkip(10);
                 }}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-gradient-to-r hover:from-[#F6C453]/20 hover:to-[#D3A13A]/20 hover:border hover:border-[#F6C453]/50 transition-all"
+                className={`flex items-center justify-center rounded-full bg-white/10 hover:bg-gradient-to-r hover:from-[#F6C453]/20 hover:to-[#D3A13A]/20 hover:border hover:border-[#F6C453]/50 active:bg-gradient-to-r active:from-[#F6C453]/30 active:to-[#D3A13A]/30 transition-all ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}`}
                 aria-label="Tới 10 giây"
               >
-                <SkipForward className="w-4 h-4 text-white" />
+                <SkipForward className={`text-white ${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} />
               </button>
 
               {/* Volume - Inline slider for desktop */}
               <div className="relative flex items-center gap-2">
                 <button
                   onClick={handleVolumeButtonClick}
-                  className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-gradient-to-r hover:from-[#F6C453]/20 hover:to-[#D3A13A]/20 hover:border hover:border-[#F6C453]/50 active:bg-gradient-to-r active:from-[#F6C453]/30 active:to-[#D3A13A]/30 transition-all"
+                  className={`flex items-center justify-center rounded-full bg-white/10 hover:bg-gradient-to-r hover:from-[#F6C453]/20 hover:to-[#D3A13A]/20 hover:border hover:border-[#F6C453]/50 active:bg-gradient-to-r active:from-[#F6C453]/30 active:to-[#D3A13A]/30 transition-all ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}`}
                   aria-label="Âm lượng"
                 >
                   {isMuted || volume === 0 ? (
-                    <VolumeX className="w-5 h-5 text-white" />
+                    <VolumeX className={`text-white ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
                   ) : (
-                    <Volume2 className="w-5 h-5 text-white" />
+                    <Volume2 className={`text-white ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
                   )}
                 </button>
                 {/* Inline volume slider - desktop only */}
@@ -688,7 +784,9 @@ export function NetflixPlayer({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setShowSettings(!showSettings);
+                    const newValue = !showSettings;
+                    setShowSettings(newValue);
+                    showSettingsRef.current = newValue;
                   }}
                   className={`flex items-center justify-center rounded-full bg-white/10 hover:bg-gradient-to-r hover:from-[#F6C453]/20 hover:to-[#D3A13A]/20 hover:border hover:border-[#F6C453]/50 active:bg-gradient-to-r active:from-[#F6C453]/30 active:to-[#D3A13A]/30 transition-all ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}`}
                   aria-label="Cài đặt"
@@ -696,26 +794,112 @@ export function NetflixPlayer({
                   <Settings className={`text-white ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
                 </button>
                 {showSettings && (
-                  <div className={`absolute ${isMobile ? 'bottom-full left-0 mb-2' : 'bottom-full right-0 mb-2'} min-w-[160px] w-auto bg-black/95 backdrop-blur-sm rounded-lg p-2 space-y-1 border border-white/10 shadow-2xl z-[100] pointer-events-auto`}>
-                    <div className="text-white text-xs px-3 py-2 border-b border-white/10 font-medium whitespace-nowrap">Tốc độ phát</div>
-                    {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
-                      <button
-                        key={rate}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPlaybackRate(rate);
-                          setShowSettings(false);
-                        }}
-                        className={`w-full text-left px-3 py-1.5 text-sm rounded hover:bg-gradient-to-r hover:from-[#F6C453]/10 hover:to-[#D3A13A]/10 active:bg-gradient-to-r active:from-[#F6C453]/20 active:to-[#D3A13A]/20 transition-all whitespace-nowrap ${
-                          playbackRate === rate
-                            ? "text-[#F6C453] font-medium bg-gradient-to-r from-[#F6C453]/10 to-[#D3A13A]/10"
-                            : "text-white"
-                        }`}
+                  <>
+                    {isMobile ? (
+                      // Mobile: Full overlay panel
+                      <div 
+                        data-settings-menu
+                        className="fixed inset-0 bg-black/95 backdrop-blur-sm z-[110] pointer-events-auto flex flex-col items-center justify-center"
+                        onClick={(e) => e.stopPropagation()}
+                        onTouchStart={(e) => e.stopPropagation()}
                       >
-                        {rate}x
-                      </button>
-                    ))}
-                  </div>
+                        <div className="w-full max-w-sm px-3 py-4">
+                          <div className="text-white text-sm font-semibold mb-3 text-center">Tốc độ phát</div>
+                          <div className="space-y-1.5">
+                            {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
+                              <button
+                                key={rate}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  setPlaybackRate(rate);
+                                  setShowSettings(false);
+                                  showSettingsRef.current = false;
+                                }}
+                                onTouchStart={(e) => {
+                                  e.stopPropagation();
+                                }}
+                                onTouchEnd={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  setPlaybackRate(rate);
+                                  setShowSettings(false);
+                                  showSettingsRef.current = false;
+                                }}
+                                className={`w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gradient-to-r hover:from-[#F6C453]/10 hover:to-[#D3A13A]/10 active:bg-gradient-to-r active:from-[#F6C453]/20 active:to-[#D3A13A]/20 transition-all ${
+                                  playbackRate === rate
+                                    ? "text-[#F6C453] font-semibold bg-gradient-to-r from-[#F6C453]/10 to-[#D3A13A]/10 border border-[#F6C453]/30"
+                                    : "text-white border border-white/10"
+                                }`}
+                                style={{ 
+                                  WebkitTapHighlightColor: 'transparent',
+                                  touchAction: 'manipulation',
+                                  userSelect: 'none',
+                                  WebkitUserSelect: 'none'
+                                }}
+                              >
+                                {rate}x
+                              </button>
+                            ))}
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowSettings(false);
+                              showSettingsRef.current = false;
+                            }}
+                            onTouchEnd={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              setShowSettings(false);
+                              showSettingsRef.current = false;
+                            }}
+                            className="mt-3 w-full px-3 py-1.5 text-white text-xs rounded-lg border border-white/20 hover:bg-white/10 active:bg-white/20 transition-all"
+                            style={{ 
+                              WebkitTapHighlightColor: 'transparent',
+                              touchAction: 'manipulation'
+                            }}
+                          >
+                            Đóng
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      // Desktop: Small dropdown menu
+                      <div 
+                        data-settings-menu
+                        className="absolute bottom-full right-0 mb-2 min-w-[160px] w-auto bg-black/95 backdrop-blur-sm rounded-lg p-2 space-y-1 border border-white/10 shadow-2xl z-[110] pointer-events-auto"
+                        onClick={(e) => e.stopPropagation()}
+                        onTouchStart={(e) => {
+                          const target = e.target as HTMLElement;
+                          if (target.tagName !== 'BUTTON') {
+                            e.stopPropagation();
+                          }
+                        }}
+                      >
+                        <div className="text-white text-xs px-3 py-2 border-b border-white/10 font-medium whitespace-nowrap pointer-events-none">Tốc độ phát</div>
+                        {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
+                          <button
+                            key={rate}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              setPlaybackRate(rate);
+                              setShowSettings(false);
+                              showSettingsRef.current = false;
+                            }}
+                            className={`w-full text-left px-3 py-1.5 text-sm rounded hover:bg-gradient-to-r hover:from-[#F6C453]/10 hover:to-[#D3A13A]/10 active:bg-gradient-to-r active:from-[#F6C453]/20 active:to-[#D3A13A]/20 transition-all whitespace-nowrap ${
+                              playbackRate === rate
+                                ? "text-[#F6C453] font-medium bg-gradient-to-r from-[#F6C453]/10 to-[#D3A13A]/10"
+                                : "text-white"
+                            }`}
+                          >
+                            {rate}x
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 
@@ -725,13 +909,13 @@ export function NetflixPlayer({
                   e.stopPropagation();
                   handleToggleFullscreen();
                 }}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-gradient-to-r hover:from-[#F6C453]/20 hover:to-[#D3A13A]/20 hover:border hover:border-[#F6C453]/50 transition-all"
+                className={`flex items-center justify-center rounded-full bg-white/10 hover:bg-gradient-to-r hover:from-[#F6C453]/20 hover:to-[#D3A13A]/20 hover:border hover:border-[#F6C453]/50 active:bg-gradient-to-r active:from-[#F6C453]/30 active:to-[#D3A13A]/30 transition-all ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}`}
                 aria-label="Toàn màn hình"
               >
                 {isFullscreen ? (
-                  <Minimize2 className="w-5 h-5 text-white" />
+                  <Minimize2 className={`text-white ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
                 ) : (
-                  <Maximize2 className="w-5 h-5 text-white" />
+                  <Maximize2 className={`text-white ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
                 )}
               </button>
             </div>
@@ -739,16 +923,16 @@ export function NetflixPlayer({
         </div>
       </div>
 
-      {/* Click outside settings to close */}
-      {showSettings && (
+      {/* Click outside settings to close - only for desktop */}
+      {showSettings && !isMobile && (
         <div
-          className={`fixed inset-0 ${isMobile ? 'z-[90]' : 'z-20'}`}
-          onClick={() => {
-            setShowSettings(false);
-          }}
-          onTouchStart={(e) => {
-            // Prevent event bubbling on mobile
-            e.stopPropagation();
+          className="fixed inset-0 z-20"
+          onClick={(e) => {
+            const target = e.target as HTMLElement;
+            if (!target.closest('[data-settings-menu]')) {
+              setShowSettings(false);
+              showSettingsRef.current = false;
+            }
           }}
         />
       )}
