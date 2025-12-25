@@ -6,6 +6,7 @@ import { AuthProvider } from "@/contexts/auth-context";
 import { URLCleaner } from "@/components/url-cleaner";
 import { PageTransition } from "@/components/page-transition";
 import { Header } from "@/components/header";
+import { GoogleAnalytics } from "@/components/google-analytics";
 import "./globals.css";
 
 const siteUrl =
@@ -129,11 +130,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID || 'G-5GN4EFTX0Q';
+  
   return (
     <html lang="vi" suppressHydrationWarning>
       <body
         className={`${notoSans.variable} ${notoSansMono.variable} font-sans antialiased`}
       >
+        {gaId && <GoogleAnalytics gaId={gaId} />}
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
