@@ -13,6 +13,7 @@ import {
   SkipBack,
   Settings,
   X,
+  FastForward,
 } from "lucide-react";
 
 interface NetflixPlayerProps {
@@ -56,6 +57,15 @@ export function NetflixPlayer({
   const [isIOS, setIsIOS] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [hoverTime, setHoverTime] = useState<number | null>(null);
+  const [showSpeedIndicator, setShowSpeedIndicator] = useState(false);
+
+  // Long press state for 2x speed
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const touchStartTimeRef = useRef<number>(0);
+  const touchStartXRef = useRef<number>(0);
+  const touchStartYRef = useRef<number>(0);
+  const isLongPressActiveRef = useRef<boolean>(false);
+  const lastTapRef = useRef<number>(0);
 
   // Detect mobile device and iOS
   useEffect(() => {
@@ -434,6 +444,112 @@ export function NetflixPlayer({
     handleProgressClick(e);
   };
 
+  // Handle long press for 2x speed on mobile (works in fullscreen too)
+  const handleLongPressTouchStart = (e: React.TouchEvent) => {
+    if (!isMobile) return;
+    
+    // Don't trigger long press if touching controls
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-settings-menu]') || 
+        target.closest('button') || 
+        target.closest('input') ||
+        target.closest('.pointer-events-auto')) {
+      return;
+    }
+    
+    const touch = e.touches[0];
+    if (!touch) return;
+    
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapRef.current;
+    
+    // Store touch start info
+    touchStartTimeRef.current = now;
+    touchStartXRef.current = touch.clientX;
+    touchStartYRef.current = touch.clientY;
+    isLongPressActiveRef.current = false;
+    
+    // Cancel if double tap (within 300ms)
+    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+      lastTapRef.current = 0;
+      return;
+    }
+    
+    lastTapRef.current = now;
+    
+    // Start long press timer (500ms)
+    longPressTimerRef.current = setTimeout(() => {
+      const video = videoRef.current;
+      if (video && !isLongPressActiveRef.current) {
+        isLongPressActiveRef.current = true;
+        setPlaybackRate(2);
+        setShowSpeedIndicator(true);
+        showControlsWithTimeout();
+      }
+    }, 500);
+  };
+
+  const handleLongPressTouchMove = (e: React.TouchEvent) => {
+    if (!isMobile) return;
+    
+    // Don't interfere if touching controls
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-settings-menu]') || 
+        target.closest('button') || 
+        target.closest('input') ||
+        target.closest('.pointer-events-auto')) {
+      return;
+    }
+    
+    const touch = e.touches[0];
+    if (!touch) return;
+    
+    // Calculate movement distance
+    const moveThreshold = 15; // pixels
+    const moveDistance = Math.sqrt(
+      Math.pow(touch.clientX - touchStartXRef.current, 2) + 
+      Math.pow(touch.clientY - touchStartYRef.current, 2)
+    );
+    
+    // Cancel long press if user moves finger significantly
+    if (moveDistance > moveThreshold) {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+      
+      // If long press was active and user moves, cancel it
+      if (isLongPressActiveRef.current) {
+        isLongPressActiveRef.current = false;
+        setPlaybackRate(1);
+        setShowSpeedIndicator(false);
+      }
+    }
+  };
+
+  const handleLongPressTouchEnd = (e: React.TouchEvent) => {
+    if (!isMobile) return;
+    
+    // Cancel long press timer if it hasn't fired yet
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    
+    // If long press was active, reset to normal speed after a short delay
+    if (isLongPressActiveRef.current) {
+      setTimeout(() => {
+        isLongPressActiveRef.current = false;
+        setPlaybackRate(1);
+        setShowSpeedIndicator(false);
+      }, 100);
+    }
+  };
+
   if (!src) return null;
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -443,33 +559,65 @@ export function NetflixPlayer({
     <div
       ref={containerRef}
       className={`${className} relative bg-black group select-none`}
-      style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+      style={{ 
+        userSelect: 'none', 
+        WebkitUserSelect: 'none',
+        ...(isFullscreen ? {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        } : {})
+      }}
       onMouseMove={showControlsWithTimeout}
-      onTouchStart={() => {
+      onTouchStart={(e) => {
         if (isMobile) {
           // Show controls on touch
           setShowControls(true);
+          // Handle long press for 2x speed
+          handleLongPressTouchStart(e);
         }
       }}
-      onTouchEnd={() => {
-        if (isMobile && isPlaying) {
-          // Hide controls after 2 seconds if not interacting
-          if (controlsTimeoutRef.current) {
-            clearTimeout(controlsTimeoutRef.current);
-          }
-          controlsTimeoutRef.current = setTimeout(() => {
-            const video = videoRef.current;
-            if (video && !video.paused && !isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
-              setShowControls(false);
+      onTouchMove={(e) => {
+        if (isMobile) {
+          // Handle long press movement
+          handleLongPressTouchMove(e);
+        }
+      }}
+      onTouchEnd={(e) => {
+        if (isMobile) {
+          // Handle long press end
+          handleLongPressTouchEnd(e);
+          
+          if (isPlaying) {
+            // Hide controls after 2 seconds if not interacting
+            if (controlsTimeoutRef.current) {
+              clearTimeout(controlsTimeoutRef.current);
             }
-          }, 2000);
+            controlsTimeoutRef.current = setTimeout(() => {
+              const video = videoRef.current;
+              if (video && !video.paused && !isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
+                setShowControls(false);
+              }
+            }, 2000);
+          }
         }
       }}
     >
       <video
         ref={videoRef}
         className="h-full w-full object-contain cursor-pointer select-none"
-        style={{ userSelect: 'none', WebkitUserSelect: 'none', pointerEvents: 'auto' }}
+        style={{ 
+          userSelect: 'none', 
+          WebkitUserSelect: 'none', 
+          pointerEvents: 'auto', 
+          touchAction: 'manipulation',
+          ...(isFullscreen ? {
+            maxWidth: '100%',
+            maxHeight: '100%',
+            width: 'auto',
+            height: 'auto',
+          } : {})
+        }}
         title={title}
         playsInline
         autoPlay={autoPlay}
@@ -483,6 +631,9 @@ export function NetflixPlayer({
           // Prevent right-click context menu
           e.preventDefault();
         }}
+        onTouchStart={handleLongPressTouchStart}
+        onTouchMove={handleLongPressTouchMove}
+        onTouchEnd={handleLongPressTouchEnd}
       />
 
       {/* Center Play Button */}
@@ -922,6 +1073,15 @@ export function NetflixPlayer({
           </div>
         </div>
       </div>
+
+      {/* Speed indicator icon for mobile when at 2x - works in fullscreen too */}
+      {showSpeedIndicator && isMobile && playbackRate === 2 && (
+        <div className="absolute top-1/2 right-4 -translate-y-1/2 pointer-events-none z-[100]">
+          <div className="bg-black/40 rounded-full p-2 backdrop-blur-sm">
+            <FastForward className="w-4 h-4 text-[#F6C453]" />
+          </div>
+        </div>
+      )}
 
       {/* Click outside settings to close - only for desktop */}
       {showSettings && !isMobile && (

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
-import { Play, Pause, Volume2, VolumeX, Maximize2, Minimize2 } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Maximize2, Minimize2, FastForward } from "lucide-react";
 
 interface M3u8PlayerProps {
   src: string;
@@ -43,6 +43,8 @@ export function M3u8Player({
   // Long press state
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const touchStartTimeRef = useRef<number>(0);
+  const touchStartXRef = useRef<number>(0);
+  const touchStartYRef = useRef<number>(0);
   const isLongPressActiveRef = useRef<boolean>(false);
 
   // Detect mobile device and iOS
@@ -164,11 +166,13 @@ export function M3u8Player({
     };
   }, [src]);
 
-  // Handle double tap to skip 10s
+  // Handle double tap to skip 10s and long press for 2x speed
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isMobile) return;
     
     const touch = e.touches[0];
+    if (!touch) return;
+    
     const now = Date.now();
     const timeSinceLastTap = now - lastTapRef.current;
     const tapX = touch.clientX;
@@ -179,6 +183,12 @@ export function M3u8Player({
     
     // Double tap detection (within 300ms)
     if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
+      // Cancel any pending long press
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+      
       e.preventDefault();
       const video = videoRef.current;
       if (!video) return;
@@ -200,14 +210,18 @@ export function M3u8Player({
     
     lastTapRef.current = now;
     lastTapXRef.current = tapX;
+    touchStartXRef.current = tapX;
+    touchStartYRef.current = touch.clientY;
     
-    // Start long press timer (500ms)
+    // Start long press timer (500ms) - works in both normal and fullscreen mode
     longPressTimerRef.current = setTimeout(() => {
       const video = videoRef.current;
       if (video && !isLongPressActiveRef.current) {
         isLongPressActiveRef.current = true;
         setPlaybackRate(2);
         setShowSpeedIndicator(true);
+        // Prevent default behaviors that might interfere
+        e.preventDefault();
       }
     }, 500);
   };
@@ -215,17 +229,32 @@ export function M3u8Player({
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isMobile) return;
     
-    // Cancel long press if user moves finger
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
+    const touch = e.touches[0];
+    if (!touch) return;
     
-    // If long press was active and user moves, cancel it
-    if (isLongPressActiveRef.current) {
-      isLongPressActiveRef.current = false;
-      setPlaybackRate(1);
-      setShowSpeedIndicator(false);
+    // Calculate movement distance to cancel long press if moved too much
+    const moveThreshold = 15; // pixels
+    if (touchStartTimeRef.current > 0) {
+      const currentX = touch.clientX;
+      const currentY = touch.clientY;
+      const moveDistance = Math.sqrt(
+        Math.pow(currentX - touchStartXRef.current, 2) + Math.pow(currentY - touchStartYRef.current, 2)
+      );
+      
+      // Cancel long press if user moves finger significantly
+      if (moveDistance > moveThreshold) {
+        if (longPressTimerRef.current) {
+          clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+        }
+        
+        // If long press was active and user moves, cancel it
+        if (isLongPressActiveRef.current) {
+          isLongPressActiveRef.current = false;
+          setPlaybackRate(1);
+          setShowSpeedIndicator(false);
+        }
+      }
     }
   };
 
@@ -238,11 +267,14 @@ export function M3u8Player({
       longPressTimerRef.current = null;
     }
     
-    // If long press was active, reset to normal speed
+    // If long press was active, reset to normal speed after a short delay
+    // This allows the user to see the speed indicator briefly
     if (isLongPressActiveRef.current) {
-      isLongPressActiveRef.current = false;
-      setPlaybackRate(1);
-      setShowSpeedIndicator(false);
+      setTimeout(() => {
+        isLongPressActiveRef.current = false;
+        setPlaybackRate(1);
+        setShowSpeedIndicator(false);
+      }, 100);
     }
   };
 
@@ -353,6 +385,13 @@ export function M3u8Player({
       <div 
         ref={containerRef}
         className={`${className} relative`}
+        style={{
+          ...(isFullscreen ? {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          } : {})
+        }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -360,23 +399,30 @@ export function M3u8Player({
         <video
           ref={videoRef}
           className="h-full w-full object-contain bg-black"
+          style={{
+            ...(isFullscreen ? {
+              maxWidth: '100%',
+              maxHeight: '100%',
+              width: 'auto',
+              height: 'auto',
+            } : {})
+          }}
           title={title}
           playsInline
           autoPlay={autoPlay}
           muted={muted}
           controls={false}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{ touchAction: 'manipulation' }}
         />
         
-        {/* Speed indicator for mobile when at 2x */}
+        {/* Speed indicator icon for mobile when at 2x - works in fullscreen too */}
         {showSpeedIndicator && isMobile && playbackRate === 2 && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
-            <div className="bg-black/80 rounded-lg px-6 py-3 backdrop-blur-sm">
-              <div className="text-white text-2xl font-bold text-center">
-                {playbackRate}x
-              </div>
-              <div className="text-white/70 text-xs text-center mt-1">
-                Tốc độ phát
-              </div>
+          <div className="absolute top-1/2 right-4 -translate-y-1/2 pointer-events-none z-[100]">
+            <div className="bg-black/40 rounded-full p-2 backdrop-blur-sm">
+              <FastForward className="w-4 h-4 text-[#F6C453]" />
             </div>
           </div>
         )}
