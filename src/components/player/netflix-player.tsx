@@ -449,6 +449,7 @@ export function NetflixPlayer({
             onMouseLeave={() => {
               setIsHoveringProgress(false);
               setHoverTime(null);
+              setIsDragging(false);
             }}
             onMouseMove={handleProgressMouseMove}
             onMouseDown={(e) => {
@@ -457,9 +458,6 @@ export function NetflixPlayer({
               handleProgressClick(e);
             }}
             onMouseUp={() => {
-              setIsDragging(false);
-            }}
-            onMouseLeave={() => {
               setIsDragging(false);
             }}
             onTouchStart={(e) => {
