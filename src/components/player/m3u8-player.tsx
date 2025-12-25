@@ -400,6 +400,7 @@ export function M3u8Player({
           ref={videoRef}
           className="h-full w-full object-contain bg-black"
           style={{
+            touchAction: 'manipulation',
             ...(isFullscreen ? {
               maxWidth: '100%',
               maxHeight: '100%',
@@ -415,7 +416,6 @@ export function M3u8Player({
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          style={{ touchAction: 'manipulation' }}
         />
         
         {/* Speed indicator icon for mobile when at 2x - works in fullscreen too */}
