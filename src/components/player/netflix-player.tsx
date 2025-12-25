@@ -459,7 +459,7 @@ export function NetflixPlayer({
             onMouseUp={() => {
               setIsDragging(false);
             }}
-            onMouseLeaveCapture={() => {
+            onMouseLeave={() => {
               setIsDragging(false);
             }}
             onTouchStart={(e) => {
