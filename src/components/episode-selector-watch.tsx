@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Play } from "lucide-react";
 import { getImageUrl } from "@/lib/api";
+import { analytics } from "@/lib/analytics";
 
 interface Episode {
   name: string;
@@ -108,7 +109,14 @@ export function EpisodeSelectorWatch({
     const imageUrl = getImageUrl(posterUrl);
 
     return (
-      <Link href={href}>
+      <Link 
+        href={href}
+        onClick={() => {
+          if (movieName) {
+            analytics.trackWatchFilmEpisodeClick(movieName, movieSlug, firstEpisode.name, firstEpisode.slug, currentServer.server_name);
+          }
+        }}
+      >
         <div className="relative w-full aspect-[16/9] sm:aspect-[2.5/1] rounded-xl overflow-hidden border border-[#F6C453]/50 shadow-lg hover:shadow-[#F6C453]/30 transition-all hover:scale-[1.01] group cursor-pointer">
           {/* Background Image */}
           <div className="absolute inset-0">
@@ -168,7 +176,12 @@ export function EpisodeSelectorWatch({
                 return (
                   <button
                     key={server.server_name}
-                    onClick={() => setSelectedServerIndex(index)}
+                    onClick={() => {
+                      setSelectedServerIndex(index);
+                      if (movieName) {
+                        analytics.trackWatchFilmServerChange(movieName, movieSlug, server.server_name, currentEpisodeSlug);
+                      }
+                    }}
                     className={`relative flex items-center justify-center gap-0.5 sm:gap-1 px-2 sm:px-2.5 py-1 rounded text-[10px] sm:text-xs font-semibold transition-all duration-200 ease-in-out whitespace-nowrap shrink-0 min-w-[70px] sm:min-w-[80px] cursor-pointer ${
                       isActive
                         ? "bg-[#1a1a2e] text-white"
@@ -231,6 +244,12 @@ export function EpisodeSelectorWatch({
             <Link
               key={ep.slug}
               href={href}
+              onClick={() => {
+                if (movieName) {
+                  const episodeName = currentEpisodes.length === 1 ? 'FULL' : `Tập ${index + 1}`;
+                  analytics.trackWatchFilmEpisodeClick(movieName, movieSlug, episodeName, ep.slug, currentServer.server_name);
+                }
+              }}
               className={`flex items-center justify-center gap-1 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.65)] min-w-0 cursor-pointer ${
                 isActive
                   ? "bg-[#F6C453] text-black shadow-[0_0_20px_rgba(246,196,83,0.4)]"

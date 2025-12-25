@@ -25,6 +25,52 @@ function formatEpisodeLabel(episode?: string) {
   return episode;
 }
 
+// Kiểm tra có Vietsub không
+function hasVietsub(language?: string): boolean {
+  if (!language) return false;
+  const lang = language.toLowerCase();
+  return lang.includes("viet") || lang.includes("vs") || lang.includes("vietsub");
+}
+
+// Kiểm tra có Thuyết minh không
+function hasThuyetMinh(language?: string): boolean {
+  if (!language) return false;
+  const lang = language.toLowerCase();
+  return lang.includes("thuyết minh") || lang.includes("tm") || lang.includes("thuyet minh");
+}
+
+// Kiểm tra có Lồng tiếng không
+function hasLongTieng(language?: string): boolean {
+  if (!language) return false;
+  const lang = language.toLowerCase();
+  return lang.includes("lồng") || lang.includes("lt") || lang.includes("long") || lang.includes("lồng tiếng") || lang.includes("long tieng");
+}
+
+// Helper component để render language badges nhất quán
+function LanguageBadges({ language }: { language?: string }) {
+  const hasVS = hasVietsub(language);
+  const hasTM = hasThuyetMinh(language);
+  const hasLT = hasLongTieng(language);
+  
+  if (!hasVS && !hasTM && !hasLT) return null;
+  
+  // Tạo label kết hợp
+  const labels: string[] = [];
+  if (hasVS) labels.push("Vietsub");
+  if (hasTM) labels.push("TM");
+  if (hasLT) labels.push("LT");
+  
+  const badgeText = labels.join(" + ");
+  
+  return (
+    <div className="absolute bottom-2 left-2 z-30">
+      <Badge className="bg-gradient-to-r from-[#F6C453] via-[#F6C453] to-[#FAF9F6] text-black border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg">
+        {badgeText}
+      </Badge>
+    </div>
+  );
+}
+
 export function MovieSection({ title, movies, href, variant = "default" }: MovieSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -343,6 +389,14 @@ function CinemaCard({ movie }: { movie: FilmItem }) {
             unoptimized
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/25 to-[#0b0b0f] opacity-70" />
+          {/* Language Badges - Bottom Left Corner */}
+          <LanguageBadges language={movie.language} />
+          {/* Episode Badge - Bottom Right Corner */}
+          {episodeLabel && (
+            <Badge className="absolute bottom-2 right-2 bg-gradient-to-r from-red-600 via-orange-500 to-orange-400 text-white border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg z-20">
+              {episodeLabel}
+            </Badge>
+          )}
         </div>
 
         {/* Info panel */}
@@ -350,11 +404,6 @@ function CinemaCard({ movie }: { movie: FilmItem }) {
           <div className="flex items-start gap-3">
             <div className="relative aspect-[2/3] w-14 overflow-hidden rounded-lg border border-white/10 bg-black/60 shadow-lg shadow-black/60">
               <Image src={posterImage} alt={movie.name} fill className="object-cover" sizes="64px" />
-              {movie.language && (
-                <Badge className="absolute bottom-1 left-1 bg-white text-black text-[10px] font-semibold px-1.5 py-0.5 border-0">
-                  {movie.language}
-                </Badge>
-              )}
             </div>
 
             <div className="flex-1 min-w-0">
@@ -381,16 +430,6 @@ function CinemaCard({ movie }: { movie: FilmItem }) {
                 {movie.quality && (
                   <Badge className="bg-[#FF2EBC]/20 text-[#FF2EBC] border border-[#FF2EBC]/40 text-[10px] font-semibold">
                     {movie.quality.toUpperCase()}
-                  </Badge>
-                )}
-                {movie.language && !movie.language.toLowerCase().includes("vietsub") && (
-                  <Badge className="bg-white/10 text-white border border-white/20 text-[10px] font-semibold">
-                    {movie.language}
-                  </Badge>
-                )}
-                {episodeLabel && (
-                  <Badge className="bg-gradient-to-r from-[#F6C453] to-[#D3A13A] text-black text-[10px] font-semibold border-0">
-                    {episodeLabel}
                   </Badge>
                 )}
               </div>

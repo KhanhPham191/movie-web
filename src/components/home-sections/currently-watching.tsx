@@ -189,9 +189,16 @@ export function CurrentlyWatchingSection() {
       }, 2000);
     };
 
+    // Listen for custom event khi xóa phim
+    const handleUpdate = () => {
+      fetchData();
+    };
+
     window.addEventListener("focus", handleFocus);
+    window.addEventListener("currently-watching-updated", handleUpdate);
     return () => {
       window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("currently-watching-updated", handleUpdate);
       if (focusTimeout) {
         clearTimeout(focusTimeout);
       }

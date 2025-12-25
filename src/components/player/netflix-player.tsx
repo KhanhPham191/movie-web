@@ -15,6 +15,7 @@ import {
   X,
   FastForward,
 } from "lucide-react";
+import { analytics } from "@/lib/analytics";
 
 interface NetflixPlayerProps {
   src: string;
@@ -23,6 +24,9 @@ interface NetflixPlayerProps {
   autoPlay?: boolean;
   muted?: boolean;
   onTimeUpdate?: (currentTime: number, duration: number) => void;
+  movieName?: string;
+  movieSlug?: string;
+  episodeSlug?: string;
 }
 
 export function NetflixPlayer({
@@ -32,6 +36,9 @@ export function NetflixPlayer({
   autoPlay = true,
   muted = true,
   onTimeUpdate,
+  movieName,
+  movieSlug,
+  episodeSlug,
 }: NetflixPlayerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -181,6 +188,10 @@ export function NetflixPlayer({
 
     const handlePlay = () => {
       setIsPlaying(true);
+      // Track play event
+      if (movieName && movieSlug && episodeSlug) {
+        analytics.trackWatchFilmPlay(movieName, movieSlug, episodeSlug, video.currentTime);
+      }
       // Hide controls with delay when video starts playing (unless interacting)
       if (!isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
         hideControls();
@@ -188,6 +199,10 @@ export function NetflixPlayer({
     };
     const handlePause = () => {
       setIsPlaying(false);
+      // Track pause event
+      if (movieName && movieSlug && episodeSlug) {
+        analytics.trackWatchFilmPause(movieName, movieSlug, episodeSlug, video.currentTime);
+      }
       setShowControls(true);
     };
     const handleTimeUpdate = () => {
@@ -240,6 +255,10 @@ export function NetflixPlayer({
         (document as any).msFullscreenElement
       );
       setIsFullscreen(isFullscreenActive);
+      // Track fullscreen change event
+      if (movieName && movieSlug && episodeSlug) {
+        analytics.trackWatchFilmFullscreen(movieName, movieSlug, episodeSlug, isFullscreenActive);
+      }
     };
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
@@ -286,8 +305,12 @@ export function NetflixPlayer({
     const video = videoRef.current;
     if (video) {
       video.playbackRate = playbackRate;
+      // Track playback rate change
+      if (movieName && movieSlug && episodeSlug && playbackRate !== 1) {
+        analytics.trackWatchFilmPlaybackRate(movieName, movieSlug, episodeSlug, playbackRate);
+      }
     }
-  }, [playbackRate]);
+  }, [playbackRate, movieName, movieSlug, episodeSlug]);
 
   // Sync showSettings state with ref
   useEffect(() => {
@@ -350,6 +373,10 @@ export function NetflixPlayer({
       video.muted = false;
       setIsMuted(false);
     }
+    // Track volume change event
+    if (movieName && movieSlug && episodeSlug) {
+      analytics.trackWatchFilmVolumeChange(movieName, movieSlug, episodeSlug, v, video.muted);
+    }
   };
 
   const handleToggleMute = () => {
@@ -360,6 +387,10 @@ export function NetflixPlayer({
     if (!video.muted && video.volume === 0) {
       video.volume = 0.5;
       setVolume(0.5);
+    }
+    // Track volume change event
+    if (movieName && movieSlug && episodeSlug) {
+      analytics.trackWatchFilmVolumeChange(movieName, movieSlug, episodeSlug, video.volume, video.muted);
     }
     showControlsWithTimeout();
   };
@@ -375,8 +406,13 @@ export function NetflixPlayer({
   const handleSkip = (seconds: number) => {
     const video = videoRef.current;
     if (!video) return;
-    const newTime = Math.max(0, Math.min(video.duration, video.currentTime + seconds));
+    const currentTime = video.currentTime;
+    const newTime = Math.max(0, Math.min(video.duration, currentTime + seconds));
     video.currentTime = newTime;
+    // Track skip event
+    if (movieName && movieSlug && episodeSlug) {
+      analytics.trackWatchFilmSkip(movieName, movieSlug, episodeSlug, seconds, currentTime);
+    }
     showControlsWithTimeout();
   };
 
@@ -389,6 +425,10 @@ export function NetflixPlayer({
     if (isIOS && video) {
       if ((video as any).webkitEnterFullscreen) {
         (video as any).webkitEnterFullscreen();
+      }
+      // Track fullscreen event
+      if (movieName && movieSlug && episodeSlug) {
+        analytics.trackWatchFilmFullscreen(movieName, movieSlug, episodeSlug, true);
       }
       showControlsWithTimeout();
       return;
@@ -411,6 +451,10 @@ export function NetflixPlayer({
       
       if (requestFullscreen) {
         requestFullscreen.call(container).catch(() => {});
+        // Track fullscreen event
+        if (movieName && movieSlug && episodeSlug) {
+          analytics.trackWatchFilmFullscreen(movieName, movieSlug, episodeSlug, true);
+        }
       }
     } else {
       const exitFullscreen = 
@@ -421,6 +465,10 @@ export function NetflixPlayer({
       
       if (exitFullscreen) {
         exitFullscreen.call(document).catch(() => {});
+        // Track fullscreen event
+        if (movieName && movieSlug && episodeSlug) {
+          analytics.trackWatchFilmFullscreen(movieName, movieSlug, episodeSlug, false);
+        }
       }
     }
     showControlsWithTimeout();

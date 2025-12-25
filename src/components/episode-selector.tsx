@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Play } from "lucide-react";
 import { getImageUrl } from "@/lib/api";
+import { analytics } from "@/lib/analytics";
 
 interface Episode {
   name: string;
@@ -125,7 +126,15 @@ export function EpisodeSelector({
     const imageUrl = getImageUrl(posterUrl);
 
     return (
-      <Link href={href} className="block w-full lg:w-1/2">
+      <Link 
+        href={href} 
+        className="block w-full lg:w-1/2"
+        onClick={() => {
+          if (movieName) {
+            analytics.trackFilmDetailPlayNow(movieName, movieSlug, firstEpisode.slug);
+          }
+        }}
+      >
         <div className="relative w-full aspect-[16/9] sm:aspect-[2.5/1] rounded-xl overflow-hidden border border-[#F6C453]/50 shadow-lg hover:shadow-[#F6C453]/30 transition-all hover:scale-[1.01] group cursor-pointer">
           {/* Background Image */}
           <div className="absolute inset-0">
@@ -184,7 +193,12 @@ export function EpisodeSelector({
               return (
                 <button
                   key={server.server_name}
-                  onClick={() => setSelectedServerIndex(index)}
+                  onClick={() => {
+                    setSelectedServerIndex(index);
+                    if (movieName) {
+                      analytics.trackFilmDetailServerChange(movieName, movieSlug, server.server_name);
+                    }
+                  }}
                   className={`flex-1 sm:flex-none px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ease-in-out flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer ${
                     isActive
                       ? "bg-[#1a1a2e] text-white"
@@ -261,6 +275,12 @@ export function EpisodeSelector({
                 <Link 
                   key={`${currentServer.server_name}-${episode.slug}`} 
                   href={href}
+                  onClick={() => {
+                    if (movieName) {
+                      const episodeName = currentEpisodes.length === 1 ? 'FULL' : `Tập ${index + 1}`;
+                      analytics.trackFilmDetailEpisodeClick(movieName, movieSlug, episodeName, episode.slug, currentServer.server_name);
+                    }
+                  }}
                   className="flex w-[96px] sm:w-[104px] md:w-[112px] items-center justify-center gap-1 px-2 sm:px-2.5 md:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.65)] bg-[#0a0a0a] border border-white/10 text-white hover:bg-[#F6C453] hover:text-white hover:border-[#F6C453] cursor-pointer"
                   style={{
                     animation: "fadeInUp 0.2s ease-out",

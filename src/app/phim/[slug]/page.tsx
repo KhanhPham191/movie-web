@@ -5,6 +5,10 @@ import { notFound } from "next/navigation";
 import { Footer } from "@/components/footer";
 import { EpisodeSelector } from "@/components/episode-selector";
 import { MovieActionsWrapper } from "@/components/movie-actions-wrapper";
+import { FilmDetailTracker } from "@/components/film-detail-tracker";
+import { FilmDetailPlayButton } from "@/components/film-detail-play-button";
+import { FilmDetailCategoryLink } from "@/components/film-detail-category-link";
+import { FilmDetailCountryLink } from "@/components/film-detail-country-link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -123,6 +127,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
 
     return (
       <>
+        <FilmDetailTracker movieName={movie.name} movieSlug={movie.slug} />
         {/* Hero Section - Cinematic Sakura Style */}
         <section className="relative h-[260px] xs:h-[300px] sm:h-[65vh] md:h-[80vh] min-h-[240px] xs:min-h-[260px] sm:min-h-[420px] md:min-h-[500px] flex items-end overflow-hidden animate-fade-in">
           {/* Background Image */}
@@ -222,19 +227,12 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
               {/* Action Buttons - chỉ hiển thị trên tablet/desktop, mobile dùng nút ở section Tập phim */}
               <div className="hidden sm:flex items-center gap-2 sm:gap-3 pt-1 relative z-30">
                 {defaultServer?.items?.[0] && (
-                  <Link
+                  <FilmDetailPlayButton
                     href={`/xem-phim/${movie.slug}/${defaultServer.items[0].slug}`}
-                    className="flex-1 sm:flex-initial"
-                  >
-                    <Button
-                      size="lg"
-                      className="relative group/btn bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white font-bold text-xs sm:text-sm md:text-base px-4 sm:px-6 md:px-8 h-9 sm:h-11 md:h-12 rounded-full shadow-[0_18px_40px_rgba(246,196,83,0.4)] hover:shadow-[0_24px_50px_rgba(246,196,83,0.5)] transition-all duration-300 w-full sm:w-auto border border-[#F6C453]/30 cursor-pointer"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-full opacity-0 group-hover/btn:opacity-100 transition-opacity" />
-                      <Play className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2 fill-white" />
-                      <span className="relative z-10">Phát ngay</span>
-                    </Button>
-                  </Link>
+                    movieName={movie.name}
+                    movieSlug={movie.slug}
+                    episodeSlug={defaultServer.items[0].slug}
+                  />
                 )}
                 {/* Movie Actions - Yêu thích, Đánh giá, Thêm vào danh sách */}
                 <div className="hidden sm:flex items-center gap-2">
@@ -354,14 +352,14 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                         if (!catSlug) return null;
 
                         return (
-                          <Link key={catId} href={`/the-loai/${catSlug}`}>
-                            <Badge
-                              variant="outline"
-                              className="bg-[#151515] border-[#F6C453]/30 text-white hover:border-[#F6C453] hover:bg-[#F6C453]/15 cursor-pointer transition-all rounded-full"
-                            >
-                              {catName}
-                            </Badge>
-                          </Link>
+                          <FilmDetailCategoryLink
+                            key={catId}
+                            href={`/the-loai/${catSlug}`}
+                            categoryName={catName}
+                            categorySlug={catSlug}
+                            movieName={movie.name}
+                            movieSlug={movie.slug}
+                          />
                         );
                       })}
                     </div>
@@ -393,14 +391,14 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                         if (!countrySlug) return null;
 
                         return (
-                          <Link key={countryId} href={`/quoc-gia/${countrySlug}`}>
-                            <Badge
-                              variant="outline"
-                              className="bg-[#151515] border-[#F6C453]/30 text-white hover:border-[#F6C453] hover:bg-[#F6C453]/15 cursor-pointer transition-all rounded-full"
-                            >
-                              {countryName}
-                            </Badge>
-                          </Link>
+                          <FilmDetailCountryLink
+                            key={countryId}
+                            href={`/quoc-gia/${countrySlug}`}
+                            countryName={countryName}
+                            countrySlug={countrySlug}
+                            movieName={movie.name}
+                            movieSlug={movie.slug}
+                          />
                         );
                       })}
                     </div>

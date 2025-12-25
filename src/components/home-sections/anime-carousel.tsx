@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { Play, Heart, Info } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import type { FilmItem, FilmDetail } from "@/lib/api";
 import { getImageUrl, getFilmDetail } from "@/lib/api";
 import { isValidTime } from "@/lib/utils";
@@ -32,21 +33,50 @@ function parseEpisodeInfo(episode?: string): { part?: string; episode?: string }
   };
 }
 
-function getLanguageBadge(language?: string) {
-  if (!language) return "Vietsub";
+// Kiểm tra có Vietsub không
+function hasVietsub(language?: string): boolean {
+  if (!language) return false;
   const lang = language.toLowerCase();
-  const hasLT = lang.includes("lồng") || lang.includes("lt");
-  const hasTM = lang.includes("thuyết minh") || lang.includes("tm");
-  const parts: string[] = [];
-  if (hasTM) parts.push("TM");
-  if (hasLT) parts.push("LT");
-  if (parts.length > 0) {
-    return parts.join("-");
-  }
-  if (lang.includes("vietsub") || lang.includes("viet") || lang.includes("vs"))
-    return "Vietsub";
-  if (lang.includes("thuyết minh")) return "Thuyết minh";
-  return "Vietsub";
+  return lang.includes("viet") || lang.includes("vs") || lang.includes("vietsub");
+}
+
+// Kiểm tra có Thuyết minh không
+function hasThuyetMinh(language?: string): boolean {
+  if (!language) return false;
+  const lang = language.toLowerCase();
+  return lang.includes("thuyết minh") || lang.includes("tm") || lang.includes("thuyet minh");
+}
+
+// Kiểm tra có Lồng tiếng không
+function hasLongTieng(language?: string): boolean {
+  if (!language) return false;
+  const lang = language.toLowerCase();
+  return lang.includes("lồng") || lang.includes("lt") || lang.includes("long") || lang.includes("lồng tiếng") || lang.includes("long tieng");
+}
+
+// Helper component để render language badges nhất quán
+function LanguageBadges({ language }: { language?: string }) {
+  const hasVS = hasVietsub(language);
+  const hasTM = hasThuyetMinh(language);
+  const hasLT = hasLongTieng(language);
+  
+  if (!hasVS && !hasTM && !hasLT) return null;
+  
+  // Tạo label kết hợp
+  const labels: string[] = [];
+  if (hasVS) labels.push("Vietsub");
+  if (hasTM) labels.push("TM");
+  if (hasLT) labels.push("LT");
+  
+  const badgeText = labels.join(" + ");
+  
+  return (
+    <div className="absolute bottom-2 left-2 z-30">
+      <Badge className="bg-gradient-to-r from-[#F6C453] via-[#F6C453] to-[#FAF9F6] text-black border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg">
+        {badgeText}
+      </Badge>
+    </div>
+  );
 }
 
 function formatDuration(time?: string, totalEpisodes?: number) {
@@ -227,7 +257,6 @@ export function AnimeCarousel({ movies }: AnimeCarouselProps) {
               })()
             : undefined;
           const episodeLabel = formatEpisodeLabel(movie.current_episode);
-          const languageBadge = getLanguageBadge(movie.language);
           const duration = formatDuration(movie.time, movie.total_episodes);
           const cleanDescription =
             movie.description?.replace(/<[^>]*>/g, "") || "";
@@ -240,7 +269,6 @@ export function AnimeCarousel({ movies }: AnimeCarouselProps) {
               posterUrl={posterUrl}
               year={year}
               episodeLabel={episodeLabel}
-              languageBadge={languageBadge}
               duration={duration}
               cleanDescription={cleanDescription}
               hasDragged={hasDragged}
@@ -260,7 +288,6 @@ function MovieCardWithPopup({
   posterUrl,
   year,
   episodeLabel,
-  languageBadge,
   duration,
   cleanDescription,
   hasDragged,
@@ -272,7 +299,6 @@ function MovieCardWithPopup({
   posterUrl: string;
   year?: number;
   episodeLabel: string;
-  languageBadge: string;
   duration: string;
   cleanDescription: string;
   hasDragged: React.MutableRefObject<boolean>;
@@ -553,11 +579,14 @@ function MovieCardWithPopup({
               sizes="(max-width: 640px) 280px, (max-width: 768px) 320px, 360px"
               unoptimized
             />
-            <div className="absolute bottom-2 left-2 z-10">
-              <span className="inline-block rounded-md bg-[#F6C453] text-black text-xs font-bold px-2 py-1 shadow-lg border border-black/20 [text-shadow:0_1px_2px_rgba(0,0,0,0.3)]">
-                {languageBadge}
-              </span>
-            </div>
+            {/* Language Badges - Bottom Left Corner */}
+            <LanguageBadges language={movie.language} />
+            {/* Episode Badge - Bottom Right Corner */}
+            {episodeLabel && (
+              <Badge className="absolute bottom-2 right-2 bg-gradient-to-r from-red-600 via-orange-500 to-orange-400 text-white border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg z-20">
+                {episodeLabel}
+              </Badge>
+            )}
             <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out" />
             <div className="absolute inset-0 flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-all duration-500 ease-in-out">
               <div className="relative transform scale-0 group-hover:scale-100 transition-transform duration-500 ease-in-out">

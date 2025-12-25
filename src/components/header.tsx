@@ -22,6 +22,7 @@ import {
 import { LoginModal } from "@/components/login-modal";
 import { SignupModal } from "@/components/signup-modal";
 import { GENRES, COUNTRIES } from "@/lib/api";
+import { analytics } from "@/lib/analytics";
 
 const mainNav = [
   { name: "Trang chủ", href: "/" },
@@ -121,6 +122,7 @@ export function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      analytics.trackSearch(searchQuery.trim());
       router.push(`/tim-kiem?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery("");
       setSuggestions([]);
@@ -279,7 +281,11 @@ export function Header() {
         {/* Left Side */}
         <div className="flex items-center gap-2 sm:gap-4 lg:gap-10 min-w-0">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-1 xs:gap-1.5 shrink-0">
+          <Link 
+            href="/" 
+            className="flex items-center gap-1 xs:gap-1.5 shrink-0"
+            onClick={() => analytics.trackReturnHomeLogo()}
+          >
             <div className="w-9 h-9 xs:w-10 xs:h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 lg:w-13 lg:h-13 rounded-xl overflow-hidden flex items-center justify-center">
               <Image
                 src="/logo.svg"
@@ -307,6 +313,7 @@ export function Header() {
                 key={item.name}
                 href={item.href}
                 className="text-sm font-medium text-gray-200 hover:text-white transition-colors"
+                onClick={() => analytics.trackNavigation(item.href, 'header_desktop')}
               >
                 {item.name}
               </Link>
@@ -326,7 +333,11 @@ export function Header() {
                 <DropdownMenuContent className="w-56 bg-[#0f0f0f]/95 backdrop-blur border-gray-800">
                   {mainNav.map((item) => (
                     <DropdownMenuItem key={item.name} asChild>
-                      <Link href={item.href} className="text-gray-200 hover:text-white">
+                      <Link 
+                        href={item.href} 
+                        className="text-gray-200 hover:text-white"
+                        onClick={() => analytics.trackNavigation(item.href, 'header_dropdown')}
+                      >
                         {item.name}
                       </Link>
                     </DropdownMenuItem>
@@ -366,8 +377,10 @@ export function Header() {
                       className="w-full text-left px-4 py-3 hover:bg-white/5 flex items-center gap-3"
                       onClick={() => {
                         if (s.slug) {
+                          analytics.trackSearchSuggestionClick(searchQuery, s.name);
                           router.push(`/phim/${s.slug}`);
                         } else if (s.name) {
+                          analytics.trackSearch(searchQuery);
                           router.push(`/tim-kiem?q=${encodeURIComponent(s.name)}`);
                         }
                         setIsSuggestOpen(false);
@@ -897,7 +910,10 @@ export function Header() {
                       key={item.name}
                       href={item.href}
                       className="block px-4 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white transition-colors"
-                      onClick={() => setIsMobileHamburgerOpen(false)}
+                      onClick={() => {
+                        setIsMobileHamburgerOpen(false);
+                        analytics.trackNavigation(item.href, 'header_mobile');
+                      }}
                     >
                       {item.name}
                     </Link>

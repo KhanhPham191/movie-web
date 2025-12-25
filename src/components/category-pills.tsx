@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { GENRES, COUNTRIES } from "@/lib/api";
+import { analytics } from "@/lib/analytics";
 
 interface CategoryPillsProps {
   activeCategory?: string;
@@ -24,6 +26,8 @@ const categories = [
 ];
 
 export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
+  const pathname = usePathname();
+  const isHome = pathname === '/';
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
@@ -73,7 +77,11 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
               <DropdownMenuContent className="w-56 max-h-80 overflow-y-auto bg-[#0f0f0f] border-gray-700">
                 {GENRES.map((genre) => (
                   <DropdownMenuItem key={genre.slug} asChild>
-                    <Link href={`/the-loai/${genre.slug}`} className="cursor-pointer text-gray-200 hover:text-white">
+                    <Link 
+                      href={`/the-loai/${genre.slug}`} 
+                      className="cursor-pointer text-gray-200 hover:text-white"
+                      onClick={() => analytics.trackGenreClick(genre.name, genre.slug, isHome)}
+                    >
                       {genre.name}
                     </Link>
                   </DropdownMenuItem>
@@ -100,7 +108,11 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
               <DropdownMenuContent className="w-48 bg-[#0f0f0f] border-gray-700">
                 {COUNTRIES.map((country) => (
                   <DropdownMenuItem key={country.slug} asChild>
-                    <Link href={`/quoc-gia/${country.slug}`} className="cursor-pointer text-gray-200 hover:text-white">
+                    <Link 
+                      href={`/quoc-gia/${country.slug}`} 
+                      className="cursor-pointer text-gray-200 hover:text-white"
+                      onClick={() => analytics.trackCountryClick(country.name, country.slug, isHome)}
+                    >
                       {country.name}
                     </Link>
                   </DropdownMenuItem>
@@ -132,7 +144,11 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
             className="flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide scroll-smooth px-0.5 sm:px-1"
           >
             {categories.map((cat) => (
-                <Link key={cat.slug} href={cat.href}>
+                <Link 
+                  key={cat.slug} 
+                  href={cat.href}
+                  onClick={() => analytics.trackCategoryClick(cat.name, cat.slug, isHome)}
+                >
                   <Button
                     variant={activeCategory === cat.slug ? "default" : "ghost"}
                     className={`h-7 sm:h-8 px-2.5 sm:px-4 text-xs sm:text-sm font-medium whitespace-nowrap shrink-0 rounded-full cursor-pointer ${
@@ -147,7 +163,11 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
               ))}
               
               {/* Mobile-only "Xem tất cả" button */}
-              <Link href="/danh-sach/phim-le" className="sm:hidden">
+              <Link 
+                href="/danh-sach/phim-le" 
+                className="sm:hidden"
+                onClick={() => analytics.trackCategoryClick('Xem tất cả', 'phim-le', isHome)}
+              >
                 <Button
                   variant="ghost"
                   className="h-7 px-3 text-xs font-medium whitespace-nowrap shrink-0 rounded-full bg-white/10 hover:bg-white/20 text-[#F6C453] cursor-pointer"
@@ -159,7 +179,11 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
             {/* Quick Genre Pills - Hide on very small screens */}
             <div className="hidden sm:flex gap-1.5 sm:gap-2">
               {GENRES.slice(0, 6).map((genre) => (
-                <Link key={genre.slug} href={`/the-loai/${genre.slug}`}>
+                <Link 
+                  key={genre.slug} 
+                  href={`/the-loai/${genre.slug}`}
+                  onClick={() => analytics.trackGenreClick(genre.name, genre.slug, isHome)}
+                >
                   <Button
                     variant="ghost"
                     className="h-7 sm:h-8 px-2.5 sm:px-4 text-xs sm:text-sm font-medium whitespace-nowrap shrink-0 rounded-full bg-white/10 hover:bg-white/20 text-white cursor-pointer"

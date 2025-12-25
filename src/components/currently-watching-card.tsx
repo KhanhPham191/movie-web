@@ -2,9 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Play } from "lucide-react";
+import { Play, X } from "lucide-react";
 import { getImageUrl } from "@/lib/api";
+import { removeFromCurrentlyWatching } from "@/lib/supabase/movies";
 import type { CurrentlyWatching } from "@/lib/supabase/movies";
+import { useState } from "react";
 
 interface CurrentlyWatchingCardProps {
   item: CurrentlyWatching;
@@ -28,15 +30,35 @@ function formatRemainingTime(watchTime: number, totalDuration: number): string {
 }
 
 export function CurrentlyWatchingCard({ item, index = 0 }: CurrentlyWatchingCardProps) {
-  const imageUrl = getImageUrl(item.movie_thumb || item.movie_poster || "");
+  // Ưu tiên dùng poster_url (poster) thay vì thumb
+  const imageUrl = getImageUrl(item.movie_poster || item.movie_thumb || "");
   const progress = item.total_duration > 0 
     ? Math.min((item.watch_time / item.total_duration) * 100, 100) 
     : 0;
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Link đến episode nếu có, nếu không thì link đến trang phim
   const href = item.episode_slug 
     ? `/xem-phim/${item.movie_slug}/${item.episode_slug}?t=${Math.floor(item.watch_time)}`
     : `/phim/${item.movie_slug}`;
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isDeleting) return;
+    
+    // Xóa ngay lập tức, không cần confirm
+    setIsDeleting(true);
+    try {
+      await removeFromCurrentlyWatching(item.movie_slug);
+      // Trigger refresh bằng cách dispatch custom event
+      window.dispatchEvent(new CustomEvent('currently-watching-updated'));
+    } catch (error) {
+      console.error('Failed to remove from currently watching:', error);
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <Link href={href}>
@@ -79,21 +101,36 @@ export function CurrentlyWatchingCard({ item, index = 0 }: CurrentlyWatchingCard
             </div>
           </div>
 
-          {/* Episode badge nếu có - Cải thiện */}
+          {/* Episode badge nếu có - di chuyển xuống dưới để tránh nút xóa */}
           {item.episode_name && (
-            <div className="absolute top-2 right-2 bg-[#F6C453]/90 backdrop-blur-sm px-2 py-1 rounded-md text-white text-[10px] font-bold shadow-lg border border-[#D3A13A]/30">
+            <div className="absolute top-10 right-2 bg-[#F6C453]/90 backdrop-blur-sm px-2 py-1 rounded-md text-white text-[10px] font-bold shadow-lg border border-[#D3A13A]/30 z-20">
               {item.episode_name}
             </div>
           )}
 
           {/* "Xem tiếp" badge - luôn hiển thị, gọn trên mobile */}
           {progress > 0 && progress < 100 && (
-            <div className="absolute top-2 left-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/80 backdrop-blur-sm border border-white/10 shadow-sm">
+            <div className="absolute top-2 left-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/80 backdrop-blur-sm border border-white/10 shadow-sm z-20">
               <span className="text-[8px] sm:text-[9px] text-white font-semibold uppercase tracking-wide whitespace-nowrap">
                 Xem tiếp
               </span>
             </div>
           )}
+
+          {/* Delete button - top right corner, chỉ hiện khi hover */}
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-black/80 backdrop-blur-sm border border-white/20 hover:bg-red-600/90 hover:border-red-500 flex items-center justify-center transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg"
+            aria-label="Xóa khỏi danh sách đang xem"
+            title="Xóa khỏi danh sách đang xem"
+          >
+            {isDeleting ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <X className="w-4 h-4 text-white" />
+            )}
+          </button>
         </div>
 
         {/* Title và thông tin - Cải thiện */}

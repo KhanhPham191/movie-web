@@ -15,6 +15,10 @@ import { NetflixPlayer } from "@/components/player/netflix-player";
 import { EpisodeSelectorWatch } from "@/components/episode-selector-watch";
 import { MovieInfoPanel } from "@/components/movie-info-panel";
 import { WatchProgressTracker } from "@/components/watch-progress-tracker";
+import { WatchFilmTracker } from "@/components/watch-film-tracker";
+import { WatchFilmEpisodeNav } from "@/components/watch-film-episode-nav";
+import { WatchFilmButtons } from "@/components/watch-film-buttons";
+import { analytics } from "@/lib/analytics";
 
 interface WatchPageProps {
   params: Promise<{ slug: string; episode: string }>;
@@ -267,6 +271,13 @@ async function VideoPlayer({
 
     return (
       <div className="space-y-10">
+        {/* Watch Film Tracker - Track page view */}
+        <WatchFilmTracker
+          movieName={movie.name}
+          movieSlug={movie.slug}
+          episodeName={currentEpisode.name}
+          episodeSlug={currentEpisode.slug}
+        />
         {/* Watch Progress Tracker - Lưu tiến độ xem */}
         <div className="animate-fade-in">
           <WatchProgressTracker
@@ -301,6 +312,9 @@ async function VideoPlayer({
                   className="h-full w-full"
                   autoPlay={true}
                   muted={false}
+                  movieName={movie.name}
+                  movieSlug={movie.slug}
+                  episodeSlug={currentEpisode.slug}
                 />
               ) : (
                 <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black text-white p-8">
@@ -315,62 +329,20 @@ async function VideoPlayer({
           </div>
 
           {/* Episode Navigation */}
-          <div
-            className="mt-2 flex items-center justify-between gap-2 sm:gap-4"
-          >
-            {prevEpisode && (
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="relative group/prev min-w-[130px] sm:min-w-[150px] bg-[#191b24] text-white border-white/15 hover:bg-white/5 hover:border-[#F6C453] text-xs sm:text-sm transition-all duration-300"
-              >
-                <Link href={`/xem-phim/${slug}/${prevEpisode.slug}`}>
-                  <ChevronLeft className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 mr-1" />
-                  <span className="relative z-10 truncate">Tập trước</span>
-                </Link>
-              </Button>
-            )}
-            {nextEpisode && (
-              <Button
-                asChild
-                size="lg"
-                className="relative group/next ml-auto min-w-[130px] sm:min-w-[150px] bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white font-semibold text-xs sm:text-sm shadow-[0_8px_25px_rgba(246,196,83,0.4)] hover:shadow-[0_12px_35px_rgba(246,196,83,0.5)] transition-all duration-300"
-              >
-                <Link href={`/xem-phim/${slug}/${nextEpisode.slug}`}>
-                  <span className="relative z-10 truncate">
-                    Tập tiếp theo
-                  </span>
-                  <ChevronRight className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 ml-1" />
-                </Link>
-              </Button>
-            )}
-          </div>
+          <WatchFilmEpisodeNav
+            movieName={movie.name}
+            movieSlug={movie.slug}
+            currentEpisodeSlug={currentEpisode.slug}
+            prevEpisode={prevEpisode ? { slug: prevEpisode.slug, name: prevEpisode.name } : null}
+            nextEpisode={nextEpisode ? { slug: nextEpisode.slug, name: nextEpisode.name } : null}
+          />
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap gap-2 sm:gap-3">
-            <Button
-              size="lg"
-              className="relative bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white font-semibold flex-1 sm:flex-none text-sm sm:text-base shadow-[0_8px_25px_rgba(246,196,83,0.3)] hover:shadow-[0_12px_35px_rgba(246,196,83,0.4)] transition-all duration-300"
-              asChild
-            >
-              <Link href={`/phim/${slug}`}>
-                <Info className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
-                <span>Chi tiết</span>
-              </Link>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-[#F6C453]/40 text-white hover:bg-[#F6C453]/10 hover:border-[#F6C453] flex-1 sm:flex-none text-sm sm:text-base transition-all duration-300"
-              asChild
-            >
-              <Link href="/">
-                <Home className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
-                <span>Trang chủ</span>
-              </Link>
-            </Button>
-          </div>
+          <WatchFilmButtons
+            movieName={movie.name}
+            movieSlug={movie.slug}
+            episodeSlug={currentEpisode.slug}
+          />
         </div>
 
 
@@ -410,6 +382,9 @@ async function VideoPlayer({
                 <Link
                   key={part.slug}
                   href={`/phim/${part.slug}`}
+                  onClick={() => {
+                    analytics.trackWatchFilmRelatedClick(movie.name, movie.slug, part.name, part.slug);
+                  }}
                   className="group relative aspect-[2/3] rounded-md sm:rounded-lg md:rounded-xl overflow-hidden bg-[#151515] border border-white/10 hover:border-[#F6C453]/60 transition-all duration-300 hover:scale-[1.02] sm:hover:scale-105 hover:shadow-[0_12px_40px_rgba(246,196,83,0.4)]"
                 >
                   <Image

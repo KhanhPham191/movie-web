@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { Heart, Star, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { analytics } from "@/lib/analytics";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -74,9 +75,19 @@ export function MovieActions({ movie, onRatingChange }: MovieActionsProps) {
     if (favorited) {
       await removeFromFavorites(movie.slug);
       setFavorited(false);
+      analytics.trackEvent('filmD_favorite_remove', {
+        event_category: 'user',
+        event_label: movie.name,
+        movie_slug: movie.slug,
+      });
     } else {
       await addToFavorites(movie);
       setFavorited(true);
+      analytics.trackEvent('filmD_favorite_add', {
+        event_category: 'user',
+        event_label: movie.name,
+        movie_slug: movie.slug,
+      });
     }
     setLoading(false);
   };
@@ -90,6 +101,12 @@ export function MovieActions({ movie, onRatingChange }: MovieActionsProps) {
     setLoading(true);
     await addRating(movie, rating);
     setUserRating(rating);
+    analytics.trackEvent('filmD_rating', {
+      event_category: 'user',
+      event_label: movie.name,
+      movie_slug: movie.slug,
+      rating: rating,
+    });
     setLoading(false);
     setShowRatingDialog(false);
     if (onRatingChange) onRatingChange();

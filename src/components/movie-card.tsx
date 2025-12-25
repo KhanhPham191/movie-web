@@ -5,12 +5,14 @@ import { createPortal } from "react-dom";
 import { getFilmDetail, type FilmDetail } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Play, Plus, ThumbsUp, ChevronDown, Volume2, VolumeX, Info, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { FilmItem } from "@/lib/api";
 import { getImageUrl } from "@/lib/api";
 import { isValidTime } from "@/lib/utils";
+import { analytics } from "@/lib/analytics";
 
 interface MovieCardProps {
   movie: FilmItem;
@@ -60,7 +62,56 @@ function getLanguageBadge(language?: string) {
   return parts.length ? parts.join("-") : language;
 }
 
+// Kiểm tra có Vietsub không
+function hasVietsub(language?: string): boolean {
+  if (!language) return false;
+  const lang = language.toLowerCase();
+  return lang.includes("viet") || lang.includes("vs") || lang.includes("vietsub");
+}
+
+// Kiểm tra có Thuyết minh không
+function hasThuyetMinh(language?: string): boolean {
+  if (!language) return false;
+  const lang = language.toLowerCase();
+  return lang.includes("thuyết minh") || lang.includes("tm") || lang.includes("thuyet minh");
+}
+
+// Kiểm tra có Lồng tiếng không
+function hasLongTieng(language?: string): boolean {
+  if (!language) return false;
+  const lang = language.toLowerCase();
+  return lang.includes("lồng") || lang.includes("lt") || lang.includes("long") || lang.includes("lồng tiếng") || lang.includes("long tieng");
+}
+
+// Helper component để render language badges nhất quán
+function LanguageBadges({ language }: { language?: string }) {
+  const hasVS = hasVietsub(language);
+  const hasTM = hasThuyetMinh(language);
+  const hasLT = hasLongTieng(language);
+  
+  if (!hasVS && !hasTM && !hasLT) return null;
+  
+  // Tạo label kết hợp
+  const labels: string[] = [];
+  if (hasVS) labels.push("Vietsub");
+  if (hasTM) labels.push("TM");
+  if (hasLT) labels.push("LT");
+  
+  const badgeText = labels.join(" + ");
+  
+  return (
+    <div className="absolute bottom-2 left-2 z-30">
+      <Badge className="bg-gradient-to-r from-[#F6C453] via-[#F6C453] to-[#FAF9F6] text-black border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg">
+        {badgeText}
+      </Badge>
+    </div>
+  );
+}
+
 export function MovieCard({ movie, index = 0, variant = "default", rank, disableTilt = false }: MovieCardProps) {
+  const pathname = usePathname();
+  const isHome = pathname === '/';
+  const isFilmDetail = pathname?.startsWith('/phim/') || false;
   const [isHovered, setIsHovered] = useState(false);
   const [isPortraitImage, setIsPortraitImage] = useState(false);
   const cardRef = useRef<HTMLAnchorElement>(null);
@@ -94,11 +145,23 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
     return firstEpisode?.slug || null;
   };
 
+  const handleMovieClick = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    // Track movie click event
+    analytics.trackMovieClick(movie.name, movie.slug, variant || 'default', isHome, isFilmDetail);
+  };
+
   const handleWatchNow = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (isNavigatingRef.current) return;
     isNavigatingRef.current = true;
+    
+    // Track watch now event
+    analytics.trackWatchNow(movie.name, movie.slug, variant || 'default', isHome, isFilmDetail);
+    
     try {
       const detailRes = await getFilmDetail(movie.slug);
       const epSlug = selectFirstEpisodeSlug(detailRes.movie);
@@ -201,6 +264,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
     if (hoverDelayRef.current) clearTimeout(hoverDelayRef.current);
     hoverDelayRef.current = setTimeout(() => {
       setIsHovered(true);
+      // Track hover event
+      analytics.trackMovieHover(movie.name, movie.slug, isHome, isFilmDetail);
     }, 500);
   };
 
@@ -324,9 +389,10 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               <Link
                 href={`/phim/${movie.slug}`}
                 className="pointer-events-auto bg-[#1a1a1a] hover:bg-[#252525] text-white border border-white/20 font-semibold text-base px-5 py-3.5 rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap shrink-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    analytics.trackDetailFilms(movie.name, movie.slug, 'popup', isFilmDetail);
+                  }}
               >
                 <Info className="w-5 h-5 shrink-0" />
                 <span>Chi tiết</span>
@@ -341,7 +407,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
   // Top 10 variant - Netflix style with badge
   if (variant === "top10" && rank) {
     return (
-      <Link href={`/phim/${movie.slug}`} className="cursor-pointer">
+      <Link href={`/phim/${movie.slug}`} className="cursor-pointer" onClick={handleMovieClick}>
         <div className="group relative flex flex-col h-full">
           {/* Poster */}
           <div 
@@ -370,6 +436,9 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             <div className="absolute top-0 left-0 w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center rounded-br-md shadow-lg z-20">
               <span className="text-white font-black text-xl md:text-2xl">{rank}</span>
             </div>
+            
+            {/* Language Badges - Bottom Left Corner */}
+            <LanguageBadges language={movie.language} />
             
             {/* Top 10 Badge - Bottom */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-2 z-20">
@@ -406,23 +475,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             <h3 className="text-sm font-medium line-clamp-2 min-h-[2.5rem] group-hover:text-[#F6C453] transition-colors duration-500 ease-in-out">
               {movie.name}
             </h3>
-            {(movie.time || movie.total_episodes || movie.language) && (
-              <p className="text-xs sm:text-sm text-gray-300 flex items-center gap-2">
-                {isValidTime(movie.time) && (
-                  <span className="truncate font-semibold text-white">
-                    {movie.time}
-                  </span>
-                )}
-                {movie.language && (
-                  <span className="px-1 py-0.5 rounded bg-white/10 text-white text-[9px] font-semibold uppercase tracking-wide border border-white/20">
-                    {movie.language}
-                  </span>
-                )}
-                <span className="px-1 py-0.5 rounded border border-gray-500 text-[9px] leading-none">
-                  16+
-                </span>
-              </p>
-            )}
           </div>
         </div>
       </Link>
@@ -432,7 +484,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
   // Portrait variant (vertical poster)
   if (variant === "portrait") {
     return (
-      <Link href={`/phim/${movie.slug}`} className="cursor-pointer">
+      <Link href={`/phim/${movie.slug}`} className="cursor-pointer" onClick={handleMovieClick}>
         <div 
           className="group relative flex flex-col h-full"
           onMouseEnter={() => setIsHovered(true)}
@@ -451,8 +503,10 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               unoptimized
             />
+            {/* Language Badges - Bottom Left Corner */}
+            <LanguageBadges language={movie.language} />
             {movie.current_episode && (
-              <Badge className="absolute top-2 right-2 bg-red-600 text-white border-0 text-[10px] z-20">
+              <Badge className="absolute bottom-2 right-2 bg-gradient-to-r from-red-500 to-orange-500 text-white border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg z-20">
                 {formatEpisodeLabel(movie.current_episode)}
               </Badge>
             )}
@@ -480,18 +534,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             <h3 className="text-sm font-medium line-clamp-2 min-h-[2.5rem] group-hover:text-[#F6C453] transition-colors duration-500 ease-in-out">
               {movie.name}
             </h3>
-            {(movie.time || movie.total_episodes) && (
-              <p className="text-xs sm:text-sm text-gray-300 flex items-center gap-2">
-                {isValidTime(movie.time) && (
-                  <span className="truncate font-semibold text-white">
-                    {movie.time}
-                  </span>
-                )}
-                <span className="px-1 py-0.5 rounded border border-gray-500 text-[9px] leading-none">
-                  16+
-                </span>
-              </p>
-            )}
           </div>
         </div>
       </Link>
@@ -518,7 +560,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
           (typeof window !== "undefined"
             ? createPortal(popupContent, document.body)
             : popupContent)}
-        <Link ref={cardRef} href={`/phim/${movie.slug}`} className="relative block cursor-pointer">
+        <Link ref={cardRef} href={`/phim/${movie.slug}`} className="relative block cursor-pointer" onClick={handleMovieClick}>
           <div
             className="group relative flex flex-col items-start h-full pt-4 sm:pt-5"
             onMouseEnter={handleMouseEnterWithDelay}
@@ -554,8 +596,10 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               unoptimized
             />
+              {/* Language Badges - Bottom Left Corner */}
+              <LanguageBadges language={movie.language} />
               {movie.current_episode && (
-                <Badge className="absolute bottom-2 left-2 bg-red-600 text-white border-0 text-[10px] font-bold z-20">
+                <Badge className="absolute bottom-2 right-2 bg-gradient-to-r from-red-500 to-orange-500 text-white border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg z-20">
                   {formatEpisodeLabel(movie.current_episode)}
                 </Badge>
               )}
@@ -592,27 +636,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               <h3 className="text-sm xs:text-base font-semibold text-white line-clamp-2 min-h-[2.25rem] group-hover:text-[#F6C453] transition-colors duration-500 ease-in-out">
                 {movie.name}
               </h3>
-              <p className="mt-0.5 text-xs sm:text-sm text-gray-300 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                {isValidTime(movie.time) && (
-                  <span className="font-semibold text-white">
-                    {movie.time}
-                  </span>
-                )}
-                {movie.language && (
-                  <>
-                    {isValidTime(movie.time) && <span className="text-white/30">•</span>}
-                    <span className="px-1 py-0.5 rounded bg-white/10 text-white text-[10px] font-semibold uppercase tracking-wide border border-white/20">
-                      {movie.language}
-                    </span>
-                  </>
-                )}
-                {(isValidTime(movie.time) || movie.language) && (
-                  <span className="text-white/30">•</span>
-                )}
-                <span className="px-1 py-0.5 rounded border border-gray-500 text-[10px]">
-                  13+
-                </span>
-              </p>
             </div>
           </div>
         </div>
@@ -658,8 +681,10 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               unoptimized
             />
+            {/* Language Badges - Bottom Left Corner */}
+            <LanguageBadges language={movie.language} />
             {movie.current_episode && (
-              <Badge className="absolute bottom-2 left-2 bg-red-600 text-white border-0 text-[10px] font-bold z-20">
+              <Badge className="absolute bottom-2 right-2 bg-gradient-to-r from-red-600 via-orange-500 to-orange-400 text-white border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg z-20">
                 {formatEpisodeLabel(movie.current_episode)}
               </Badge>
             )}
@@ -689,21 +714,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             <h3 className="text-sm xs:text-base font-semibold text-white line-clamp-2 min-h-[2.5rem] group-hover:text-[#F6C453] transition-colors duration-500 ease-out">
               {movie.name}
             </h3>
-            <p className="mt-1 text-xs sm:text-sm text-gray-300 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-              {isValidTime(movie.time) && (
-                <span className="font-semibold text-white">
-                  {movie.time}
-                </span>
-              )}
-              {movie.language && (
-                <span className="px-1 py-0.5 rounded bg-white/10 text-white text-[10px] font-semibold uppercase tracking-wide border border-white/20">
-                  {movie.language}
-                </span>
-              )}
-              <span className="px-1 py-0.5 rounded border border-gray-500 text-[10px]">
-                16+
-              </span>
-            </p>
           </div>
         </div>
         </Link>
@@ -719,7 +729,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
     const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
     const thumbUrl = getImageUrl(movie.thumb_url || movie.poster_url);
     const shortDescription = getShortDescription(movie.description, 110);
-    const languageBadge = getLanguageBadge(movie.language);
     const qualityLabel = movie.quality ? movie.quality.toUpperCase() : "";
 
     const year =
@@ -729,7 +738,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
     const episodeLabel = formatEpisodeLabel(movie.current_episode);
 
     return (
-      <Link href={`/phim/${movie.slug}`} className="cursor-pointer">
+      <Link href={`/phim/${movie.slug}`} className="cursor-pointer" onClick={handleMovieClick}>
         <div className="group relative w-full max-w-full h-full flex flex-col">
           {/* Glow frame */}
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#F6C453]/20 via-transparent to-[#DB2777]/15 blur-xl opacity-0 group-hover:opacity-100 transition duration-500" />
@@ -751,18 +760,19 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               unoptimized
             />
 
-            {(languageBadge || qualityLabel) && (
+            {/* Language Badges - Bottom Left Corner */}
+            <LanguageBadges language={movie.language} />
+            {/* Episode Badge - Bottom Right Corner */}
+            {episodeLabel && (
+              <Badge className="absolute bottom-2 right-2 bg-gradient-to-r from-red-600 via-orange-500 to-orange-400 text-white border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg z-20">
+                {episodeLabel}
+              </Badge>
+            )}
+            {qualityLabel && (
               <div className="absolute top-2 left-2 flex items-center gap-1 z-20">
-                {languageBadge && (
-                  <Badge className="bg-gradient-to-r from-[#7C3AED] to-[#DB2777] text-white border-0 text-[10px] font-bold shadow-lg [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">
-                    {languageBadge}
-                  </Badge>
-                )}
-                {qualityLabel && (
-                  <Badge className="bg-white/15 text-white border border-white/20 text-[10px] font-semibold">
-                    {qualityLabel}
-                  </Badge>
-                )}
+                <Badge className="bg-white/15 text-white border border-white/20 text-[10px] font-semibold">
+                  {qualityLabel}
+                </Badge>
               </div>
             )}
 
@@ -792,7 +802,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                     </Badge>
                   )}
                   {episodeLabel && (
-                    <Badge className="bg-red-600 text-white text-[9px] xs:text-[10px] font-semibold border-0">
+                    <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg border-0">
                       {episodeLabel}
                     </Badge>
                   )}
@@ -815,22 +825,21 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                     {shortDescription}
                   </p>
                 )}
-                <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-200 flex flex-wrap items-center gap-x-1.5 sm:gap-x-2 gap-y-0.5">
-                  <span className="px-1 py-0.5 rounded border border-gray-500 text-[9px] xs:text-[10px]">
-                    18+
-                  </span>
-                  {year && <span>{year}</span>}
-                  {isValidTime(movie.time) && (
-                    <span className="font-semibold text-white">
-                      {movie.time}
-                    </span>
-                  )}
-                  {episodeLabel && (
-                    <span className="px-1 py-0.5 rounded bg-white/10 border border-white/10 text-[9px] xs:text-[10px]">
-                      {episodeLabel}
-                    </span>
-                  )}
-                </p>
+                {(year || isValidTime(movie.time) || episodeLabel) && (
+                  <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-200 flex flex-wrap items-center gap-x-1.5 sm:gap-x-2 gap-y-0.5">
+                    {year && <span>{year}</span>}
+                    {isValidTime(movie.time) && (
+                      <span className="font-semibold text-white">
+                        {movie.time}
+                      </span>
+                    )}
+                    {episodeLabel && (
+                      <span className="px-1 py-0.5 rounded bg-white/10 border border-white/10 text-[9px] xs:text-[10px]">
+                        {episodeLabel}
+                      </span>
+                    )}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -846,7 +855,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Link href={`/phim/${movie.slug}`} className="cursor-pointer">
+      <Link href={`/phim/${movie.slug}`} className="cursor-pointer" onClick={handleMovieClick}>
         <div
           className={`relative rounded-[10px] overflow-hidden bg-muted transition-all duration-300 ease-out flex-shrink-0 border border-transparent ${
             isHovered
@@ -876,10 +885,13 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               unoptimized
             />
 
+            {/* Language Badges - Top Right Corner */}
+            {!isHovered && <LanguageBadges language={movie.language} />}
+
             {/* Episode badge */}
             {!isHovered && movie.current_episode && (
-              <div className="absolute bottom-2 left-2">
-                <Badge className="bg-red-600 text-white border-0 text-[10px] font-bold">
+              <div className="absolute bottom-2 right-2">
+                <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg">
                   {formatEpisodeLabel(movie.current_episode)}
                 </Badge>
               </div>
@@ -933,11 +945,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               <div className="flex items-center gap-2 text-xs">
                 <span className="text-green-500 font-semibold">97% Phù hợp</span>
                 {isValidTime(movie.time) && <span className="text-gray-400">{movie.time}</span>}
-                {movie.language && (
-                  <span className="px-1 py-0.5 rounded bg-white/10 text-white text-[9px] font-semibold uppercase tracking-wide border border-white/20">
-                    {movie.language}
-                  </span>
-                )}
               </div>
 
               {/* Genres */}
