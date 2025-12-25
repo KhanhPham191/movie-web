@@ -616,7 +616,9 @@ export function NetflixPlayer({
     gestureStartXRef.current = touch.clientX;
     gestureStartYRef.current = touch.clientY;
     gestureInitialBrightnessRef.current = brightness;
-    gestureInitialVolumeRef.current = video.volume;
+    // If video is muted, use 0 as initial volume for gesture calculation
+    // Otherwise use the actual video volume
+    gestureInitialVolumeRef.current = video.muted ? 0 : video.volume;
     gestureModeRef.current = 'none';
   };
 
@@ -666,7 +668,7 @@ export function NetflixPlayer({
     // Handle brightness (left side) - swipe up to increase, down to decrease
     if (gestureModeRef.current === 'brightness') {
       const delta = -dy / 300; // 300px = full range
-      const newBrightness = Math.min(1.5, Math.max(0.3, gestureInitialBrightnessRef.current + delta));
+      const newBrightness = Math.min(1, Math.max(0, gestureInitialBrightnessRef.current + delta));
       setBrightness(newBrightness);
       
       // Show indicator
@@ -694,13 +696,21 @@ export function NetflixPlayer({
     if (gestureModeRef.current === 'volume') {
       const delta = -dy / 200; // 200px = full range
       const newVolume = Math.min(1, Math.max(0, gestureInitialVolumeRef.current + delta));
-      video.volume = newVolume;
-      setVolume(newVolume);
       
-      // Unmute if volume is increased
+      // Unmute first if volume is increased above 0 (important for mobile browsers)
       if (newVolume > 0 && video.muted) {
         video.muted = false;
         setIsMuted(false);
+      }
+      
+      // Set volume after unmuting
+      video.volume = newVolume;
+      setVolume(newVolume);
+      
+      // If volume is 0, mute the video
+      if (newVolume === 0 && !video.muted) {
+        video.muted = true;
+        setIsMuted(true);
       }
       
       // Show indicator
