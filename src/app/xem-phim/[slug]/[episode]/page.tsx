@@ -9,8 +9,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight, Home, Info, Play } from "lucide-react";
 import { getFilmDetail, getImageUrl, searchFilmsMerged, type FilmItem } from "@/lib/api";
 import { isValidTime } from "@/lib/utils";
+import { IframePlayer } from "@/components/player/iframe-player";
 import { M3u8Player } from "@/components/player/m3u8-player";
-import { VideoJsPlayer } from "@/components/player/videojs-player";
+import { NetflixPlayer } from "@/components/player/netflix-player";
 import { EpisodeSelectorWatch } from "@/components/episode-selector-watch";
 import { MovieInfoPanel } from "@/components/movie-info-panel";
 import { WatchProgressTracker } from "@/components/watch-progress-tracker";
@@ -290,19 +291,24 @@ async function VideoPlayer({
             {countries[0] && <span>{formatLabel(countries[0])}</span>}
           </div>
 
-        {/* Video.js Player (HLS m3u8) */}
-          <div className="relative mx-auto w-full md:w-full lg:w-[92%] xl:w-[88%] 2xl:w-[85%] rounded-xl sm:rounded-2xl lg:rounded-[28px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.65)] border border-white/10">
+          {/* Video Player - Netflix Style */}
+          <div className="relative mx-auto w-full max-w-[1920px] rounded-lg sm:rounded-xl overflow-hidden shadow-2xl bg-black border border-white/10">
             <div className="relative aspect-[16/9] bg-black w-full">
               {currentEpisode.m3u8 ? (
-              <VideoJsPlayer
-                src={currentEpisode.m3u8}
-                poster={background}
-                className="h-full w-full"
-                autoplay
-              />
+                <NetflixPlayer
+                  src={currentEpisode.m3u8}
+                  title={`${movie.name} - ${currentEpisode.name}`}
+                  className="h-full w-full"
+                  autoPlay={true}
+                  muted={false}
+                />
               ) : (
-                <div className="h-full w-full flex items-center justify-center bg-black text-white">
-                  <p className="text-sm text-white/70">Không có nguồn video m3u8</p>
+                <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black text-white p-8">
+                  <div className="text-center space-y-4">
+                    <div className="w-16 h-16 mx-auto border-4 border-white/20 border-t-white rounded-full animate-spin" />
+                    <p className="text-sm sm:text-base text-white/70">Đang tải video...</p>
+                    <p className="text-xs text-white/50">Vui lòng đợi trong giây lát</p>
+                  </div>
                 </div>
               )}
             </div>
