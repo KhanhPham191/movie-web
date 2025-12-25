@@ -7,16 +7,20 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface ExpandableCategoriesProps {
   categories: any[];
+  showExpandButton?: boolean;
 }
 
 export function ExpandableCategories({
   categories,
+  showExpandButton = true,
 }: ExpandableCategoriesProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   
-  // Hiển thị 3 thể loại đầu tiên khi chưa expand
-  const visibleCategories = isExpanded ? categories : categories.slice(0, 3);
-  const hasMore = categories.length > 3;
+  // Hiển thị 3 thể loại đầu tiên khi chưa expand, hoặc tất cả nếu không có nút expand
+  const visibleCategories = showExpandButton 
+    ? (isExpanded ? categories : categories.slice(0, 3))
+    : categories;
+  const hasMore = showExpandButton && categories.length > 3;
 
   return (
     <div className="space-y-2">

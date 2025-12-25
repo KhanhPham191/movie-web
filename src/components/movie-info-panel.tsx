@@ -135,7 +135,7 @@ export function MovieInfoPanel({
               {/* Genre Tags - Smaller - Cố định height */}
               {categories.length > 0 && (
                 <div className="min-h-[24px]">
-                  <ExpandableCategories categories={categories} />
+                  <ExpandableCategories categories={categories} showExpandButton={false} />
                 </div>
               )}
             </div>
