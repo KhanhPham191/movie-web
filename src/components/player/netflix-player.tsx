@@ -58,6 +58,11 @@ export function NetflixPlayer({
   const [isDragging, setIsDragging] = useState(false);
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [showSpeedIndicator, setShowSpeedIndicator] = useState(false);
+  const [brightness, setBrightness] = useState(1);
+  const [gestureIndicator, setGestureIndicator] = useState<{
+    type: 'brightness' | 'volume';
+    value: number;
+  } | null>(null);
 
   // Long press state for 2x speed
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -66,6 +71,14 @@ export function NetflixPlayer({
   const touchStartYRef = useRef<number>(0);
   const isLongPressActiveRef = useRef<boolean>(false);
   const lastTapRef = useRef<number>(0);
+
+  // Gesture state for brightness and volume
+  const gestureStartXRef = useRef<number>(0);
+  const gestureStartYRef = useRef<number>(0);
+  const gestureInitialBrightnessRef = useRef<number>(1);
+  const gestureInitialVolumeRef = useRef<number>(1);
+  const gestureModeRef = useRef<'none' | 'brightness' | 'volume' | 'horizontal'>('none');
+  const gestureIndicatorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Detect mobile device and iOS
   useEffect(() => {
@@ -287,6 +300,9 @@ export function NetflixPlayer({
       if (controlsTimeoutRef.current) {
         clearTimeout(controlsTimeoutRef.current);
       }
+      if (gestureIndicatorTimeoutRef.current) {
+        clearTimeout(gestureIndicatorTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -481,16 +497,8 @@ export function NetflixPlayer({
     
     lastTapRef.current = now;
     
-    // Start long press timer (500ms)
-    longPressTimerRef.current = setTimeout(() => {
-      const video = videoRef.current;
-      if (video && !isLongPressActiveRef.current) {
-        isLongPressActiveRef.current = true;
-        setPlaybackRate(2);
-        setShowSpeedIndicator(true);
-        showControlsWithTimeout();
-      }
-    }, 500);
+    // Don't start long press timer immediately - wait to see if user moves
+    // Timer will be started in handleLongPressTouchMove if no significant movement
   };
 
   const handleLongPressTouchMove = (e: React.TouchEvent) => {
@@ -505,6 +513,22 @@ export function NetflixPlayer({
       return;
     }
     
+    // Don't start long press if gesture mode is already active (brightness/volume)
+    if (gestureModeRef.current === 'brightness' || gestureModeRef.current === 'volume') {
+      // Cancel any existing long press timer
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+      // Cancel active long press if any
+      if (isLongPressActiveRef.current) {
+        isLongPressActiveRef.current = false;
+        setPlaybackRate(1);
+        setShowSpeedIndicator(false);
+      }
+      return;
+    }
+    
     const touch = e.touches[0];
     if (!touch) return;
     
@@ -515,7 +539,7 @@ export function NetflixPlayer({
       Math.pow(touch.clientY - touchStartYRef.current, 2)
     );
     
-    // Cancel long press if user moves finger significantly
+    // If user moves significantly, cancel long press
     if (moveDistance > moveThreshold) {
       if (longPressTimerRef.current) {
         clearTimeout(longPressTimerRef.current);
@@ -527,6 +551,24 @@ export function NetflixPlayer({
         isLongPressActiveRef.current = false;
         setPlaybackRate(1);
         setShowSpeedIndicator(false);
+      }
+    } else {
+      // User is holding still - start long press timer if not already started
+      if (!longPressTimerRef.current && !isLongPressActiveRef.current) {
+        const timeSinceTouchStart = Date.now() - touchStartTimeRef.current;
+        const remainingTime = Math.max(0, 500 - timeSinceTouchStart);
+        
+        longPressTimerRef.current = setTimeout(() => {
+          const video = videoRef.current;
+          if (video && !isLongPressActiveRef.current && 
+              (gestureModeRef.current === 'none' || gestureModeRef.current === 'horizontal')) {
+            isLongPressActiveRef.current = true;
+            setPlaybackRate(2);
+            setShowSpeedIndicator(true);
+            showControlsWithTimeout();
+          }
+          longPressTimerRef.current = null;
+        }, remainingTime);
       }
     }
   };
@@ -550,6 +592,154 @@ export function NetflixPlayer({
     }
   };
 
+  // Handle vertical swipe gestures for brightness and volume (Netflix-style) - Mobile only
+  const handleTouchStartGesture = (e: React.TouchEvent) => {
+    if (!isMobile) return;
+    
+    // Don't interfere with controls or progress bar
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-settings-menu]') || 
+        target.closest('button') || 
+        target.closest('input') ||
+        target.closest('.pointer-events-auto') ||
+        target.closest('[class*="progress"]')) {
+      return;
+    }
+
+    const container = containerRef.current;
+    const video = videoRef.current;
+    if (!container || !video) return;
+
+    const touch = e.touches[0];
+    if (!touch) return;
+
+    gestureStartXRef.current = touch.clientX;
+    gestureStartYRef.current = touch.clientY;
+    gestureInitialBrightnessRef.current = brightness;
+    gestureInitialVolumeRef.current = video.volume;
+    gestureModeRef.current = 'none';
+  };
+
+  const handleTouchMoveGesture = (e: React.TouchEvent) => {
+    if (!isMobile) return;
+    
+    const container = containerRef.current;
+    const video = videoRef.current;
+    if (!container || !video) return;
+
+    const touch = e.touches[0];
+    if (!touch) return;
+
+    const dx = touch.clientX - gestureStartXRef.current;
+    const dy = touch.clientY - gestureStartYRef.current;
+    const threshold = 10;
+
+    // Determine gesture mode
+    if (gestureModeRef.current === 'none') {
+      if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) return;
+
+      if (Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal swipe - seeking (handled by progress bar)
+        gestureModeRef.current = 'horizontal';
+        return;
+      } else {
+        // Vertical swipe - determine left or right side
+        // Cancel long press timer immediately when vertical gesture is detected
+        if (longPressTimerRef.current) {
+          clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+        }
+        
+        // Cancel active long press if any
+        if (isLongPressActiveRef.current) {
+          isLongPressActiveRef.current = false;
+          setPlaybackRate(1);
+          setShowSpeedIndicator(false);
+        }
+        
+        const rect = container.getBoundingClientRect();
+        const isLeftSide = touch.clientX < rect.left + rect.width / 2;
+        gestureModeRef.current = isLeftSide ? 'brightness' : 'volume';
+      }
+    }
+
+    // Handle brightness (left side) - swipe up to increase, down to decrease
+    if (gestureModeRef.current === 'brightness') {
+      const delta = -dy / 300; // 300px = full range
+      const newBrightness = Math.min(1.5, Math.max(0.3, gestureInitialBrightnessRef.current + delta));
+      setBrightness(newBrightness);
+      
+      // Show indicator
+      setGestureIndicator({
+        type: 'brightness',
+        value: newBrightness,
+      });
+      
+      // Clear existing timeout
+      if (gestureIndicatorTimeoutRef.current) {
+        clearTimeout(gestureIndicatorTimeoutRef.current);
+      }
+      
+      // Hide indicator after delay
+      gestureIndicatorTimeoutRef.current = setTimeout(() => {
+        setGestureIndicator(null);
+      }, 1000);
+      
+      showControlsWithTimeout();
+      e.preventDefault(); // Prevent scrolling
+      return;
+    }
+
+    // Handle volume (right side) - swipe up to increase, down to decrease
+    if (gestureModeRef.current === 'volume') {
+      const delta = -dy / 200; // 200px = full range
+      const newVolume = Math.min(1, Math.max(0, gestureInitialVolumeRef.current + delta));
+      video.volume = newVolume;
+      setVolume(newVolume);
+      
+      // Unmute if volume is increased
+      if (newVolume > 0 && video.muted) {
+        video.muted = false;
+        setIsMuted(false);
+      }
+      
+      // Show indicator
+      setGestureIndicator({
+        type: 'volume',
+        value: newVolume,
+      });
+      
+      // Clear existing timeout
+      if (gestureIndicatorTimeoutRef.current) {
+        clearTimeout(gestureIndicatorTimeoutRef.current);
+      }
+      
+      // Hide indicator after delay
+      gestureIndicatorTimeoutRef.current = setTimeout(() => {
+        setGestureIndicator(null);
+      }, 1000);
+      
+      showControlsWithTimeout();
+      e.preventDefault(); // Prevent scrolling
+      return;
+    }
+  };
+
+  const handleTouchEndGesture = (e: React.TouchEvent) => {
+    if (!isMobile) return;
+    
+    // Reset gesture mode
+    gestureModeRef.current = 'none';
+    
+    // Hide indicator after a short delay
+    if (gestureIndicatorTimeoutRef.current) {
+      clearTimeout(gestureIndicatorTimeoutRef.current);
+    }
+    gestureIndicatorTimeoutRef.current = setTimeout(() => {
+      setGestureIndicator(null);
+    }, 1000);
+  };
+
   if (!src) return null;
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -562,6 +752,7 @@ export function NetflixPlayer({
       style={{ 
         userSelect: 'none', 
         WebkitUserSelect: 'none',
+        filter: `brightness(${brightness})`,
         ...(isFullscreen ? {
           display: 'flex',
           alignItems: 'center',
@@ -575,16 +766,24 @@ export function NetflixPlayer({
           setShowControls(true);
           // Handle long press for 2x speed
           handleLongPressTouchStart(e);
+          // Handle gesture for brightness/volume
+          handleTouchStartGesture(e);
         }
       }}
       onTouchMove={(e) => {
         if (isMobile) {
-          // Handle long press movement
-          handleLongPressTouchMove(e);
+          // Always try to handle gesture first to determine mode
+          handleTouchMoveGesture(e);
+          // Only handle long press if not in gesture mode
+          if (gestureModeRef.current === 'none' || gestureModeRef.current === 'horizontal') {
+            handleLongPressTouchMove(e);
+          }
         }
       }}
       onTouchEnd={(e) => {
         if (isMobile) {
+          // Handle gesture end
+          handleTouchEndGesture(e);
           // Handle long press end
           handleLongPressTouchEnd(e);
           
@@ -631,9 +830,28 @@ export function NetflixPlayer({
           // Prevent right-click context menu
           e.preventDefault();
         }}
-        onTouchStart={handleLongPressTouchStart}
-        onTouchMove={handleLongPressTouchMove}
-        onTouchEnd={handleLongPressTouchEnd}
+        onTouchStart={(e) => {
+          if (isMobile) {
+            handleLongPressTouchStart(e);
+            handleTouchStartGesture(e);
+          }
+        }}
+        onTouchMove={(e) => {
+          if (isMobile) {
+            // Always try to handle gesture first to determine mode
+            handleTouchMoveGesture(e);
+            // Only handle long press if not in gesture mode
+            if (gestureModeRef.current === 'none' || gestureModeRef.current === 'horizontal') {
+              handleLongPressTouchMove(e);
+            }
+          }
+        }}
+        onTouchEnd={(e) => {
+          if (isMobile) {
+            handleTouchEndGesture(e);
+            handleLongPressTouchEnd(e);
+          }
+        }}
       />
 
       {/* Center Play Button */}
@@ -1079,6 +1297,53 @@ export function NetflixPlayer({
         <div className="absolute top-1/2 right-4 -translate-y-1/2 pointer-events-none z-[100]">
           <div className="bg-black/40 rounded-full p-2 backdrop-blur-sm">
             <FastForward className="w-4 h-4 text-[#F6C453]" />
+          </div>
+        </div>
+      )}
+
+      {/* Gesture indicator for brightness and volume */}
+      {gestureIndicator && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[100]">
+          <div className="flex flex-col items-center gap-3">
+            {/* Icon */}
+            <div className="bg-black/80 rounded-full p-4 backdrop-blur-sm">
+              {gestureIndicator.type === 'brightness' ? (
+                <svg
+                  className="w-8 h-8 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                  />
+                </svg>
+              ) : (
+                <Volume2 className="w-8 h-8 text-white" />
+              )}
+            </div>
+            {/* Value */}
+            <div className="bg-black/80 rounded-lg px-6 py-3 backdrop-blur-sm">
+              <div className="text-white text-2xl font-semibold">
+                {gestureIndicator.type === 'brightness'
+                  ? `${Math.round(gestureIndicator.value * 100)}%`
+                  : gestureIndicator.value === 0
+                  ? 'Tắt tiếng'
+                  : `${Math.round(gestureIndicator.value * 100)}%`}
+              </div>
+            </div>
+            {/* Progress bar */}
+            <div className="w-32 h-1 bg-white/20 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A] transition-all duration-150"
+                style={{
+                  width: `${Math.min(100, Math.max(0, gestureIndicator.value * 100))}%`,
+                }}
+              />
+            </div>
           </div>
         </div>
       )}
