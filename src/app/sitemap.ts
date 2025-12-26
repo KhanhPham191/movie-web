@@ -33,7 +33,7 @@ async function getMoviesForSitemap(): Promise<FilmItem[]> {
 
     return movies.slice(0, MAX_MOVIES_IN_SITEMAP);
   } catch (error) {
-    console.error("[Sitemap] Error fetching movies:", error);
+    // console.error("[Sitemap] Error fetching movies:", error);
     return [];
   }
 }

@@ -104,7 +104,7 @@ async function GenreContent({ slug, page }: { slug: string; page: number }) {
       </>
     );
   } catch (error) {
-    console.error("[GenrePage] Error:", error);
+    // console.error("[GenrePage] Error:", error);
     return (
       <div className="text-center py-20">
         <p className="text-destructive">Có lỗi xảy ra. Vui lòng thử lại sau.</p>

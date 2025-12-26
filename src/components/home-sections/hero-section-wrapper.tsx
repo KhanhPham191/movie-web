@@ -18,16 +18,17 @@ export async function HeroSectionWrapper() {
     // Lấy năm hiện tại để filter
     const currentYear = new Date().getFullYear();
     
-    // Sử dụng API với filter năm hiện tại, sort theo _id desc để lấy phim mới nhất
-    // Chỉ lấy 1 page với limit 10
+    // Sử dụng API với filter năm hiện tại và chỉ lấy phim chiếu rạp, sort theo _id desc để lấy phim mới nhất
+    // Lấy nhiều page với limit cao hơn để đảm bảo có đủ phim chiếu rạp
     const phimLeRaw = await getFilmsByCategoryMultiple(
       CATEGORIES.PHIM_LE,
-      1, // Chỉ lấy 1 page
+      3, // Lấy 3 pages để có đủ phim chiếu rạp
       {
         sort_field: '_id',
         sort_type: 'desc',
         year: currentYear,
-        limit: 10 // Chỉ lấy 10 phim đầu
+        chieurap: true, // Chỉ lấy phim chiếu rạp
+        limit: 20 // Tăng limit để có đủ phim
       }
     );
     

@@ -31,6 +31,8 @@ export interface FilmItem {
   casts: string;
   category: FilmCategory[];
   country: FilmCategory[];
+  // Phim chiếu rạp
+  chieurap?: boolean;
 }
 
 export interface FilmDetail extends FilmItem {
@@ -95,6 +97,7 @@ interface PhimAPIItem {
   director?: string;
   casts?: string;
   total_episodes?: number;
+  chieurap?: boolean | number; // API có thể trả về boolean hoặc number (1/0)
 }
 
 interface PhimAPIResponse {
@@ -192,6 +195,11 @@ function convertPhimAPIItemToFilmItem(item: PhimAPIItem): FilmItem {
   const imdb = normalizeRating(item.imdb);
   const tmdb = normalizeRating(item.tmdb);
   
+  // Chuẩn hóa chieurap: có thể là boolean hoặc number (1/0)
+  const chieurap = item.chieurap !== undefined 
+    ? (typeof item.chieurap === 'boolean' ? item.chieurap : item.chieurap === 1)
+    : undefined;
+
   return {
     id: item._id,
     name: item.name,
@@ -222,6 +230,7 @@ function convertPhimAPIItemToFilmItem(item: PhimAPIItem): FilmItem {
       name: c.name,
       slug: c.slug,
     })),
+    chieurap,
   };
 }
 
@@ -366,7 +375,7 @@ export async function getFilmsByGenre(
       },
     };
   } catch (error) {
-    console.error("[API] Error fetching films by genre:", error);
+    // console.error("[API] Error fetching films by genre:", error);
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Unknown error",
@@ -393,6 +402,8 @@ export async function getFilmsByCategory(
     sort_type?: string;
     sort_lang?: string;
     limit?: number;
+    // Filter chỉ lấy phim chiếu rạp (nếu backend hỗ trợ)
+    chieurap?: boolean;
   }
 ): Promise<FilmListResponse> {
   try {
@@ -420,6 +431,10 @@ export async function getFilmsByCategory(
     }
     if (options?.limit) {
       params.append('limit', String(options.limit));
+    }
+    // Map biến chieurap sang query param (1/0) cho API
+    if (typeof options?.chieurap === "boolean") {
+      params.append("chieurap", options.chieurap ? "1" : "0");
     }
     
     const response = await fetchPhimAPI<PhimAPIResponse>(
@@ -456,7 +471,7 @@ export async function getFilmsByCategory(
       },
     };
   } catch (error) {
-    console.error("[API] Error fetching films by category:", error);
+    // console.error("[API] Error fetching films by category:", error);
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Unknown error",
@@ -483,6 +498,7 @@ export async function getFilmsByCategoryMultiple(
     sort_type?: string;
     sort_lang?: string;
     limit?: number;
+    chieurap?: boolean;
   }
 ): Promise<FilmItem[]> {
   return getMultiplePages((page) => getFilmsByCategory(slug, page, options), pages);
@@ -559,7 +575,7 @@ export async function getFilmsByCountry(
       },
     };
   } catch (error) {
-    console.error("[API] Error fetching films by country:", error);
+    // console.error("[API] Error fetching films by country:", error);
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Unknown error",
@@ -600,7 +616,7 @@ export async function getFilmsByCountryAll(
     
     // Check if response is error or has no items
     if (firstPage.status === "error" || !firstPage.items || firstPage.items.length === 0) {
-      console.warn(`[API] No items found for country ${slug} or error status:`, firstPage.status);
+      // console.warn(`[API] No items found for country ${slug} or error status:`, firstPage.status);
       return [];
     }
     
@@ -628,7 +644,7 @@ export async function getFilmsByCountryAll(
         (_, j) => {
           const pageNum = i + j + 2;
           return getFilmsByCountry(slug, pageNum).catch((err) => {
-            console.warn(`[API] Error fetching country ${slug} page ${pageNum}:`, err);
+            // console.warn(`[API] Error fetching country ${slug} page ${pageNum}:`, err);
             return null;
           });
         }
@@ -650,7 +666,7 @@ export async function getFilmsByCountryAll(
     
     return allResults;
   } catch (error) {
-    console.error("[API] Error fetching all country pages:", error);
+    // console.error("[API] Error fetching all country pages:", error);
     return [];
   }
 }
@@ -690,7 +706,7 @@ export async function getFilmDetail(slug: string): Promise<FilmDetailResponse> {
       },
     };
   } catch (error) {
-    console.error("[API] Error fetching film detail:", error);
+    // console.error("[API] Error fetching film detail:", error);
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Unknown error",
@@ -771,7 +787,7 @@ export async function searchFilms(
       },
     };
   } catch (error) {
-    console.error("[API] Error searching films:", error);
+    // console.error("[API] Error searching films:", error);
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Unknown error",
@@ -837,7 +853,7 @@ export async function getNewlyUpdatedFilms(page: number = 1): Promise<FilmListRe
       },
     };
   } catch (error) {
-    console.error("[API] Error fetching newly updated films:", error);
+    // console.error("[API] Error fetching newly updated films:", error);
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Unknown error",
@@ -1062,7 +1078,7 @@ export async function getFilmsByGenreAll(
     
     // Check if response is error or has no items
     if (firstPage.status === "error" || !firstPage.items || firstPage.items.length === 0) {
-      console.warn(`[API] No items found for genre ${slug} or error status:`, firstPage.status);
+      // console.warn(`[API] No items found for genre ${slug} or error status:`, firstPage.status);
       return [];
     }
     
@@ -1090,7 +1106,7 @@ export async function getFilmsByGenreAll(
         (_, j) => {
           const pageNum = i + j + 2;
           return getFilmsByGenre(slug, pageNum).catch((err) => {
-            console.warn(`[API] Error fetching genre ${slug} page ${pageNum}:`, err);
+            // console.warn(`[API] Error fetching genre ${slug} page ${pageNum}:`, err);
             return null;
           });
         }
@@ -1112,7 +1128,7 @@ export async function getFilmsByGenreAll(
     
     return allResults;
   } catch (error) {
-    console.error("[API] Error fetching all genre pages:", error);
+    // console.error("[API] Error fetching all genre pages:", error);
     return [];
   }
 }

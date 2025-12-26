@@ -176,12 +176,12 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
       } else {
         // Không fallback, chỉ log để kiểm tra chuỗi slug tập
         // eslint-disable-next-line no-console
-        console.log("No episode slug found for", movie.slug, detailRes.movie?.episodes);
+        // console.log("No episode slug found for", movie.slug, detailRes.movie?.episodes);
       }
     } catch (err) {
       // Không fallback để quan sát lỗi
       // eslint-disable-next-line no-console
-      console.error("Failed to fetch detail for watch now:", err);
+      // console.error("Failed to fetch detail for watch now:", err);
     } finally {
       isNavigatingRef.current = false;
     }

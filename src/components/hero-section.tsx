@@ -29,6 +29,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
   const [dragStartX, setDragStartX] = useState<number | null>(null);
   const [dragDeltaX, setDragDeltaX] = useState(0);
 
+  // Movies đã được filter chieurap từ API, chỉ cần slice
   const featuredMovies = movies.slice(0, 5);
   const movie = featuredMovies[currentIndex];
 

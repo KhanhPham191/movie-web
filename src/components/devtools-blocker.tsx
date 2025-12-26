@@ -101,8 +101,8 @@ export function DevToolsBlocker() {
           handleDevToolsOpen();
         },
       });
-      console.log(element);
-      console.clear();
+      // console.log(element);
+      // console.clear();
     };
 
     // Hàm xử lý khi phát hiện DevTools mở
@@ -114,12 +114,12 @@ export function DevToolsBlocker() {
       // window.location.reload();
 
       // Tùy chọn 3: Hiển thị cảnh báo và đóng DevTools (nếu có thể)
-      console.clear();
-      console.log("%c⚠️ CẢNH BÁO ⚠️", "color: red; font-size: 50px; font-weight: bold;");
-      console.log(
-        "%cBạn không được phép mở Developer Tools!",
-        "color: red; font-size: 20px;"
-      );
+      // console.clear();
+      // console.log("%c⚠️ CẢNH BÁO ⚠️", "color: red; font-size: 50px; font-weight: bold;");
+      // console.log(
+      //   "%cBạn không được phép mở Developer Tools!",
+      //   "color: red; font-size: 20px;"
+      // );
 
       // Tùy chọn 4: Chỉ log (không làm gì)
       // Có thể thêm logic khác ở đây

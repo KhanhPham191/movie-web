@@ -43,15 +43,17 @@ export async function Top10PhimLe() {
     // Chỉ lấy phim từ năm 2025 trở lên
     // Lấy nhiều phim hơn để có đủ sau khi filter theo năm
     const phimLeRaw = await getFilmsByCategoryMultiple(
-      CATEGORIES.PHIM_LE, 
+      CATEGORIES.PHIM_LE,
       1, // Chỉ lấy 1 page
       {
         // Ưu tiên sort theo thời gian cập nhật từ API nếu có hỗ trợ
         // Sau đó vẫn sort lại theo modified ở phía client cho chắc chắn
         sort_field: "modified",
-        sort_type: 'desc',
+        sort_type: "desc",
         year: 2025, // Filter theo năm 2025
-        limit: 50 // Lấy nhiều hơn để có đủ sau khi filter >= 2025
+        limit: 50, // Lấy nhiều hơn để có đủ sau khi filter >= 2025
+        // Chỉ lấy phim chiếu rạp (nếu backend hỗ trợ query này)
+        chieurap: true,
       }
     ).catch((error) => {
       return [];
@@ -61,10 +63,13 @@ export async function Top10PhimLe() {
       return null;
     }
 
-    // Filter chỉ lấy phim có năm >= 2025
+    // Filter chỉ lấy phim có năm >= 2025 và chieurap = true
     const phimLeFiltered = phimLeRaw.filter((movie) => {
       const year = getReleaseYear(movie);
-      return year !== null && year >= 2025;
+      const isYearValid = year !== null && year >= 2025;
+      // Chỉ lấy phim chiếu rạp (chieurap = true)
+      const isChieuRap = movie.chieurap === true;
+      return isYearValid && isChieuRap;
     });
 
     // Sắp xếp theo modified time (mới nhất trước) để hiển thị phim mới cập nhật nhất

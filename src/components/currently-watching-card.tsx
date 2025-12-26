@@ -67,7 +67,7 @@ export function CurrentlyWatchingCard({ item, index = 0 }: CurrentlyWatchingCard
         window.dispatchEvent(new CustomEvent('currently-watching-updated'));
       }, 300);
     } catch (error) {
-      console.error('Failed to remove from currently watching:', error);
+      // console.error('Failed to remove from currently watching:', error);
       setIsDeleting(false);
     }
   };
