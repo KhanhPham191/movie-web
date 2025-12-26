@@ -581,6 +581,11 @@ export function NetflixPlayer({
     
     lastTapRef.current = now;
     
+    // In fullscreen mode, prevent default to ensure touch events work properly
+    if (isFullscreen) {
+      e.preventDefault();
+    }
+    
     // Don't start long press timer immediately - wait to see if user moves
     // Timer will be started in handleLongPressTouchMove if no significant movement
   };
@@ -616,6 +621,11 @@ export function NetflixPlayer({
     const touch = e.touches[0];
     if (!touch) return;
     
+    // In fullscreen mode, prevent default to ensure touch events work properly
+    if (isFullscreen && touchStartTimeRef.current > 0) {
+      e.preventDefault();
+    }
+    
     // Calculate movement distance
     const moveThreshold = 15; // pixels
     const moveDistance = Math.sqrt(
@@ -638,7 +648,7 @@ export function NetflixPlayer({
       }
     } else {
       // User is holding still - start long press timer if not already started
-      if (!longPressTimerRef.current && !isLongPressActiveRef.current) {
+      if (!longPressTimerRef.current && !isLongPressActiveRef.current && touchStartTimeRef.current > 0) {
         const timeSinceTouchStart = Date.now() - touchStartTimeRef.current;
         const remainingTime = Math.max(0, 500 - timeSinceTouchStart);
         
@@ -665,6 +675,9 @@ export function NetflixPlayer({
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
     }
+    
+    // Reset touch start time
+    touchStartTimeRef.current = 0;
     
     // If long press was active, reset to normal speed after a short delay
     if (isLongPressActiveRef.current) {
@@ -696,6 +709,11 @@ export function NetflixPlayer({
 
     const touch = e.touches[0];
     if (!touch) return;
+
+    // In fullscreen mode, prevent default to ensure touch events work properly
+    if (isFullscreen) {
+      e.preventDefault();
+    }
 
     gestureStartXRef.current = touch.clientX;
     gestureStartYRef.current = touch.clientY;
@@ -847,6 +865,7 @@ export function NetflixPlayer({
         userSelect: 'none', 
         WebkitUserSelect: 'none',
         filter: `brightness(${brightness})`,
+        touchAction: isFullscreen ? 'none' : 'manipulation',
         ...(isFullscreen ? {
           display: 'flex',
           alignItems: 'center',
@@ -856,6 +875,10 @@ export function NetflixPlayer({
       onMouseMove={showControlsWithTimeout}
       onTouchStart={(e) => {
         if (isMobile) {
+          // In fullscreen, prevent default to ensure touch events work
+          if (isFullscreen) {
+            e.preventDefault();
+          }
           // Show controls on touch
           setShowControls(true);
           // Handle long press for 2x speed
@@ -866,6 +889,10 @@ export function NetflixPlayer({
       }}
       onTouchMove={(e) => {
         if (isMobile) {
+          // In fullscreen, prevent default to ensure touch events work
+          if (isFullscreen) {
+            e.preventDefault();
+          }
           // Always try to handle gesture first to determine mode
           handleTouchMoveGesture(e);
           // Only handle long press if not in gesture mode
@@ -903,7 +930,7 @@ export function NetflixPlayer({
           userSelect: 'none', 
           WebkitUserSelect: 'none', 
           pointerEvents: 'auto', 
-          touchAction: 'manipulation',
+          touchAction: isFullscreen ? 'none' : 'manipulation',
           ...(isFullscreen ? {
             maxWidth: '100%',
             maxHeight: '100%',
@@ -926,12 +953,20 @@ export function NetflixPlayer({
         }}
         onTouchStart={(e) => {
           if (isMobile) {
+            // In fullscreen, prevent default to ensure touch events work
+            if (isFullscreen) {
+              e.preventDefault();
+            }
             handleLongPressTouchStart(e);
             handleTouchStartGesture(e);
           }
         }}
         onTouchMove={(e) => {
           if (isMobile) {
+            // In fullscreen, prevent default to ensure touch events work
+            if (isFullscreen) {
+              e.preventDefault();
+            }
             // Always try to handle gesture first to determine mode
             handleTouchMoveGesture(e);
             // Only handle long press if not in gesture mode
