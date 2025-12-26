@@ -7,6 +7,9 @@ import { URLCleaner } from "@/components/url-cleaner";
 import { PageTransition } from "@/components/page-transition";
 import { Header } from "@/components/header";
 import { GoogleAnalytics } from "@/components/google-analytics";
+import { DevToolsBlocker } from "@/components/devtools-blocker";
+import { PageViewTracker } from "@/components/page-view-tracker";
+import { generateWebsiteStructuredData, generateOrganizationStructuredData } from "@/lib/structured-data";
 import "./globals.css";
 
 const siteUrl =
@@ -131,13 +134,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const gaId = process.env.NEXT_PUBLIC_GA_ID || 'G-5GN4EFTX0Q';
+  const websiteStructuredData = generateWebsiteStructuredData(siteUrl);
+  const organizationStructuredData = generateOrganizationStructuredData(siteUrl);
   
   return (
     <html lang="vi" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteStructuredData) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationStructuredData) }}
+        />
+      </head>
       <body
         className={`${notoSans.variable} ${notoSansMono.variable} font-sans antialiased`}
       >
         {gaId && <GoogleAnalytics gaId={gaId} />}
+        <PageViewTracker />
+        <DevToolsBlocker />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

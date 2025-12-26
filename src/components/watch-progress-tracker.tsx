@@ -107,6 +107,7 @@ export function WatchProgressTracker({
         if (totalDurationFloor > 0 && currentTimeFloor >= totalDurationFloor) {
           const { removeFromCurrentlyWatching } = await import("@/lib/supabase/movies");
           await removeFromCurrentlyWatching(movie.slug);
+          
           // Dừng interval vì đã xem xong
           if (intervalRef.current) {
             clearInterval(intervalRef.current);

@@ -25,6 +25,8 @@ import { getFilmDetail, getImageUrl, searchFilmsMerged } from "@/lib/api";
 import type { FilmItem } from "@/lib/api";
 import { MovieSection } from "@/components/movie-section";
 import { isValidTime } from "@/lib/utils";
+import { generateMovieStructuredData } from "@/lib/structured-data";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 
 // Lấy số "phần" của series từ slug/tên phim (phan-1, (Phần 1), Season 1, ...)
 function getSeriesPartNumber(item: { slug: string; name: string; original_name: string }): number | null {
@@ -563,6 +565,10 @@ export default async function MoviePage({ params, searchParams }: MoviePageProps
 
 export async function generateMetadata({ params }: MoviePageProps) {
   const { slug } = await params;
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
+  
   try {
     const response = await getFilmDetail(slug);
     
@@ -577,12 +583,52 @@ export async function generateMetadata({ params }: MoviePageProps) {
     const movie = response.movie;
     const plainDescription =
       movie.description?.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim() ?? "";
+    
+    const description = plainDescription.slice(0, 160) ||
+      `Xem phim ${movie.name}${movie.year ? ` (${movie.year})` : ''} online HD Vietsub, thuyết minh miễn phí. ${movie.category?.map(c => c.name).join(', ') || ''}. Xem ngay trên MovPey!`;
+    
+    const title = `${movie.name}${movie.year ? ` (${movie.year})` : ''} - Thông tin, nội dung phim | MovPey`;
+    const movieUrl = `${siteUrl}/phim/${slug}`;
+    const imageUrl = getImageUrl(movie.poster_url || movie.thumb_url, true);
 
     return {
-      title: `${movie.name} - Thông tin, nội dung phim | MovPey`,
-      description:
-        plainDescription.slice(0, 160) ||
-        `Xem thông tin chi tiết, nội dung và diễn viên phim ${movie.name} trên MovPey.`,
+      title,
+      description,
+      keywords: [
+        movie.name,
+        ...(movie.category?.map(c => c.name) || []),
+        ...(movie.country?.map(c => c.name) || []),
+        "xem phim online",
+        "phim vietsub",
+        "phim thuyết minh",
+        "phim hd",
+        "phim miễn phí",
+      ],
+      openGraph: {
+        title: `${movie.name} | MovPey`,
+        description: description,
+        images: [
+          {
+            url: imageUrl,
+            width: 1200,
+            height: 630,
+            alt: movie.name,
+          },
+        ],
+        type: "video.movie",
+        url: movieUrl,
+        siteName: "MovPey",
+        locale: "vi_VN",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${movie.name} | MovPey`,
+        description: description,
+        images: [imageUrl],
+      },
+      alternates: {
+        canonical: movieUrl,
+      },
     };
   } catch (error) {
     // Don't throw error in metadata, just return default

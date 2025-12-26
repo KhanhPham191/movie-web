@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight, Home, Info, Play } from "lucide-react";
 import { getFilmDetail, getImageUrl, searchFilmsMerged, type FilmItem } from "@/lib/api";
 import { isValidTime } from "@/lib/utils";
+import { generateVideoStructuredData } from "@/lib/structured-data";
 import { IframePlayer } from "@/components/player/iframe-player";
 import { M3u8Player } from "@/components/player/m3u8-player";
 import { NetflixPlayer } from "@/components/player/netflix-player";
@@ -270,8 +271,21 @@ async function VideoPlayer({
         ? value.name || value.slug || value.id || ""
         : String(value || "");
 
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
+    const videoStructuredData = generateVideoStructuredData(
+      movie,
+      currentEpisode,
+      `${siteUrl}/xem-phim/${slug}/${episodeSlug}`
+    );
+
     return (
       <VideoProgressProvider>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(videoStructuredData) }}
+        />
         <div className="space-y-10">
           {/* Watch Film Tracker - Track page view */}
           <WatchFilmTracker
@@ -472,6 +486,10 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
 
 export async function generateMetadata({ params }: WatchPageProps) {
   const { slug, episode } = await params;
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
+  
   try {
     const response = await getFilmDetail(slug);
     const movie = response.movie;
@@ -484,18 +502,58 @@ export async function generateMetadata({ params }: WatchPageProps) {
     }
 
     let episodeName = "";
+    let episodeData = null;
     for (const server of movie.episodes || []) {
       const ep = server.items.find((e) => e.slug === episode);
       if (ep) {
         episodeName = ` - ${ep.name}`;
+        episodeData = ep;
         break;
       }
     }
 
-    const baseTitle = `Xem ${movie.name}${episodeName}`;
+    const title = `Xem ${movie.name}${episodeName} | MovPey`;
+    const description = `Xem phim ${movie.name}${episodeName} online full HD Vietsub, thuyết minh miễn phí trên MovPey. ${movie.category?.map(c => c.name).join(', ') || ''}.`;
+    const watchUrl = `${siteUrl}/xem-phim/${slug}/${episode}`;
+    const imageUrl = getImageUrl(movie.poster_url || movie.thumb_url, true);
+
     return {
-      title: `Xem ${movie.name}${episodeName} | Phim7.xyz`,
-      description: `Xem phim ${movie.name}${episodeName} online full HD Vietsub, thuyết minh miễn phí trên MovPey.`,
+      title,
+      description,
+      keywords: [
+        movie.name,
+        episodeName.replace(" - ", ""),
+        ...(movie.category?.map(c => c.name) || []),
+        "xem phim online",
+        "phim vietsub",
+        "phim thuyết minh",
+        "phim hd",
+      ],
+      openGraph: {
+        title: `${movie.name}${episodeName} | MovPey`,
+        description: description,
+        images: [
+          {
+            url: imageUrl,
+            width: 1200,
+            height: 630,
+            alt: `${movie.name}${episodeName}`,
+          },
+        ],
+        type: "video.episode",
+        url: watchUrl,
+        siteName: "MovPey",
+        locale: "vi_VN",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${movie.name}${episodeName} | MovPey`,
+        description: description,
+        images: [imageUrl],
+      },
+      alternates: {
+        canonical: watchUrl,
+      },
     };
   } catch {
     return {

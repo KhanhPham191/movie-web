@@ -1,5 +1,7 @@
 // Google Analytics event tracking utility
 
+import { detectDevice, type DeviceInfo } from './device-detection';
+
 declare global {
   interface Window {
     gtag?: (
@@ -26,19 +28,36 @@ export interface GAEvent {
  */
 export function trackEvent(eventName: string, params?: Record<string, any>) {
   if (typeof window !== 'undefined' && window.gtag) {
+    // Add device info to all events
+    const deviceInfo = detectDevice();
     window.gtag('event', eventName, {
       ...params,
       event_category: params?.event_category || 'engagement',
       event_label: params?.event_label || '',
+      // Device info - để phân tích browser trên thiết bị nào
+      device_type: deviceInfo.deviceType,
+      platform: deviceInfo.platform,
+      browser: deviceInfo.browser,
+      is_mobile: deviceInfo.isMobile,
+      is_tablet: deviceInfo.isTablet,
+      is_desktop: deviceInfo.isDesktop,
+      // Combined field để dễ filter trong GA: "mobile_chrome", "desktop_firefox", etc.
+      device_browser: `${deviceInfo.deviceType}_${deviceInfo.browser}`,
+      // Combined field với platform: "mobile_ios_safari", "desktop_windows_chrome", etc.
+      device_platform_browser: `${deviceInfo.deviceType}_${deviceInfo.platform}_${deviceInfo.browser}`,
     });
   }
 }
 
 /**
- * Track page view
+ * Track page view with device info
+ * Note: gtag('config') với page_path tự động track page view trong GA
+ * Chúng ta chỉ cần update config với page_path, device info đã được set trong GoogleAnalytics component
  */
 export function trackPageView(url: string) {
   if (typeof window !== 'undefined' && window.gtag) {
+    // Update config với page_path - GA tự động track page view
+    // Device info đã được set trong GoogleAnalytics component khi khởi tạo
     window.gtag('config', process.env.NEXT_PUBLIC_GA_ID || 'G-5GN4EFTX0Q', {
       page_path: url,
     });
