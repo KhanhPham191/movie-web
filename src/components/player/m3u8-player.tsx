@@ -235,7 +235,7 @@ export function M3u8Player({
     touchStartXRef.current = tapX;
     touchStartYRef.current = touch.clientY;
     
-    // Start long press timer (500ms) - works in both normal and fullscreen mode
+    // Start long press timer (400ms for better Android responsiveness) - works in both normal and fullscreen mode
     longPressTimerRef.current = setTimeout(() => {
       const video = videoRef.current;
       if (video && !isLongPressActiveRef.current) {
@@ -245,7 +245,7 @@ export function M3u8Player({
         // Prevent default behaviors that might interfere
         e.preventDefault();
       }
-    }, 500);
+    }, 400);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -255,7 +255,7 @@ export function M3u8Player({
     if (!touch) return;
     
     // Calculate movement distance to cancel long press if moved too much
-    const moveThreshold = 15; // pixels
+    const moveThreshold = 20; // pixels - increased threshold for better Android experience
     if (touchStartTimeRef.current > 0) {
       const currentX = touch.clientX;
       const currentY = touch.clientY;

@@ -586,8 +586,23 @@ export function NetflixPlayer({
       e.preventDefault();
     }
     
-    // Don't start long press timer immediately - wait to see if user moves
-    // Timer will be started in handleLongPressTouchMove if no significant movement
+    // Start long press timer immediately (400ms for better Android responsiveness)
+    // Timer will be cancelled in handleLongPressTouchMove if user moves significantly
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+    }
+    
+    longPressTimerRef.current = setTimeout(() => {
+      const video = videoRef.current;
+      if (video && !isLongPressActiveRef.current && 
+          (gestureModeRef.current === 'none' || gestureModeRef.current === 'horizontal')) {
+        isLongPressActiveRef.current = true;
+        setPlaybackRate(2);
+        setShowSpeedIndicator(true);
+        showControlsWithTimeout();
+      }
+      longPressTimerRef.current = null;
+    }, 400);
   };
 
   const handleLongPressTouchMove = (e: React.TouchEvent) => {
@@ -627,7 +642,7 @@ export function NetflixPlayer({
     }
     
     // Calculate movement distance
-    const moveThreshold = 15; // pixels
+    const moveThreshold = 20; // pixels - increased threshold for better Android experience
     const moveDistance = Math.sqrt(
       Math.pow(touch.clientX - touchStartXRef.current, 2) + 
       Math.pow(touch.clientY - touchStartYRef.current, 2)
@@ -646,25 +661,8 @@ export function NetflixPlayer({
         setPlaybackRate(1);
         setShowSpeedIndicator(false);
       }
-    } else {
-      // User is holding still - start long press timer if not already started
-      if (!longPressTimerRef.current && !isLongPressActiveRef.current && touchStartTimeRef.current > 0) {
-        const timeSinceTouchStart = Date.now() - touchStartTimeRef.current;
-        const remainingTime = Math.max(0, 500 - timeSinceTouchStart);
-        
-        longPressTimerRef.current = setTimeout(() => {
-          const video = videoRef.current;
-          if (video && !isLongPressActiveRef.current && 
-              (gestureModeRef.current === 'none' || gestureModeRef.current === 'horizontal')) {
-            isLongPressActiveRef.current = true;
-            setPlaybackRate(2);
-            setShowSpeedIndicator(true);
-            showControlsWithTimeout();
-          }
-          longPressTimerRef.current = null;
-        }, remainingTime);
-      }
     }
+    // Timer is already started in handleLongPressTouchStart, no need to start it here
   };
 
   const handleLongPressTouchEnd = (e: React.TouchEvent) => {
