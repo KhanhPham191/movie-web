@@ -58,12 +58,14 @@ export function CurrentlyWatchingCard({ item, index = 0 }: CurrentlyWatchingCard
     
     if (isDeleting) return;
     
-    // Xóa ngay lập tức, không cần confirm
+    // Bắt đầu animation xóa
     setIsDeleting(true);
     try {
       await removeFromCurrentlyWatching(item.movie_slug);
-      // Trigger refresh bằng cách dispatch custom event
-      window.dispatchEvent(new CustomEvent('currently-watching-updated'));
+      // Đợi animation xóa hoàn thành (300ms) trước khi trigger refresh
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('currently-watching-updated'));
+      }, 300);
     } catch (error) {
       console.error('Failed to remove from currently watching:', error);
       setIsDeleting(false);
@@ -71,11 +73,19 @@ export function CurrentlyWatchingCard({ item, index = 0 }: CurrentlyWatchingCard
   };
 
   return (
-    <Link href={href}>
-      <div className="group relative flex flex-col h-full cursor-pointer">
+    <Link href={href} className={isDeleting ? 'pointer-events-none' : ''}>
+      <div 
+        className={`group relative flex flex-col h-full cursor-pointer transition-all duration-300 ease-in-out ${
+          isDeleting ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+        }`}
+      >
         {/* Poster card - chỉ có poster và nút X */}
         <div 
-          className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-muted transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_8px_30px_rgba(246,196,83,0.4)] group-hover:border-2 group-hover:border-[#F6C453]/50 flex-shrink-0 border border-transparent"
+          className={`relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-muted transition-all duration-300 flex-shrink-0 border ${
+            isDeleting 
+              ? 'border-transparent' 
+              : 'border-transparent group-hover:scale-105 group-hover:shadow-[0_8px_30px_rgba(246,196,83,0.4)] group-hover:border-2 group-hover:border-[#F6C453]/50'
+          }`}
           style={{
             willChange: "transform",
             backfaceVisibility: "hidden",

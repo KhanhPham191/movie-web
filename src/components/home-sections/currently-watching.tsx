@@ -190,8 +190,32 @@ export function CurrentlyWatchingSection() {
     };
 
     // Listen for custom event khi xóa phim
-    const handleUpdate = () => {
-      fetchData();
+    const handleUpdate = async () => {
+      try {
+        // Không set loading khi refresh sau khi xóa để tránh flash
+        const { data, error } = await getCurrentlyWatching();
+        if (error) {
+          setItems([]);
+          previousItemsRef.current = [];
+        } else {
+          // Filter ra các phim đã xem xong (progress >= 100%)
+          const filtered = (data || []).filter((item) => {
+            // Nếu không có total_duration, vẫn hiển thị
+            if (!item.total_duration || item.total_duration <= 0) {
+              return true;
+            }
+            // Tính progress
+            const progress = (item.watch_time / item.total_duration) * 100;
+            // Chỉ hiển thị nếu progress < 100% (chưa xem xong)
+            return progress < 100;
+          });
+          setItems(filtered);
+          previousItemsRef.current = filtered;
+        }
+      } catch (error) {
+        setItems([]);
+        previousItemsRef.current = [];
+      }
     };
 
     window.addEventListener("focus", handleFocus);
@@ -205,15 +229,14 @@ export function CurrentlyWatchingSection() {
     };
   }, [isAuthenticated]);
 
-  // Kick off enter animation when data sẵn sàng
+  // Kick off enter animation when data sẵn sàng - chỉ set visible một lần
   useEffect(() => {
-    if (!isLoading && items.length > 0) {
+    if (!isLoading && items.length > 0 && !isVisible) {
       const timer = requestAnimationFrame(() => setIsVisible(true));
       return () => cancelAnimationFrame(timer);
-    } else {
-      setIsVisible(false);
     }
-  }, [isLoading, items.length]);
+    // Không set false khi items thay đổi để tránh flash
+  }, [isLoading, items.length, isVisible]);
 
   // Ẩn hoàn toàn nếu chưa đăng nhập
   if (!isAuthenticated) {
@@ -225,10 +248,13 @@ export function CurrentlyWatchingSection() {
 
   return (
     <section
-      className={`relative py-6 xs:py-7 sm:py-8 group/section px-0 transition-opacity duration-400 ease-out ${
+      className={`relative py-6 xs:py-7 sm:py-8 group/section px-0 ${
         isVisible ? "opacity-100" : "opacity-0"
       }`}
-      style={{ minHeight: hasContent ? undefined : 240 }}
+      style={{ 
+        minHeight: hasContent ? undefined : 240,
+        transition: isVisible ? 'opacity 0.4s ease-out' : 'none'
+      }}
     >
       
       {/* Premium Section Header */}
@@ -321,7 +347,7 @@ export function CurrentlyWatchingSection() {
         >
           {displayItems.slice(0, 10).map((item, index) => (
             <div
-              key={`${item.id}-${index}`}
+              key={item.id || `${item.movie_slug}-${item.episode_slug || 'main'}`}
               className="shrink-0 flex flex-col w-[135px] xs:w-[140px] sm:w-[145px] md:w-[165px] lg:w-[195px]"
               onClick={(e) => {
                 // Prevent click nếu đã drag
