@@ -52,14 +52,26 @@ export function trackEvent(eventName: string, params?: Record<string, any>) {
 /**
  * Track page view with device info
  * Note: gtag('config') với page_path tự động track page view trong GA
- * Chúng ta chỉ cần update config với page_path, device info đã được set trong GoogleAnalytics component
+ * Chúng ta cần include device info mỗi lần để đảm bảo nó được track trong page view
  */
 export function trackPageView(url: string) {
   if (typeof window !== 'undefined' && window.gtag) {
-    // Update config với page_path - GA tự động track page view
-    // Device info đã được set trong GoogleAnalytics component khi khởi tạo
+    // Get device info để include trong page view
+    const deviceInfo = detectDevice();
+    
+    // Update config với page_path và device info - GA tự động track page view
     window.gtag('config', process.env.NEXT_PUBLIC_GA_ID || 'G-5GN4EFTX0Q', {
       page_path: url,
+      // Device info để track trong page view
+      device_type: deviceInfo.deviceType,
+      platform: deviceInfo.platform,
+      browser: deviceInfo.browser,
+      is_mobile: deviceInfo.isMobile,
+      is_tablet: deviceInfo.isTablet,
+      is_desktop: deviceInfo.isDesktop,
+      // Combined fields để dễ filter trong GA
+      device_browser: `${deviceInfo.deviceType}_${deviceInfo.browser}`,
+      device_platform_browser: `${deviceInfo.deviceType}_${deviceInfo.platform}_${deviceInfo.browser}`,
     });
   }
 }
