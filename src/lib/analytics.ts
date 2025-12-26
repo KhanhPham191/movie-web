@@ -116,15 +116,61 @@ export const analytics = {
     });
   },
 
-  trackMovieHover: (movieName: string, movieSlug: string, isHome?: boolean, isFilmDetail?: boolean) => {
-    let eventName = 'movie_hover';
+  trackMoviePopupShow: (movieName: string, movieSlug: string, isHome?: boolean, isFilmDetail?: boolean) => {
+    let eventName = 'movie_popup_show';
     if (isFilmDetail) {
-      eventName = 'filmD_movie_hover';
+      eventName = 'filmD_movie_popup_show';
     } else if (isHome) {
-      eventName = 'home_movie_hover';
+      eventName = 'home_movie_popup_show';
     }
     trackEvent(eventName, {
       event_category: 'engagement',
+      event_label: movieName,
+      movie_slug: movieSlug,
+    });
+  },
+
+  // Popup button events (home_popup_ prefix)
+  trackHomePopupWatchNow: (movieName: string, movieSlug: string) => {
+    trackEvent('home_popup_watch_now', {
+      event_category: 'content',
+      event_label: movieName,
+      movie_slug: movieSlug,
+    });
+  },
+  trackHomePopupLike: (movieName: string, movieSlug: string) => {
+    trackEvent('home_popup_like', {
+      event_category: 'engagement',
+      event_label: movieName,
+      movie_slug: movieSlug,
+    });
+  },
+  trackHomePopupDetail: (movieName: string, movieSlug: string) => {
+    trackEvent('home_popup_detail', {
+      event_category: 'content',
+      event_label: movieName,
+      movie_slug: movieSlug,
+    });
+  },
+
+  // Popup button events (filmD_popup_ prefix) - for film detail page
+  trackFilmDetailPopupWatchNow: (movieName: string, movieSlug: string) => {
+    trackEvent('filmD_popup_watch_now', {
+      event_category: 'content',
+      event_label: movieName,
+      movie_slug: movieSlug,
+    });
+  },
+  trackFilmDetailPopupLike: (movieName: string, movieSlug: string) => {
+    trackEvent('filmD_popup_like', {
+      event_category: 'engagement',
+      event_label: movieName,
+      movie_slug: movieSlug,
+    });
+  },
+  trackFilmDetailPopupDetail: (movieName: string, movieSlug: string) => {
+    trackEvent('filmD_popup_detail', {
+      event_category: 'content',
       event_label: movieName,
       movie_slug: movieSlug,
     });

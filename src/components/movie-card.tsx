@@ -153,14 +153,20 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
     analytics.trackMovieClick(movie.name, movie.slug, variant || 'default', isHome, isFilmDetail);
   };
 
-  const handleWatchNow = async (e: React.MouseEvent) => {
+  const handleWatchNow = async (e: React.MouseEvent, fromPopup: boolean = false) => {
     e.preventDefault();
     e.stopPropagation();
     if (isNavigatingRef.current) return;
     isNavigatingRef.current = true;
     
-    // Track watch now event
-    analytics.trackWatchNow(movie.name, movie.slug, variant || 'default', isHome, isFilmDetail);
+    // Track watch now event - check if from popup
+    if (fromPopup && isHome) {
+      analytics.trackHomePopupWatchNow(movie.name, movie.slug);
+    } else if (fromPopup && isFilmDetail) {
+      analytics.trackFilmDetailPopupWatchNow(movie.name, movie.slug);
+    } else {
+      analytics.trackWatchNow(movie.name, movie.slug, variant || 'default', isHome, isFilmDetail);
+    }
     
     try {
       const detailRes = await getFilmDetail(movie.slug);
@@ -264,8 +270,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
     if (hoverDelayRef.current) clearTimeout(hoverDelayRef.current);
     hoverDelayRef.current = setTimeout(() => {
       setIsHovered(true);
-      // Track hover event
-      analytics.trackMovieHover(movie.name, movie.slug, isHome, isFilmDetail);
+      // Track popup show event when hover displays popup
+      analytics.trackMoviePopupShow(movie.name, movie.slug, isHome, isFilmDetail);
     }, 500);
   };
 
@@ -368,19 +374,26 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             <div className="flex items-center gap-3 pt-2">
               <button
                 type="button"
+                data-popup-button
                 className="pointer-events-auto cursor-pointer bg-[#F6C453] hover:bg-[#F6C453]/90 text-black font-bold text-base rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap"
                 style={{ width: "139.52px", height: "46px" }}
-                onClick={handleWatchNow}
+                onClick={(e) => handleWatchNow(e, true)}
               >
                 <Play className="w-5 h-5 fill-black shrink-0" />
                 <span>Xem ngay</span>
               </button>
               <button
                 type="button"
+                data-popup-button
                 className="pointer-events-auto bg-[#1a1a1a] hover:bg-[#252525] text-white border border-white/20 font-semibold text-base px-5 py-3.5 rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap shrink-0"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  if (isHome) {
+                    analytics.trackHomePopupLike(movie.name, movie.slug);
+                  } else if (isFilmDetail) {
+                    analytics.trackFilmDetailPopupLike(movie.name, movie.slug);
+                  }
                 }}
               >
                 <Heart className="w-5 h-5 shrink-0" />
@@ -388,10 +401,17 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               </button>
               <Link
                 href={`/phim/${movie.slug}`}
+                data-popup-button
                 className="pointer-events-auto bg-[#1a1a1a] hover:bg-[#252525] text-white border border-white/20 font-semibold text-base px-5 py-3.5 rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap shrink-0"
                   onClick={(e) => {
                     e.stopPropagation();
-                    analytics.trackDetailFilms(movie.name, movie.slug, 'popup', isFilmDetail);
+                    if (isHome) {
+                      analytics.trackHomePopupDetail(movie.name, movie.slug);
+                    } else if (isFilmDetail) {
+                      analytics.trackFilmDetailPopupDetail(movie.name, movie.slug);
+                    } else {
+                      analytics.trackDetailFilms(movie.name, movie.slug, 'popup', isFilmDetail);
+                    }
                   }}
               >
                 <Info className="w-5 h-5 shrink-0" />
