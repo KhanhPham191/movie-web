@@ -154,15 +154,24 @@ interface PhimAPIDetailResponse {
 }
 
 // Helper to normalize image URL from PhimAPI
-function normalizePhimAPIImageUrl(url: string): string {
+function normalizePhimAPIImageUrl(url: string, useWebP: boolean = true): string {
   if (!url) return "";
+  let normalizedUrl: string;
+  
   if (url.startsWith("http://") || url.startsWith("https://")) {
-    return url;
+    normalizedUrl = url;
+  } else if (url.startsWith("/")) {
+    normalizedUrl = `${PHIMAPI_CDN}${url}`;
+  } else {
+    normalizedUrl = `${PHIMAPI_CDN}/${url}`;
   }
-  if (url.startsWith("/")) {
-    return `${PHIMAPI_CDN}${url}`;
+
+  // Chuyển đổi sang WebP nếu useWebP = true
+  if (useWebP) {
+    return convertImageToWebP(normalizedUrl);
   }
-  return `${PHIMAPI_CDN}/${url}`;
+  
+  return normalizedUrl;
 }
 
 // Helper to convert PhimAPI item to FilmItem
@@ -894,24 +903,84 @@ export const COUNTRIES = [
   { name: "Ấn Độ", slug: "an-do" },
 ] as const;
 
+// PhimAPI Image Converter API - chuyển đổi ảnh sang WebP format
+const PHIMAPI_IMAGE_CONVERTER = "https://phimapi.com/image.php";
+
+/**
+ * Chuyển đổi URL ảnh từ KKPhim sang định dạng WebP để tối ưu tốc độ tải và SEO
+ * @param imageUrl - URL ảnh mặc định mà KKPhim trả về
+ * @returns URL ảnh đã được chuyển đổi sang WebP format
+ */
+export function convertImageToWebP(imageUrl: string): string {
+  if (!imageUrl || typeof imageUrl !== "string") {
+    return "";
+  }
+
+  // Nếu URL đã là từ image converter API, trả về nguyên bản
+  if (imageUrl.includes("phimapi.com/image.php")) {
+    return imageUrl;
+  }
+
+  // Nếu là relative path hoặc local path, không chuyển đổi
+  if (imageUrl.startsWith("/") || !imageUrl.startsWith("http")) {
+    return imageUrl;
+  }
+
+  // Chuyển đổi TẤT CẢ URL ảnh từ KKPhim/PhimAPI sang WebP
+  // API image.php của KKPhim sẽ tự động trả về WebP khi browser gửi Accept: image/webp header
+  // Encode URL để truyền vào query parameter
+  const encodedUrl = encodeURIComponent(imageUrl);
+  // Thêm timestamp để tránh cache (optional, có thể bỏ nếu không cần)
+  return `${PHIMAPI_IMAGE_CONVERTER}?url=${encodedUrl}`;
+}
+
 // Helper to get full image URL (defensive against non-string values)
-export function getImageUrl(path: unknown): string {
+export function getImageUrl(path: unknown, useWebP: boolean = true): string {
   // Fallback to existing logo in /public when path không hợp lệ
   if (typeof path !== "string" || !path) return "/logo.svg";
-  // If already has http/https, return as is
-  if (path.startsWith("http://") || path.startsWith("https://")) {
-    return path;
-  }
+  
   // If starts with /, it's a relative path - return as is (will be handled by Next.js)
   if (path.startsWith("/")) {
     return path;
   }
-  // For PhimAPI relative paths (like "upload/vod/..."), add CDN domain
-  if (path.includes("upload/") || path.includes("vod/")) {
-    return `${PHIMAPI_CDN}/${path}`;
+
+  let fullUrl: string;
+
+  // If already has http/https, use as is
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    fullUrl = path;
+  } else {
+    // For PhimAPI relative paths (like "upload/vod/..."), add CDN domain
+    if (path.includes("upload/") || path.includes("vod/")) {
+      fullUrl = `${PHIMAPI_CDN}/${path}`;
+    } else {
+      // Default: return as is
+      return path;
+    }
   }
-  // Default: return as is
-  return path;
+
+  // Nếu useWebP = true, chuyển TẤT CẢ URL ảnh từ PhimAPI sang WebP
+  // API image.php của KKPhim có thể xử lý bất kỳ URL ảnh nào từ KKPhim
+  if (useWebP) {
+    // Chuyển đổi nếu URL là ảnh (có extension ảnh hoặc từ domain PhimAPI/KKPhim)
+    // Luôn chuyển đổi nếu URL từ PhimAPI domain (phimimg.com, phimapi.com, img.ophim.live)
+    // hoặc có path upload/vod (đây là pattern của PhimAPI)
+    const isPhimAPIUrl = 
+      fullUrl.includes("phimimg.com") ||
+      fullUrl.includes("phimapi.com") ||
+      fullUrl.includes("img.ophim.live") ||
+      fullUrl.includes("upload/") ||
+      fullUrl.includes("vod/");
+    
+    // Hoặc có extension ảnh
+    const hasImageExtension = fullUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?|$)/i);
+    
+    if (isPhimAPIUrl || hasImageExtension) {
+      return convertImageToWebP(fullUrl);
+    }
+  }
+
+  return fullUrl;
 }
 
 // Fetch multiple pages and combine results với tối ưu batch requests
