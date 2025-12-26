@@ -440,16 +440,17 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                   </div>
                 )}
 
-                {(movie.imdb || movie.tmdb) && (
+                {((movie.imdb && movie.imdb !== 0 && movie.imdb !== "0" && String(movie.imdb).trim() !== "") || 
+                  (movie.tmdb && movie.tmdb !== 0 && movie.tmdb !== "0" && String(movie.tmdb).trim() !== "")) && (
                   <div>
                     <span className="text-[#F6C453]/70 text-sm block mb-1">Đánh giá</span>
                     <div className="flex flex-wrap gap-2">
-                      {movie.imdb && (
+                      {movie.imdb && movie.imdb !== 0 && movie.imdb !== "0" && String(movie.imdb).trim() !== "" && (
                         <Badge className="bg-yellow-500 text-black font-semibold text-xs px-2 py-1">
                           IMDb {movie.imdb}
                         </Badge>
                       )}
-                      {movie.tmdb && (
+                      {movie.tmdb && movie.tmdb !== 0 && movie.tmdb !== "0" && String(movie.tmdb).trim() !== "" && (
                         <Badge className="bg-blue-500 text-white font-semibold text-xs px-2 py-1">
                           TMDB {movie.tmdb}
                         </Badge>
