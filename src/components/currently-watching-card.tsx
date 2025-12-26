@@ -13,12 +13,22 @@ interface CurrentlyWatchingCardProps {
   index?: number;
 }
 
-// Format thời gian từ giây sang phút:giây
+// Format thời gian từ giây sang định dạng như "12m / 1h 59m"
 function formatTime(seconds: number): string {
-  if (!seconds || seconds <= 0) return "0:00";
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+  if (!seconds || seconds <= 0) return "0m";
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+  return `${minutes}m`;
+}
+
+// Format thời gian đầy đủ cho hiển thị "12m / 1h 59m"
+function formatTimeDisplay(watchTime: number, totalDuration: number): string {
+  const watchFormatted = formatTime(watchTime);
+  const totalFormatted = formatTime(totalDuration);
+  return `${watchFormatted} / ${totalFormatted}`;
 }
 
 // Format thời gian còn lại
@@ -63,7 +73,7 @@ export function CurrentlyWatchingCard({ item, index = 0 }: CurrentlyWatchingCard
   return (
     <Link href={href}>
       <div className="group relative flex flex-col h-full cursor-pointer">
-        {/* Poster với progress bar - Nổi bật hơn */}
+        {/* Poster card - chỉ có poster và nút X */}
         <div 
           className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-muted transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_8px_30px_rgba(246,196,83,0.4)] group-hover:border-2 group-hover:border-[#F6C453]/50 flex-shrink-0 border border-transparent"
           style={{
@@ -80,48 +90,19 @@ export function CurrentlyWatchingCard({ item, index = 0 }: CurrentlyWatchingCard
             className="object-cover transition-transform duration-300 group-hover:scale-110"
             sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
           />
-          
-          {/* Gradient overlay để text dễ đọc hơn */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
-          {/* Progress bar overlay - Nổi bật hơn */}
-          {progress > 0 && (
-            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-black/60 backdrop-blur-sm">
-              <div 
-                className="h-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A] transition-all duration-300 shadow-[0_0_8px_rgba(246,196,83,0.6)]"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          )}
 
-          {/* Play button overlay khi hover - Nổi bật hơn */}
+          {/* Play button overlay khi hover */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
             <div className="w-14 h-14 rounded-full bg-[#F6C453] flex items-center justify-center shadow-[0_4px_20px_rgba(246,196,83,0.6)] transform scale-90 group-hover:scale-100 transition-all duration-300 group-hover:shadow-[0_6px_30px_rgba(246,196,83,0.8)] cursor-pointer">
               <Play className="w-7 h-7 text-white fill-white ml-1" />
             </div>
           </div>
 
-          {/* Episode badge nếu có - di chuyển xuống dưới để tránh nút xóa */}
-          {item.episode_name && (
-            <div className="absolute top-10 right-2 bg-[#F6C453]/90 backdrop-blur-sm px-2 py-1 rounded-md text-white text-[10px] font-bold shadow-lg border border-[#D3A13A]/30 z-20">
-              {item.episode_name}
-            </div>
-          )}
-
-          {/* "Xem tiếp" badge - luôn hiển thị, gọn trên mobile */}
-          {progress > 0 && progress < 100 && (
-            <div className="absolute top-2 left-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/80 backdrop-blur-sm border border-white/10 shadow-sm z-20">
-              <span className="text-[8px] sm:text-[9px] text-white font-semibold uppercase tracking-wide whitespace-nowrap">
-                Xem tiếp
-              </span>
-            </div>
-          )}
-
-          {/* Delete button - top right corner, chỉ hiện khi hover */}
+          {/* Delete button (X) - top right corner, light grey rounded square */}
           <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-black/80 backdrop-blur-sm border border-white/20 hover:bg-red-600/90 hover:border-red-500 flex items-center justify-center transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg"
+            className="absolute top-2 right-2 z-30 w-7 h-7 rounded-md bg-white/20 backdrop-blur-sm hover:bg-white/30 flex items-center justify-center transition-all duration-200 shadow-lg"
             aria-label="Xóa khỏi danh sách đang xem"
             title="Xóa khỏi danh sách đang xem"
           >
@@ -133,35 +114,49 @@ export function CurrentlyWatchingCard({ item, index = 0 }: CurrentlyWatchingCard
           </button>
         </div>
 
-        {/* Title và thông tin - Cải thiện */}
-        <div className="mt-2.5 space-y-1.5 flex-shrink-0">
-          <h3 className="text-sm font-semibold line-clamp-2 min-h-[2.5rem] text-gray-200 group-hover:text-white transition-colors">
+        {/* Info section ở dưới card - Timeline, Title, Episode */}
+        <div className="mt-2 sm:mt-3 space-y-1.5 sm:space-y-2 flex-shrink-0">
+          {/* Timeline thời gian đang xem - Progress bar với time info - luôn hiển thị */}
+          <div className="space-y-1">
+            {/* Progress bar - light grey với segment tối hơn - chỉ hiện nếu có total_duration và progress > 0 */}
+            {item.total_duration > 0 && progress > 0 ? (
+              <div className="w-full h-0.5 bg-white/30 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-white/60 transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            ) : (
+              // Hiển thị progress bar trống khi chưa có dữ liệu
+              <div className="w-full h-0.5 bg-white/30 rounded-full overflow-hidden">
+                <div className="h-full bg-white/60 transition-all duration-300" style={{ width: '0%' }} />
+              </div>
+            )}
+            
+            {/* Time info - Centered, white text - Lấy trực tiếp từ database */}
+            <div className="text-center text-white text-xs sm:text-sm font-medium">
+              {item.total_duration > 0 ? (
+                // Có total_duration: hiển thị "12m / 1h 59m" từ watch_time trong database
+                formatTimeDisplay(item.watch_time || 0, item.total_duration)
+              ) : (
+                // Không có total_duration: hiển thị watch_time từ database (có thể là 0)
+                item.watch_time > 0 
+                  ? `Đã xem: ${formatTime(item.watch_time)}`
+                  : "0m / --"
+              )}
+            </div>
+          </div>
+          
+          {/* Title - Bold white text */}
+          <h3 className="text-white text-sm sm:text-base font-bold line-clamp-2 group-hover:text-[#F6C453] transition-colors">
             {item.movie_name}
           </h3>
           
-          {/* Progress info - Nổi bật hơn */}
-          {item.total_duration > 0 && (
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-[10px]">
-                <span className="text-gray-400">{formatTime(item.watch_time)} / {formatTime(item.total_duration)}</span>
-                <span className="text-[#F6C453] font-bold">{Math.round(progress)}%</span>
-              </div>
-              {progress > 0 && progress < 100 && (
-                <div className="flex items-center gap-1.5">
-                  <div className="flex-1 h-1 bg-gray-700 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A] transition-all duration-300"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-              {item.total_duration > 0 && (
-                <p className="text-[9px] text-[#F6C453] font-medium">
-                  {formatRemainingTime(item.watch_time, item.total_duration)}
-                </p>
-              )}
-            </div>
+          {/* Subtitle/Episode - Lighter white text */}
+          {item.episode_name && (
+            <p className="text-white/70 text-xs sm:text-sm line-clamp-1">
+              {item.episode_name}
+            </p>
           )}
         </div>
       </div>

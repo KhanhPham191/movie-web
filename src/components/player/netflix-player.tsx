@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Hls from "hls.js";
 import {
   Play,
@@ -16,6 +17,7 @@ import {
   FastForward,
 } from "lucide-react";
 import { analytics } from "@/lib/analytics";
+import { useVideoProgressOptional } from "@/contexts/video-progress-context";
 
 interface NetflixPlayerProps {
   src: string;
@@ -40,6 +42,7 @@ export function NetflixPlayer({
   movieSlug,
   episodeSlug,
 }: NetflixPlayerProps) {
+  const searchParams = useSearchParams();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -47,6 +50,11 @@ export function NetflixPlayer({
   const isHoveringRef = useRef(false);
   const isDraggingRef = useRef(false);
   const showSettingsRef = useRef(false);
+  const hasSeekedRef = useRef(false);
+  
+  // Get video progress context to share with WatchProgressTracker (optional)
+  const videoProgressContext = useVideoProgressOptional();
+  const updateProgress = videoProgressContext?.updateProgress;
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -212,10 +220,36 @@ export function NetflixPlayer({
         const bufferedEnd = video.buffered.end(video.buffered.length - 1);
         setBuffered(bufferedEnd);
       }
+      // Update context for WatchProgressTracker
+      updateProgress?.(time, video.duration);
       onTimeUpdate?.(time, video.duration);
     };
+    const handleSeekToTimestamp = () => {
+      if (!hasSeekedRef.current && video.duration > 0) {
+        const tParam = searchParams?.get("t");
+        if (tParam) {
+          const timestamp = parseFloat(tParam);
+          if (!isNaN(timestamp) && timestamp > 0 && timestamp < video.duration) {
+            video.currentTime = timestamp;
+            setCurrentTime(timestamp);
+            hasSeekedRef.current = true;
+          }
+        }
+      }
+    };
+
     const handleLoadedMetadata = () => {
-      setDuration(video.duration);
+      const duration = video.duration;
+      setDuration(duration);
+      // Update context for WatchProgressTracker
+      updateProgress?.(video.currentTime, duration);
+      // Seek to timestamp from URL parameter ?t= if available
+      handleSeekToTimestamp();
+    };
+    
+    const handleCanPlay = () => {
+      // Also try to seek when video can play (in case metadata loaded before this)
+      handleSeekToTimestamp();
     };
     const handleProgress = () => {
       if (video.buffered.length > 0 && video.duration > 0) {
@@ -232,6 +266,7 @@ export function NetflixPlayer({
     video.addEventListener("pause", handlePause);
     video.addEventListener("timeupdate", handleTimeUpdate);
     video.addEventListener("loadedmetadata", handleLoadedMetadata);
+    video.addEventListener("canplay", handleCanPlay);
     video.addEventListener("progress", handleProgress);
     video.addEventListener("volumechange", handleVolumeChange);
 
@@ -240,10 +275,11 @@ export function NetflixPlayer({
       video.removeEventListener("pause", handlePause);
       video.removeEventListener("timeupdate", handleTimeUpdate);
       video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      video.removeEventListener("canplay", handleCanPlay);
       video.removeEventListener("progress", handleProgress);
       video.removeEventListener("volumechange", handleVolumeChange);
     };
-  }, [onTimeUpdate, hideControls]);
+  }, [onTimeUpdate, hideControls, searchParams]);
 
   // Fullscreen change listener
   useEffect(() => {

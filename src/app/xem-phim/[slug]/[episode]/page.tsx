@@ -19,6 +19,7 @@ import { WatchFilmTracker } from "@/components/watch-film-tracker";
 import { WatchFilmEpisodeNav } from "@/components/watch-film-episode-nav";
 import { WatchFilmButtons } from "@/components/watch-film-buttons";
 import { RelatedPartLink } from "@/components/related-part-link";
+import { VideoProgressProvider } from "@/contexts/video-progress-context";
 
 interface WatchPageProps {
   params: Promise<{ slug: string; episode: string }>;
@@ -270,25 +271,26 @@ async function VideoPlayer({
         : String(value || "");
 
     return (
-      <div className="space-y-10">
-        {/* Watch Film Tracker - Track page view */}
-        <WatchFilmTracker
-          movieName={movie.name}
-          movieSlug={movie.slug}
-          episodeName={currentEpisode.name}
-          episodeSlug={currentEpisode.slug}
-        />
-        {/* Watch Progress Tracker - Lưu tiến độ xem */}
-        <div className="animate-fade-in">
-          <WatchProgressTracker
-            movie={movie}
-            episodeSlug={currentEpisode.slug}
+      <VideoProgressProvider>
+        <div className="space-y-10">
+          {/* Watch Film Tracker - Track page view */}
+          <WatchFilmTracker
+            movieName={movie.name}
+            movieSlug={movie.slug}
             episodeName={currentEpisode.name}
+            episodeSlug={currentEpisode.slug}
           />
-        </div>
-        
-        {/* Khối player + meta đơn giản, bỏ nền blur phía sau */}
-        <div className="space-y-4 sm:space-y-6 max-w-full text-white">
+          {/* Watch Progress Tracker - Lưu tiến độ xem */}
+          <div className="animate-fade-in">
+            <WatchProgressTracker
+              movie={movie}
+              episodeSlug={currentEpisode.slug}
+              episodeName={currentEpisode.name}
+            />
+          </div>
+          
+          {/* Khối player + meta đơn giản, bỏ nền blur phía sau */}
+          <div className="space-y-4 sm:space-y-6 max-w-full text-white">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-white/70">
             {movie.quality && (
               <Badge className="bg-[#F6C453] text-black font-semibold">
@@ -389,7 +391,8 @@ async function VideoPlayer({
             </div>
           </div>
         )}
-      </div>
+        </div>
+      </VideoProgressProvider>
     );
   } catch {
     return (
