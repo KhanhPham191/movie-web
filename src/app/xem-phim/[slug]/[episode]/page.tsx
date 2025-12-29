@@ -320,8 +320,9 @@ async function VideoPlayer({
           </div>
 
           {/* Video Player - Netflix Style */}
-          <div className="relative mx-auto w-full max-w-[1920px] rounded-lg sm:rounded-xl overflow-hidden shadow-2xl bg-black border border-white/10">
-            <div className="relative aspect-[16/9] bg-black w-full">
+          <div className="relative mx-auto w-full max-w-[600px] rounded-lg sm:rounded-xl overflow-hidden shadow-2xl bg-black border border-white/10">
+            {/* Giảm chiều cao frame: tỉ lệ ngang rộng hơn, cao thấp hơn */}
+            <div className="relative aspect-[21/9] bg-black w-full">
               {currentEpisode.m3u8 ? (
                 <NetflixPlayer
                   src={currentEpisode.m3u8}
