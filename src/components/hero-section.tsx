@@ -104,7 +104,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
   return (
     <section
-      className="gradient-mask-responsive relative aspect-[16/9] w-full overflow-hidden rounded-none lg:rounded-lg 2xl:aspect-[16/7] h-[260px] xs:h-[300px] sm:h-[56.25vw] max-h-[70vh] sm:max-h-[80vh] min-h-[240px] xs:min-h-[260px] sm:min-h-[400px] lg:h-[70vh] lg:min-h-[460px] xl:h-[75vh] select-none"
+      className="relative aspect-[16/9] w-full overflow-hidden rounded-none lg:rounded-lg 2xl:aspect-[16/7] h-[260px] xs:h-[300px] sm:h-[56.25vw] max-h-[70vh] sm:max-h-[80vh] min-h-[240px] xs:min-h-[260px] sm:min-h-[400px] lg:h-[70vh] lg:min-h-[460px] xl:h-[75vh] select-none"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}

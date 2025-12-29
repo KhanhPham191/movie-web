@@ -146,8 +146,6 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
             />
             {/* Premium Gradients */}
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(25,27,36,0.1)_0%,rgba(25,27,36,0.45)_40%,rgba(25,27,36,0.92)_80%,rgba(25,27,36,1)_100%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(246,196,83,0.2),transparent_60%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(211,161,58,0.15),transparent_60%)]" />
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(25,27,36,0.55)_0%,rgba(25,27,36,0.18)_30%,rgba(25,27,36,0)_50%)]" />
           </div>
 
@@ -253,11 +251,10 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <div className="absolute left-0 top-20 h-96 w-96 rounded-full bg-gradient-to-r from-[#F6C453]/8 via-transparent to-transparent blur-3xl" />
             <div className="absolute right-0 top-1/2 h-80 w-80 rounded-full bg-gradient-to-l from-[#D3A13A]/8 via-transparent to-transparent blur-3xl" />
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(246,196,83,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(246,196,83,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" />
           </div>
-          <div className="container relative z-10 mx-auto px-3 sm:px-4 md:px-12 space-y-6 sm:space-y-8 lg:space-y-12">
+          <div className="container relative z-10 mx-auto space-y-6 sm:space-y-8 lg:space-y-12">
             {/* Mobile title + meta block trong nền đen dưới hero (tránh bị che trên poster) */}
-            <div className="sm:hidden mb-3">
+            <div className="sm:hidden mb-3 mx-3 sm:mx-4 md:mx-12">
               <h1 className="text-base font-bold text-white text-shadow-netflix">
                 {movie.name}
               </h1>
@@ -281,17 +278,19 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
             </div>
             {/* Episodes Section */}
             {Array.isArray(movie.episodes) && movie.episodes.length > 0 && (
-              <EpisodeSelector
-                servers={movie.episodes}
-                movieSlug={movie.slug}
-                defaultServer={serverParam}
-                movieName={movie.name}
-                posterUrl={movie.thumb_url || movie.poster_url}
-              />
+              <div className="mx-3 sm:mx-4 md:mx-12">
+                <EpisodeSelector
+                  servers={movie.episodes}
+                  movieSlug={movie.slug}
+                  defaultServer={serverParam}
+                  movieName={movie.name}
+                  posterUrl={movie.thumb_url || movie.poster_url}
+                />
+              </div>
             )}
 
             {/* Premium About Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-10 items-start animate-slide-up">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-10 items-start animate-slide-up mx-3 sm:mx-4 md:mx-12">
               {/* Left Column - Premium Info */}
               <div className="md:col-span-2 space-y-3 sm:space-y-4 card-surface p-4 sm:p-6 lg:p-8 relative group">
                 <div className="absolute inset-0 bg-gradient-to-br from-[#F6C453]/5 via-transparent to-[#D3A13A]/5 rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -482,11 +481,13 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
 
             {/* Series Section - Các phần khác trong series */}
             {Array.isArray(seriesParts) && seriesParts.length > 0 && (
-              <MovieSection
-                title="Các phần khác trong series"
-                movies={seriesParts}
-                variant="series"
-              />
+              <div className="mx-3 sm:mx-4 md:mx-12">
+                <MovieSection
+                  title="Các phần khác trong series"
+                  movies={seriesParts}
+                  variant="series"
+                />
+              </div>
             )}
 
           </div>
