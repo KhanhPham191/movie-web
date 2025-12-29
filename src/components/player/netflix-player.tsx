@@ -94,6 +94,7 @@ export function NetflixPlayer({
   const gestureInitialVolumeRef = useRef<number>(1);
   const gestureModeRef = useRef<'none' | 'brightness' | 'volume' | 'horizontal'>('none');
   const gestureIndicatorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const togglePlayRef = useRef<(() => void) | null>(null);
 
   // Detect mobile device and iOS
   useEffect(() => {
@@ -388,6 +389,11 @@ export function NetflixPlayer({
     showControlsWithTimeout();
   };
 
+  // Store toggle play function in ref for access in touch handlers
+  useEffect(() => {
+    togglePlayRef.current = handleTogglePlay;
+  }, [isPlaying]);
+
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const video = videoRef.current;
     if (!video) return;
@@ -580,6 +586,9 @@ export function NetflixPlayer({
       return;
     }
     
+    // KHÔNG preventDefault ngay để cho phép tap đơn giản hoạt động
+    // Chỉ preventDefault khi thực sự đang di chuyển hoặc long press
+
     const touch = e.touches[0];
     if (!touch) return;
     
@@ -604,12 +613,7 @@ export function NetflixPlayer({
     
     lastTapRef.current = now;
     
-    // In fullscreen mode, prevent default to ensure touch events work properly
-    if (isFullscreen) {
-      e.preventDefault();
-    }
-    
-    // Start long press timer immediately (400ms for better Android responsiveness)
+    // Start long press timer (400ms để chỉ cần ấn đè nhẹ)
     // Timer will be cancelled in handleLongPressTouchMove if user moves significantly
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
@@ -640,6 +644,10 @@ export function NetflixPlayer({
       return;
     }
     
+    // Khi đang xử lý long press, luôn chặn scroll/trình duyệt
+    e.preventDefault();
+    e.stopPropagation();
+
     // Don't start long press if gesture mode is already active (brightness/volume)
     if (gestureModeRef.current === 'brightness' || gestureModeRef.current === 'volume') {
       // Cancel any existing long press timer
@@ -658,11 +666,6 @@ export function NetflixPlayer({
     
     const touch = e.touches[0];
     if (!touch) return;
-    
-    // In fullscreen mode, prevent default to ensure touch events work properly
-    if (isFullscreen && touchStartTimeRef.current > 0) {
-      e.preventDefault();
-    }
     
     // Calculate movement distance
     const moveThreshold = 20; // pixels - increased threshold for better Android experience
@@ -691,10 +694,57 @@ export function NetflixPlayer({
   const handleLongPressTouchEnd = (e: React.TouchEvent) => {
     if (!isMobile) return;
     
+    // Don't interfere if touching controls
+    const target = e.target as HTMLElement;
+    const isTouchingControls = target.closest('[data-settings-menu]') || 
+        target.closest('button') || 
+        target.closest('input') ||
+        target.closest('.pointer-events-auto') ||
+        target.closest('[class*="progress"]');
+    
+    // Nếu đang tap vào controls, không làm gì cả - để controls tự xử lý
+    if (isTouchingControls) {
+      // Cancel long press timer nếu có
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+      touchStartTimeRef.current = 0;
+      return;
+    }
+    
+    const touch = e.changedTouches[0];
+    if (!touch) return;
+    
+    // Calculate movement distance
+    const moveDistance = Math.sqrt(
+      Math.pow(touch.clientX - touchStartXRef.current, 2) + 
+      Math.pow(touch.clientY - touchStartYRef.current, 2)
+    );
+    
+    const touchDuration = Date.now() - touchStartTimeRef.current;
+    const moveThreshold = 20;
+    const tapDurationThreshold = 300; // Nếu tap nhanh hơn 300ms và không di chuyển nhiều = tap đơn giản
+    
     // Cancel long press timer if it hasn't fired yet
+    const wasLongPressTimerActive = !!longPressTimerRef.current;
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
+    }
+    
+    // Nếu đã long press hoặc đã di chuyển nhiều hoặc đang gesture, chặn scroll
+    if (isLongPressActiveRef.current || moveDistance > moveThreshold || gestureModeRef.current !== 'none') {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    // Nếu là tap đơn giản vào video (không phải controls), trigger toggle play
+    else if (touchDuration < tapDurationThreshold && moveDistance < moveThreshold && !wasLongPressTimerActive) {
+      // Trên mobile, touch events có thể không trigger click tự động
+      // Nên gọi trực tiếp toggle play
+      if (togglePlayRef.current) {
+        togglePlayRef.current();
+      }
     }
     
     // Reset touch start time
@@ -788,7 +838,7 @@ export function NetflixPlayer({
       }
     }
 
-    // Handle brightness (left side) - swipe up to increase, down to decrease
+      // Handle brightness (left side) - swipe up to increase, down to decrease
     if (gestureModeRef.current === 'brightness') {
       const delta = -dy / 300; // 300px = full range
       const newBrightness = Math.min(1, Math.max(0, gestureInitialBrightnessRef.current + delta));
@@ -811,7 +861,9 @@ export function NetflixPlayer({
       }, 1000);
       
       showControlsWithTimeout();
-      e.preventDefault(); // Prevent scrolling
+      // Đang vuốt điều chỉnh độ sáng thì luôn chặn scroll dọc trang
+      e.preventDefault();
+      e.stopPropagation();
       return;
     }
 
@@ -853,7 +905,9 @@ export function NetflixPlayer({
       }, 1000);
       
       showControlsWithTimeout();
-      e.preventDefault(); // Prevent scrolling
+      // Đang vuốt điều chỉnh âm lượng thì luôn chặn scroll dọc trang
+      e.preventDefault();
+      e.stopPropagation();
       return;
     }
   };
@@ -896,6 +950,16 @@ export function NetflixPlayer({
       onMouseMove={showControlsWithTimeout}
       onTouchStart={(e) => {
         if (isMobile) {
+          // Don't interfere if touching controls
+          const target = e.target as HTMLElement;
+          if (target.closest('[data-settings-menu]') || 
+              target.closest('button') || 
+              target.closest('input') ||
+              target.closest('.pointer-events-auto') ||
+              target.closest('[class*="progress"]')) {
+            return; // Let controls handle their own events
+          }
+          
           // In fullscreen, prevent default to ensure touch events work
           if (isFullscreen) {
             e.preventDefault();
@@ -910,6 +974,16 @@ export function NetflixPlayer({
       }}
       onTouchMove={(e) => {
         if (isMobile) {
+          // Don't interfere if touching controls
+          const target = e.target as HTMLElement;
+          if (target.closest('[data-settings-menu]') || 
+              target.closest('button') || 
+              target.closest('input') ||
+              target.closest('.pointer-events-auto') ||
+              target.closest('[class*="progress"]')) {
+            return; // Let controls handle their own events
+          }
+          
           // In fullscreen, prevent default to ensure touch events work
           if (isFullscreen) {
             e.preventDefault();
@@ -924,6 +998,16 @@ export function NetflixPlayer({
       }}
       onTouchEnd={(e) => {
         if (isMobile) {
+          // Don't interfere if touching controls
+          const target = e.target as HTMLElement;
+          if (target.closest('[data-settings-menu]') || 
+              target.closest('button') || 
+              target.closest('input') ||
+              target.closest('.pointer-events-auto') ||
+              target.closest('[class*="progress"]')) {
+            return; // Let controls handle their own events
+          }
+          
           // Handle gesture end
           handleTouchEndGesture(e);
           // Handle long press end
@@ -1315,16 +1399,40 @@ export function NetflixPlayer({
                 {showSettings && (
                   <>
                     {isMobile ? (
-                      // Mobile: Full overlay panel
+                      // Mobile: Full overlay panel - lớn hơn và có nút X
                       <div 
                         data-settings-menu
                         className="fixed inset-0 bg-black/95 backdrop-blur-sm z-[110] pointer-events-auto flex flex-col items-center justify-center"
                         onClick={(e) => e.stopPropagation()}
                         onTouchStart={(e) => e.stopPropagation()}
                       >
-                        <div className="w-full max-w-sm px-3 py-4">
-                          <div className="text-white text-sm font-semibold mb-3 text-center">Tốc độ phát</div>
-                          <div className="space-y-1.5">
+                        <div className="w-full max-w-md px-6 py-6 relative max-h-[80vh] overflow-y-auto">
+                          {/* Nút X để đóng ở góc trên bên phải */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              setShowSettings(false);
+                              showSettingsRef.current = false;
+                            }}
+                            onTouchEnd={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              setShowSettings(false);
+                              showSettingsRef.current = false;
+                            }}
+                            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 transition-all"
+                            aria-label="Đóng"
+                            style={{ 
+                              WebkitTapHighlightColor: 'transparent',
+                              touchAction: 'manipulation'
+                            }}
+                          >
+                            <X className="w-5 h-5 text-white" />
+                          </button>
+                          
+                          <div className="text-white text-base font-semibold mb-4 text-center">Tốc độ phát</div>
+                          <div className="space-y-2">
                             {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
                               <button
                                 key={rate}
@@ -1345,7 +1453,7 @@ export function NetflixPlayer({
                                   setShowSettings(false);
                                   showSettingsRef.current = false;
                                 }}
-                                className={`w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gradient-to-r hover:from-[#F6C453]/10 hover:to-[#D3A13A]/10 active:bg-gradient-to-r active:from-[#F6C453]/20 active:to-[#D3A13A]/20 transition-all ${
+                                className={`w-full text-left px-4 py-3 text-sm rounded-lg hover:bg-gradient-to-r hover:from-[#F6C453]/10 hover:to-[#D3A13A]/10 active:bg-gradient-to-r active:from-[#F6C453]/20 active:to-[#D3A13A]/20 transition-all ${
                                   playbackRate === rate
                                     ? "text-[#F6C453] font-semibold bg-gradient-to-r from-[#F6C453]/10 to-[#D3A13A]/10 border border-[#F6C453]/30"
                                     : "text-white border border-white/10"
@@ -1361,26 +1469,6 @@ export function NetflixPlayer({
                               </button>
                             ))}
                           </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowSettings(false);
-                              showSettingsRef.current = false;
-                            }}
-                            onTouchEnd={(e) => {
-                              e.stopPropagation();
-                              e.preventDefault();
-                              setShowSettings(false);
-                              showSettingsRef.current = false;
-                            }}
-                            className="mt-3 w-full px-3 py-1.5 text-white text-xs rounded-lg border border-white/20 hover:bg-white/10 active:bg-white/20 transition-all"
-                            style={{ 
-                              WebkitTapHighlightColor: 'transparent',
-                              touchAction: 'manipulation'
-                            }}
-                          >
-                            Đóng
-                          </button>
                         </div>
                       </div>
                     ) : (
