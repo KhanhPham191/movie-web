@@ -102,16 +102,34 @@ export function MovieInfoPanel({
 
               {/* Info Badges - Tăng kích thước text */}
               <div className="flex flex-wrap gap-1.5 min-h-[20px]">
-                {movie.imdb && (
-                  <Badge className="bg-yellow-500 text-black font-semibold text-[10px] sm:text-xs px-2 py-1">
-                    IMDb {movie.imdb}
-                  </Badge>
-                )}
-                {movie.tmdb && movie.tmdb !== 0 && movie.tmdb !== "0" && String(movie.tmdb).trim() !== "" && (
-                  <Badge className="bg-blue-500 text-white font-semibold text-[10px] sm:text-xs px-2 py-1">
-                    TMDB {movie.tmdb}
-                  </Badge>
-                )}
+                {(() => {
+                  const imdbNumber = Number(movie.imdb);
+                  const hasValidImdb =
+                    movie.imdb != null &&
+                    String(movie.imdb).trim() !== "" &&
+                    !Number.isNaN(imdbNumber) &&
+                    imdbNumber > 0;
+
+                  return hasValidImdb ? (
+                    <Badge className="bg-yellow-500 text-black font-semibold text-[10px] sm:text-xs px-2 py-1">
+                      IMDb {movie.imdb}
+                    </Badge>
+                  ) : null;
+                })()}
+                {(() => {
+                  const tmdbNumber = Number(movie.tmdb);
+                  const hasValidTmdb =
+                    movie.tmdb != null &&
+                    String(movie.tmdb).trim() !== "" &&
+                    !Number.isNaN(tmdbNumber) &&
+                    tmdbNumber > 0;
+
+                  return hasValidTmdb ? (
+                    <Badge className="bg-blue-500 text-white font-semibold text-[10px] sm:text-xs px-2 py-1">
+                      TMDB {movie.tmdb}
+                    </Badge>
+                  ) : null;
+                })()}
                 <Badge className="bg-black text-white font-semibold text-[10px] sm:text-xs px-2 py-1 border border-white/20">
                   T18
                 </Badge>

@@ -32,8 +32,14 @@ export async function HeroSectionWrapper() {
       }
     );
     
+    // Filter chỉ lấy phim có chieurap: true
+    const phimLeFiltered = (phimLeRaw || []).filter((movie) => {
+      // Kiểm tra field chieurap: có thể là boolean hoặc number (1/0)
+      return movie.chieurap === true || movie.chieurap === 1;
+    });
+    
     // Sắp xếp theo modified time (mới nhất trước) để hiển thị phim mới cập nhật nhất
-    const phimLeSorted = sortByModifiedDesc(phimLeRaw || []);
+    const phimLeSorted = sortByModifiedDesc(phimLeFiltered);
     
     // Lấy tối đa 10 phim đầu (đã được limit từ API, HeroSection sẽ lấy 5 phim đầu)
     const phimLe = phimLeSorted.slice(0, 10);

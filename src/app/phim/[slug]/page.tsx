@@ -171,7 +171,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                     {movie.time}
                   </span>
                 )}
-                {movie.vote_average && typeof movie.vote_average === 'number' && !isNaN(movie.vote_average) && (
+                {typeof movie.vote_average === 'number' && !isNaN(movie.vote_average) && movie.vote_average > 0 && (
                   <span className="rounded-full border border-[#F6C453]/50 bg-[#F6C453]/20 px-2 py-0.5 text-[9px] sm:text-[10px] font-semibold text-[#F6C453] flex items-center gap-1">
                     <span>⭐</span>
                     <span>{movie.vote_average.toFixed(1)}</span>
@@ -271,7 +271,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                   <span className="text-[#F6C453] font-semibold">{movie.current_episode}</span>
                 )}
                 {isValidTime(movie.time) && <span className="text-white/70">{movie.time}</span>}
-                {movie.vote_average && typeof movie.vote_average === 'number' && !isNaN(movie.vote_average) && (
+                {movie.vote_average && typeof movie.vote_average === 'number' && !isNaN(movie.vote_average) && movie.vote_average > 0 && (
                   <span className="rounded-full border border-[#F6C453]/50 bg-[#F6C453]/20 px-1.5 py-0.5 font-semibold text-[#F6C453] flex items-center gap-1">
                     <span>⭐</span>
                     <span>{movie.vote_average.toFixed(1)}</span>
@@ -440,24 +440,42 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                   </div>
                 )}
 
-                {((movie.imdb && movie.imdb !== 0 && movie.imdb !== "0" && String(movie.imdb).trim() !== "") || 
-                  (movie.tmdb && movie.tmdb !== 0 && movie.tmdb !== "0" && String(movie.tmdb).trim() !== "")) && (
-                  <div>
-                    <span className="text-[#F6C453]/70 text-sm block mb-1">Đánh giá</span>
-                    <div className="flex flex-wrap gap-2">
-                      {movie.imdb && movie.imdb !== 0 && movie.imdb !== "0" && String(movie.imdb).trim() !== "" && (
-                        <Badge className="bg-yellow-500 text-black font-semibold text-xs px-2 py-1">
-                          IMDb {movie.imdb}
-                        </Badge>
-                      )}
-                      {movie.tmdb && movie.tmdb !== 0 && movie.tmdb !== "0" && String(movie.tmdb).trim() !== "" && (
-                        <Badge className="bg-blue-500 text-white font-semibold text-xs px-2 py-1">
-                          TMDB {movie.tmdb}
-                        </Badge>
-                      )}
+                {(() => {
+                  const imdbNumber = Number(movie.imdb);
+                  const tmdbNumber = Number(movie.tmdb);
+
+                  const hasValidImdb =
+                    movie.imdb != null &&
+                    String(movie.imdb).trim() !== "" &&
+                    !Number.isNaN(imdbNumber) &&
+                    imdbNumber > 0;
+
+                  const hasValidTmdb =
+                    movie.tmdb != null &&
+                    String(movie.tmdb).trim() !== "" &&
+                    !Number.isNaN(tmdbNumber) &&
+                    tmdbNumber > 0;
+
+                  if (!hasValidImdb && !hasValidTmdb) return null;
+
+                  return (
+                    <div>
+                      <span className="text-[#F6C453]/70 text-sm block mb-1">Đánh giá</span>
+                      <div className="flex flex-wrap gap-2">
+                        {hasValidImdb && (
+                          <Badge className="bg-yellow-500 text-black font-semibold text-xs px-2 py-1">
+                            IMDb {movie.imdb}
+                          </Badge>
+                        )}
+                        {hasValidTmdb && (
+                          <Badge className="bg-blue-500 text-white font-semibold text-xs px-2 py-1">
+                            TMDB {movie.tmdb}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
                 </div>
               </div>
             </div>

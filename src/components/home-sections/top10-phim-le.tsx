@@ -52,8 +52,6 @@ export async function Top10PhimLe() {
         sort_type: "desc",
         year: 2025, // Filter theo năm 2025
         limit: 50, // Lấy nhiều hơn để có đủ sau khi filter >= 2025
-        // Chỉ lấy phim chiếu rạp (nếu backend hỗ trợ query này)
-        chieurap: true,
       }
     ).catch((error) => {
       return [];
@@ -63,13 +61,11 @@ export async function Top10PhimLe() {
       return null;
     }
 
-    // Filter chỉ lấy phim có năm >= 2025 và chieurap = true
+    // Filter chỉ lấy phim có năm >= 2025
     const phimLeFiltered = phimLeRaw.filter((movie) => {
       const year = getReleaseYear(movie);
       const isYearValid = year !== null && year >= 2025;
-      // Chỉ lấy phim chiếu rạp (chieurap = true)
-      const isChieuRap = movie.chieurap === true;
-      return isYearValid && isChieuRap;
+      return isYearValid;
     });
 
     // Sắp xếp theo modified time (mới nhất trước) để hiển thị phim mới cập nhật nhất

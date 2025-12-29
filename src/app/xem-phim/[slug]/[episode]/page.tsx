@@ -15,6 +15,7 @@ import { M3u8Player } from "@/components/player/m3u8-player";
 import { NetflixPlayer } from "@/components/player/netflix-player";
 import { EpisodeSelectorWatch } from "@/components/episode-selector-watch";
 import { MovieInfoPanel } from "@/components/movie-info-panel";
+import { MovieVersionsSelector } from "@/components/movie-versions-selector";
 import { WatchProgressTracker } from "@/components/watch-progress-tracker";
 import { WatchFilmTracker } from "@/components/watch-film-tracker";
 import { WatchFilmEpisodeNav } from "@/components/watch-film-episode-nav";
@@ -302,7 +303,7 @@ async function VideoPlayer({
               episodeName={currentEpisode.name}
             />
           </div>
-          
+
           {/* Khối player + meta đơn giản, bỏ nền blur phía sau */}
           <div className="space-y-4 sm:space-y-6 max-w-full text-white">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-white/70">
@@ -361,6 +362,17 @@ async function VideoPlayer({
           />
         </div>
 
+        {/* Các bản phim - Layout riêng ở dưới player */}
+        {filteredEpisodes.length > 0 && (
+          <MovieVersionsSelector
+            servers={filteredEpisodes}
+            movieSlug={slug}
+            currentEpisodeSlug={episodeSlug}
+            currentServerName={currentServer.server_name}
+            movieName={movie.name}
+            posterUrl={movie.thumb_url || movie.poster_url}
+          />
+        )}
 
         {/* Movie Info Panel - Gộp chung với tập phim */}
         {currentServer && allEpisodes.length > 0 && filteredEpisodes.length > 0 && (
