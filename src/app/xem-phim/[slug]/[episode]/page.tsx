@@ -363,7 +363,7 @@ async function VideoPlayer({
         </div>
 
         {/* Các bản phim - Layout riêng ở dưới player */}
-        {filteredEpisodes.length > 0 && (
+        {filteredEpisodes.length > 0 && currentServer && (
           <MovieVersionsSelector
             servers={filteredEpisodes}
             movieSlug={slug}
