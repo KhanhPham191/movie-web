@@ -452,6 +452,29 @@ export function NetflixPlayer({
     showControlsWithTimeout();
   };
 
+  // Keyboard controls: ArrowLeft / ArrowRight skip 10s
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && ["INPUT", "TEXTAREA"].includes(target.tagName)) return;
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handleSkip(-10);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleSkip(10);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleSkip]);
+
   const handleToggleFullscreen = () => {
     const video = videoRef.current;
     const container = containerRef.current;
