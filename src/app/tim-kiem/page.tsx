@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Footer } from "@/components/footer";
 import { MovieCard } from "@/components/movie-card";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
-import { Search } from "lucide-react";
+import { Search, SearchX, ArrowRight, AlertCircle } from "lucide-react";
 import { searchFilms, type FilmItem } from "@/lib/api";
 
 // Hàm chuẩn hóa chuỗi để so sánh (bỏ dấu, lowercase)
@@ -84,8 +84,24 @@ export default function SearchPage() {
           limit: 20,
         });
 
-        if (firstRes.status === "error") {
-          throw new Error(firstRes.message || "Search failed");
+        // Nếu API trả về lỗi hoặc không có items, xem như không có kết quả (không phải lỗi)
+        if (firstRes.status === "error" || !Array.isArray(firstRes.items)) {
+          if (!cancelled) {
+            setMovies([]);
+            setError(null);
+          }
+          return;
+        }
+
+        const items = firstRes.items || [];
+        
+        // Nếu không có items, hiển thị không có kết quả
+        if (items.length === 0) {
+          if (!cancelled) {
+            setMovies([]);
+            setError(null);
+          }
+          return;
         }
 
         const totalPages: number =
@@ -99,7 +115,6 @@ export default function SearchPage() {
         // Nếu chỉ có 1 trang thì dùng luôn
         if (pagesToFetch === 1) {
           if (!cancelled) {
-            const items = firstRes.items || [];
             // Sắp xếp theo relevance score
             type FilmWithScore = FilmItem & { score: number };
             const sorted = items
@@ -110,6 +125,7 @@ export default function SearchPage() {
               .sort((a: FilmWithScore, b: FilmWithScore) => b.score - a.score)
               .map(({ score, ...rest }: FilmWithScore) => rest as FilmItem); // Bỏ score khỏi kết quả cuối
             setMovies(sorted);
+            setError(null);
           }
         } else {
           // Gọi song song các trang còn lại
@@ -139,7 +155,7 @@ export default function SearchPage() {
 
           if (!cancelled) {
             const combined = [
-              ...(Array.isArray(firstRes?.items) ? firstRes.items : []),
+              ...items,
               ...otherItems,
             ];
             
@@ -154,11 +170,13 @@ export default function SearchPage() {
               .map(({ score, ...rest }: FilmWithScore) => rest as FilmItem); // Bỏ score khỏi kết quả cuối
             
             setMovies(sorted);
+            setError(null);
           }
         }
       } catch (err) {
+        // Chỉ hiển thị lỗi khi thực sự có lỗi network hoặc exception
         if (!cancelled) {
-          setError("Có lỗi khi gọi API tìm kiếm. Vui lòng thử lại sau.");
+          setError("Đã xảy ra lỗi kết nối. Vui lòng thử lại sau.");
           setMovies([]);
         }
       } finally {
@@ -206,21 +224,49 @@ export default function SearchPage() {
 
           {/* Lỗi */}
           {query && !loading && error && (
-            <div className="text-center py-20">
-              <p className="text-destructive">{error}</p>
+            <div className="flex flex-col items-center justify-center py-16 md:py-24 px-4">
+              {/* Icon với animation */}
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-red-600/20 rounded-full blur-2xl animate-pulse" />
+                <div className="relative bg-gradient-to-br from-red-500/10 to-red-600/10 rounded-full p-6 border border-red-500/20">
+                  <AlertCircle className="w-20 h-20 md:w-24 md:h-24 text-red-500" />
+                </div>
+              </div>
+
+              {/* Thông điệp lỗi */}
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 text-center max-w-2xl">
+                Đã xảy ra lỗi
+              </h2>
+              
+              <p className="text-red-400 text-base md:text-lg mb-6 text-center max-w-xl">
+                {error}
+              </p>
+
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-3 rounded-lg bg-[#F6C453] hover:bg-[#D3A13A] text-black font-semibold transition-all duration-300 flex items-center gap-2"
+              >
+                Thử lại
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
           )}
 
           {/* Không có kết quả */}
           {query && !loading && !error && movies && movies.length === 0 && (
-            <div className="text-center py-20">
-              <Search className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h2 className="text-xl font-semibold mb-2">
-                Không tìm thấy kết quả cho &ldquo;{query}&rdquo;
+            <div className="flex flex-col items-center justify-center py-20 md:py-32 px-4">
+              {/* Icon với animation */}
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-gradient-to-r from-[#F6C453]/20 to-[#D3A13A]/20 rounded-full blur-2xl animate-pulse" />
+                <div className="relative bg-gradient-to-br from-[#F6C453]/10 to-[#D3A13A]/10 rounded-full p-6 border border-[#F6C453]/20">
+                  <SearchX className="w-20 h-20 md:w-24 md:h-24 text-[#F6C453]" />
+                </div>
+              </div>
+
+              {/* Thông điệp chính */}
+              <h2 className="text-2xl md:text-3xl font-bold text-white text-center">
+                Không có phim nào bạn tìm thấy
               </h2>
-              <p className="text-muted-foreground">
-                Hãy thử tìm kiếm với từ khóa khác
-              </p>
             </div>
           )}
 
