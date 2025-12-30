@@ -249,9 +249,48 @@ export async function generateMetadata({ params }: CountryPageProps) {
   const { slug } = await params;
   const country = COUNTRIES.find((c) => c.slug === slug);
   const countryName = country?.name || slug;
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
+  const countryUrl = `${siteUrl}/quoc-gia/${slug}`;
+  
   return {
     title: `Phim ${countryName} - Xem phim ${countryName} Vietsub | MovPey`,
-    description: `Kho phim ${countryName} full HD Vietsub, thuyết minh, cập nhật liên tục trên MovPey.`,
+    description: `Kho phim ${countryName} full HD Vietsub, thuyết minh, cập nhật liên tục trên MovPey. Hàng nghìn bộ phim ${countryName} chất lượng cao.`,
+    keywords: [
+      `phim ${countryName}`,
+      countryName,
+      "xem phim online",
+      "phim vietsub",
+      "phim thuyết minh",
+      "phim hd",
+      "phim miễn phí",
+    ],
+    alternates: {
+      canonical: countryUrl,
+    },
+    openGraph: {
+      title: `Phim ${countryName} - Xem phim ${countryName} Vietsub | MovPey`,
+      description: `Kho phim ${countryName} full HD Vietsub, thuyết minh, cập nhật liên tục trên MovPey.`,
+      url: countryUrl,
+      siteName: "MovPey",
+      locale: "vi_VN",
+      type: "website",
+      images: [
+        {
+          url: `${siteUrl}/logo.svg`,
+          width: 1200,
+          height: 630,
+          alt: `Phim ${countryName} - MovPey`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `Phim ${countryName} - Xem phim ${countryName} Vietsub | MovPey`,
+      description: `Kho phim ${countryName} full HD Vietsub, thuyết minh, cập nhật liên tục trên MovPey.`,
+      images: [`${siteUrl}/logo.svg`],
+    },
   };
 }
 

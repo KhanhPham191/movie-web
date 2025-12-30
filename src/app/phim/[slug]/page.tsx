@@ -25,7 +25,7 @@ import { getFilmDetail, getImageUrl, searchFilmsMerged } from "@/lib/api";
 import type { FilmItem } from "@/lib/api";
 import { MovieSection } from "@/components/movie-section";
 import { isValidTime } from "@/lib/utils";
-import { generateMovieStructuredData } from "@/lib/structured-data";
+import { generateMovieStructuredData, generateBreadcrumbStructuredData } from "@/lib/structured-data";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 
 // Lấy số "phần" của series từ slug/tên phim (phan-1, (Phần 1), Season 1, ...)
@@ -127,8 +127,26 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
         movie.episodes[0]
       : undefined;
 
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
+    
+    const movieStructuredData = generateMovieStructuredData(movie, `${siteUrl}/phim/${movie.slug}`);
+    const breadcrumbStructuredData = generateBreadcrumbStructuredData([
+      { name: "Trang chủ", url: siteUrl },
+      { name: movie.name, url: `${siteUrl}/phim/${movie.slug}` },
+    ]);
+
     return (
       <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(movieStructuredData) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }}
+        />
         <FilmDetailTracker movieName={movie.name} movieSlug={movie.slug} />
         {/* Hero Section - Cinematic Sakura Style */}
         <section className="relative h-[260px] xs:h-[300px] sm:h-[65vh] md:h-[80vh] min-h-[240px] xs:min-h-[260px] sm:min-h-[420px] md:min-h-[500px] flex items-end overflow-hidden animate-fade-in">

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { CategoryPills } from "@/components/category-pills";
 import { Footer } from "@/components/footer";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
@@ -12,14 +13,92 @@ import { AnimeSection } from "@/components/home-sections/anime";
 import { ThaiLanSection } from "@/components/home-sections/thai-lan";
 import { HongKongSection } from "@/components/home-sections/hong-kong";
 import { TopicTags, DEFAULT_TOPIC_TAGS } from "@/components/topic-tags";
+import { generateWebsiteStructuredData, generateOrganizationStructuredData } from "@/lib/structured-data";
 
 // ISR: Revalidate every 5 minutes để giảm số lần gọi API
 export const revalidate = 300;
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
+
+export const metadata: Metadata = {
+  title: "MovPey - Phim xịn mỗi ngày | Xem phim online HD Vietsub miễn phí",
+  description:
+    "MovPey - Phim xịn mỗi ngày. Xem phim online HD Vietsub, thuyết minh miễn phí. Phim lẻ, phim bộ, phim Hàn Quốc, Trung Quốc, Âu Mỹ, Anime chất lượng cao. Cập nhật liên tục hàng ngày.",
+  keywords: [
+    "xem phim",
+    "phim lẻ",
+    "phim bộ",
+    "phim vietsub",
+    "xem phim online",
+    "phim hd",
+    "phim miễn phí",
+    "phim hay",
+    "phim mới",
+    "phim Hàn Quốc",
+    "phim Trung Quốc",
+    "phim Âu Mỹ",
+    "phim Thái Lan",
+    "phim Hong Kong",
+    "anime",
+    "phim thuyết minh",
+    "phim lồng tiếng",
+    "xem phim không quảng cáo",
+    "phim chất lượng cao",
+    "phim full hd",
+    "phim 4k",
+    "phim online miễn phí",
+    "xem phim trực tuyến",
+    "phim truyền hình",
+    "phim điện ảnh",
+    "phim chiếu rạp",
+    "phim bom tấn",
+  ],
+  alternates: {
+    canonical: siteUrl,
+  },
+  openGraph: {
+    title: "MovPey - Phim xịn mỗi ngày | Xem phim online HD Vietsub miễn phí",
+    description:
+      "Xem phim online chất lượng cao, cập nhật liên tục, đầy đủ thể loại với Vietsub/Thuyết minh. Phim lẻ, phim bộ, phim Hàn Quốc, Trung Quốc, Âu Mỹ, Anime HD miễn phí.",
+    url: siteUrl,
+    siteName: "MovPey",
+    locale: "vi_VN",
+    type: "website",
+    images: [
+      {
+        url: `${siteUrl}/logo.svg`,
+        width: 1200,
+        height: 630,
+        alt: "MovPey - Phim xịn mỗi ngày",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MovPey - Phim xịn mỗi ngày | Xem phim online HD Vietsub miễn phí",
+    description:
+      "Xem phim online chất lượng cao, cập nhật liên tục, đầy đủ thể loại với Vietsub/Thuyết minh.",
+    images: [`${siteUrl}/logo.svg`],
+    creator: "@MovPey",
+  },
+};
+
 export default async function Home() {
+  const websiteStructuredData = generateWebsiteStructuredData(siteUrl);
+  const organizationStructuredData = generateOrganizationStructuredData(siteUrl);
 
   return (
     <main className="min-h-screen bg-[#191b24] relative overflow-x-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteStructuredData) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationStructuredData) }}
+      />
       {/* Hero - Priority load (full-width) */}
       <Suspense fallback={<div className="h-[60vh] bg-[#191b24]" />}>
         <HeroSectionWrapper />

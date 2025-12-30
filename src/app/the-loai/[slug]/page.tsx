@@ -152,9 +152,48 @@ export async function generateMetadata({ params }: GenrePageProps) {
   const { slug } = await params;
   const genre = GENRES.find((g) => g.slug === slug);
   const genreName = genre?.name || slug;
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
+  const genreUrl = `${siteUrl}/the-loai/${slug}`;
+  
   return {
     title: `Phim ${genreName} - Xem phim ${genreName.toLowerCase()} Vietsub | MovPey`,
-    description: `Xem phim ${genreName.toLowerCase()} full HD Vietsub, thuyết minh miễn phí trên MovPey.`,
+    description: `Xem phim ${genreName.toLowerCase()} full HD Vietsub, thuyết minh miễn phí trên MovPey. Cập nhật liên tục với hàng nghìn bộ phim hấp dẫn.`,
+    keywords: [
+      `phim ${genreName.toLowerCase()}`,
+      genreName,
+      "xem phim online",
+      "phim vietsub",
+      "phim thuyết minh",
+      "phim hd",
+      "phim miễn phí",
+    ],
+    alternates: {
+      canonical: genreUrl,
+    },
+    openGraph: {
+      title: `Phim ${genreName} - Xem phim ${genreName.toLowerCase()} Vietsub | MovPey`,
+      description: `Xem phim ${genreName.toLowerCase()} full HD Vietsub, thuyết minh miễn phí trên MovPey.`,
+      url: genreUrl,
+      siteName: "MovPey",
+      locale: "vi_VN",
+      type: "website",
+      images: [
+        {
+          url: `${siteUrl}/logo.svg`,
+          width: 1200,
+          height: 630,
+          alt: `Phim ${genreName} - MovPey`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `Phim ${genreName} - Xem phim ${genreName.toLowerCase()} Vietsub | MovPey`,
+      description: `Xem phim ${genreName.toLowerCase()} full HD Vietsub, thuyết minh miễn phí trên MovPey.`,
+      images: [`${siteUrl}/logo.svg`],
+    },
   };
 }
 

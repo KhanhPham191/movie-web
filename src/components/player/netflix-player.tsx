@@ -51,6 +51,9 @@ export function NetflixPlayer({
   const isDraggingRef = useRef(false);
   const showSettingsRef = useRef(false);
   const hasSeekedRef = useRef(false);
+  const lastControlsShowTimeRef = useRef<number>(0);
+  const autoHideCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const showControlsRef = useRef(false);
   
   // Get video progress context to share with WatchProgressTracker (optional)
   const videoProgressContext = useVideoProgressOptional();
@@ -95,6 +98,8 @@ export function NetflixPlayer({
   const gestureModeRef = useRef<'none' | 'brightness' | 'volume' | 'horizontal'>('none');
   const gestureIndicatorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const togglePlayRef = useRef<(() => void) | null>(null);
+  const showControlsWithTimeoutRef = useRef<(() => void) | null>(null);
+  const hideControlsRef = useRef<(() => void) | null>(null);
 
   // Detect mobile device and iOS
   useEffect(() => {
@@ -133,6 +138,7 @@ export function NetflixPlayer({
   const showControlsWithTimeout = useCallback(() => {
     // Show controls immediately
     setShowControls(true);
+    lastControlsShowTimeRef.current = Date.now();
     
     // Clear any existing timeout
     if (controlsTimeoutRef.current) {
@@ -150,21 +156,32 @@ export function NetflixPlayer({
     }
   }, [isPlaying]);
 
+  // Store callbacks in refs for stable references
+  useEffect(() => {
+    showControlsWithTimeoutRef.current = showControlsWithTimeout;
+  }, [showControlsWithTimeout]);
+
+  useEffect(() => {
+    hideControlsRef.current = hideControls;
+  }, [hideControls]);
+
   // Mouse movement handler
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const handleMouseMove = () => {
-      showControlsWithTimeout();
+      if (showControlsWithTimeoutRef.current) {
+        showControlsWithTimeoutRef.current();
+      }
     };
 
     const handleMouseLeave = () => {
       setIsHovering(false);
       isHoveringRef.current = false;
       // Hide with delay when leaving if playing
-      if (isPlaying) {
-        hideControls();
+      if (isPlaying && hideControlsRef.current) {
+        hideControlsRef.current();
       }
     };
 
@@ -173,6 +190,7 @@ export function NetflixPlayer({
       isHoveringRef.current = true;
       // Show immediately when entering
       setShowControls(true);
+      lastControlsShowTimeRef.current = Date.now();
       // Clear timeout when entering
       if (controlsTimeoutRef.current) {
         clearTimeout(controlsTimeoutRef.current);
@@ -188,7 +206,7 @@ export function NetflixPlayer({
       container.removeEventListener("mouseleave", handleMouseLeave);
       container.removeEventListener("mouseenter", handleMouseEnter);
     };
-  }, [showControlsWithTimeout, hideControls, isPlaying]);
+  }, [isPlaying]);
 
   // Video event handlers
   useEffect(() => {
@@ -203,8 +221,29 @@ export function NetflixPlayer({
       }
       // Hide controls with delay when video starts playing (unless interacting)
       if (!isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
-        hideControls();
+        if (hideControlsRef.current) {
+          hideControlsRef.current();
+        }
       }
+      
+      // Start auto-hide check interval when video starts playing
+      if (autoHideCheckIntervalRef.current) {
+        clearInterval(autoHideCheckIntervalRef.current);
+      }
+      autoHideCheckIntervalRef.current = setInterval(() => {
+        const video = videoRef.current;
+        if (video && !video.paused && showControlsRef.current) {
+          const timeSinceLastShow = Date.now() - lastControlsShowTimeRef.current;
+          if (timeSinceLastShow >= 2000 && !isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
+            // Clear any existing timeout
+            if (controlsTimeoutRef.current) {
+              clearTimeout(controlsTimeoutRef.current);
+            }
+            // Hide controls immediately if conditions are met
+            setShowControls(false);
+          }
+        }
+      }, 500); // Check every 500ms
     };
     const handlePause = () => {
       setIsPlaying(false);
@@ -213,6 +252,13 @@ export function NetflixPlayer({
         analytics.trackWatchFilmPause(movieName, movieSlug, episodeSlug, video.currentTime);
       }
       setShowControls(true);
+      lastControlsShowTimeRef.current = Date.now();
+      
+      // Stop auto-hide check interval when video is paused
+      if (autoHideCheckIntervalRef.current) {
+        clearInterval(autoHideCheckIntervalRef.current);
+        autoHideCheckIntervalRef.current = null;
+      }
     };
     const handleTimeUpdate = () => {
       const time = video.currentTime;
@@ -280,7 +326,7 @@ export function NetflixPlayer({
       video.removeEventListener("progress", handleProgress);
       video.removeEventListener("volumechange", handleVolumeChange);
     };
-  }, [onTimeUpdate, hideControls, searchParams]);
+  }, [onTimeUpdate, searchParams, movieName, movieSlug, episodeSlug, updateProgress]);
 
   // Fullscreen change listener
   useEffect(() => {
@@ -354,6 +400,11 @@ export function NetflixPlayer({
     showSettingsRef.current = showSettings;
   }, [showSettings]);
 
+  // Sync showControls state with ref
+  useEffect(() => {
+    showControlsRef.current = showControls;
+  }, [showControls]);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -362,6 +413,9 @@ export function NetflixPlayer({
       }
       if (gestureIndicatorTimeoutRef.current) {
         clearTimeout(gestureIndicatorTimeoutRef.current);
+      }
+      if (autoHideCheckIntervalRef.current) {
+        clearInterval(autoHideCheckIntervalRef.current);
       }
     };
   }, []);
@@ -966,6 +1020,7 @@ export function NetflixPlayer({
           }
           // Show controls on touch
           setShowControls(true);
+          lastControlsShowTimeRef.current = Date.now();
           // Handle long press for 2x speed
           handleLongPressTouchStart(e);
           // Handle gesture for brightness/volume

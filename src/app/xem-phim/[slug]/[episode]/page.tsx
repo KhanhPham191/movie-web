@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight, Home, Info, Play } from "lucide-react";
 import { getFilmDetail, getImageUrl, searchFilmsMerged, type FilmItem } from "@/lib/api";
 import { isValidTime } from "@/lib/utils";
-import { generateVideoStructuredData } from "@/lib/structured-data";
+import { generateVideoStructuredData, generateBreadcrumbStructuredData } from "@/lib/structured-data";
 import { IframePlayer } from "@/components/player/iframe-player";
 import { M3u8Player } from "@/components/player/m3u8-player";
 import { NetflixPlayer } from "@/components/player/netflix-player";
@@ -281,11 +281,21 @@ async function VideoPlayer({
       `${siteUrl}/xem-phim/${slug}/${episodeSlug}`
     );
 
+    const breadcrumbStructuredData = generateBreadcrumbStructuredData([
+      { name: "Trang chủ", url: siteUrl },
+      { name: movie.name, url: `${siteUrl}/phim/${slug}` },
+      { name: `${movie.name} - ${currentEpisode.name}`, url: `${siteUrl}/xem-phim/${slug}/${episodeSlug}` },
+    ]);
+
     return (
       <VideoProgressProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(videoStructuredData) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }}
         />
         <div className="space-y-10">
           {/* Watch Film Tracker - Track page view */}

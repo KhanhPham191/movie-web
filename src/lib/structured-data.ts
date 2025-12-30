@@ -22,11 +22,26 @@ export function generateMovieStructuredData(movie: FilmDetail | FilmItem, curren
     description: plainDescription || `Xem phim ${movie.name} online HD Vietsub miễn phí`,
     image: imageUrl,
     url: movieUrl,
+    publisher: {
+      "@type": "Organization",
+      name: "MovPey",
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/logo.svg`,
+      },
+    },
   };
+
+  // Add original name if available
+  if (movie.original_name && movie.original_name !== movie.name) {
+    structuredData.alternateName = movie.original_name;
+  }
 
   // Add year if available
   if (movie.year) {
     structuredData.datePublished = String(movie.year);
+  } else if (movie.created) {
+    structuredData.datePublished = new Date(movie.created).getFullYear().toString();
   }
 
   // Add genre
@@ -43,6 +58,7 @@ export function generateMovieStructuredData(movie: FilmDetail | FilmItem, curren
         ratingValue: String(rating),
         bestRating: "10",
         worstRating: "1",
+        ratingCount: "1",
       };
     }
   }
@@ -79,6 +95,9 @@ export function generateMovieStructuredData(movie: FilmDetail | FilmItem, curren
     structuredData.duration = movie.time;
   }
 
+  // Add content rating
+  structuredData.contentRating = "T18";
+
   return structuredData;
 }
 
@@ -112,6 +131,7 @@ export function generateVideoStructuredData(
 
   const videoUrl = currentUrl || `${siteUrl}/xem-phim/${movie.slug}/${episode.slug}`;
   const thumbnailUrl = movie.poster_url || movie.thumb_url || `${siteUrl}/logo.svg`;
+  const movieUrl = `${siteUrl}/phim/${movie.slug}`;
 
   const structuredData: any = {
     "@context": "https://schema.org",
@@ -122,11 +142,43 @@ export function generateVideoStructuredData(
     contentUrl: videoUrl,
     embedUrl: videoUrl,
     uploadDate: movie.modified || movie.created || new Date().toISOString(),
+    datePublished: movie.created || movie.modified || new Date().toISOString(),
+    publisher: {
+      "@type": "Organization",
+      name: "MovPey",
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/logo.svg`,
+      },
+    },
+    mainEntity: {
+      "@type": "Movie",
+      name: movie.name,
+      url: movieUrl,
+    },
   };
 
   // Add duration if available
   if (movie.time) {
     structuredData.duration = movie.time;
+  }
+
+  // Add genre
+  if (movie.category && movie.category.length > 0) {
+    structuredData.genre = movie.category.map((cat) => cat.name).join(", ");
+  }
+
+  // Add rating if available
+  if (movie.imdb || movie.tmdb || movie.vote_average) {
+    const rating = movie.vote_average || movie.imdb || movie.tmdb;
+    if (rating) {
+      structuredData.aggregateRating = {
+        "@type": "AggregateRating",
+        ratingValue: String(rating),
+        bestRating: "10",
+        worstRating: "1",
+      };
+    }
   }
 
   return structuredData;

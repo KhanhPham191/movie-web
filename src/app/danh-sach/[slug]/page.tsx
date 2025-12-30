@@ -251,9 +251,48 @@ export default async function CategoryPage({
 export async function generateMetadata({ params }: CategoryPageProps) {
   const { slug } = await params;
   const categoryName = CATEGORY_NAMES[slug] || "Danh sách phim";
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
+  const categoryUrl = `${siteUrl}/danh-sach/${slug}`;
+  
   return {
     title: `${categoryName} - Xem phim online Vietsub | MovPey`,
-    description: `Xem ${categoryName.toLowerCase()} full HD Vietsub, thuyết minh miễn phí trên MovPey.`,
+    description: `Xem ${categoryName.toLowerCase()} full HD Vietsub, thuyết minh miễn phí trên MovPey. Cập nhật liên tục với hàng nghìn bộ phim hấp dẫn.`,
+    keywords: [
+      categoryName,
+      "xem phim online",
+      "phim vietsub",
+      "phim thuyết minh",
+      "phim hd",
+      "phim miễn phí",
+      "phim hay",
+    ],
+    alternates: {
+      canonical: categoryUrl,
+    },
+    openGraph: {
+      title: `${categoryName} - Xem phim online Vietsub | MovPey`,
+      description: `Xem ${categoryName.toLowerCase()} full HD Vietsub, thuyết minh miễn phí trên MovPey.`,
+      url: categoryUrl,
+      siteName: "MovPey",
+      locale: "vi_VN",
+      type: "website",
+      images: [
+        {
+          url: `${siteUrl}/logo.svg`,
+          width: 1200,
+          height: 630,
+          alt: `${categoryName} - MovPey`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${categoryName} - Xem phim online Vietsub | MovPey`,
+      description: `Xem ${categoryName.toLowerCase()} full HD Vietsub, thuyết minh miễn phí trên MovPey.`,
+      images: [`${siteUrl}/logo.svg`],
+    },
   };
 }
 
