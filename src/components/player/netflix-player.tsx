@@ -132,11 +132,14 @@ export function NetflixPlayer({
     const isVideoPlaying = video && !video.paused;
     
     // Only hide if playing and not interacting
-    if (isVideoPlaying && !isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
+    // Lưu ý: trên mobile không có hover thực sự, nên bỏ qua isHoveringRef khi auto-hide
+    const isHoveringBlock = !isMobile && isHoveringRef.current;
+    if (isVideoPlaying && !isHoveringBlock && !isDraggingRef.current && !showSettingsRef.current) {
       controlsTimeoutRef.current = setTimeout(() => {
         // Double check before hiding
         const video = videoRef.current;
-        if (video && !video.paused && !isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
+        const isStillHovering = !isMobile && isHoveringRef.current;
+        if (video && !video.paused && !isStillHovering && !isDraggingRef.current && !showSettingsRef.current) {
           setShowControls(false);
         }
       }, 2000); // 2 second delay
@@ -161,7 +164,8 @@ export function NetflixPlayer({
     if (isVideoPlaying) {
       controlsTimeoutRef.current = setTimeout(() => {
         const video = videoRef.current;
-        if (video && !video.paused && !isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
+        const isHoveringBlock = !isMobile && isHoveringRef.current;
+        if (video && !video.paused && !isHoveringBlock && !isDraggingRef.current && !showSettingsRef.current) {
           setShowControls(false);
         }
       }, 2000);
@@ -237,7 +241,8 @@ export function NetflixPlayer({
       // Always try to hide controls when video starts playing (unless interacting)
       // Use a small delay to ensure video state is updated
       setTimeout(() => {
-        if (!isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
+        const isHoveringBlock = !isMobile && isHoveringRef.current;
+        if (!isHoveringBlock && !isDraggingRef.current && !showSettingsRef.current) {
           if (hideControlsRef.current) {
             hideControlsRef.current();
           }
@@ -252,7 +257,8 @@ export function NetflixPlayer({
         const video = videoRef.current;
         if (video && !video.paused && showControlsRef.current) {
           const timeSinceLastShow = Date.now() - lastControlsShowTimeRef.current;
-          if (timeSinceLastShow >= 2000 && !isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
+          const isHoveringBlock = !isMobile && isHoveringRef.current;
+          if (timeSinceLastShow >= 2000 && !isHoveringBlock && !isDraggingRef.current && !showSettingsRef.current) {
             // Clear any existing timeout
             if (controlsTimeoutRef.current) {
               clearTimeout(controlsTimeoutRef.current);
