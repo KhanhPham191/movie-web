@@ -132,19 +132,19 @@ export function NetflixPlayer({
     const isVideoPlaying = video && !video.paused;
     
     // Only hide if playing and not interacting
-    // Lưu ý: trên mobile không có hover thực sự, nên bỏ qua isHoveringRef khi auto-hide
-    const isHoveringBlock = !isMobile && isHoveringRef.current;
+    // Lưu ý: trên mobile và fullscreen không có hover thực sự, nên bỏ qua isHoveringRef khi auto-hide
+    const isHoveringBlock = !isMobile && !isFullscreen && isHoveringRef.current;
     if (isVideoPlaying && !isHoveringBlock && !isDraggingRef.current && !showSettingsRef.current) {
       controlsTimeoutRef.current = setTimeout(() => {
         // Double check before hiding
         const video = videoRef.current;
-        const isStillHovering = !isMobile && isHoveringRef.current;
+        const isStillHovering = !isMobile && !isFullscreen && isHoveringRef.current;
         if (video && !video.paused && !isStillHovering && !isDraggingRef.current && !showSettingsRef.current) {
           setShowControls(false);
         }
       }, 2000); // 2 second delay
     }
-  }, []);
+  }, [isMobile, isFullscreen]);
 
   const showControlsWithTimeout = useCallback(() => {
     // Show controls immediately
@@ -161,16 +161,17 @@ export function NetflixPlayer({
     const isVideoPlaying = video && !video.paused;
     
     // Set timeout to hide after 2 seconds if playing and not interacting
+    // Lưu ý: trên mobile và fullscreen không có hover thực sự, nên bỏ qua isHoveringRef khi auto-hide
     if (isVideoPlaying) {
       controlsTimeoutRef.current = setTimeout(() => {
         const video = videoRef.current;
-        const isHoveringBlock = !isMobile && isHoveringRef.current;
+        const isHoveringBlock = !isMobile && !isFullscreen && isHoveringRef.current;
         if (video && !video.paused && !isHoveringBlock && !isDraggingRef.current && !showSettingsRef.current) {
           setShowControls(false);
         }
       }, 2000);
     }
-  }, []);
+  }, [isMobile, isFullscreen]);
 
   // Store callbacks in refs for stable references
   useEffect(() => {
@@ -241,7 +242,8 @@ export function NetflixPlayer({
       // Always try to hide controls when video starts playing (unless interacting)
       // Use a small delay to ensure video state is updated
       setTimeout(() => {
-        const isHoveringBlock = !isMobile && isHoveringRef.current;
+        // Lưu ý: trên mobile và fullscreen không có hover thực sự, nên bỏ qua isHoveringRef khi auto-hide
+        const isHoveringBlock = !isMobile && !isFullscreen && isHoveringRef.current;
         if (!isHoveringBlock && !isDraggingRef.current && !showSettingsRef.current) {
           if (hideControlsRef.current) {
             hideControlsRef.current();
@@ -257,7 +259,8 @@ export function NetflixPlayer({
         const video = videoRef.current;
         if (video && !video.paused && showControlsRef.current) {
           const timeSinceLastShow = Date.now() - lastControlsShowTimeRef.current;
-          const isHoveringBlock = !isMobile && isHoveringRef.current;
+          // Lưu ý: trên mobile và fullscreen không có hover thực sự, nên bỏ qua isHoveringRef khi auto-hide
+          const isHoveringBlock = !isMobile && !isFullscreen && isHoveringRef.current;
           if (timeSinceLastShow >= 2000 && !isHoveringBlock && !isDraggingRef.current && !showSettingsRef.current) {
             // Clear any existing timeout
             if (controlsTimeoutRef.current) {
@@ -362,9 +365,34 @@ export function NetflixPlayer({
         (document as any).msFullscreenElement
       );
       setIsFullscreen(isFullscreenActive);
+      
+      // Reset hover state when entering/exiting fullscreen
+      // (browser có thể trigger mouseenter trong fullscreen mà không bao giờ mouseleave)
+      if (isFullscreenActive) {
+        setIsHovering(false);
+        isHoveringRef.current = false;
+      }
+      
       // Track fullscreen change event
       if (movieName && movieSlug && episodeSlug) {
         analytics.trackWatchFilmFullscreen(movieName, movieSlug, episodeSlug, isFullscreenActive);
+      }
+      
+      // Khi vào fullscreen, tự động trigger auto-hide sau một khoảng thời gian
+      if (isFullscreenActive) {
+        const video = videoRef.current;
+        if (video && !video.paused) {
+          // Show controls khi vào fullscreen
+          setShowControls(true);
+          lastControlsShowTimeRef.current = Date.now();
+          
+          // Sau đó tự động ẩn sau 3 giây
+          setTimeout(() => {
+            if (hideControlsRef.current) {
+              hideControlsRef.current();
+            }
+          }, 3000);
+        }
       }
     };
 
@@ -379,7 +407,7 @@ export function NetflixPlayer({
       document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
       document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
     };
-  }, []);
+  }, [movieName, movieSlug, episodeSlug]);
 
   // HLS setup
   useEffect(() => {
