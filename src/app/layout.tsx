@@ -122,8 +122,11 @@ export const metadata: Metadata = {
     viewportFit: "cover",
   },
   verification: {
-    // Thêm Google Search Console verification nếu có
-    // google: "your-google-verification-code",
+    // Google Search Console verification code
+    // Lấy từ: https://search.google.com/search-console
+    // Chọn phương thức xác minh "HTML tag" và copy code trong content attribute
+    // Thêm vào file .env.local: NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=your-code-here
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
   },
   category: "Entertainment",
 };
