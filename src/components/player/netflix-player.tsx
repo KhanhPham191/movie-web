@@ -1059,9 +1059,8 @@ export function NetflixPlayer({
           if (isFullscreen) {
             e.preventDefault();
           }
-          // Show controls on touch
-          setShowControls(true);
-          lastControlsShowTimeRef.current = Date.now();
+          // Show controls on touch and trigger auto-hide
+          showControlsWithTimeout();
           // Handle long press for 2x speed
           handleLongPressTouchStart(e);
           // Handle gesture for brightness/volume
@@ -1109,20 +1108,9 @@ export function NetflixPlayer({
           // Handle long press end
           handleLongPressTouchEnd(e);
           
-          // Check video state directly
-          const video = videoRef.current;
-          if (video && !video.paused) {
-            // Hide controls after 2 seconds if not interacting
-            if (controlsTimeoutRef.current) {
-              clearTimeout(controlsTimeoutRef.current);
-            }
-            controlsTimeoutRef.current = setTimeout(() => {
-              const video = videoRef.current;
-              if (video && !video.paused && !isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
-                setShowControls(false);
-              }
-            }, 2000);
-          }
+          // Show controls and trigger auto-hide after touch ends
+          // This ensures controls auto-hide even if no gesture was performed
+          showControlsWithTimeout();
         }
       }}
       onTouchCancel={(e) => {
