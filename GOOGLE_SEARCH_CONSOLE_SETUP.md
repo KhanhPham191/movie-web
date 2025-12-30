@@ -104,17 +104,70 @@ Nếu thấy dòng này, xác minh đã được thêm thành công!
 - Kiểm tra biến môi trường đã được thêm vào hosting (Vercel/Netlify)
 - Rebuild lại website sau khi thêm biến môi trường
 
+### Sitemap không thể tìm nạp được (Cannot fetch sitemap)?
+1. **Kiểm tra sitemap có thể truy cập được:**
+   - Mở trình duyệt và truy cập: `https://www.movpey.xyz/sitemap.xml`
+   - Nếu thấy XML content, sitemap đang hoạt động
+   - Nếu thấy lỗi 404 hoặc 500, có vấn đề với sitemap
+
+2. **Kiểm tra biến môi trường `NEXT_PUBLIC_SITE_URL` (QUAN TRỌNG):**
+   - **PHẢI** set biến này trên Vercel/Netlify để tránh sitemap dùng Vercel preview URL
+   - Vào Vercel Dashboard > Project Settings > Environment Variables
+   - Thêm: `NEXT_PUBLIC_SITE_URL=https://www.movpey.xyz`
+   - **LƯU Ý:** Phải có `www.` và không có trailing slash (`/`)
+   - **KHÔNG** dùng `example.com`, `localhost`, hoặc để trống
+   - Sau khi thêm, **PHẢI redeploy** để áp dụng thay đổi
+
+3. **Kiểm tra robots.txt:**
+   - Truy cập: `https://yourdomain.com/robots.txt`
+   - Đảm bảo có dòng: `Sitemap: https://yourdomain.com/sitemap.xml`
+   - Đảm bảo không chặn `/sitemap.xml`
+
+4. **Kiểm tra timeout:**
+   - Sitemap đã được tối ưu để tránh timeout
+   - Giới hạn 500 phim trong sitemap
+   - Có timeout 10 giây khi fetch dữ liệu phim
+   - Cache sitemap trong 24 giờ
+
+5. **Kiểm tra logs:**
+   - Xem logs trên Vercel/Netlify khi truy cập `/sitemap.xml`
+   - Tìm lỗi trong console logs
+
+6. **Thử lại sau khi deploy:**
+   - Sau khi sửa code, đợi vài phút để cache clear
+   - Thử submit lại sitemap trong Google Search Console
+
+7. **Kiểm tra format XML:**
+   - Sitemap phải trả về đúng format XML
+   - Không được có HTML hoặc error messages
+   - URL trong sitemap phải là absolute URLs (có https://)
+
+8. **Nếu vẫn không được:**
+   - Thử submit URL đầy đủ: `https://yourdomain.com/sitemap.xml` thay vì chỉ `sitemap.xml`
+   - Đợi 24-48 giờ rồi kiểm tra lại
+   - Kiểm tra trong Google Search Console > Coverage để xem có lỗi gì không
+
 ## Thêm biến môi trường trên Vercel
 
 1. Vào dashboard Vercel
 2. Chọn project của bạn
 3. Vào **Settings** > **Environment Variables**
-4. Thêm:
+4. Thêm các biến sau:
+
+   **Biến 1: Google Search Console Verification**
    - **Name:** `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`
    - **Value:** `ABC123xyz456...` (code của bạn)
-5. Chọn môi trường: Production, Preview, Development
-6. Click **Save**
-7. Redeploy website
+   - **Environment:** Production, Preview, Development
+   
+   **Biến 2: Site URL (QUAN TRỌNG cho sitemap)**
+   - **Name:** `NEXT_PUBLIC_SITE_URL`
+   - **Value:** `https://www.movpey.xyz` (domain thực tế của bạn)
+   - **Environment:** Production (chỉ Production, không cần Preview/Development)
+   - **LƯU Ý:** Phải có `www.` và không có trailing slash (`/`)
+
+5. Click **Save** sau mỗi biến
+6. **Redeploy website** để áp dụng thay đổi
+7. Kiểm tra sitemap: `https://www.movpey.xyz/sitemap.xml` - đảm bảo URLs đều dùng domain đúng
 
 ## Thêm biến môi trường trên Netlify
 

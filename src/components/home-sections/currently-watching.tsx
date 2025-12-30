@@ -243,6 +243,12 @@ export function CurrentlyWatchingSection() {
     return null;
   }
 
+  // Nếu đã load xong mà không có phim nào thì ẩn luôn section
+  // để không chừa khoảng trống lớn trống trơn trên trang chủ
+  if (!isLoading && items.length === 0 && previousItemsRef.current.length === 0) {
+    return null;
+  }
+
   const hasContent = items.length > 0 || previousItemsRef.current.length > 0;
   const displayItems = items.length > 0 ? items : previousItemsRef.current;
 

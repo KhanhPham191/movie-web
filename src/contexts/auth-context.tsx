@@ -8,7 +8,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   signIn: (username: string, password: string) => Promise<{ error: any | null }>;
-  signUp: (username: string, password: string, name?: string) => Promise<{ error: any | null }>;
+  signUp: (username: string, password: string, name?: string) => Promise<{ error: any | null; requiresVerification?: boolean }>;
   signInWithGoogle: () => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
@@ -135,7 +135,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Convert username thành email format
       const email = usernameToEmail(cleanUsername);
       
-      const { error } = await supabase.auth.signUp({
+      // Lấy redirect URL cho email verification
+      const emailRedirectTo = typeof window !== 'undefined' 
+        ? `${window.location.origin}/auth/callback?type=signup`
+        : undefined;
+      
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -143,9 +148,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             name: name || cleanUsername,
             username: cleanUsername, // Lưu username thật vào metadata
           },
-          emailRedirectTo: undefined, // Tắt email confirmation để đăng ký nhanh
+          emailRedirectTo: emailRedirectTo, // URL để redirect sau khi xác minh email
         },
       });
+      
+      // Nếu đăng ký thành công và user đã được xác minh ngay (không cần email confirmation)
+      if (!error && data?.user && data.user.email_confirmed_at) {
+        // User đã được xác minh, tự động đăng nhập
+        return { error: null };
+      }
+      
+      // Nếu đăng ký thành công nhưng cần xác minh email
+      if (!error && data?.user && !data.user.email_confirmed_at) {
+        // Trả về success nhưng với message đặc biệt để UI hiển thị thông báo xác minh
+        return { 
+          error: null,
+          requiresVerification: true 
+        };
+      }
       
       if (error) {
         // Kiểm tra nếu là lỗi network/fetch

@@ -116,6 +116,10 @@ export function NetflixPlayer({
     checkMobile();
   }, []);
 
+  // Note: resetLongPress is declared later in the file with useCallback.
+  // We intentionally avoid using it here before its declaration to satisfy TypeScript.
+  // Long-press cleanup is already handled inside the gesture handlers and resetLongPress itself.
+
   // Auto-hide controls - hide with delay when playing, but not when interacting
   const hideControls = useCallback(() => {
     // Clear any existing timeout
@@ -123,8 +127,12 @@ export function NetflixPlayer({
       clearTimeout(controlsTimeoutRef.current);
     }
     
+    // Check video state directly instead of React state
+    const video = videoRef.current;
+    const isVideoPlaying = video && !video.paused;
+    
     // Only hide if playing and not interacting
-    if (isPlaying && !isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
+    if (isVideoPlaying && !isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
       controlsTimeoutRef.current = setTimeout(() => {
         // Double check before hiding
         const video = videoRef.current;
@@ -133,7 +141,7 @@ export function NetflixPlayer({
         }
       }, 2000); // 2 second delay
     }
-  }, [isPlaying]);
+  }, []);
 
   const showControlsWithTimeout = useCallback(() => {
     // Show controls immediately
@@ -145,8 +153,12 @@ export function NetflixPlayer({
       clearTimeout(controlsTimeoutRef.current);
     }
     
+    // Check video state directly instead of React state
+    const video = videoRef.current;
+    const isVideoPlaying = video && !video.paused;
+    
     // Set timeout to hide after 2 seconds if playing and not interacting
-    if (isPlaying) {
+    if (isVideoPlaying) {
       controlsTimeoutRef.current = setTimeout(() => {
         const video = videoRef.current;
         if (video && !video.paused && !isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
@@ -154,7 +166,7 @@ export function NetflixPlayer({
         }
       }, 2000);
     }
-  }, [isPlaying]);
+  }, []);
 
   // Store callbacks in refs for stable references
   useEffect(() => {
@@ -180,7 +192,9 @@ export function NetflixPlayer({
       setIsHovering(false);
       isHoveringRef.current = false;
       // Hide with delay when leaving if playing
-      if (isPlaying && hideControlsRef.current) {
+      // Check video state directly
+      const video = videoRef.current;
+      if (video && !video.paused && hideControlsRef.current) {
         hideControlsRef.current();
       }
     };
@@ -206,7 +220,7 @@ export function NetflixPlayer({
       container.removeEventListener("mouseleave", handleMouseLeave);
       container.removeEventListener("mouseenter", handleMouseEnter);
     };
-  }, [isPlaying]);
+  }, []);
 
   // Video event handlers
   useEffect(() => {
@@ -219,12 +233,16 @@ export function NetflixPlayer({
       if (movieName && movieSlug && episodeSlug) {
         analytics.trackWatchFilmPlay(movieName, movieSlug, episodeSlug, video.currentTime);
       }
-      // Hide controls with delay when video starts playing (unless interacting)
-      if (!isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
-        if (hideControlsRef.current) {
-          hideControlsRef.current();
+      
+      // Always try to hide controls when video starts playing (unless interacting)
+      // Use a small delay to ensure video state is updated
+      setTimeout(() => {
+        if (!isHoveringRef.current && !isDraggingRef.current && !showSettingsRef.current) {
+          if (hideControlsRef.current) {
+            hideControlsRef.current();
+          }
         }
-      }
+      }, 100);
       
       // Start auto-hide check interval when video starts playing
       if (autoHideCheckIntervalRef.current) {
@@ -437,10 +455,14 @@ export function NetflixPlayer({
     if (!video) return;
     if (isPlaying) {
       video.pause();
+      // When pausing, show controls immediately
+      setShowControls(true);
+      lastControlsShowTimeRef.current = Date.now();
     } else {
       video.play();
+      // When playing, show controls first, then auto-hide after delay
+      showControlsWithTimeout();
     }
-    showControlsWithTimeout();
   };
 
   // Store toggle play function in ref for access in touch handlers
@@ -745,6 +767,25 @@ export function NetflixPlayer({
     // Timer is already started in handleLongPressTouchStart, no need to start it here
   };
 
+  // Helper function to reset long press state
+  const resetLongPress = useCallback(() => {
+    // Cancel long press timer if it hasn't fired yet
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    
+    // Reset long press state immediately
+    if (isLongPressActiveRef.current) {
+      isLongPressActiveRef.current = false;
+      setPlaybackRate(1);
+      setShowSpeedIndicator(false);
+    }
+    
+    // Reset touch start time
+    touchStartTimeRef.current = 0;
+  }, []);
+
   const handleLongPressTouchEnd = (e: React.TouchEvent) => {
     if (!isMobile) return;
     
@@ -758,17 +799,15 @@ export function NetflixPlayer({
     
     // Nếu đang tap vào controls, không làm gì cả - để controls tự xử lý
     if (isTouchingControls) {
-      // Cancel long press timer nếu có
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current);
-        longPressTimerRef.current = null;
-      }
-      touchStartTimeRef.current = 0;
+      resetLongPress();
       return;
     }
     
     const touch = e.changedTouches[0];
-    if (!touch) return;
+    if (!touch) {
+      resetLongPress();
+      return;
+    }
     
     // Calculate movement distance
     const moveDistance = Math.sqrt(
@@ -801,17 +840,14 @@ export function NetflixPlayer({
       }
     }
     
-    // Reset touch start time
-    touchStartTimeRef.current = 0;
-    
-    // If long press was active, reset to normal speed after a short delay
-    if (isLongPressActiveRef.current) {
-      setTimeout(() => {
-        isLongPressActiveRef.current = false;
-        setPlaybackRate(1);
-        setShowSpeedIndicator(false);
-      }, 100);
-    }
+    // Reset long press state immediately
+    resetLongPress();
+  };
+
+  const handleLongPressTouchCancel = (e: React.TouchEvent) => {
+    if (!isMobile) return;
+    // Reset long press immediately when touch is cancelled
+    resetLongPress();
   };
 
   // Handle vertical swipe gestures for brightness and volume (Netflix-style) - Mobile only
@@ -851,6 +887,11 @@ export function NetflixPlayer({
 
   const handleTouchMoveGesture = (e: React.TouchEvent) => {
     if (!isMobile) return;
+    
+    // Nếu đang long press, không xử lý gesture vuốt
+    if (isLongPressActiveRef.current) {
+      return;
+    }
     
     const container = containerRef.current;
     const video = videoRef.current;
@@ -1068,7 +1109,9 @@ export function NetflixPlayer({
           // Handle long press end
           handleLongPressTouchEnd(e);
           
-          if (isPlaying) {
+          // Check video state directly
+          const video = videoRef.current;
+          if (video && !video.paused) {
             // Hide controls after 2 seconds if not interacting
             if (controlsTimeoutRef.current) {
               clearTimeout(controlsTimeoutRef.current);
@@ -1080,6 +1123,14 @@ export function NetflixPlayer({
               }
             }, 2000);
           }
+        }
+      }}
+      onTouchCancel={(e) => {
+        if (isMobile) {
+          // Reset long press when touch is cancelled
+          handleLongPressTouchCancel(e);
+          // Reset gesture mode
+          gestureModeRef.current = 'none';
         }
       }}
     >
@@ -1139,6 +1190,12 @@ export function NetflixPlayer({
           if (isMobile) {
             handleTouchEndGesture(e);
             handleLongPressTouchEnd(e);
+          }
+        }}
+        onTouchCancel={(e) => {
+          if (isMobile) {
+            handleLongPressTouchCancel(e);
+            gestureModeRef.current = 'none';
           }
         }}
       />

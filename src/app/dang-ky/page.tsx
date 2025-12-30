@@ -23,6 +23,7 @@ export default function SignUpPage() {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [requiresVerification, setRequiresVerification] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const { signUp, signInWithGoogle } = useAuth();
@@ -59,17 +60,26 @@ export default function SignUpPage() {
       return;
     }
 
-    const { error } = await signUp(username, password, name || undefined);
+    const result = await signUp(username, password, name || undefined);
     setIsLoading(false);
 
-    if (error) {
-      setError(error.message || "Đăng ký thất bại. Vui lòng thử lại.");
+    if (result.error) {
+      setError(result.error.message || "Đăng ký thất bại. Vui lòng thử lại.");
     } else {
       setSuccess(true);
-      // Chuyển về trang đăng nhập sau 2 giây
-      setTimeout(() => {
-        router.push("/dang-nhap");
-      }, 2000);
+      // Nếu cần xác minh email
+      if (result.requiresVerification) {
+        setRequiresVerification(true);
+        // Chuyển đến trang xác minh sau 3 giây
+        setTimeout(() => {
+          router.push("/xac-minh");
+        }, 3000);
+      } else {
+        // Đăng ký thành công và đã được xác minh, chuyển về trang đăng nhập
+        setTimeout(() => {
+          router.push("/dang-nhap");
+        }, 2000);
+      }
     }
   };
 
@@ -108,15 +118,34 @@ export default function SignUpPage() {
           <CardContent>
             {success ? (
               <div className="space-y-4 text-center py-4">
-                <div className="p-4 rounded-md bg-green-500/10 border border-green-500/20 text-green-400">
-                  <p className="font-semibold mb-2">Đăng ký thành công!</p>
-                  <p className="text-sm">
-                    Tài khoản <strong>{username}</strong> đã được tạo thành công. Bạn có thể đăng nhập ngay.
-                  </p>
-                </div>
-                <p className="text-sm text-gray-400">
-                  Đang chuyển đến trang đăng nhập...
-                </p>
+                {requiresVerification ? (
+                  <>
+                    <div className="p-4 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                      <p className="font-semibold mb-2">Đăng ký thành công!</p>
+                      <p className="text-sm mb-2">
+                        Tài khoản <strong>{username}</strong> đã được tạo thành công.
+                      </p>
+                      <p className="text-sm">
+                        Vui lòng kiểm tra email để xác minh tài khoản của bạn.
+                      </p>
+                    </div>
+                    <p className="text-sm text-gray-400">
+                      Đang chuyển đến trang xác minh email...
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="p-4 rounded-md bg-green-500/10 border border-green-500/20 text-green-400">
+                      <p className="font-semibold mb-2">Đăng ký thành công!</p>
+                      <p className="text-sm">
+                        Tài khoản <strong>{username}</strong> đã được tạo thành công. Bạn có thể đăng nhập ngay.
+                      </p>
+                    </div>
+                    <p className="text-sm text-gray-400">
+                      Đang chuyển đến trang đăng nhập...
+                    </p>
+                  </>
+                )}
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
