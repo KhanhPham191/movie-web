@@ -16,6 +16,7 @@ Dự án web phim được xây dựng với công nghệ hiện đại, giao di
 - 🎭 **Animation đẹp** - Hiệu ứng hover và chuyển động mượt mà
 - 🔐 **Authentication** - Đăng nhập/đăng ký với Supabase Auth
 - 👤 **Quản lý tài khoản** - Quản lý hồ sơ và cài đặt người dùng
+- 🛡️ **Geo-blocking** - Chặn truy cập từ nước ngoài (chỉ cho phép Việt Nam)
 
 ## 🚀 Công nghệ sử dụng
 
@@ -63,6 +64,10 @@ Dự án sử dụng Supabase để quản lý authentication. Để thiết l�
    ```env
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   
+   # Cấu hình chặn IP nước ngoài (tùy chọn)
+   ENABLE_GEO_BLOCKING=true
+   ALLOWED_COUNTRIES=VN
    ```
 
 4. **Cấu hình Email Authentication trong Supabase:**
@@ -94,6 +99,44 @@ Dự án sử dụng Supabase để quản lý authentication. Để thiết l�
 3. **Redeploy** site
 
 **Xem chi tiết trong file [DEPLOYMENT.md](./DEPLOYMENT.md)**
+
+## 🛡️ Cấu hình Chặn IP Nước Ngoài
+
+Dự án hỗ trợ tính năng chặn truy cập từ các quốc gia ngoài danh sách được phép. Tính năng này sử dụng:
+
+- **Vercel Geolocation** (nếu deploy trên Vercel) - Miễn phí và chính xác
+- **Cloudflare Geolocation** (nếu dùng Cloudflare) - Miễn phí và chính xác
+- **API Fallback** (ip-api.com) - Chỉ dùng khi không có header từ hosting
+
+### Cách bật tính năng:
+
+1. **Thêm vào file `.env.local` (development):**
+   ```env
+   ENABLE_GEO_BLOCKING=true
+   ALLOWED_COUNTRIES=VN
+   ```
+
+2. **Thêm vào Vercel Environment Variables (production):**
+   - Vào **Settings** → **Environment Variables**
+   - Thêm:
+     - `ENABLE_GEO_BLOCKING` = `true`
+     - `ALLOWED_COUNTRIES` = `VN` (hoặc `VN,LA,TH` nếu muốn cho phép nhiều quốc gia)
+   - **Redeploy** project
+
+### Cấu hình:
+
+- **ENABLE_GEO_BLOCKING**: Bật/tắt tính năng (`true` hoặc `false`)
+- **ALLOWED_COUNTRIES**: Danh sách mã quốc gia được phép, cách nhau bởi dấu phẩy
+  - Ví dụ: `VN` (chỉ Việt Nam)
+  - Ví dụ: `VN,LA,TH` (Việt Nam, Lào, Thái Lan)
+  - Mã quốc gia theo chuẩn ISO 3166-1 alpha-2
+
+### Lưu ý:
+
+- Trong môi trường **development**, nếu không xác định được quốc gia, hệ thống sẽ **cho phép truy cập** (mặc định VN)
+- Trong môi trường **production**, nếu không xác định được quốc gia, hệ thống sẽ **chặn truy cập**
+- Các path sau sẽ **không bị chặn**: `/api/*`, `/auth/callback`, `/blocked`, `/_next/*`
+- Người dùng bị chặn sẽ được redirect đến trang `/blocked` với thông báo rõ ràng
 
 ## 📁 Cấu trúc thư mục
 
