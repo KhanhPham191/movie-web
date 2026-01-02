@@ -18,25 +18,56 @@ export async function HeroSectionWrapper() {
     // Lấy năm hiện tại để filter
     const currentYear = new Date().getFullYear();
     
-    // Sử dụng API với filter năm hiện tại và chỉ lấy phim chiếu rạp, sort theo _id desc để lấy phim mới nhất
-    // Lấy nhiều page với limit cao hơn để đảm bảo có đủ phim chiếu rạp
-    const phimLeRaw = await getFilmsByCategoryMultiple(
+    // Strategy 1: Thử lấy phim chiếu rạp của năm hiện tại
+    let phimLeRaw = await getFilmsByCategoryMultiple(
       CATEGORIES.PHIM_LE,
       3, // Lấy 3 pages để có đủ phim chiếu rạp
       {
-        sort_field: '_id',
+        sort_field: 'modified',
         sort_type: 'desc',
         year: currentYear,
         chieurap: true, // Chỉ lấy phim chiếu rạp
-        limit: 20 // Tăng limit để có đủ phim
+        limit: 20
       }
     );
     
     // Filter chỉ lấy phim có chieurap: true
-    const phimLeFiltered = (phimLeRaw || []).filter((movie) => {
-      // Kiểm tra field chieurap: có thể là boolean hoặc number (1/0)
+    let phimLeFiltered = (phimLeRaw || []).filter((movie) => {
       return movie.chieurap === true || (typeof movie.chieurap === 'number' && movie.chieurap === 1);
     });
+    
+    // Strategy 2: Nếu không có phim chiếu rạp năm hiện tại, lấy phim chiếu rạp mới nhất (không filter năm)
+    if (phimLeFiltered.length === 0) {
+      phimLeRaw = await getFilmsByCategoryMultiple(
+        CATEGORIES.PHIM_LE,
+        5, // Lấy nhiều pages hơn
+        {
+          sort_field: 'modified',
+          sort_type: 'desc',
+          chieurap: true, // Chỉ lấy phim chiếu rạp, không filter năm
+          limit: 30
+        }
+      );
+      
+      phimLeFiltered = (phimLeRaw || []).filter((movie) => {
+        return movie.chieurap === true || (typeof movie.chieurap === 'number' && movie.chieurap === 1);
+      });
+    }
+    
+    // Strategy 3: Nếu vẫn không có phim chiếu rạp, lấy phim lẻ mới nhất (không filter chieurap)
+    if (phimLeFiltered.length === 0) {
+      phimLeRaw = await getFilmsByCategoryMultiple(
+        CATEGORIES.PHIM_LE,
+        5, // Lấy nhiều pages hơn
+        {
+          sort_field: 'modified',
+          sort_type: 'desc',
+          limit: 30
+        }
+      );
+      
+      phimLeFiltered = phimLeRaw || [];
+    }
     
     // Sắp xếp theo modified time (mới nhất trước) để hiển thị phim mới cập nhật nhất
     const phimLeSorted = sortByModifiedDesc(phimLeFiltered);
@@ -44,13 +75,14 @@ export async function HeroSectionWrapper() {
     // Lấy tối đa 10 phim đầu (đã được limit từ API, HeroSection sẽ lấy 5 phim đầu)
     const phimLe = phimLeSorted.slice(0, 10);
     
-    // Chỉ hiển thị nếu có ít nhất 1 phim lẻ theo năm phát hành (không fallback)
+    // Nếu vẫn không có phim, hiển thị placeholder
     if (phimLe.length === 0) {
       return <div className="h-[60vh] bg-[#191b24]" />;
     }
 
     return <HeroSection movies={phimLe} />;
   } catch (error) {
+    console.error("[HeroSectionWrapper] Error:", error);
     return <div className="h-[60vh] bg-[#191b24]" />;
   }
 }

@@ -137,3 +137,5 @@ Nếu Vercel không cho phép thêm DNS records, bạn có 2 lựa chọn:
 
 **Lưu ý:** Vercel có thể có giao diện khác một chút, nhưng các bước cơ bản giống nhau. Nếu gặp khó khăn, cho tôi biết bạn thấy gì trong Vercel Dashboard để tôi hướng dẫn cụ thể hơn!
 
+
+
