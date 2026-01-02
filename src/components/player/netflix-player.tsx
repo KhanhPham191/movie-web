@@ -55,6 +55,7 @@ export function NetflixPlayer({
   const lastControlsShowTimeRef = useRef<number>(0);
   const autoHideCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const showControlsRef = useRef(false);
+  const orientationResizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Get video progress context to share with WatchProgressTracker (optional)
   const videoProgressContext = useVideoProgressOptional();
@@ -123,6 +124,7 @@ export function NetflixPlayer({
     };
     checkMobile();
   }, []);
+
 
   // Note: resetLongPress is declared later in the file with useCallback.
   // We intentionally avoid using it here before its declaration to satisfy TypeScript.
@@ -416,6 +418,88 @@ export function NetflixPlayer({
       document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
     };
   }, [movieName, movieSlug, episodeSlug]);
+
+  // Auto fullscreen when rotating to landscape on mobile
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const checkOrientationAndFullscreen = () => {
+      const video = videoRef.current;
+      const container = containerRef.current;
+      if (!video || !container) return;
+
+      // Check if screen is in landscape mode
+      const isLandscape = window.innerWidth > window.innerHeight;
+      
+      // Check current fullscreen state
+      const isFullscreenActive = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+
+      // Auto enter fullscreen when rotating to landscape
+      if (isLandscape && !isFullscreenActive) {
+        // iOS Safari requires webkitEnterFullscreen on video element
+        if (isIOS && (video as any).webkitEnterFullscreen) {
+          (video as any).webkitEnterFullscreen();
+          if (movieName && movieSlug && episodeSlug) {
+            analytics.trackWatchFilmFullscreen(movieName, movieSlug, episodeSlug, true);
+          }
+          if (showControlsWithTimeoutRef.current) {
+            showControlsWithTimeoutRef.current();
+          }
+        } else {
+          // Standard fullscreen API for other browsers
+          const requestFullscreen = 
+            container.requestFullscreen ||
+            (container as any).webkitRequestFullscreen ||
+            (container as any).mozRequestFullScreen ||
+            (container as any).msRequestFullscreen;
+          
+          if (requestFullscreen) {
+            requestFullscreen.call(container).catch(() => {});
+            if (movieName && movieSlug && episodeSlug) {
+              analytics.trackWatchFilmFullscreen(movieName, movieSlug, episodeSlug, true);
+            }
+            if (showControlsWithTimeoutRef.current) {
+              showControlsWithTimeoutRef.current();
+            }
+          }
+        }
+      }
+    };
+
+    // Check on orientation change
+    const handleOrientationChange = () => {
+      // Delay to ensure dimensions are updated
+      setTimeout(checkOrientationAndFullscreen, 100);
+    };
+
+    // Throttle resize events
+    const handleResize = () => {
+      if (orientationResizeTimeoutRef.current) {
+        clearTimeout(orientationResizeTimeoutRef.current);
+      }
+      orientationResizeTimeoutRef.current = setTimeout(checkOrientationAndFullscreen, 200);
+    };
+
+    window.addEventListener('orientationchange', handleOrientationChange);
+    window.addEventListener('resize', handleResize);
+
+    // Initial check
+    checkOrientationAndFullscreen();
+
+    return () => {
+      window.removeEventListener('orientationchange', handleOrientationChange);
+      window.removeEventListener('resize', handleResize);
+      if (orientationResizeTimeoutRef.current) {
+        clearTimeout(orientationResizeTimeoutRef.current);
+        orientationResizeTimeoutRef.current = null;
+      }
+    };
+  }, [isMobile, isIOS, movieName, movieSlug, episodeSlug]);
 
   // HLS setup
   useEffect(() => {
