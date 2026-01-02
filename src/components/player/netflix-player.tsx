@@ -45,6 +45,7 @@ export function NetflixPlayer({
   const searchParams = useSearchParams();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const videoContainerRef = useRef<HTMLDivElement | null>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
   const isHoveringRef = useRef(false);
@@ -81,6 +82,13 @@ export function NetflixPlayer({
     type: 'brightness' | 'volume';
     value: number;
   } | null>(null);
+  const [showSkipIndicator, setShowSkipIndicator] = useState<{
+    direction: 'forward' | 'backward';
+    seconds: number;
+  } | null>(null);
+  const accumulatedSkipSecondsRef = useRef<number>(0);
+  const lastSkipDirectionRef = useRef<'forward' | 'backward' | null>(null);
+  const lastSkipTimeRef = useRef<number>(0);
 
   // Long press state for 2x speed
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -89,6 +97,9 @@ export function NetflixPlayer({
   const touchStartYRef = useRef<number>(0);
   const isLongPressActiveRef = useRef<boolean>(false);
   const lastTapRef = useRef<number>(0);
+  const lastTapXRef = useRef<number>(0);
+  const lastTapYRef = useRef<number>(0);
+  const skipIndicatorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Gesture state for brightness and volume
   const gestureStartXRef = useRef<number>(0);
@@ -452,9 +463,16 @@ export function NetflixPlayer({
     showSettingsRef.current = showSettings;
   }, [showSettings]);
 
-  // Sync showControls state with ref
+  // Sync showControls state with ref and reset skip accumulation when controls hide
   useEffect(() => {
     showControlsRef.current = showControls;
+    
+    // Reset accumulated skip seconds when controls hide
+    if (!showControls) {
+      accumulatedSkipSecondsRef.current = 0;
+      lastSkipDirectionRef.current = null;
+      lastSkipTimeRef.current = 0;
+    }
   }, [showControls]);
 
   // Cleanup timeout on unmount
@@ -468,6 +486,9 @@ export function NetflixPlayer({
       }
       if (autoHideCheckIntervalRef.current) {
         clearInterval(autoHideCheckIntervalRef.current);
+      }
+      if (skipIndicatorTimeoutRef.current) {
+        clearTimeout(skipIndicatorTimeoutRef.current);
       }
     };
   }, []);
@@ -495,6 +516,29 @@ export function NetflixPlayer({
     } else {
       video.play();
       // When playing, show controls first, then auto-hide after delay
+      showControlsWithTimeout();
+    }
+  };
+
+  // Handle video click - only toggle play/pause if clicking center area
+  const handleVideoClick = (e: React.MouseEvent<HTMLVideoElement>) => {
+    e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+    
+    const rect = video.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const videoWidth = rect.width;
+    
+    // Define center area (30% in the middle = 35% to 65% of width)
+    const centerStart = videoWidth * 0.35;
+    const centerEnd = videoWidth * 0.65;
+    
+    if (clickX >= centerStart && clickX <= centerEnd) {
+      // Click in center area - toggle play/pause
+      handleTogglePlay();
+    } else {
+      // Click on sides - only show controls
       showControlsWithTimeout();
     }
   };
@@ -555,12 +599,47 @@ export function NetflixPlayer({
     handleToggleMute();
   };
 
-  const handleSkip = (seconds: number) => {
+  const handleSkip = (seconds: number, showIndicator: boolean = false) => {
     const video = videoRef.current;
     if (!video) return;
     const currentTime = video.currentTime;
     const newTime = Math.max(0, Math.min(video.duration, currentTime + seconds));
     video.currentTime = newTime;
+    
+    // Show skip indicator animation with accumulated seconds
+    if (showIndicator) {
+      const direction = seconds > 0 ? 'forward' : 'backward';
+      const skipAmount = Math.abs(seconds);
+      
+      // Always accumulate if same direction, reset only if different direction
+      if (lastSkipDirectionRef.current === direction && accumulatedSkipSecondsRef.current > 0) {
+        // Accumulate seconds if same direction
+        accumulatedSkipSecondsRef.current += skipAmount;
+      } else {
+        // Reset if different direction or first skip
+        accumulatedSkipSecondsRef.current = skipAmount;
+      }
+      
+      lastSkipDirectionRef.current = direction;
+      
+      // Always show indicator when skipping, update with accumulated seconds
+      setShowSkipIndicator({
+        direction,
+        seconds: accumulatedSkipSecondsRef.current,
+      });
+      
+      // Clear existing timeout
+      if (skipIndicatorTimeoutRef.current) {
+        clearTimeout(skipIndicatorTimeoutRef.current);
+      }
+      
+      // Hide indicator only after no more skips for 2 seconds
+      skipIndicatorTimeoutRef.current = setTimeout(() => {
+        setShowSkipIndicator(null);
+        // Don't reset accumulation here - it will reset when controls hide
+      }, 2000);
+    }
+    
     // Track skip event
     if (movieName && movieSlug && episodeSlug) {
       analytics.trackWatchFilmSkip(movieName, movieSlug, episodeSlug, seconds, currentTime);
@@ -704,6 +783,43 @@ export function NetflixPlayer({
     
     const now = Date.now();
     const timeSinceLastTap = now - lastTapRef.current;
+    const tapX = touch.clientX;
+    const tapY = touch.clientY;
+    
+    // Check for double tap (within 300ms and similar position - within 50px)
+    const tapDistance = Math.sqrt(
+      Math.pow(tapX - lastTapXRef.current, 2) + 
+      Math.pow(tapY - lastTapYRef.current, 2)
+    );
+    
+    if (timeSinceLastTap < 300 && timeSinceLastTap > 0 && tapDistance < 50) {
+      // Double tap detected - determine skip direction based on tap position
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Cancel long press timer if exists
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+      
+      // Determine skip direction: left side = backward, right side = forward
+      const container = containerRef.current;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const isLeftSide = tapX < rect.left + rect.width / 2;
+        const skipSeconds = isLeftSide ? -10 : 10;
+        
+        // Skip with animation
+        handleSkip(skipSeconds, true);
+      }
+      
+      // Reset tap tracking
+      lastTapRef.current = 0;
+      lastTapXRef.current = 0;
+      lastTapYRef.current = 0;
+      return;
+    }
     
     // Store touch start info
     touchStartTimeRef.current = now;
@@ -711,16 +827,9 @@ export function NetflixPlayer({
     touchStartYRef.current = touch.clientY;
     isLongPressActiveRef.current = false;
     
-    // Cancel if double tap (within 300ms)
-    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current);
-        longPressTimerRef.current = null;
-      }
-      lastTapRef.current = 0;
-      return;
-    }
-    
+    // Store tap position for double tap detection
+    lastTapXRef.current = tapX;
+    lastTapYRef.current = tapY;
     lastTapRef.current = now;
     
     // Start long press timer (400ms để chỉ cần ấn đè nhẹ)
@@ -865,12 +974,29 @@ export function NetflixPlayer({
       e.preventDefault();
       e.stopPropagation();
     }
-    // Nếu là tap đơn giản vào video (không phải controls), trigger toggle play
+    // Nếu là tap đơn giản vào video (không phải controls), check vị trí tap
     else if (touchDuration < tapDurationThreshold && moveDistance < moveThreshold && !wasLongPressTimerActive) {
       // Trên mobile, touch events có thể không trigger click tự động
-      // Nên gọi trực tiếp toggle play
-      if (togglePlayRef.current) {
-        togglePlayRef.current();
+      // Check vị trí tap để quyết định toggle play hay chỉ show controls
+      const video = videoRef.current;
+      if (video) {
+        const rect = video.getBoundingClientRect();
+        const tapX = touch.clientX - rect.left;
+        const videoWidth = rect.width;
+        
+        // Define center area (30% in the middle = 35% to 65% of width)
+        const centerStart = videoWidth * 0.35;
+        const centerEnd = videoWidth * 0.65;
+        
+        if (tapX >= centerStart && tapX <= centerEnd) {
+          // Tap in center area - toggle play/pause
+          if (togglePlayRef.current) {
+            togglePlayRef.current();
+          }
+        } else {
+          // Tap on sides - only show controls
+          showControlsWithTimeout();
+        }
       }
     }
     
@@ -1156,9 +1282,22 @@ export function NetflixPlayer({
         }
       }}
     >
-      <video
-        ref={videoRef}
-        className="h-full w-full object-contain cursor-pointer select-none"
+      {/* Video container - used to constrain gesture indicator in fullscreen */}
+      <div
+        ref={videoContainerRef}
+        className={`relative ${isFullscreen ? 'flex items-center justify-center' : 'h-full w-full'}`}
+        style={isFullscreen ? {
+          position: 'absolute',
+          // In fullscreen, position below header area to avoid header overlap
+          top: showControls ? '48px' : 0, // Header height is approximately 48px
+          left: 0,
+          right: 0,
+          bottom: 0,
+        } : {}}
+      >
+        <video
+          ref={videoRef}
+          className="h-full w-full object-contain cursor-pointer select-none"
         style={{ 
           userSelect: 'none', 
           WebkitUserSelect: 'none', 
@@ -1176,10 +1315,7 @@ export function NetflixPlayer({
         autoPlay={autoPlay}
         muted={muted}
         controls={false}
-        onClick={(e) => {
-          e.stopPropagation();
-          handleTogglePlay();
-        }}
+        onClick={handleVideoClick}
         onContextMenu={(e) => {
           // Prevent right-click context menu
           e.preventDefault();
@@ -1221,28 +1357,134 @@ export function NetflixPlayer({
           }
         }}
       />
+      
+      {/* Gesture indicator for brightness and volume - inside video container to avoid header in fullscreen */}
+      {gestureIndicator && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[100]">
+          <div 
+            className="flex flex-col items-center gap-3"
+            style={{
+              animation: 'gestureIndicatorFadeIn 0.2s ease-out',
+            }}
+          >
+            {/* Icon with animation */}
+            <div 
+              className="bg-black/80 rounded-full p-4 backdrop-blur-sm border-2 border-[#F6C453]/30"
+              style={{
+                animation: 'gestureIconScale 0.3s ease-out',
+              }}
+            >
+              {gestureIndicator.type === 'brightness' ? (
+                <svg
+                  className="w-8 h-8 text-[#F6C453]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                  />
+                </svg>
+              ) : (
+                <Volume2 className="w-8 h-8 text-[#F6C453]" />
+              )}
+            </div>
+            {/* Value */}
+            <div 
+              className="bg-black/80 rounded-lg px-6 py-3 backdrop-blur-sm border border-[#F6C453]/20"
+              style={{
+                animation: 'gestureValueFadeIn 0.3s ease-out 0.1s both',
+              }}
+            >
+              <div className="text-white text-2xl font-semibold">
+                {gestureIndicator.type === 'brightness'
+                  ? `${Math.round(gestureIndicator.value * 100)}%`
+                  : gestureIndicator.value === 0
+                  ? 'Tắt tiếng'
+                  : `${Math.round(gestureIndicator.value * 100)}%`}
+              </div>
+            </div>
+            {/* Progress bar with animation */}
+            <div 
+              className="w-32 h-1 bg-white/20 rounded-full overflow-hidden"
+              style={{
+                animation: 'gestureBarFadeIn 0.3s ease-out 0.15s both',
+              }}
+            >
+              <div
+                className="h-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A] transition-all duration-150"
+                style={{
+                  width: `${Math.min(100, Math.max(0, gestureIndicator.value * 100))}%`,
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
 
-      {/* Center Play Button */}
-      {!isPlaying && (
-        <div
-          className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
-          style={{
-            opacity: showControls ? 1 : 0,
-            transition: "opacity 0.3s ease-in-out",
-          }}
-        >
+      {/* Center Controls - Play button and Skip buttons grouped together */}
+      <div
+        className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
+        style={{
+          opacity: showControls ? 1 : 0,
+          transition: "opacity 0.3s ease-in-out",
+        }}
+      >
+        <div className="flex items-center gap-3 sm:gap-4">
+          {/* Skip Backward Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSkip(-10, true);
+            }}
+            className={`pointer-events-auto hover:scale-110 transition-all duration-200 flex items-center justify-center ${isMobile ? 'w-12 h-12' : 'w-16 h-16'}`}
+            style={{
+              animation: showControls ? 'skipButtonSlideInLeft 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both' : 'none',
+            }}
+            aria-label="Lùi 10 giây"
+          >
+            <SkipBack className={`text-[#F6C453] ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}`} strokeWidth={2.5} />
+          </button>
+
+          {/* Play/Pause Button - Center - Always visible */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleTogglePlay();
             }}
-            className={`pointer-events-auto rounded-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A] backdrop-blur-sm border-2 border-[#F6C453]/50 hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 hover:border-[#F6C453] hover:scale-110 transition-all duration-200 flex items-center justify-center shadow-[0_8px_25px_rgba(246,196,83,0.4)] hover:shadow-[0_12px_35px_rgba(246,196,83,0.5)] ${isMobile ? 'w-14 h-14' : 'w-20 h-20'}`}
-            aria-label="Phát"
+            className={`pointer-events-auto hover:scale-110 transition-all duration-200 flex items-center justify-center ${isMobile ? 'w-12 h-12' : 'w-16 h-16'}`}
+            style={{
+              animation: showControls ? 'playButtonScaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'none',
+            }}
+            aria-label={isPlaying ? "Tạm dừng" : "Phát"}
           >
-            <Play className={`text-black ml-1 ${isMobile ? 'w-7 h-7' : 'w-10 h-10'}`} fill="black" />
+            {isPlaying ? (
+              <Pause className={`text-[#F6C453] ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}`} strokeWidth={2.5} />
+            ) : (
+              <Play className={`text-[#F6C453] ml-0.5 ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}`} fill="#F6C453" strokeWidth={2.5} />
+            )}
+          </button>
+
+          {/* Skip Forward Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSkip(10, true);
+            }}
+            className={`pointer-events-auto hover:scale-110 transition-all duration-200 flex items-center justify-center ${isMobile ? 'w-12 h-12' : 'w-16 h-16'}`}
+            style={{
+              animation: showControls ? 'skipButtonSlideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both' : 'none',
+            }}
+            aria-label="Tới 10 giây"
+          >
+            <SkipForward className={`text-[#F6C453] ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}`} strokeWidth={2.5} />
           </button>
         </div>
-      )}
+      </div>
 
       {/* Top Bar */}
       <div
@@ -1250,9 +1492,15 @@ export function NetflixPlayer({
         style={{
           opacity: showControls ? 1 : 0,
           transition: "opacity 0.3s ease-in-out",
+          transform: showControls ? 'translateY(0)' : 'translateY(-100%)',
         }}
       >
-        <div className="bg-gradient-to-b from-black/80 via-black/60 to-transparent px-4 py-3">
+        <div 
+          className="bg-gradient-to-b from-black/80 via-black/60 to-transparent px-4 py-3"
+          style={{
+            animation: showControls ? 'topBarSlideDown 0.3s ease-out' : 'none',
+          }}
+        >
           <h3 className="text-white text-sm font-medium truncate">{title}</h3>
         </div>
       </div>
@@ -1263,9 +1511,15 @@ export function NetflixPlayer({
         style={{
           opacity: showControls ? 1 : 0,
           transition: "opacity 0.3s ease-in-out",
+          transform: showControls ? 'translateY(0)' : 'translateY(100%)',
         }}
       >
-        <div className="bg-gradient-to-t from-black/90 via-black/70 to-transparent px-4 py-3 space-y-3">
+        <div 
+          className="bg-gradient-to-t from-black/90 via-black/70 to-transparent px-4 py-3 space-y-3"
+          style={{
+            animation: showControls ? 'bottomBarSlideUp 0.3s ease-out' : 'none',
+          }}
+        >
           {/* Progress Bar */}
           <div
             ref={progressBarRef}
@@ -1666,59 +1920,45 @@ export function NetflixPlayer({
 
       {/* Speed indicator icon for mobile when at 2x - works in fullscreen too */}
       {showSpeedIndicator && isMobile && playbackRate === 2 && (
-        <div className="absolute top-1/2 right-4 -translate-y-1/2 pointer-events-none z-[100]">
-          <div className="bg-black/40 rounded-full p-2 backdrop-blur-sm">
-            <FastForward className="w-4 h-4 text-[#F6C453]" />
+        <div 
+          className="absolute top-1/2 right-4 sm:right-8 pointer-events-none z-[100]"
+          style={{
+            transform: 'translateY(-50%)',
+            willChange: 'auto',
+          }}
+        >
+          <FastForward className="w-6 h-6 text-[#F6C453]" strokeWidth={2.5} />
+        </div>
+      )}
+
+      {/* Skip indicator animation - shows when skip, positioned at corners */}
+      {showSkipIndicator && (
+        <div 
+          className={`absolute top-1/2 -translate-y-1/2 pointer-events-none z-[100] ${
+            showSkipIndicator.direction === 'forward' ? 'right-4 sm:right-8' : 'left-4 sm:left-8'
+          }`}
+          style={{
+            animation: showSkipIndicator.direction === 'forward' 
+              ? 'skipIndicatorSlideInRight 0.2s ease-out'
+              : 'skipIndicatorSlideInLeft 0.2s ease-out',
+          }}
+        >
+          {/* Time display - accumulated seconds only, no icon, no border - updates on each skip */}
+          <div 
+            key={`${showSkipIndicator.direction}-${showSkipIndicator.seconds}`}
+            className="bg-black/80 rounded-lg px-4 py-2 backdrop-blur-sm"
+            style={{
+              animation: 'skipIndicatorFadeIn 0.15s ease-out',
+              border: 'none',
+            }}
+          >
+            <div className="text-white text-xl font-semibold">
+              {showSkipIndicator.direction === 'forward' ? '+' : '-'}{showSkipIndicator.seconds}s
+            </div>
           </div>
         </div>
       )}
 
-      {/* Gesture indicator for brightness and volume */}
-      {gestureIndicator && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[100]">
-          <div className="flex flex-col items-center gap-3">
-            {/* Icon */}
-            <div className="bg-black/80 rounded-full p-4 backdrop-blur-sm">
-              {gestureIndicator.type === 'brightness' ? (
-                <svg
-                  className="w-8 h-8 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                  />
-                </svg>
-              ) : (
-                <Volume2 className="w-8 h-8 text-white" />
-              )}
-            </div>
-            {/* Value */}
-            <div className="bg-black/80 rounded-lg px-6 py-3 backdrop-blur-sm">
-              <div className="text-white text-2xl font-semibold">
-                {gestureIndicator.type === 'brightness'
-                  ? `${Math.round(gestureIndicator.value * 100)}%`
-                  : gestureIndicator.value === 0
-                  ? 'Tắt tiếng'
-                  : `${Math.round(gestureIndicator.value * 100)}%`}
-              </div>
-            </div>
-            {/* Progress bar */}
-            <div className="w-32 h-1 bg-white/20 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A] transition-all duration-150"
-                style={{
-                  width: `${Math.min(100, Math.max(0, gestureIndicator.value * 100))}%`,
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Click outside settings to close - only for desktop */}
       {showSettings && !isMobile && (

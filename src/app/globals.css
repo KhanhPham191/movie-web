@@ -922,3 +922,208 @@ img, video, iframe {
   max-height: 100% !important;
   object-fit: contain !important;
 }
+
+/* Skip indicator animations for video player */
+@keyframes skipIndicatorFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes skipIndicatorFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.9) translateY(-10px);
+  }
+}
+
+@keyframes skipIconPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(246, 196, 83, 0.7);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 10px rgba(246, 196, 83, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(246, 196, 83, 0);
+  }
+}
+
+/* Speed indicator animations for long press 2x speed */
+@keyframes speedIndicatorSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes speedIndicatorPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(246, 196, 83, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 8px rgba(246, 196, 83, 0);
+  }
+}
+
+/* Gesture indicator animations for brightness and volume */
+@keyframes gestureIndicatorFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes gestureIconScale {
+  from {
+    opacity: 0;
+    transform: scale(0.5) rotate(-10deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes gestureValueFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gestureBarFadeIn {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+/* Play button animation */
+@keyframes playButtonScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.3) rotate(-180deg);
+  }
+  60% {
+    transform: scale(1.1) rotate(10deg);
+  }
+  80% {
+    transform: scale(0.95) rotate(-5deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Top and bottom controls bar animations */
+@keyframes topBarSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bottomBarSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Skip button animations */
+@keyframes skipButtonSlideInLeft {
+  from {
+    opacity: 0;
+    transform: scale(0.3) translateX(-50px);
+  }
+  60% {
+    transform: scale(1.1) translateX(5px);
+  }
+  80% {
+    transform: scale(0.95) translateX(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+}
+
+@keyframes skipButtonSlideInRight {
+  from {
+    opacity: 0;
+    transform: scale(0.3) translateX(50px);
+  }
+  60% {
+    transform: scale(1.1) translateX(-5px);
+  }
+  80% {
+    transform: scale(0.95) translateX(2px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+}
+
+/* Skip indicator slide animations for corners */
+@keyframes skipIndicatorSlideInRight {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(30px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0) scale(1);
+  }
+}
+
+@keyframes skipIndicatorSlideInLeft {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-30px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0) scale(1);
+  }
+}
