@@ -96,9 +96,6 @@ export function NetflixPlayer({
   const touchStartXRef = useRef<number>(0);
   const touchStartYRef = useRef<number>(0);
   const isLongPressActiveRef = useRef<boolean>(false);
-  const lastTapRef = useRef<number>(0);
-  const lastTapXRef = useRef<number>(0);
-  const lastTapYRef = useRef<number>(0);
   const skipIndicatorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Gesture state for brightness and volume
@@ -782,55 +779,12 @@ export function NetflixPlayer({
     if (!touch) return;
     
     const now = Date.now();
-    const timeSinceLastTap = now - lastTapRef.current;
-    const tapX = touch.clientX;
-    const tapY = touch.clientY;
-    
-    // Check for double tap (within 300ms and similar position - within 50px)
-    const tapDistance = Math.sqrt(
-      Math.pow(tapX - lastTapXRef.current, 2) + 
-      Math.pow(tapY - lastTapYRef.current, 2)
-    );
-    
-    if (timeSinceLastTap < 300 && timeSinceLastTap > 0 && tapDistance < 50) {
-      // Double tap detected - determine skip direction based on tap position
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Cancel long press timer if exists
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current);
-        longPressTimerRef.current = null;
-      }
-      
-      // Determine skip direction: left side = backward, right side = forward
-      const container = containerRef.current;
-      if (container) {
-        const rect = container.getBoundingClientRect();
-        const isLeftSide = tapX < rect.left + rect.width / 2;
-        const skipSeconds = isLeftSide ? -10 : 10;
-        
-        // Skip with animation
-        handleSkip(skipSeconds, true);
-      }
-      
-      // Reset tap tracking
-      lastTapRef.current = 0;
-      lastTapXRef.current = 0;
-      lastTapYRef.current = 0;
-      return;
-    }
     
     // Store touch start info
     touchStartTimeRef.current = now;
     touchStartXRef.current = touch.clientX;
     touchStartYRef.current = touch.clientY;
     isLongPressActiveRef.current = false;
-    
-    // Store tap position for double tap detection
-    lastTapXRef.current = tapX;
-    lastTapYRef.current = tapY;
-    lastTapRef.current = now;
     
     // Start long press timer (400ms để chỉ cần ấn đè nhẹ)
     // Timer will be cancelled in handleLongPressTouchMove if user moves significantly
@@ -1297,17 +1251,16 @@ export function NetflixPlayer({
       >
         <video
           ref={videoRef}
-          className="h-full w-full object-contain cursor-pointer select-none"
+          className={`h-full w-full cursor-pointer select-none ${isFullscreen ? 'object-cover' : 'object-contain'}`}
         style={{ 
           userSelect: 'none', 
           WebkitUserSelect: 'none', 
           pointerEvents: 'auto', 
           touchAction: isFullscreen ? 'none' : 'manipulation',
           ...(isFullscreen ? {
-            maxWidth: '100%',
-            maxHeight: '100%',
-            width: 'auto',
-            height: 'auto',
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
           } : {})
         }}
         title={title}

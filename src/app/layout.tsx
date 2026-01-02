@@ -9,6 +9,7 @@ import { Header } from "@/components/header";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { DevToolsBlocker } from "@/components/devtools-blocker";
 import { PageViewTracker } from "@/components/page-view-tracker";
+import { SplashOverlay } from "@/components/splash-overlay";
 import { generateWebsiteStructuredData, generateOrganizationStructuredData } from "@/lib/structured-data";
 import "./globals.css";
 
@@ -155,6 +156,7 @@ export default function RootLayout({
       <body
         className={`${notoSans.variable} ${notoSansMono.variable} font-sans antialiased`}
       >
+        <SplashOverlay />
         {gaId && <GoogleAnalytics gaId={gaId} />}
         <PageViewTracker />
         <DevToolsBlocker />
