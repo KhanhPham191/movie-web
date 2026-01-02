@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 
 export function SplashOverlay() {
   const [isVisible, setIsVisible] = useState(true);
@@ -25,7 +24,7 @@ export function SplashOverlay() {
       // Remove from DOM after fade out animation completes
       removeTimer = setTimeout(() => {
         setShouldRender(false);
-      }, 500); // Match fade out duration
+      }, 600); // Match fade out duration (500ms + 100ms delay)
     };
 
     // Set maximum display time
@@ -87,39 +86,29 @@ export function SplashOverlay() {
       style={{ pointerEvents: isVisible ? "auto" : "none" }}
       aria-hidden={!isVisible}
     >
-      <div className="relative flex flex-col items-center justify-center gap-6">
-        {/* Logo with glow effect */}
-        <div className="relative">
-          {/* Outer glow ring */}
-          <div className="absolute inset-0 -m-8 rounded-full bg-[#F6C453]/20 blur-2xl animate-pulse" />
-          
-          {/* Spinning ring */}
-          <div className="h-24 w-24 rounded-full border-[3px] border-t-[#F6C453] border-r-transparent border-b-transparent border-l-transparent animate-spin" />
-          
-          {/* Logo in center */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-12 w-12 drop-shadow-[0_0_24px_rgba(246,196,83,0.95)]">
-              <Image
-                src="/logo.svg"
-                alt="MovPey"
-                fill
-                sizes="48px"
-                priority
-                className="rounded-xl"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Brand text */}
-        <div className="flex flex-col items-center gap-1">
-          <span className="text-2xl font-extrabold text-[#F6C453] tracking-tight">
-            MovPey
-          </span>
-          <span className="text-sm font-medium text-gray-300 tracking-wide">
-            Phim xịn mỗi ngày
-          </span>
-        </div>
+      {/* Brand text with animation */}
+      <div className="flex flex-col items-center gap-3">
+        <span 
+          className="text-6xl sm:text-7xl md:text-8xl font-extrabold text-[#F6C453] tracking-tight"
+          style={{
+            animation: isVisible 
+              ? 'textFadeInScale 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)' 
+              : 'textFadeOutScale 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+            textShadow: '0 0 20px rgba(246, 196, 83, 0.5), 0 0 40px rgba(246, 196, 83, 0.3)',
+          }}
+        >
+          MovPey
+        </span>
+        <span 
+          className="text-xl sm:text-2xl md:text-3xl font-medium text-gray-300 tracking-wide"
+          style={{
+            animation: isVisible 
+              ? 'textFadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both' 
+              : 'textFadeOutUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both',
+          }}
+        >
+          Phim xịn mỗi ngày
+        </span>
       </div>
     </div>
   );
