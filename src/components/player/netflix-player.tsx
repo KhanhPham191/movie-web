@@ -1288,8 +1288,8 @@ export function NetflixPlayer({
         className={`relative ${isFullscreen ? 'flex items-center justify-center' : 'h-full w-full'}`}
         style={isFullscreen ? {
           position: 'absolute',
-          // In fullscreen, position below header area to avoid header overlap
-          top: showControls ? '48px' : 0, // Header height is approximately 48px
+          // In fullscreen, always use full space - controls overlay on top
+          top: 0,
           left: 0,
           right: 0,
           bottom: 0,
