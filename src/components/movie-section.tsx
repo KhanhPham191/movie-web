@@ -386,6 +386,8 @@ function CinemaCard({ movie }: { movie: FilmItem }) {
             fill
             className="object-cover"
             sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 25vw"
+            loading="lazy"
+            quality={75}
             unoptimized
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/25 to-[#0b0b0f] opacity-70" />
@@ -403,7 +405,7 @@ function CinemaCard({ movie }: { movie: FilmItem }) {
         <div className="relative -mt-12 rounded-t-2xl bg-[#0f111a] px-3 pb-3 pt-4 shadow-[0_-10px_30px_rgba(0,0,0,0.55)]">
           <div className="flex items-start gap-3">
             <div className="relative aspect-[2/3] w-14 overflow-hidden rounded-lg border border-white/10 bg-black/60 shadow-lg shadow-black/60">
-              <Image src={posterImage} alt={movie.name} fill className="object-cover" sizes="64px" />
+              <Image src={posterImage} alt={movie.name} fill className="object-cover" sizes="64px" loading="lazy" quality={60} unoptimized />
             </div>
 
             <div className="flex-1 min-w-0">

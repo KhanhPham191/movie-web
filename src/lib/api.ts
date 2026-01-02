@@ -999,6 +999,41 @@ export function getImageUrl(path: unknown, useWebP: boolean = true): string {
   return fullUrl;
 }
 
+/**
+ * Tạo URL ảnh với tham số tối ưu để giảm kích thước file
+ * @param imageUrl - URL ảnh gốc
+ * @param width - Chiều rộng mong muốn (optional)
+ * @param quality - Chất lượng ảnh từ 1-100 (optional, mặc định 75)
+ * @returns URL ảnh đã được tối ưu
+ */
+export function getOptimizedImageUrl(
+  imageUrl: string,
+  width?: number,
+  quality: number = 75
+): string {
+  if (!imageUrl || typeof imageUrl !== "string") {
+    return "";
+  }
+
+  // Nếu là relative path, không thêm tham số
+  if (imageUrl.startsWith("/")) {
+    return imageUrl;
+  }
+
+  // Nếu URL đã có query params, thêm vào
+  const url = new URL(imageUrl);
+  
+  // Thêm tham số width nếu có
+  if (width) {
+    url.searchParams.set("w", width.toString());
+  }
+  
+  // Thêm tham số quality
+  url.searchParams.set("q", quality.toString());
+
+  return url.toString();
+}
+
 // Fetch multiple pages and combine results với tối ưu batch requests
 export async function getMultiplePages(
   fetchFn: (page: number) => Promise<FilmListResponse>,

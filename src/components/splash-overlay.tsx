@@ -7,6 +7,16 @@ export function SplashOverlay() {
   const [shouldRender, setShouldRender] = useState(true);
 
   useEffect(() => {
+    // Check if splash was already shown (stored in sessionStorage)
+    const hasShownSplash = sessionStorage.getItem('splashShown');
+    
+    if (hasShownSplash === 'true') {
+      // If already shown in this session, don't show again
+      setIsVisible(false);
+      setShouldRender(false);
+      return;
+    }
+
     // Hide splash after minimum display time and when page is ready
     const minDisplayTime = 600; // Minimum 600ms display
     const maxDisplayTime = 1800; // Maximum 1.8s display
@@ -19,6 +29,9 @@ export function SplashOverlay() {
     const hideSplash = () => {
       if (isHiding) return;
       isHiding = true;
+      
+      // Mark splash as shown in sessionStorage
+      sessionStorage.setItem('splashShown', 'true');
       
       setIsVisible(false);
       // Remove from DOM after fade out animation completes

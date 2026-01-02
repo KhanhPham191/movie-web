@@ -1238,7 +1238,9 @@ export function NetflixPlayer({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-        } : {})
+        } : {
+          aspectRatio: '16/9',
+        })
       }}
       onMouseMove={showControlsWithTimeout}
       onTouchStart={(e) => {

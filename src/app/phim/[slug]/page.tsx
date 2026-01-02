@@ -198,7 +198,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
               className="object-cover object-top scale-105"
               priority
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
-              quality={85}
+              quality={80}
               unoptimized
             />
             {/* Premium Gradients */}
