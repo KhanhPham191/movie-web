@@ -33,7 +33,6 @@ async function getCountryCode(request: NextRequest): Promise<string | null> {
   try {
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 
                request.headers.get('x-real-ip') || 
-               request.ip || 
                'unknown'
     
     // Bỏ qua nếu là localhost hoặc private IP
@@ -70,13 +69,6 @@ async function getCountryCode(request: NextRequest): Promise<string | null> {
       clearTimeout(timeoutId)
       // Nếu timeout hoặc lỗi network, throw để catch bên ngoài xử lý
       throw fetchError
-    }
-    
-    if (response.ok) {
-      const data = await response.json()
-      if (data.status === 'success' && data.countryCode) {
-        return data.countryCode.toUpperCase()
-      }
     }
   } catch (error) {
     console.error('Error fetching country code:', error)
