@@ -188,7 +188,7 @@ export function M3u8Player({
     };
   }, []);
 
-  // Handle double tap to skip 10s and long press for 2x speed
+  // Handle double tap to skip 10s and long press for 1.5x speed
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isMobile) return;
     
@@ -240,7 +240,7 @@ export function M3u8Player({
       const video = videoRef.current;
       if (video && !isLongPressActiveRef.current) {
         isLongPressActiveRef.current = true;
-        setPlaybackRate(2);
+        setPlaybackRate(1.5);
         setShowSpeedIndicator(true);
         // Prevent default behaviors that might interfere
         e.preventDefault();
@@ -263,18 +263,18 @@ export function M3u8Player({
         Math.pow(currentX - touchStartXRef.current, 2) + Math.pow(currentY - touchStartYRef.current, 2)
       );
       
-      // Cancel long press if user moves finger significantly
+      // Nếu người dùng di chuyển nhiều TRƯỚC KHI long press active, hủy timer long press
+      // Còn nếu đã active long press rồi thì tiếp tục giữ 1.5x speed và không kích hoạt gesture khác
       if (moveDistance > moveThreshold) {
-        if (longPressTimerRef.current) {
+        // Chỉ hủy timer nếu long press CHƯA active
+        if (!isLongPressActiveRef.current && longPressTimerRef.current) {
           clearTimeout(longPressTimerRef.current);
           longPressTimerRef.current = null;
         }
-        
-        // If long press was active and user moves, cancel it
+        // Nếu đã đang long press thì khóa toàn bộ gesture khác
         if (isLongPressActiveRef.current) {
-          isLongPressActiveRef.current = false;
-          setPlaybackRate(1);
-          setShowSpeedIndicator(false);
+          e.preventDefault();
+          e.stopPropagation();
         }
       }
     }
@@ -292,6 +292,8 @@ export function M3u8Player({
     // If long press was active, reset to normal speed after a short delay
     // This allows the user to see the speed indicator briefly
     if (isLongPressActiveRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
       setTimeout(() => {
         isLongPressActiveRef.current = false;
         setPlaybackRate(1);
@@ -336,6 +338,9 @@ export function M3u8Player({
     if (gestureModeRef.current === 'none') {
       if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) return;
 
+      // Prevent default để tránh scroll khi phát hiện gesture
+      e.preventDefault();
+
       if (Math.abs(dx) > Math.abs(dy)) {
         // Horizontal swipe - seeking (handled by progress bar)
         gestureModeRef.current = 'horizontal';
@@ -350,6 +355,9 @@ export function M3u8Player({
 
     // Handle brightness (left side)
     if (gestureModeRef.current === 'brightness') {
+      // Prevent default để tránh scroll khi đang gesture
+      e.preventDefault();
+      
       const delta = -dy / 300; // 300px = full range
       const newBrightness = Math.min(1.5, Math.max(0.3, gestureInitialBrightnessRef.current + delta));
       setBrightness(newBrightness);
@@ -375,6 +383,9 @@ export function M3u8Player({
 
     // Handle volume (right side)
     if (gestureModeRef.current === 'volume') {
+      // Prevent default để tránh scroll khi đang gesture
+      e.preventDefault();
+      
       const delta = -dy / 200; // 200px = full range
       const newVolume = Math.min(1, Math.max(0, gestureInitialVolumeRef.current + delta));
       video.volume = newVolume;
@@ -537,6 +548,7 @@ export function M3u8Player({
         className={`${className} relative`}
         style={{
           filter: `brightness(${brightness})`,
+          touchAction: 'none', // Chặn scroll khi gesture để tránh ảnh hưởng scroll trang
           ...(isFullscreen ? {
             display: 'flex',
             alignItems: 'center',
@@ -573,8 +585,8 @@ export function M3u8Player({
           onTouchEnd={handleTouchEnd}
         />
         
-        {/* Speed indicator icon for mobile when at 2x - works in fullscreen too */}
-        {showSpeedIndicator && isMobile && playbackRate === 2 && (
+        {/* Speed indicator icon for mobile when at 1.5x - works in fullscreen too */}
+        {showSpeedIndicator && isMobile && playbackRate === 1.5 && (
           <div className="absolute top-1/2 right-4 -translate-y-1/2 pointer-events-none z-[100]">
             <div className="bg-black/40 rounded-full p-2 backdrop-blur-sm">
               <FastForward className="w-4 h-4 text-[#F6C453]" />

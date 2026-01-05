@@ -91,7 +91,7 @@ export function NetflixPlayer({
   const lastSkipDirectionRef = useRef<'forward' | 'backward' | null>(null);
   const lastSkipTimeRef = useRef<number>(0);
 
-  // Long press state for 2x speed
+  // Long press state for 1.5x speed
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const touchStartTimeRef = useRef<number>(0);
   const touchStartXRef = useRef<number>(0);
@@ -843,7 +843,7 @@ export function NetflixPlayer({
     handleProgressClick(e);
   };
 
-  // Handle long press for 2x speed on mobile (works in fullscreen too)
+  // Handle long press for 1.5x speed on mobile (works in fullscreen too)
   const handleLongPressTouchStart = (e: React.TouchEvent) => {
     if (!isMobile) return;
     
@@ -881,7 +881,7 @@ export function NetflixPlayer({
       if (video && !isLongPressActiveRef.current && 
           (gestureModeRef.current === 'none' || gestureModeRef.current === 'horizontal')) {
         isLongPressActiveRef.current = true;
-        setPlaybackRate(2);
+        setPlaybackRate(1.5);
         setShowSpeedIndicator(true);
         showControlsWithTimeout();
       }
@@ -912,12 +912,6 @@ export function NetflixPlayer({
         clearTimeout(longPressTimerRef.current);
         longPressTimerRef.current = null;
       }
-      // Cancel active long press if any
-      if (isLongPressActiveRef.current) {
-        isLongPressActiveRef.current = false;
-        setPlaybackRate(1);
-        setShowSpeedIndicator(false);
-      }
       return;
     }
     
@@ -931,18 +925,18 @@ export function NetflixPlayer({
       Math.pow(touch.clientY - touchStartYRef.current, 2)
     );
     
-    // If user moves significantly, cancel long press
+    // Nếu người dùng di chuyển nhiều TRƯỚC KHI long press active, hủy timer long press
+    // Còn nếu đã active long press rồi thì tiếp tục giữ 1.5x speed và không kích hoạt gesture khác
     if (moveDistance > moveThreshold) {
-      if (longPressTimerRef.current) {
+      // Chỉ hủy timer nếu long press CHƯA active
+      if (!isLongPressActiveRef.current && longPressTimerRef.current) {
         clearTimeout(longPressTimerRef.current);
         longPressTimerRef.current = null;
       }
-      
-      // If long press was active and user moves, cancel it
+      // Nếu đã đang long press thì khóa toàn bộ gesture khác, không reset 1.5x
       if (isLongPressActiveRef.current) {
-        isLongPressActiveRef.current = false;
-        setPlaybackRate(1);
-        setShowSpeedIndicator(false);
+        e.preventDefault();
+        e.stopPropagation();
       }
     }
     // Timer is already started in handleLongPressTouchStart, no need to start it here
@@ -1069,10 +1063,10 @@ export function NetflixPlayer({
     const touch = e.touches[0];
     if (!touch) return;
 
-    // In fullscreen mode, prevent default to ensure touch events work properly
-    if (isFullscreen) {
-      e.preventDefault();
-    }
+    // Prevent default để tránh scroll trang khi bắt đầu gesture
+    // Quan trọng cho cả fullscreen và normal mode
+    e.preventDefault();
+    e.stopPropagation();
 
     gestureStartXRef.current = touch.clientX;
     gestureStartYRef.current = touch.clientY;
@@ -1105,6 +1099,10 @@ export function NetflixPlayer({
     // Determine gesture mode
     if (gestureModeRef.current === 'none') {
       if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) return;
+
+      // Prevent default ngay khi phát hiện gesture để tránh scroll
+      e.preventDefault();
+      e.stopPropagation();
 
       if (Math.abs(dx) > Math.abs(dy)) {
         // Horizontal swipe - seeking (handled by progress bar)
@@ -1208,6 +1206,12 @@ export function NetflixPlayer({
   const handleTouchEndGesture = (e: React.TouchEvent) => {
     if (!isMobile) return;
     
+    // Nếu đang có gesture active (brightness/volume), prevent default để tránh scroll
+    if (gestureModeRef.current === 'brightness' || gestureModeRef.current === 'volume') {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     // Reset gesture mode
     gestureModeRef.current = 'none';
     
@@ -1233,14 +1237,17 @@ export function NetflixPlayer({
         userSelect: 'none', 
         WebkitUserSelect: 'none',
         filter: `brightness(${brightness})`,
-        touchAction: isFullscreen ? 'none' : 'manipulation',
-        ...(isFullscreen ? {
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        } : {
-          aspectRatio: '16/9',
-        })
+        // Trên mobile, luôn khoá scroll khi chạm vào player để gesture không bị dính scroll ngoài
+        touchAction: isMobile ? 'none' : (isFullscreen ? 'none' : 'auto'),
+        ...(isFullscreen
+          ? {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }
+          : {
+              aspectRatio: '16/9',
+            })
       }}
       onMouseMove={showControlsWithTimeout}
       onTouchStart={(e) => {
@@ -1261,7 +1268,7 @@ export function NetflixPlayer({
           }
           // Show controls on touch and trigger auto-hide
           showControlsWithTimeout();
-          // Handle long press for 2x speed
+          // Handle long press for 1.5x speed
           handleLongPressTouchStart(e);
           // Handle gesture for brightness/volume
           handleTouchStartGesture(e);
@@ -1279,10 +1286,8 @@ export function NetflixPlayer({
             return; // Let controls handle their own events
           }
           
-          // In fullscreen, prevent default to ensure touch events work
-          if (isFullscreen) {
-            e.preventDefault();
-          }
+          // Prevent default để tránh scroll khi đang gesture (cả fullscreen và normal)
+          // handleTouchMoveGesture sẽ tự preventDefault khi cần
           // Always try to handle gesture first to determine mode
           handleTouchMoveGesture(e);
           // Only handle long press if not in gesture mode
@@ -1303,7 +1308,7 @@ export function NetflixPlayer({
             return; // Let controls handle their own events
           }
           
-          // Handle gesture end
+          // Handle gesture end (sẽ preventDefault nếu đang gesture)
           handleTouchEndGesture(e);
           // Handle long press end
           handleLongPressTouchEnd(e);
@@ -1342,12 +1347,15 @@ export function NetflixPlayer({
           userSelect: 'none', 
           WebkitUserSelect: 'none', 
           pointerEvents: 'auto', 
-          touchAction: isFullscreen ? 'none' : 'manipulation',
-          ...(isFullscreen ? {
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-          } : {})
+          // Video element cũng khoá scroll trên mobile để tránh scroll ngoài
+          touchAction: isMobile ? 'none' : (isFullscreen ? 'none' : 'auto'),
+          ...(isFullscreen
+            ? {
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }
+            : {})
         }}
         title={title}
         playsInline
@@ -1957,8 +1965,8 @@ export function NetflixPlayer({
         </div>
       </div>
 
-      {/* Speed indicator icon for mobile when at 2x - works in fullscreen too */}
-      {showSpeedIndicator && isMobile && playbackRate === 2 && (
+      {/* Speed indicator icon for mobile when at 1.5x - works in fullscreen too */}
+      {showSpeedIndicator && isMobile && playbackRate === 1.5 && (
         <div 
           className="absolute top-1/2 right-4 sm:right-8 pointer-events-none z-[100]"
           style={{
