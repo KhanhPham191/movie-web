@@ -499,6 +499,11 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             <h3 className="text-sm font-medium line-clamp-2 min-h-[2.5rem] group-hover:text-[#F6C453] transition-colors duration-500 ease-in-out">
               {movie.name}
             </h3>
+            {movie.original_name && movie.original_name !== movie.name && (
+              <p className="text-sm text-[#F6C453]/95 font-semibold leading-snug line-clamp-1">
+                {movie.original_name}
+              </p>
+            )}
           </div>
         </div>
       </Link>
@@ -560,6 +565,11 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             <h3 className="text-sm font-medium line-clamp-2 min-h-[2.5rem] group-hover:text-[#F6C453] transition-colors duration-500 ease-in-out">
               {movie.name}
             </h3>
+            {movie.original_name && movie.original_name !== movie.name && (
+              <p className="text-sm text-[#F6C453]/95 font-semibold leading-snug line-clamp-1">
+                {movie.original_name}
+              </p>
+            )}
           </div>
         </div>
       </Link>
@@ -656,7 +666,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
           {/* Rank + Info - Giảm spacing và kích thước rank để compact hơn */}
           <div className="mt-2 flex items-start gap-1.5 w-full flex-shrink-0">
             {rank && (
-              <div className="text-2xl xs:text-3xl sm:text-4xl font-black text-[#F6C453] leading-none flex-shrink-0">
+              <div className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-black leading-none flex-shrink-0 text-transparent bg-clip-text bg-gradient-to-b from-[#F6C453] to-[#FFF8F0] drop-shadow-[0_0_10px_rgba(246,196,83,0.65)]">
                 {rank}
               </div>
             )}
@@ -664,6 +674,11 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               <h3 className="text-sm xs:text-base font-semibold text-white line-clamp-2 min-h-[2.25rem] group-hover:text-[#F6C453] transition-colors duration-500 ease-in-out">
                 {movie.name}
               </h3>
+              {movie.original_name && movie.original_name !== movie.name && (
+                <p className="text-xs xs:text-sm text-[#F6C453]/95 font-semibold leading-snug line-clamp-1">
+                  {movie.original_name}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -744,6 +759,11 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             <h3 className="text-sm xs:text-base font-semibold text-white line-clamp-2 min-h-[2.5rem] group-hover:text-[#F6C453] transition-colors duration-500 ease-out">
               {movie.name}
             </h3>
+            {movie.original_name && movie.original_name !== movie.name && (
+              <p className="text-sm text-[#F6C453]/95 font-semibold leading-snug line-clamp-1">
+                {movie.original_name}
+              </p>
+            )}
           </div>
         </div>
         </Link>
@@ -850,7 +870,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                   {movie.name}
                 </h3>
                 {movie.original_name && movie.original_name !== movie.name && (
-                  <p className="text-[10px] xs:text-xs text-gray-300 line-clamp-1">
+                  <p className="text-xs xs:text-sm text-gray-100 font-medium leading-snug line-clamp-1">
                     {movie.original_name}
                   </p>
                 )}
@@ -1001,9 +1021,16 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
 
       {/* Title below (when not hovered) */}
       {!isHovered && (
-        <h3 className="mt-2 text-sm font-medium line-clamp-2 min-h-[2.5rem] text-gray-300 group-hover:text-white transition-colors flex-shrink-0">
-          {movie.name}
-        </h3>
+        <div className="mt-2 flex-shrink-0 space-y-0.5">
+          <h3 className="text-sm font-medium line-clamp-2 min-h-[2.5rem] text-gray-300 group-hover:text-white transition-colors">
+            {movie.name}
+          </h3>
+          {movie.original_name && movie.original_name !== movie.name && (
+            <p className="text-sm text-[#F6C453]/95 font-semibold leading-snug line-clamp-1">
+              {movie.original_name}
+            </p>
+          )}
+        </div>
       )}
     </div>
   );
