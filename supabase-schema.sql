@@ -214,6 +214,44 @@ CREATE POLICY "Users can delete their own currently watching"
   ON public.currently_watching FOR DELETE
   USING (auth.uid() = user_id);
 
+-- 7. Bảng Bình luận phim (Comments)
+CREATE TABLE IF NOT EXISTS public.comments (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  movie_slug TEXT NOT NULL,
+  movie_name TEXT NOT NULL,
+  content TEXT NOT NULL,
+  parent_id UUID REFERENCES public.comments(id) ON DELETE CASCADE, -- Để hỗ trợ reply comment
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Indexes cho comments
+CREATE INDEX IF NOT EXISTS idx_comments_user_id ON public.comments(user_id);
+CREATE INDEX IF NOT EXISTS idx_comments_movie_slug ON public.comments(movie_slug);
+CREATE INDEX IF NOT EXISTS idx_comments_parent_id ON public.comments(parent_id);
+CREATE INDEX IF NOT EXISTS idx_comments_created_at ON public.comments(created_at DESC);
+
+-- Enable RLS cho comments
+ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies cho Comments
+CREATE POLICY "Users can view all comments"
+  ON public.comments FOR SELECT
+  USING (true);
+
+CREATE POLICY "Users can insert their own comments"
+  ON public.comments FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own comments"
+  ON public.comments FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own comments"
+  ON public.comments FOR DELETE
+  USING (auth.uid() = user_id);
+
 
 
 

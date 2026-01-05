@@ -93,16 +93,25 @@ export function SplashOverlay() {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-[#0D0D0D] transition-opacity duration-500 ease-out ${
+      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-[#0D0D0D] transition-opacity duration-500 ease-out min-h-screen ${
         isVisible ? "opacity-100" : "opacity-0"
       }`}
-      style={{ pointerEvents: isVisible ? "auto" : "none" }}
+      style={{ 
+        pointerEvents: isVisible ? "auto" : "none",
+        minHeight: '-webkit-fill-available', // iOS Safari
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingRight: 'env(safe-area-inset-right)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        paddingLeft: 'env(safe-area-inset-left)',
+      }}
       aria-hidden={!isVisible}
     >
       {/* Brand text with animation */}
-      <div className="flex flex-col items-center gap-3">
+      <div 
+        className="flex flex-col items-center justify-center gap-3 px-4 w-full max-w-full text-center"
+      >
         <span 
-          className="text-6xl sm:text-7xl md:text-8xl font-extrabold text-[#F6C453] tracking-tight"
+          className="text-6xl sm:text-7xl md:text-8xl font-extrabold text-[#F6C453] tracking-tight break-words"
           style={{
             animation: isVisible 
               ? 'textFadeInScale 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)' 
@@ -113,7 +122,7 @@ export function SplashOverlay() {
           MovPey
         </span>
         <span 
-          className="text-xl sm:text-2xl md:text-3xl font-medium text-gray-300 tracking-wide"
+          className="text-xl sm:text-2xl md:text-3xl font-medium text-gray-300 tracking-wide break-words"
           style={{
             animation: isVisible 
               ? 'textFadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both' 

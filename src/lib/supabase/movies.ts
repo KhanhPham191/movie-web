@@ -73,6 +73,25 @@ export interface CurrentlyWatching {
   created_at: string;
 }
 
+export interface Comment {
+  id: string;
+  user_id: string | null; // Cho phép null cho bình luận ẩn danh
+  movie_slug: string;
+  movie_name: string;
+  content: string;
+  parent_id?: string | null;
+  created_at: string;
+  updated_at: string;
+  anonymous_name?: string | null; // Tên ngẫu nhiên cho bình luận ẩn danh (ví dụ: UserMov123)
+  user_display_name?: string | null; // Tên hiển thị của user khi tạo comment
+  // Joined data from auth.users
+  user_email?: string;
+  user_metadata?: {
+    name?: string;
+    username?: string;
+  };
+}
+
 // ========== FAVORITES ==========
 export async function addToFavorites(movie: FilmItem): Promise<{ error: any }> {
   try {
@@ -657,6 +676,194 @@ export async function deletePlaylist(playlistId: string): Promise<{ error: any }
     .eq("user_id", user.id);
 
   return { error };
+}
+
+// ========== COMMENTS ==========
+// Hàm tạo tên ngẫu nhiên cho bình luận ẩn danh: UserMov + số random (100-99999)
+function generateAnonymousName(): string {
+  const randomNumber = Math.floor(Math.random() * (99999 - 100 + 1)) + 100;
+  return `UserMov${randomNumber}`;
+}
+
+export async function addComment(
+  movieSlug: string,
+  movieName: string,
+  content: string,
+  parentId?: string | null
+): Promise<{ data: Comment | null; error: any }> {
+  try {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!content || content.trim().length === 0) {
+      return { data: null, error: { message: "Nội dung bình luận không được để trống" } };
+    }
+
+    if (content.length > 2000) {
+      return { data: null, error: { message: "Bình luận không được vượt quá 2000 ký tự" } };
+    }
+
+    // Generate tên ngẫu nhiên nếu là bình luận ẩn danh
+    const anonymousName = !user ? generateAnonymousName() : null;
+
+    // Cho phép bình luận ẩn danh (user_id = null) hoặc bình luận có đăng nhập
+    // Tạm thời không insert user_display_name để tránh lỗi nếu cột chưa tồn tại
+    // Sau khi chạy SQL thêm cột user_display_name, có thể thêm lại:
+    // user_display_name: user?.user_metadata?.username || null
+    const { data, error } = await supabase
+      .from("comments")
+      .insert({
+        user_id: user?.id || null, // null nếu không đăng nhập
+        movie_slug: movieSlug,
+        movie_name: movieName,
+        content: content.trim(),
+        parent_id: parentId || null,
+        anonymous_name: anonymousName, // Lưu tên ngẫu nhiên cho bình luận ẩn danh
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return { data: null, error };
+    }
+
+    // Lấy thông tin user để hiển thị (chỉ nếu đã đăng nhập)
+    const commentWithUser: Comment = {
+      ...data,
+      user_email: user?.email,
+      user_metadata: user?.user_metadata,
+    };
+
+    return { data: commentWithUser, error: null };
+  } catch (error) {
+    return { data: null, error: { message: "Có lỗi xảy ra khi thêm bình luận" } };
+  }
+}
+
+export async function getMovieComments(movieSlug: string): Promise<{ data: Comment[] | null; error: any }> {
+  try {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from("comments")
+      .select("*")
+      .eq("movie_slug", movieSlug)
+      .is("parent_id", null) // Chỉ lấy comment gốc, không lấy reply
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (error) {
+      // Nếu bảng chưa tồn tại, trả về mảng rỗng
+      if (error.code === "42P01") {
+        return { data: [], error: null };
+      }
+      return { data: null, error };
+    }
+
+    // Lấy thông tin user hiện tại để so sánh
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+    // Map comments với user info (chỉ có thể lấy info của user hiện tại)
+    const commentsWithUsers: Comment[] = (data || []).map((comment) => {
+      const isCurrentUser = currentUser && comment.user_id === currentUser.id;
+      return {
+        ...comment,
+        user_email: isCurrentUser ? currentUser.email : undefined,
+        user_metadata: isCurrentUser ? currentUser.user_metadata : undefined,
+      };
+    });
+
+    return { data: commentsWithUsers, error: null };
+  } catch (error) {
+    return { data: [], error: { message: "Có lỗi xảy ra khi lấy bình luận" } };
+  }
+}
+
+export async function getCommentReplies(parentId: string): Promise<{ data: Comment[] | null; error: any }> {
+  try {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from("comments")
+      .select("*")
+      .eq("parent_id", parentId)
+      .order("created_at", { ascending: true })
+      .limit(20);
+
+    if (error) {
+      if (error.code === "42P01") {
+        return { data: [], error: null };
+      }
+      return { data: null, error };
+    }
+
+    return { data, error: null };
+  } catch (error) {
+    return { data: [], error: { message: "Có lỗi xảy ra khi lấy phản hồi" } };
+  }
+}
+
+export async function updateComment(commentId: string, content: string): Promise<{ error: any }> {
+  try {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return { error: { message: "Bạn cần đăng nhập" } };
+    }
+
+    if (!content || content.trim().length === 0) {
+      return { error: { message: "Nội dung bình luận không được để trống" } };
+    }
+
+    if (content.length > 2000) {
+      return { error: { message: "Bình luận không được vượt quá 2000 ký tự" } };
+    }
+
+    const { error } = await supabase
+      .from("comments")
+      .update({
+        content: content.trim(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", commentId)
+      .eq("user_id", user.id);
+
+    return { error };
+  } catch (error) {
+    return { error: { message: "Có lỗi xảy ra khi cập nhật bình luận" } };
+  }
+}
+
+export async function deleteComment(commentId: string): Promise<{ error: any }> {
+  try {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    // Nếu đã đăng nhập, xóa bình luận của user đó
+    if (user) {
+      const { error } = await supabase
+        .from("comments")
+        .delete()
+        .eq("id", commentId)
+        .eq("user_id", user.id);
+
+      return { error };
+    }
+
+    // Nếu không đăng nhập, thử xóa bình luận ẩn danh
+    // RLS policy sẽ kiểm tra xem bình luận có phải ẩn danh và trong thời gian cho phép không
+    const { error } = await supabase
+      .from("comments")
+      .delete()
+      .eq("id", commentId)
+      .is("user_id", null);
+
+    return { error };
+  } catch (error) {
+    return { error: { message: "Có lỗi xảy ra khi xóa bình luận" } };
+  }
 }
 
 

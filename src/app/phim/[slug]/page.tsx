@@ -31,6 +31,7 @@ import {
   generateFAQStructuredData,
 } from "@/lib/structured-data";
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { MovieComments } from "@/components/movie-comments";
 
 // Lấy số "phần" của series từ slug/tên phim (phan-1, (Phần 1), Season 1, ...)
 function getSeriesPartNumber(item: { slug: string; name: string; original_name: string }): number | null {
@@ -546,6 +547,11 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                 />
               </div>
             )}
+
+            {/* Comments Section */}
+            <div className="mx-3 sm:mx-4 md:mx-12">
+              <MovieComments movieSlug={movie.slug} movieName={movie.name} />
+            </div>
 
           </div>
         </div>
