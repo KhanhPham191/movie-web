@@ -362,8 +362,14 @@ button,
 
 /* Premium Hover Effects - Netflix Style */
 .premium-hover {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform, filter;
+}
+
+@media (min-width: 640px) {
+  .premium-hover {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 }
 
 .premium-hover:hover {
@@ -371,10 +377,24 @@ button,
   filter: brightness(1.08);
 }
 
+@media (max-width: 639px) {
+  .premium-hover:hover {
+    transform: none;
+    filter: none;
+  }
+}
+
 /* Smooth section transitions */
 section {
-  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (min-width: 640px) {
+  section {
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 }
 
 /* Smooth Card Reveal - Netflix Style */
@@ -563,6 +583,24 @@ img, video, iframe {
 /* Smooth transitions for all interactive elements */
 * {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reduce animations on mobile for better performance */
+@media (max-width: 639px) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.2s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.2s !important;
+    transition-delay: 0s !important;
+  }
+  
+  /* Disable complex transforms on mobile */
+  .premium-hover:hover,
+  .card-hover:hover {
+    transform: none !important;
+  }
 }
 
 /* Netflix gradient overlay */

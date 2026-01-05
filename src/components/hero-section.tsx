@@ -143,7 +143,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
         {featuredMovies.map((m, index) => (
           <div
             key={`${m.slug}-${m.id || index}`}
-            className={`absolute inset-0 transition-opacity duration-700 ${
+            className={`absolute inset-0 transition-opacity duration-300 sm:duration-700 ${
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}
           >
@@ -174,17 +174,12 @@ export function HeroSection({ movies }: HeroSectionProps) {
           isLoaded ? "opacity-100" : "opacity-0"
         }`}
         style={{
-          animation: isLoaded ? "heroFadeInUp 0.6s ease-out" : undefined,
+          animation: isLoaded ? undefined : undefined,
         }}
       >
         {/* Premium Badge */}
         <div
           className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4"
-          style={{
-            animation: "heroFadeInUpSoft 0.5s ease-out",
-            animationDelay: "40ms",
-            animationFillMode: "both",
-          }}
         >
           <div className="inline-flex px-1 py-0.5 xs:px-1.5 xs:py-0.5 sm:px-3 sm:py-1 md:px-4 md:py-1.5 rounded-full bg-gradient-to-r from-[#F6C453]/90 to-[#D3A13A]/90 backdrop-blur-sm border-[0.5px] xs:border border-[#F6C453]/40 shadow-sm xs:shadow-md sm:shadow-lg">
             <span className="text-[7px] xs:text-[8px] sm:text-xs font-bold text-white tracking-tight xs:tracking-wide sm:tracking-widest uppercase whitespace-nowrap">
@@ -196,11 +191,6 @@ export function HeroSection({ movies }: HeroSectionProps) {
         {/* Premium Title */}
         <h1
           className="text-base sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-black text-white mb-2 sm:mb-4 drop-shadow-2xl line-clamp-2 leading-tight tracking-tight"
-          style={{
-            animation: "heroFadeInUpSoft 0.55s ease-out",
-            animationDelay: "80ms",
-            animationFillMode: "both",
-          }}
         >
           <span className="bg-gradient-to-r from-white via-white to-white/90 bg-clip-text text-transparent">
             {movie.name}
@@ -211,11 +201,6 @@ export function HeroSection({ movies }: HeroSectionProps) {
         {movie.original_name && movie.original_name !== movie.name && (
           <p
             className="text-[10px] sm:text-base md:text-lg text-gray-300 mb-1 sm:mb-3 line-clamp-1 hidden sm:block"
-            style={{
-              animation: "heroFadeInUpSoft 0.5s ease-out",
-              animationDelay: "120ms",
-              animationFillMode: "both",
-            }}
           >
             {movie.original_name}
           </p>
@@ -224,11 +209,6 @@ export function HeroSection({ movies }: HeroSectionProps) {
         {/* Meta Info */}
         <div
           className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1.5 sm:mb-4 text-[10px] sm:text-sm"
-          style={{
-            animation: "heroFadeInUpSoft 0.5s ease-out",
-            animationDelay: "160ms",
-            animationFillMode: "both",
-          }}
         >
           {movie.current_episode && (
             <span className="text-gray-300 text-[10px] sm:text-sm">
@@ -245,11 +225,6 @@ export function HeroSection({ movies }: HeroSectionProps) {
         {movie.description && (
           <p 
             className="hidden sm:block text-xs sm:text-sm md:text-base text-gray-200 line-clamp-2 sm:line-clamp-3 mb-2 sm:mb-5 max-w-xl"
-            style={{
-              animation: "heroFadeInUpSoft 0.6s ease-out",
-              animationDelay: "200ms",
-              animationFillMode: "both",
-            }}
             dangerouslySetInnerHTML={{
               __html: movie.description.replace(/<[^>]*>/g, "").slice(0, 120) + "...",
             }}
@@ -260,11 +235,6 @@ export function HeroSection({ movies }: HeroSectionProps) {
         {movie.category && movie.category.length > 0 && (
           <div
             className="hidden sm:flex flex-wrap items-center gap-1 text-xs sm:text-sm text-gray-300 mb-2 sm:mb-5"
-            style={{
-              animation: "heroFadeInUpSoft 0.6s ease-out",
-              animationDelay: "240ms",
-              animationFillMode: "both",
-            }}
           >
             {movie.category.slice(0, 3).map((cat, i) => (
               <span key={cat.id}>
@@ -280,16 +250,11 @@ export function HeroSection({ movies }: HeroSectionProps) {
         {/* Premium Action Buttons */}
         <div
           className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-0"
-          style={{
-            animation: "heroFadeInUpSoft 0.6s ease-out",
-            animationDelay: "280ms",
-            animationFillMode: "both",
-          }}
         >
           <Link href={`/phim/${movie.slug}`}>
             <Button
               size="lg"
-              className="relative group/btn bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white font-bold text-[10px] sm:text-sm md:text-base px-4 sm:px-6 md:px-8 h-9 sm:h-11 md:h-12 rounded-full shadow-[0_8px_30px_rgba(246,196,83,0.4)] hover:shadow-[0_12px_40px_rgba(246,196,83,0.5)] transition-all duration-300 flex-1 sm:flex-initial border border-[#F6C453]/30 cursor-pointer"
+              className="relative group/btn bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white font-bold text-[10px] sm:text-sm md:text-base px-4 sm:px-6 md:px-8 h-9 sm:h-11 md:h-12 rounded-full shadow-[0_8px_30px_rgba(246,196,83,0.4)] hover:shadow-[0_12px_40px_rgba(246,196,83,0.5)] transition-all duration-150 sm:duration-300 flex-1 sm:flex-initial border border-[#F6C453]/30 cursor-pointer"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-full opacity-0 group-hover/btn:opacity-100 transition-opacity" />
               <Play className="relative z-10 w-3 h-3 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2 fill-white" />
@@ -300,7 +265,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
             <Button
               size="lg"
               variant="secondary"
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-semibold text-[10px] sm:text-sm md:text-base px-4 sm:px-6 md:px-8 h-9 sm:h-11 md:h-12 rounded-full transition-all duration-300"
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-semibold text-[10px] sm:text-sm md:text-base px-4 sm:px-6 md:px-8 h-9 sm:h-11 md:h-12 rounded-full transition-all duration-150 sm:duration-300"
             >
               <Info className="w-3 h-3 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2" />
               <span className="hidden sm:inline">Thông tin</span>

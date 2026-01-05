@@ -533,7 +533,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
         <div className="group relative flex flex-col h-full">
           {/* Poster */}
           <div 
-            className="relative aspect-[2/3] w-full rounded-[10px] overflow-hidden transition-all duration-500 ease-out group-hover:scale-[1.03] bg-muted flex-shrink-0 border border-transparent group-hover:border-[rgba(246,196,83,0.3)]"
+            className="relative aspect-[2/3] w-full rounded-[10px] overflow-hidden transition-all duration-200 sm:duration-500 ease-out sm:group-hover:scale-[1.03] bg-muted flex-shrink-0 border border-transparent sm:group-hover:border-[rgba(246,196,83,0.3)]"
             style={{
               willChange: "transform",
               backfaceVisibility: "hidden",
@@ -542,14 +542,14 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             }}
           >
             {/* Overlay vàng khi hover */}
-            <div className="absolute inset-0 bg-[rgba(246,196,83,0.15)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out pointer-events-none z-10" />
+            <div className="absolute inset-0 bg-[rgba(246,196,83,0.15)] opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 sm:duration-500 ease-in-out pointer-events-none z-10" />
             {/* Hover Overlay - Subtle */}
-            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out z-10" />
+            <div className="absolute inset-0 bg-black/20 opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 sm:duration-500 ease-in-out z-10" />
             <Image
               src={imageUrl}
               alt={movie.name}
               fill
-              className="object-cover object-center transition-transform duration-500 ease-in-out group-hover:scale-[1.03]"
+              className="object-cover object-center transition-transform duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03]"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               loading="lazy"
               quality={75}
@@ -575,9 +575,9 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             </div>
             
             {/* Play Button - Center on Hover */}
-            <div className="absolute inset-0 flex items-center justify-center z-30 opacity-0 group-hover:opacity-100 transition-all duration-500 ease-in-out">
-              <div className="relative transform scale-0 group-hover:scale-100 transition-transform duration-500 ease-in-out">
-                <div className="absolute inset-0 bg-[#F6C453] rounded-full blur-lg opacity-50 group-hover:opacity-70 transition-opacity duration-500 ease-in-out" />
+            <div className="absolute inset-0 flex items-center justify-center z-30 opacity-0 sm:group-hover:opacity-100 transition-all duration-200 sm:duration-500 ease-in-out">
+              <div className="relative transform scale-0 sm:group-hover:scale-100 transition-transform duration-200 sm:duration-500 ease-in-out">
+                <div className="absolute inset-0 bg-[#F6C453] rounded-full blur-lg opacity-50 sm:group-hover:opacity-70 transition-opacity duration-200 sm:duration-500 ease-in-out" />
                 <button
                   type="button"
                   className="relative w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full bg-[#F6C453] flex items-center justify-center shadow-xl cursor-pointer"
@@ -596,7 +596,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
           
           {/* Title below */}
           <div className="mt-2 space-y-1 flex-shrink-0">
-            <h3 className="text-sm font-medium line-clamp-2 min-h-[2.5rem] group-hover:text-[#F6C453] transition-colors duration-500 ease-in-out">
+            <h3 className="text-sm font-medium line-clamp-2 min-h-[2.5rem] sm:group-hover:text-[#F6C453] transition-colors duration-200 sm:duration-500 ease-in-out">
               {movie.name}
             </h3>
             {movie.original_name && movie.original_name !== movie.name && (
@@ -619,16 +619,16 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div className="relative aspect-[2/3] w-full rounded-[10px] overflow-hidden bg-muted transition-all duration-500 ease-in-out group-hover:scale-[1.03] group-hover:z-10 flex-shrink-0 border border-transparent group-hover:border-[rgba(246,196,83,0.3)]">
+          <div className="relative aspect-[2/3] w-full rounded-[10px] overflow-hidden bg-muted transition-all duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03] group-hover:z-10 flex-shrink-0 border border-transparent sm:group-hover:border-[rgba(246,196,83,0.3)]">
             {/* Overlay vàng khi hover */}
-            <div className="absolute inset-0 bg-[rgba(246,196,83,0.15)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out pointer-events-none z-10" />
+            <div className="absolute inset-0 bg-[rgba(246,196,83,0.15)] opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 sm:duration-500 ease-in-out pointer-events-none z-10" />
             {/* Hover Overlay - Subtle */}
-            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out z-10" />
+            <div className="absolute inset-0 bg-black/20 opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 sm:duration-500 ease-in-out z-10" />
             <Image
               src={imageUrl}
               alt={movie.name}
               fill
-              className="object-cover object-center transition-transform duration-500 ease-in-out group-hover:scale-[1.03]"
+              className="object-cover object-center transition-transform duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03]"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               loading="lazy"
               quality={75}
@@ -662,7 +662,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             </div>
           </div>
           <div className="mt-2 space-y-1 flex-shrink-0">
-            <h3 className="text-sm font-medium line-clamp-2 min-h-[2.5rem] group-hover:text-[#F6C453] transition-colors duration-500 ease-in-out">
+            <h3 className="text-sm font-medium line-clamp-2 min-h-[2.5rem] sm:group-hover:text-[#F6C453] transition-colors duration-200 sm:duration-500 ease-in-out">
               {movie.name}
             </h3>
             {movie.original_name && movie.original_name !== movie.name && (
@@ -704,10 +704,10 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
           >
             {/* Poster - Sử dụng clip-path polygon để tạo hình dạng nghiêng như tramphim */}
             <div
-            className="relative aspect-[2/3] w-full bg-muted transition-all duration-500 ease-in-out group-hover:shadow-2xl flex-shrink-0 border border-transparent group-hover:border-[rgba(246,196,83,0.3)]"
+            className="relative aspect-[2/3] w-full bg-muted transition-all duration-200 sm:duration-500 ease-in-out sm:group-hover:shadow-2xl flex-shrink-0 border border-transparent sm:group-hover:border-[rgba(246,196,83,0.3)]"
             style={{
               clipPath: clipPathPolygon,
-              transform: `scale(${isHovered ? 1.03 : 1}) ${isTiltLeft ? 'scaleX(-1)' : ''}`,
+              transform: `scale(${isHovered ? 1.01 : 1}) ${isTiltLeft ? 'scaleX(-1)' : ''}`,
               transformStyle: "preserve-3d",
               transformOrigin: "center center",
               boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3)",
@@ -721,14 +721,14 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               }}
             >
               {/* Overlay vàng khi hover */}
-              <div className="absolute inset-0 bg-[rgba(246,196,83,0.15)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out pointer-events-none z-10" />
+              <div className="absolute inset-0 bg-[rgba(246,196,83,0.15)] opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 sm:duration-500 ease-in-out pointer-events-none z-10" />
               {/* Hover Overlay - Subtle */}
-              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out z-10" />
+              <div className="absolute inset-0 bg-black/20 opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 sm:duration-500 ease-in-out z-10" />
             <Image
               src={imageUrl}
               alt={movie.name}
               fill
-              className="object-cover object-center transition-transform duration-500 ease-in-out group-hover:scale-[1.03]"
+              className="object-cover object-center transition-transform duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03]"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               loading="lazy"
               quality={75}
@@ -743,9 +743,9 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               )}
               
               {/* Play Button - Center on Hover */}
-              <div className="absolute inset-0 flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-all duration-500 ease-in-out">
-                <div className="relative transform scale-0 group-hover:scale-100 transition-transform duration-500 ease-in-out">
-                  <div className="absolute inset-0 bg-[#F6C453] rounded-full blur-lg opacity-50 group-hover:opacity-70 transition-opacity duration-500 ease-in-out" />
+              <div className="absolute inset-0 flex items-center justify-center z-20 opacity-0 sm:group-hover:opacity-100 transition-all duration-200 sm:duration-500 ease-in-out">
+                <div className="relative transform scale-0 sm:group-hover:scale-100 transition-transform duration-200 sm:duration-500 ease-in-out">
+                  <div className="absolute inset-0 bg-[#F6C453] rounded-full blur-lg opacity-50 sm:group-hover:opacity-70 transition-opacity duration-200 sm:duration-500 ease-in-out" />
                   <button
                     type="button"
                     className="relative w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full bg-[#F6C453] flex items-center justify-center shadow-xl"
@@ -771,7 +771,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm xs:text-base font-semibold text-white line-clamp-2 min-h-[2.25rem] group-hover:text-[#F6C453] transition-colors duration-500 ease-in-out">
+              <h3 className="text-sm xs:text-base font-semibold text-white line-clamp-2 min-h-[2.25rem] sm:group-hover:text-[#F6C453] transition-colors duration-200 sm:duration-500 ease-in-out">
                 {movie.name}
               </h3>
               {movie.original_name && movie.original_name !== movie.name && (
@@ -806,21 +806,21 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
           >
             {/* Poster */}
             <div
-            className="relative aspect-[2/3] w-full rounded-[10px] overflow-hidden bg-muted transition-all duration-300 ease-in-out group-hover:shadow-2xl flex-shrink-0 border border-transparent group-hover:border-[rgba(246,196,83,0.3)]"
+            className="relative aspect-[2/3] w-full rounded-[10px] overflow-hidden bg-muted transition-all duration-200 sm:duration-300 ease-in-out sm:group-hover:shadow-2xl flex-shrink-0 border border-transparent sm:group-hover:border-[rgba(246,196,83,0.3)]"
             style={{
-              transform: isHovered ? "scale(1.02)" : "none",
+              transform: isHovered ? "scale(1.01)" : "none",
               transformStyle: "flat",
             }}
           >
             {/* Overlay vàng khi hover */}
-            <div className="absolute inset-0 bg-[rgba(246,196,83,0.15)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out pointer-events-none z-10" />
+            <div className="absolute inset-0 bg-[rgba(246,196,83,0.15)] opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 sm:duration-500 ease-in-out pointer-events-none z-10" />
             {/* Hover Overlay - Subtle */}
-            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out z-10" />
+            <div className="absolute inset-0 bg-black/20 opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 sm:duration-500 ease-in-out z-10" />
             <Image
               src={imageUrl}
               alt={movie.name}
               fill
-              className="object-cover object-center transition-transform duration-500 ease-in-out group-hover:scale-[1.03]"
+              className="object-cover object-center transition-transform duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03]"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               loading="lazy"
               quality={75}
@@ -856,7 +856,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
 
           {/* Info */}
           <div className="mt-3 w-full flex-shrink-0">
-            <h3 className="text-sm xs:text-base font-semibold text-white line-clamp-2 min-h-[2.5rem] group-hover:text-[#F6C453] transition-colors duration-500 ease-out">
+            <h3 className="text-sm xs:text-base font-semibold text-white line-clamp-2 min-h-[2.5rem] sm:group-hover:text-[#F6C453] transition-colors duration-200 sm:duration-500 ease-out">
               {movie.name}
             </h3>
             {movie.original_name && movie.original_name !== movie.name && (
@@ -894,12 +894,12 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#F6C453]/20 via-transparent to-[#DB2777]/15 blur-xl opacity-0 group-hover:opacity-100 transition duration-500" />
 
           {/* Wide backdrop */}
-          <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-[#0a0a0a] transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-2xl flex-shrink-0 border border-white/5 group-hover:border-[rgba(246,196,83,0.35)]">
+          <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-[#0a0a0a] transition-all duration-200 sm:duration-300 sm:group-hover:scale-[1.02] sm:group-hover:shadow-2xl flex-shrink-0 border border-white/5 sm:group-hover:border-[rgba(246,196,83,0.35)]">
             {/* Top accent bar */}
             <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#F6C453] via-[#DB2777] to-[#6D28D9] opacity-70" />
 
             {/* Overlay vàng khi hover */}
-            <div className="absolute inset-0 bg-[rgba(246,196,83,0.12)] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10" />
+            <div className="absolute inset-0 bg-[rgba(246,196,83,0.12)] opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 sm:duration-300 pointer-events-none z-10" />
 
             <Image
               src={backdropUrl}
@@ -1011,10 +1011,10 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
     >
       <Link href={`/phim/${movie.slug}`} className="cursor-pointer" onClick={handleMovieClick}>
         <div
-          className={`relative rounded-[10px] overflow-hidden bg-muted transition-all duration-300 ease-out flex-shrink-0 border border-transparent ${
+          className={`relative rounded-[10px] overflow-hidden bg-muted transition-all duration-200 sm:duration-300 ease-out flex-shrink-0 border border-transparent ${
             isHovered
-              ? "scale-[1.25] sm:scale-[1.35] md:scale-[1.4] z-50 shadow-2xl shadow-black/80 border-[rgba(246,196,83,0.3)] rounded-t-[10px] rounded-b-none"
-              : "scale-100 z-10 group-hover:border-[rgba(246,196,83,0.3)]"
+              ? "scale-[1.05] sm:scale-[1.25] md:scale-[1.35] z-50 shadow-2xl shadow-black/80 border-[rgba(246,196,83,0.3)] rounded-t-[10px] rounded-b-none"
+              : "scale-100 z-10 sm:group-hover:border-[rgba(246,196,83,0.3)]"
           }`}
           style={{
             transformOrigin: index === 0 ? "left center" : "center center",
@@ -1025,8 +1025,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
           }}
         >
           {/* Overlay vàng khi hover */}
-          <div className={`absolute inset-0 bg-[rgba(246,196,83,0.15)] transition-opacity duration-300 pointer-events-none z-10 ${
-            isHovered ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          <div className={`absolute inset-0 bg-[rgba(246,196,83,0.15)] transition-opacity duration-200 sm:duration-300 pointer-events-none z-10 ${
+            isHovered ? "opacity-100" : "opacity-0 sm:group-hover:opacity-100"
           }`} />
           {/* Thumbnail - 16:9 using poster_url (crop center) */}
           <div className="relative aspect-video w-full overflow-hidden rounded-[10px]">
@@ -1061,7 +1061,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
 
           {/* Hover Content Panel */}
           {isHovered && (
-            <div className="absolute left-0 right-0 top-full bg-[#0f0f1f] rounded-b-md p-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute left-0 right-0 top-full bg-[#0f0f1f] rounded-b-md p-3 space-y-3">
               {/* Action Buttons Row */}
               <div className="flex items-center gap-2">
                 <Button
@@ -1122,7 +1122,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
       {/* Title below (when not hovered) */}
       {!isHovered && (
         <div className="mt-2 flex-shrink-0 space-y-0.5">
-          <h3 className="text-sm font-medium line-clamp-2 min-h-[2.5rem] text-gray-300 group-hover:text-white transition-colors">
+          <h3 className="text-sm font-medium line-clamp-2 min-h-[2.5rem] text-gray-300 sm:group-hover:text-white transition-colors duration-200">
             {movie.name}
           </h3>
           {movie.original_name && movie.original_name !== movie.name && (
