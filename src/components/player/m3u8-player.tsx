@@ -646,24 +646,24 @@ export function M3u8Player({
       {controls && (
         <div className="w-full bg-transparent backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-3 mt-16 sm:mt-20">
           {/* Progress bar */}
-          <div className="mb-2 sm:mb-3">
+          <div className="mb-2 sm:mb-3 py-2 -my-2">
             <div 
               className="relative transition-all duration-300 ease-out"
               onMouseEnter={() => setIsHoveringProgress(true)}
               onMouseLeave={() => setIsHoveringProgress(false)}
             >
               {/* Background track */}
-              <div className={`absolute inset-y-0 left-0 my-auto rounded-full bg-gray-900 transition-all duration-300 ${isHoveringProgress ? 'h-1.5' : 'h-1'}`} />
+              <div className={`absolute inset-y-0 left-0 my-auto rounded-full bg-gray-900 transition-all duration-300 ${isHoveringProgress ? 'h-2' : 'h-1.5'}`} />
               {/* In-progress line (buffered/loaded) */}
               <div
-                className={`absolute inset-y-0 left-0 my-auto rounded-full bg-gray-600 transition-all duration-300 ${isHoveringProgress ? 'h-1.5' : 'h-1'}`}
+                className={`absolute inset-y-0 left-0 my-auto rounded-full bg-gray-600 transition-all duration-300 ${isHoveringProgress ? 'h-2' : 'h-1.5'}`}
                 style={{
                   width: duration > 0 ? `${Math.min(100, Math.max(0, (buffered / duration) * 100))}%` : "0%",
                 }}
               />
               {/* Current progress line */}
               <div
-                className={`absolute inset-y-0 left-0 my-auto rounded-full bg-[#F6C453] transition-all duration-300 ${isHoveringProgress ? 'h-1.5' : 'h-1'}`}
+                className={`absolute inset-y-0 left-0 my-auto rounded-full bg-[#F6C453] transition-all duration-300 ${isHoveringProgress ? 'h-2' : 'h-1.5'}`}
                 style={{
                   width: duration > 0 ? `${Math.min(100, Math.max(0, (currentTime / duration) * 100))}%` : "0%",
                 }}
@@ -676,15 +676,17 @@ export function M3u8Player({
                 value={Number.isFinite(currentTime) ? currentTime : 0}
                 onChange={handleSeek}
                 className={`relative z-10 w-full cursor-pointer appearance-none bg-transparent transition-all duration-300
-                  ${isHoveringProgress ? 'h-5' : 'h-4'}
+                  ${isHoveringProgress ? 'h-8' : 'h-6'}
                   [&::-webkit-slider-thumb]:appearance-none
                   [&::-webkit-slider-thumb]:rounded-full
                   [&::-webkit-slider-thumb]:bg-[#F6C453]
                   [&::-webkit-slider-thumb]:transition-all
                   [&::-webkit-slider-thumb]:duration-300
+                  [&::-webkit-slider-thumb]:cursor-grab
+                  [&::-webkit-slider-thumb]:active:cursor-grabbing
                   ${isHoveringProgress 
-                    ? '[&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:shadow-[0_0_0_5px_rgba(0,0,0,0.7)]' 
-                    : '[&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:shadow-[0_0_0_4px_rgba(0,0,0,0.7)]'
+                    ? '[&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:shadow-[0_0_0_6px_rgba(0,0,0,0.7)]' 
+                    : '[&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:shadow-[0_0_0_5px_rgba(0,0,0,0.7)]'
                   }
                   [&::-moz-range-thumb]:appearance-none
                   [&::-moz-range-thumb]:rounded-full
@@ -692,9 +694,11 @@ export function M3u8Player({
                   [&::-moz-range-thumb]:border-0
                   [&::-moz-range-thumb]:transition-all
                   [&::-moz-range-thumb]:duration-300
+                  [&::-moz-range-thumb]:cursor-grab
+                  [&::-moz-range-thumb]:active:cursor-grabbing
                   ${isHoveringProgress 
-                    ? '[&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4' 
-                    : '[&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:w-3'
+                    ? '[&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5' 
+                    : '[&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4'
                   }`}
               />
             </div>

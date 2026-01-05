@@ -1568,143 +1568,161 @@ export function NetflixPlayer({
           }}
         >
           {/* Progress Bar */}
-          <div
-            ref={progressBarRef}
-            className="relative h-1 bg-white/20 rounded-full cursor-pointer pointer-events-auto group/progress touch-none"
-            onMouseEnter={() => {
-              setIsHoveringProgress(true);
-            }}
-            onMouseLeave={() => {
-              setIsHoveringProgress(false);
-              setHoverTime(null);
-              setIsDragging(false);
-              isDraggingRef.current = false;
-            }}
-            onMouseMove={handleProgressMouseMove}
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              setIsDragging(true);
-              isDraggingRef.current = true;
-              handleProgressClick(e);
-            }}
-            onMouseUp={() => {
-              setIsDragging(false);
-              isDraggingRef.current = false;
-            }}
-            onTouchStart={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsDragging(true);
-              isDraggingRef.current = true;
-              // Set hover time for mobile tooltip
-              const video = videoRef.current;
-              const progressBar = progressBarRef.current;
-              if (video && progressBar && e.touches[0]) {
-                const rect = progressBar.getBoundingClientRect();
-                const percent = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
-                const hoverTimeValue = percent * video.duration;
-                setHoverTime(hoverTimeValue);
-                // Seek to the position
-                video.currentTime = hoverTimeValue;
-                setCurrentTime(hoverTimeValue);
-              }
-            }}
-            onTouchMove={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              // Update hover time and seek for mobile tooltip
-              const video = videoRef.current;
-              const progressBar = progressBarRef.current;
-              if (video && progressBar && e.touches[0]) {
-                const rect = progressBar.getBoundingClientRect();
-                const percent = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
-                const hoverTimeValue = percent * video.duration;
-                setHoverTime(hoverTimeValue);
-                // Update video time while dragging
-                video.currentTime = hoverTimeValue;
-                setCurrentTime(hoverTimeValue);
-              }
-            }}
-            onTouchEnd={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsDragging(false);
-              isDraggingRef.current = false;
-              // Keep tooltip visible briefly on mobile, then hide
-              setTimeout(() => {
+          <div className="py-2 -my-2 cursor-pointer pointer-events-auto" onClick={(e) => e.stopPropagation()}>
+            <div
+              ref={progressBarRef}
+              className={`relative bg-white/20 rounded-full cursor-pointer group/progress touch-none transition-all duration-200 ${
+                isHoveringProgress || isDragging ? 'h-2' : 'h-1.5'
+              }`}
+              onMouseEnter={() => {
+                setIsHoveringProgress(true);
+              }}
+              onMouseLeave={() => {
+                setIsHoveringProgress(false);
                 setHoverTime(null);
-              }, 800);
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!isDragging) {
+                setIsDragging(false);
+                isDraggingRef.current = false;
+              }}
+              onMouseMove={handleProgressMouseMove}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                setIsDragging(true);
+                isDraggingRef.current = true;
                 handleProgressClick(e);
-              }
-            }}
-          >
-            {/* Buffered progress */}
-            <div
-              className="absolute inset-y-0 left-0 rounded-full bg-white/30 transition-all"
-              style={{ width: `${bufferedPercent}%` }}
-            />
-            {/* Current progress */}
-            <div
-              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A] transition-all"
-              style={{ width: `${progressPercent}%` }}
-            />
-            {/* Progress thumb - always visible on mobile, hover on desktop */}
-            <div
-              className={`absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A] ${isMobile || isHoveringProgress || isDragging ? 'opacity-100' : 'opacity-0'} transition-opacity pointer-events-none shadow-[0_0_8px_rgba(246,196,83,0.6)]`}
-              style={{ left: `calc(${progressPercent}% - 6px)` }}
-            />
-            {/* Timeline tooltip - show on both mobile and desktop */}
-            {hoverTime !== null && (
+              }}
+              onMouseUp={() => {
+                setIsDragging(false);
+                isDraggingRef.current = false;
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragging(true);
+                isDraggingRef.current = true;
+                // Set hover time for mobile tooltip
+                const video = videoRef.current;
+                const progressBar = progressBarRef.current;
+                if (video && progressBar && e.touches[0]) {
+                  const rect = progressBar.getBoundingClientRect();
+                  const percent = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
+                  const hoverTimeValue = percent * video.duration;
+                  setHoverTime(hoverTimeValue);
+                  // Seek to the position
+                  video.currentTime = hoverTimeValue;
+                  setCurrentTime(hoverTimeValue);
+                }
+              }}
+              onTouchMove={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Update hover time and seek for mobile tooltip
+                const video = videoRef.current;
+                const progressBar = progressBarRef.current;
+                if (video && progressBar && e.touches[0]) {
+                  const rect = progressBar.getBoundingClientRect();
+                  const percent = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
+                  const hoverTimeValue = percent * video.duration;
+                  setHoverTime(hoverTimeValue);
+                  // Update video time while dragging
+                  video.currentTime = hoverTimeValue;
+                  setCurrentTime(hoverTimeValue);
+                }
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragging(false);
+                isDraggingRef.current = false;
+                // Keep tooltip visible briefly on mobile, then hide
+                setTimeout(() => {
+                  setHoverTime(null);
+                }, 800);
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isDragging) {
+                  handleProgressClick(e);
+                }
+              }}
+            >
+              {/* Buffered progress */}
               <div
-                className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none z-50"
-                style={{ left: `${((hoverTime / duration) * 100)}%`, transform: 'translateX(-50%)' }}
-              >
-                <div className="px-2 py-1 bg-black/95 backdrop-blur-sm rounded text-white text-xs whitespace-nowrap border border-white/20 shadow-lg">
-                  {formatTime(hoverTime)}
-                </div>
-              </div>
-            )}
-            {/* Range input for better drag support - desktop only */}
-            {!isMobile && (
-              <input
-                type="range"
-                min={0}
-                max={duration || 0}
-                step={0.1}
-                value={currentTime}
-                onChange={(e) => {
-                  const video = videoRef.current;
-                  if (!video) return;
-                  const value = parseFloat(e.target.value);
-                  video.currentTime = value;
-                  setCurrentTime(value);
-                  e.stopPropagation();
-                }}
-                onClick={(e) => e.stopPropagation()}
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                  setIsDragging(true);
-                  isDraggingRef.current = true;
-                }}
-                onMouseUp={() => {
-                  setIsDragging(false);
-                  isDraggingRef.current = false;
-                }}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10
-                  [&::-webkit-slider-thumb]:appearance-none
-                  [&::-webkit-slider-thumb]:w-full
-                  [&::-webkit-slider-thumb]:h-full
-                  [&::-webkit-slider-thumb]:cursor-pointer
-                  [&::-moz-range-thumb]:appearance-none
-                  [&::-moz-range-thumb]:w-full
-                  [&::-moz-range-thumb]:h-full
-                  [&::-moz-range-thumb]:cursor-pointer"
+                className={`absolute inset-y-0 left-0 rounded-full bg-white/30 transition-all ${
+                  isHoveringProgress || isDragging ? 'h-2' : 'h-1.5'
+                }`}
+                style={{ width: `${bufferedPercent}%` }}
               />
-            )}
+              {/* Current progress */}
+              <div
+                className={`absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A] transition-all ${
+                  isHoveringProgress || isDragging ? 'h-2' : 'h-1.5'
+                }`}
+                style={{ width: `${progressPercent}%` }}
+              />
+              {/* Progress thumb - always visible and larger */}
+              <div
+                className={`absolute top-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A] transition-all pointer-events-none shadow-[0_0_8px_rgba(246,196,83,0.6)] ${
+                  isHoveringProgress || isDragging || isMobile
+                    ? 'w-5 h-5 opacity-100 shadow-[0_0_12px_rgba(246,196,83,0.8)]'
+                    : 'w-4 h-4 opacity-100'
+                }`}
+                style={{ left: `calc(${progressPercent}% - ${isHoveringProgress || isDragging || isMobile ? '10px' : '8px'})` }}
+              />
+              {/* Timeline tooltip - show on both mobile and desktop */}
+              {hoverTime !== null && (
+                <div
+                  className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none z-50"
+                  style={{ left: `${((hoverTime / duration) * 100)}%`, transform: 'translateX(-50%)' }}
+                >
+                  <div className="px-2 py-1 bg-black/95 backdrop-blur-sm rounded text-white text-xs whitespace-nowrap border border-white/20 shadow-lg">
+                    {formatTime(hoverTime)}
+                  </div>
+                </div>
+              )}
+              {/* Range input for better drag support - desktop only */}
+              {!isMobile && (
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 0}
+                  step={0.1}
+                  value={currentTime}
+                  onChange={(e) => {
+                    const video = videoRef.current;
+                    if (!video) return;
+                    const value = parseFloat(e.target.value);
+                    video.currentTime = value;
+                    setCurrentTime(value);
+                    e.stopPropagation();
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    setIsDragging(true);
+                    isDraggingRef.current = true;
+                  }}
+                  onMouseUp={() => {
+                    setIsDragging(false);
+                    isDraggingRef.current = false;
+                  }}
+                  className={`absolute inset-0 w-full cursor-pointer z-10 appearance-none bg-transparent
+                    ${isHoveringProgress || isDragging ? 'h-8' : 'h-6'}
+                    [&::-webkit-slider-thumb]:appearance-none
+                    [&::-webkit-slider-thumb]:w-6
+                    [&::-webkit-slider-thumb]:h-6
+                    [&::-webkit-slider-thumb]:rounded-full
+                    [&::-webkit-slider-thumb]:bg-transparent
+                    [&::-webkit-slider-thumb]:cursor-pointer
+                    [&::-moz-range-thumb]:appearance-none
+                    [&::-moz-range-thumb]:w-6
+                    [&::-moz-range-thumb]:h-6
+                    [&::-moz-range-thumb]:rounded-full
+                    [&::-moz-range-thumb]:bg-transparent
+                    [&::-moz-range-thumb]:border-0
+                    [&::-moz-range-thumb]:cursor-pointer`}
+                />
+              )}
+            </div>
           </div>
 
           {/* Controls Row */}

@@ -104,7 +104,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
   return (
     <section
-      className="relative aspect-[16/9] w-full overflow-hidden rounded-none lg:rounded-lg 2xl:aspect-[16/7] h-[260px] xs:h-[300px] sm:h-[56.25vw] max-h-[70vh] sm:max-h-[80vh] min-h-[240px] xs:min-h-[260px] sm:min-h-[400px] lg:h-[70vh] lg:min-h-[460px] xl:h-[75vh] select-none"
+      className="hero-section-root relative aspect-[16/9] w-full max-w-full overflow-hidden rounded-none lg:rounded-lg 2xl:aspect-[16/7] h-[260px] xs:h-[300px] sm:h-[56.25vw] max-h-[70vh] sm:max-h-[80vh] min-h-[240px] xs:min-h-[260px] sm:min-h-[400px] lg:h-[70vh] lg:min-h-[460px] xl:h-[75vh] select-none"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -112,6 +112,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      style={{ width: '100%', maxWidth: '100%' }}
     >
       {/* Global animation keyframes cho hero content */}
       <style jsx global>{`
@@ -156,6 +157,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
               sizes="100vw"
               quality={index === 0 ? 85 : 70}
               unoptimized
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
             />
           </div>
         ))}

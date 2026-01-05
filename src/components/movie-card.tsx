@@ -116,7 +116,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
   const [isPortraitImage, setIsPortraitImage] = useState(false);
   const cardRef = useRef<HTMLAnchorElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
-  const [popupPosition, setPopupPosition] = useState<{ left: number; top: number } | null>(null);
+  const [popupPosition, setPopupPosition] = useState<{ left: number; top: number; transformX: number; transformY: number } | null>(null);
   const positionFrameRef = useRef<number | null>(null);
   const hoverDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -189,12 +189,112 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
   
   const updatePopupPosition = useCallback(() => {
     if (!isHovered || !shouldShowPopup || !cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
+    
+    const cardRect = cardRef.current.getBoundingClientRect();
+    
+    // Popup dimensions (estimated - typical popup size)
+    const popupWidth = Math.min(480, window.innerWidth * 0.82);
+    const popupHeight = 450; // Estimated height including image and content
+    
+    // Viewport dimensions
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const padding = 16; // Padding from viewport edges
+    
+    // Center position of card
+    const cardCenterX = cardRect.left + cardRect.width / 2;
+    const cardCenterY = cardRect.top + cardRect.height / 2;
+    
+    // Calculate transform offsets to keep popup within viewport
+    let transformX = 0;
+    let transformY = 0;
+    
+    // Check horizontal boundaries
+    const halfPopupWidth = popupWidth / 2;
+    if (cardCenterX - halfPopupWidth < padding) {
+      // Popup would overflow left edge - shift right
+      transformX = padding - (cardCenterX - halfPopupWidth);
+    } else if (cardCenterX + halfPopupWidth > viewportWidth - padding) {
+      // Popup would overflow right edge - shift left
+      transformX = (viewportWidth - padding) - (cardCenterX + halfPopupWidth);
+    }
+    
+    // Check vertical boundaries
+    const halfPopupHeight = popupHeight / 2;
+    if (cardCenterY - halfPopupHeight < padding) {
+      // Popup would overflow top edge - shift down
+      transformY = padding - (cardCenterY - halfPopupHeight);
+    } else if (cardCenterY + halfPopupHeight > viewportHeight - padding) {
+      // Popup would overflow bottom edge - shift up
+      transformY = (viewportHeight - padding) - (cardCenterY + halfPopupHeight);
+    }
+    
     setPopupPosition({
-      left: rect.left + rect.width / 2,
-      top: rect.top + rect.height / 2,
+      left: cardCenterX,
+      top: cardCenterY,
+      transformX,
+      transformY,
     });
   }, [isHovered, shouldShowPopup]);
+  
+  // Refine popup position after it renders to get accurate dimensions
+  useEffect(() => {
+    if (!isHovered || !popupPosition || !popupRef.current || !cardRef.current) return;
+    
+    const refinePosition = () => {
+      if (!popupRef.current || !cardRef.current) return;
+      
+      const popupRect = popupRef.current.getBoundingClientRect();
+      const cardRect = cardRef.current.getBoundingClientRect();
+      
+      // Actual popup dimensions
+      const popupWidth = popupRect.width;
+      const popupHeight = popupRect.height;
+      
+      // Viewport dimensions
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const padding = 16;
+      
+      // Card center position
+      const cardCenterX = cardRect.left + cardRect.width / 2;
+      const cardCenterY = cardRect.top + cardRect.height / 2;
+      
+      // Calculate transform offsets
+      let transformX = 0;
+      let transformY = 0;
+      
+      // Check horizontal boundaries
+      const halfPopupWidth = popupWidth / 2;
+      if (cardCenterX - halfPopupWidth < padding) {
+        transformX = padding - (cardCenterX - halfPopupWidth);
+      } else if (cardCenterX + halfPopupWidth > viewportWidth - padding) {
+        transformX = (viewportWidth - padding) - (cardCenterX + halfPopupWidth);
+      }
+      
+      // Check vertical boundaries
+      const halfPopupHeight = popupHeight / 2;
+      if (cardCenterY - halfPopupHeight < padding) {
+        transformY = padding - (cardCenterY - halfPopupHeight);
+      } else if (cardCenterY + halfPopupHeight > viewportHeight - padding) {
+        transformY = (viewportHeight - padding) - (cardCenterY + halfPopupHeight);
+      }
+      
+      // Only update if transform changed significantly (avoid infinite loop)
+      if (Math.abs(transformX - popupPosition.transformX) > 2 || Math.abs(transformY - popupPosition.transformY) > 2) {
+        setPopupPosition({
+          left: cardCenterX,
+          top: cardCenterY,
+          transformX,
+          transformY,
+        });
+      }
+    };
+    
+    // Small delay to ensure popup is rendered and measured
+    const timeoutId = setTimeout(refinePosition, 50);
+    return () => clearTimeout(timeoutId);
+  }, [isHovered, popupPosition]);
 
   useEffect(() => {
     if (!isHovered || !shouldShowPopup) {
@@ -299,7 +399,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
         style={{
           left: `${popupPosition.left}px`,
           top: `${popupPosition.top}px`,
-          transform: `translate(-50%, -50%) translateY(${isActive ? "0px" : "10px"}) scale(${isActive ? 1 : 0.95})`,
+          transform: `translate(calc(-50% + ${popupPosition.transformX}px), calc(-50% + ${popupPosition.transformY}px)) translateY(${isActive ? "0px" : "10px"}) scale(${isActive ? 1 : 0.95})`,
           opacity: isActive ? 1 : 0,
         }}
         onMouseEnter={() => setIsHovered(true)}

@@ -100,9 +100,11 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationStructuredData) }}
       />
       {/* Hero - Priority load (full-width) */}
-      <Suspense fallback={<div className="h-[60vh] bg-[#191b24]" />}>
-        <HeroSectionWrapper />
-      </Suspense>
+      <div className="w-full max-w-full overflow-hidden">
+        <Suspense fallback={<div className="h-[60vh] bg-[#191b24]" />}>
+          <HeroSectionWrapper />
+        </Suspense>
+      </div>
 
       <div className="mx-auto max-w-[1800px] px-3 sm:px-4 md:px-8 lg:px-12">
         {/* Content Rows - Premium Layout */}
