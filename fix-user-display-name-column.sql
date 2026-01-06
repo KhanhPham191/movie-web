@@ -32,3 +32,4 @@ WHERE table_schema = 'public'
   AND column_name IN ('user_display_name', 'anonymous_name', 'user_id')
 ORDER BY column_name;
 
+

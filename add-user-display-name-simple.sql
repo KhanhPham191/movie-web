@@ -11,3 +11,4 @@ WHERE table_schema = 'public'
   AND table_name = 'comments' 
   AND column_name = 'user_display_name';
 
+

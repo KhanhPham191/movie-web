@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Footer } from "@/components/footer";
 import { GenreSection } from "@/components/genre-section";
 import { MovieCard } from "@/components/movie-card";
@@ -118,6 +119,10 @@ export default async function GenrePage({
   searchParams,
 }: GenrePageProps) {
   const { slug } = await params;
+  // Chuyển hướng slug hoat-hinh sang danh sách để dùng nguồn dữ liệu có sẵn
+  if (slug === "hoat-hinh") {
+    redirect("/danh-sach/hoat-hinh");
+  }
   const { page: pageParam } = await searchParams;
   const page = parseInt(pageParam || "1", 10);
 

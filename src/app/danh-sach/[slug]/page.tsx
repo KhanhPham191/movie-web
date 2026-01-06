@@ -19,6 +19,7 @@ const CATEGORY_NAMES: Record<string, string> = {
   "tv-shows": "TV Shows",
   "phim-moi-cap-nhat": "Phim mới cập nhật",
   "phim-cap-nhat-hang-ngay": "Cập nhật hàng ngày",
+  "hoat-hinh": "Phim hoạt hình",
 };
 
 interface CategoryPageProps {
@@ -215,7 +216,7 @@ export default async function CategoryPage({
               </span>
             </h1>
             <p className="text-sm sm:text-base text-gray-300 max-w-2xl leading-relaxed">
-              Khám phá những bộ phim mới được cập nhật liên tục, đề xuất theo xu hướng xem hiện tại trên Phim7.
+              Khám phá những bộ phim mới được cập nhật liên tục, đề xuất theo xu hướng xem hiện tại trên MovPey.
             </p>
           </div>
         </section>
