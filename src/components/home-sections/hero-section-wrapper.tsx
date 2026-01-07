@@ -14,7 +14,7 @@ function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
 }
 
 function getReleaseYear(movie: FilmItem): number | null {
-  const rawYear = (movie?.year ?? movie?.releaseYear ?? movie?.release_date) as
+  const rawYear = movie?.year as
     | string
     | number
     | undefined;
