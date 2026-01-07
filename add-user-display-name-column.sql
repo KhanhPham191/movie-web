@@ -5,3 +5,4 @@ ALTER TABLE public.comments
   ADD COLUMN IF NOT EXISTS user_display_name TEXT;
 
 
+

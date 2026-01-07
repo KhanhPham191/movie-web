@@ -12,3 +12,4 @@ WHERE table_schema = 'public'
   AND column_name = 'user_display_name';
 
 
+

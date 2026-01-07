@@ -199,6 +199,17 @@ export async function generateMetadata({ params }: GenrePageProps) {
       description: `Xem phim ${genreName.toLowerCase()} full HD Vietsub, thuyết minh miễn phí trên MovPey.`,
       images: [`${siteUrl}/logo.svg`],
     },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
   };
 }
 

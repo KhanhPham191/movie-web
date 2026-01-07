@@ -577,11 +577,26 @@ export async function generateMetadata({ params }: WatchPageProps) {
       alternates: {
         canonical: watchUrl,
       },
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-video-preview": -1,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
+      },
     };
   } catch {
     return {
       title: "Xem phim | MovPey",
       description: "Xem phim online Vietsub, thuyết minh chất lượng cao trên MovPey.",
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 }

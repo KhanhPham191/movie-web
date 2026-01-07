@@ -188,7 +188,7 @@ export function M3u8Player({
     };
   }, []);
 
-  // Handle double tap to skip 10s and long press for 1.5x speed
+  // Handle double tap to skip 10s and long press for 1.75x speed
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isMobile) return;
     
@@ -240,7 +240,7 @@ export function M3u8Player({
       const video = videoRef.current;
       if (video && !isLongPressActiveRef.current) {
         isLongPressActiveRef.current = true;
-        setPlaybackRate(1.5);
+        setPlaybackRate(1.75);
         setShowSpeedIndicator(true);
         // Prevent default behaviors that might interfere
         e.preventDefault();
@@ -264,7 +264,7 @@ export function M3u8Player({
       );
       
       // Nếu người dùng di chuyển nhiều TRƯỚC KHI long press active, hủy timer long press
-      // Còn nếu đã active long press rồi thì tiếp tục giữ 1.5x speed và không kích hoạt gesture khác
+      // Còn nếu đã active long press rồi thì tiếp tục giữ 1.75x speed và không kích hoạt gesture khác
       if (moveDistance > moveThreshold) {
         // Chỉ hủy timer nếu long press CHƯA active
         if (!isLongPressActiveRef.current && longPressTimerRef.current) {
@@ -585,8 +585,8 @@ export function M3u8Player({
           onTouchEnd={handleTouchEnd}
         />
         
-        {/* Speed indicator icon for mobile when at 1.5x - works in fullscreen too */}
-        {showSpeedIndicator && isMobile && playbackRate === 1.5 && (
+        {/* Speed indicator icon for mobile when at 1.75x - works in fullscreen too */}
+        {showSpeedIndicator && isMobile && playbackRate === 1.75 && (
           <div className="absolute top-1/2 right-4 -translate-y-1/2 pointer-events-none z-[100]">
             <div className="bg-black/40 rounded-full p-2 backdrop-blur-sm">
               <FastForward className="w-4 h-4 text-[#F6C453]" />

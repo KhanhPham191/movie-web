@@ -130,6 +130,18 @@ export const metadata: Metadata = {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
   },
   category: "Entertainment",
+  manifest: "/manifest.json",
+  formatDetection: {
+    telephone: false,
+    date: false,
+    address: false,
+  },
+  other: {
+    "theme-color": "#191b24",
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+  },
 };
 
 export default function RootLayout({
