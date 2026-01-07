@@ -397,6 +397,8 @@ export function Header() {
                             fill
                             sizes="56px"
                             className="object-cover"
+                            loading="lazy"
+                            quality={60}
                           />
                         )}
                       </div>
@@ -617,6 +619,8 @@ export function Header() {
                                 fill
                                 sizes="56px"
                                 className="object-cover"
+                                loading="lazy"
+                                quality={60}
                               />
                             )}
                           </div>

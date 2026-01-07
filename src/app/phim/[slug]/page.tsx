@@ -199,8 +199,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
               className="object-cover object-top scale-105"
               priority
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
-              quality={80}
-              unoptimized
+              quality={70}
             />
             {/* Premium Gradients */}
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(25,27,36,0.1)_0%,rgba(25,27,36,0.45)_40%,rgba(25,27,36,0.92)_80%,rgba(25,27,36,1)_100%)]" />
@@ -712,12 +711,27 @@ export async function generateMetadata({ params }: MoviePageProps) {
       alternates: {
         canonical: movieUrl,
       },
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-video-preview": -1,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
+      },
     };
   } catch (error) {
     // Don't throw error in metadata, just return default
     return {
       title: "Chi tiết phim | MovPey",
       description: "Xem chi tiết phim, nội dung và thông tin diễn viên trên MovPey.",
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 }

@@ -83,6 +83,8 @@ export function MovieInfoPanel({
                 fill
                 className="object-cover"
                 sizes="(max-width: 640px) 80px, 96px"
+                loading="lazy"
+                quality={60}
               />
             </div>
 
