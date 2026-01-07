@@ -200,63 +200,82 @@ export function MovieComments({ movieSlug, movieName }: MovieCommentsProps) {
   };
 
   return (
-    <div className="space-y-6 animate-slide-up">
+    <div className="w-full max-w-3xl mx-auto space-y-8 animate-slide-up">
       {/* Header */}
-      <div className="flex items-center gap-2">
-        <MessageSquare className="w-5 h-5 text-[#F6C453]" />
-        <h2 className="text-xl font-bold text-white">Bình luận</h2>
-        <span className="text-sm text-gray-400">({comments.length})</span>
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-gradient-to-br from-[#F6C453]/20 to-[#D3A13A]/10 rounded-lg">
+          <MessageSquare className="w-5 h-5 text-[#F6C453]" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-white">Bình luận</h2>
+          <p className="text-sm text-gray-400 mt-0.5">{comments.length} bình luận</p>
+        </div>
       </div>
 
-      {/* Comment Form - Cho phép mọi người bình luận */}
-      <form onSubmit={handleSubmit} className="space-y-3">
+      {/* Comment Form - Card style, nhỏ và đẹp */}
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-md md:max-w-lg mx-auto bg-gradient-to-br from-[#252833] to-[#1e2029] border border-[#3a3f4f]/50 rounded-xl p-5 md:p-6 shadow-lg shadow-black/20 space-y-4"
+      >
         <div className="relative">
           <textarea
             ref={textareaRef}
             value={commentText}
             onChange={handleTextareaChange}
             placeholder={isAuthenticated ? "Viết bình luận của bạn..." : "Viết bình luận ẩn danh..."}
-            className="w-full min-h-[100px] max-h-[200px] px-4 py-3 bg-[#252833] border border-[#3a3f4f] rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#F6C453]/50 focus:border-[#F6C453] resize-none transition-all"
+            className="w-full min-h-[100px] md:min-h-[120px] max-h-[200px] px-4 py-3 bg-[#191b24] border border-[#3a3f4f] rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#F6C453]/50 focus:border-[#F6C453]/30 resize-none transition-all text-sm"
             disabled={submitting}
           />
-          <div className="absolute bottom-3 right-3 text-xs text-gray-500">
+          <div className="absolute bottom-3 right-3 text-xs text-gray-500 bg-[#191b24]/80 px-2 py-0.5 rounded">
             {commentText.length}/2000
           </div>
         </div>
+
         {!isAuthenticated && (
-          <p className="text-xs text-gray-500 italic">
-            Bạn đang bình luận ẩn danh. <button
-              type="button"
-              onClick={() => {
-                const loginModal = document.getElementById("login-modal-trigger");
-                if (loginModal) {
-                  loginModal.click();
-                }
-              }}
-              className="text-[#F6C453] hover:underline"
-            >
-              Đăng nhập
-            </button> để hiển thị tên của bạn.
-          </p>
-        )}
-        {error && (
-          <div className="text-sm text-red-400 bg-red-900/20 border border-red-500/30 rounded px-3 py-2">
-            {error}
+          <div className="flex items-start gap-2 p-3 bg-[#F6C453]/10 border border-[#F6C453]/20 rounded-lg">
+            <MessageSquare className="w-4 h-4 text-[#F6C453] mt-0.5 shrink-0" />
+            <p className="text-xs text-gray-400">
+              Bạn đang bình luận ẩn danh.{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  const loginModal = document.getElementById("login-modal-trigger");
+                  if (loginModal) {
+                    loginModal.click();
+                  }
+                }}
+                className="text-[#F6C453] hover:text-[#D3A13A] font-medium underline transition-colors"
+              >
+                Đăng nhập
+              </button>{" "}
+              để hiển thị tên của bạn.
+            </p>
           </div>
         )}
-        <div className="flex justify-end">
+
+        {error && (
+          <div className="flex items-start gap-2 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
+            <X className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
+            <p className="text-sm text-red-400">{error}</p>
+          </div>
+        )}
+
+        <div className="flex items-center justify-end gap-3 pt-2">
           <Button
             type="submit"
             disabled={submitting || !commentText.trim()}
-            className="bg-[#F6C453] hover:bg-[#D3A13A] text-black font-semibold px-6"
+            className="bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#D3A13A] hover:to-[#F6C453] text-black font-semibold px-6 py-2 shadow-lg shadow-[#F6C453]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? (
-              "Đang gửi..."
+              <span className="flex items-center gap-2">
+                <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                Đang gửi...
+              </span>
             ) : (
-              <>
-                <Send className="w-4 h-4 mr-2" />
+              <span className="flex items-center gap-2">
+                <Send className="w-4 h-4" />
                 Gửi bình luận
-              </>
+              </span>
             )}
           </Button>
         </div>
@@ -266,25 +285,28 @@ export function MovieComments({ movieSlug, movieName }: MovieCommentsProps) {
       <div className="space-y-4">
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="p-4 bg-[#252833] border border-[#3a3f4f] rounded-lg space-y-2">
+            <div key={i} className="p-5 bg-[#252833] border border-[#3a3f4f] rounded-xl space-y-3">
               <div className="flex items-center gap-3">
-                <Skeleton className="w-10 h-10 rounded-full" />
-                <Skeleton className="h-4 w-32" />
+                <Skeleton className="w-12 h-12 rounded-full" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
               </div>
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-3/4" />
             </div>
           ))
         ) : comments.length === 0 ? (
-          <div className="p-8 bg-[#252833] border border-[#3a3f4f] rounded-lg text-center">
-            <MessageSquare className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-400">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+          <div className="p-12 bg-gradient-to-br from-[#252833] to-[#1e2029] border border-[#3a3f4f]/50 rounded-xl text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-[#3a3f4f]/30 rounded-full flex items-center justify-center">
+              <MessageSquare className="w-8 h-8 text-gray-600" />
+            </div>
+            <p className="text-gray-400 font-medium">Chưa có bình luận nào</p>
+            <p className="text-sm text-gray-500 mt-1">Hãy là người đầu tiên bình luận!</p>
           </div>
         ) : (
           comments.map((comment) => {
-            // Kiểm tra xem có phải chủ sở hữu không
-            // - Nếu đã đăng nhập: kiểm tra user_id
-            // - Nếu bình luận ẩn danh: kiểm tra localStorage
             const isAuthenticatedOwner = user && comment.user_id && comment.user_id === user.id;
             const anonymousComments = JSON.parse(
               localStorage.getItem("anonymous_comments") || "[]"
@@ -296,41 +318,41 @@ export function MovieComments({ movieSlug, movieName }: MovieCommentsProps) {
             return (
               <div
                 key={comment.id}
-                className="p-4 sm:p-5 bg-[#252833] border border-[#3a3f4f] rounded-lg hover:border-[#F6C453]/30 transition-colors group"
+                className="group p-5 bg-gradient-to-br from-[#252833] to-[#1e2029] border border-[#3a3f4f]/50 rounded-xl hover:border-[#F6C453]/40 hover:shadow-lg hover:shadow-[#F6C453]/10 transition-all duration-300"
               >
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F6C453] to-[#D3A13A] flex items-center justify-center text-black font-bold text-sm shrink-0">
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#F6C453] to-[#D3A13A] flex items-center justify-center text-black font-bold text-base shrink-0 shadow-lg shadow-[#F6C453]/30">
                       {getUserDisplayName(comment).charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-white text-sm">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="font-semibold text-white text-base">
                           {getUserDisplayName(comment)}
                         </span>
                         {isOwner && (
-                          <span className="text-xs px-2 py-0.5 bg-[#F6C453]/20 text-[#F6C453] rounded-full">
+                          <span className="text-xs px-2.5 py-1 bg-gradient-to-r from-[#F6C453]/20 to-[#D3A13A]/20 text-[#F6C453] rounded-full border border-[#F6C453]/30">
                             Bạn
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
                         <span>{formatDate(comment.created_at)}</span>
                       </div>
                     </div>
                   </div>
                   {isOwner && !isEditing && (
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => handleStartEdit(comment)}
-                        className="p-1.5 hover:bg-[#3a3f4f] rounded transition-colors"
+                        className="p-2 hover:bg-[#3a3f4f] rounded-lg transition-colors"
                         title="Chỉnh sửa"
                       >
-                        <Edit2 className="w-4 h-4 text-gray-400" />
+                        <Edit2 className="w-4 h-4 text-gray-400 hover:text-[#F6C453]" />
                       </button>
                       <button
                         onClick={() => handleDelete(comment.id)}
-                        className="p-1.5 hover:bg-red-900/30 rounded transition-colors"
+                        className="p-2 hover:bg-red-900/30 rounded-lg transition-colors"
                         title="Xóa"
                       >
                         <Trash2 className="w-4 h-4 text-red-400" />
@@ -340,18 +362,18 @@ export function MovieComments({ movieSlug, movieName }: MovieCommentsProps) {
                 </div>
 
                 {isEditing ? (
-                  <div className="space-y-3">
+                  <div className="space-y-3 pt-2 border-t border-[#3a3f4f]">
                     <textarea
                       value={editText}
                       onChange={(e) => setEditText(e.target.value)}
-                      className="w-full min-h-[80px] px-3 py-2 bg-[#191b24] border border-[#3a3f4f] rounded text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#F6C453]/50 resize-none"
+                      className="w-full min-h-[100px] px-4 py-3 bg-[#191b24] border border-[#3a3f4f] rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#F6C453]/50 focus:border-[#F6C453]/30 resize-none text-sm"
                       autoFocus
                     />
                     <div className="flex items-center gap-2">
                       <Button
                         onClick={() => handleSaveEdit(comment.id)}
                         size="sm"
-                        className="bg-[#F6C453] hover:bg-[#D3A13A] text-black"
+                        className="bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#D3A13A] hover:to-[#F6C453] text-black font-medium"
                         disabled={!editText.trim()}
                       >
                         Lưu
@@ -360,14 +382,14 @@ export function MovieComments({ movieSlug, movieName }: MovieCommentsProps) {
                         onClick={handleCancelEdit}
                         size="sm"
                         variant="ghost"
-                        className="text-gray-400 hover:text-white"
+                        className="text-gray-400 hover:text-white hover:bg-[#3a3f4f]"
                       >
                         Hủy
                       </Button>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-gray-200 text-sm leading-relaxed whitespace-pre-wrap break-words">
+                  <p className="text-gray-200 text-sm md:text-base leading-relaxed whitespace-pre-wrap break-words pl-1">
                     {comment.content}
                   </p>
                 )}

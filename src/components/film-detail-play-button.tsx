@@ -16,7 +16,7 @@ export function FilmDetailPlayButton({ href, movieName, movieSlug, episodeSlug }
   return (
     <Link
       href={href}
-      className="flex-1 sm:flex-initial"
+      className="inline-flex w-full sm:w-auto"
       onClick={() => {
         analytics.trackFilmDetailPlayNow(movieName, movieSlug, episodeSlug);
       }}

@@ -42,6 +42,8 @@ const nextConfig: NextConfig = {
     ],
     // Enable image optimization for better quality and SEO
     formats: ["image/avif", "image/webp"],
+    // Thêm các quality mà project đang sử dụng (60, 65, 75) để tránh spam warning
+    qualities: [60, 65, 75],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 31536000, // 1 year cache for better performance
