@@ -421,7 +421,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                 className="object-cover object-center"
                 sizes="(max-width: 768px) 0px, 480px"
                 loading="lazy"
-                quality={65}
+                quality={70}
+                unoptimized
               />
             </div>
           )}
@@ -549,9 +550,10 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               alt={movie.name}
               fill
               className="object-cover object-center transition-transform duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03]"
-              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 200px"
+              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               loading="lazy"
-              quality={60}
+              quality={75}
+              unoptimized
             />
             
             {/* Rank Badge - Top Left Corner */}
@@ -627,9 +629,10 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               alt={movie.name}
               fill
               className="object-cover object-center transition-transform duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03]"
-              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 200px"
+              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               loading="lazy"
-              quality={60}
+              quality={75}
+              unoptimized
             />
             {/* Language Badges - Bottom Left Corner */}
             <LanguageBadges language={movie.language} />
@@ -726,9 +729,10 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               alt={movie.name}
               fill
               className="object-cover object-center transition-transform duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03]"
-              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 200px"
+              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               loading="lazy"
-              quality={60}
+              quality={75}
+              unoptimized
             />
               {/* Language Badges - Bottom Left Corner */}
               <LanguageBadges language={movie.language} />
@@ -817,9 +821,10 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               alt={movie.name}
               fill
               className="object-cover object-center transition-transform duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03]"
-              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 200px"
+              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               loading="lazy"
-              quality={60}
+              quality={75}
+              unoptimized
             />
             {/* Language Badges - Bottom Left Corner */}
             <LanguageBadges language={movie.language} />
@@ -903,7 +908,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               className="object-cover object-center"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               loading="lazy"
-              quality={65}
+              quality={70}
+              unoptimized
             />
 
             {/* Language Badges - Bottom Left Corner */}
@@ -937,6 +943,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                   sizes="56px"
                   loading="lazy"
                   quality={60}
+                  unoptimized
                 />
               </div>
 
@@ -1028,9 +1035,10 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               alt={movie.name}
               fill
               className="object-cover object-center"
-              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 200px"
+              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               loading="lazy"
-              quality={60}
+              quality={75}
+              unoptimized
             />
 
             {/* Language Badges - Top Right Corner */}

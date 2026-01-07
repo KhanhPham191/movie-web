@@ -155,7 +155,8 @@ export function HeroSection({ movies }: HeroSectionProps) {
               priority={index === 0}
               loading={index === 0 ? undefined : "lazy"}
               sizes="100vw"
-              quality={index === 0 ? 75 : 60}
+              quality={index === 0 ? 85 : 70}
+              unoptimized
               style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
             />
           </div>

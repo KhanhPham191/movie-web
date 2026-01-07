@@ -25,9 +25,10 @@ export function RelatedPartLink({ part, movieName, movieSlug }: RelatedPartLinkP
         alt={part.name}
         fill
         className="object-cover transition-transform duration-300 group-hover:scale-110"
-        sizes="(max-width: 475px) 50vw, (max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 200px"
+        sizes="(max-width: 475px) 50vw, (max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 16vw"
         loading="lazy"
-        quality={60}
+        quality={75}
+        unoptimized
       />
       {/* Gradient overlay - luôn hiển thị một phần trên mobile */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300" />

@@ -98,9 +98,10 @@ export function CurrentlyWatchingCard({ item, index = 0 }: CurrentlyWatchingCard
             alt={item.movie_name}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-110"
-            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 200px"
+            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
             loading="lazy"
-            quality={60}
+            quality={75}
+            unoptimized
           />
 
           {/* Play button overlay khi hover */}
