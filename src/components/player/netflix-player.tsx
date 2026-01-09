@@ -13,7 +13,6 @@ import {
   SkipForward,
   SkipBack,
   Settings,
-  X,
   FastForward,
 } from "lucide-react";
 import { analytics } from "@/lib/analytics";
@@ -1882,116 +1881,50 @@ export function NetflixPlayer({
                   <Settings className={`text-white ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
                 </button>
                 {showSettings && (
-                  <>
-                    {isMobile ? (
-                      // Mobile: Full overlay panel - lớn hơn và có nút X
-                      <div 
-                        data-settings-menu
-                        className="fixed inset-0 bg-black/95 backdrop-blur-sm z-[110] pointer-events-auto flex flex-col items-center justify-center"
-                        onClick={(e) => e.stopPropagation()}
-                        onTouchStart={(e) => e.stopPropagation()}
-                      >
-                        <div className="w-full max-w-md px-6 py-6 relative max-h-[80vh] overflow-y-auto">
-                          {/* Nút X để đóng ở góc trên bên phải */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              e.preventDefault();
-                              setShowSettings(false);
-                              showSettingsRef.current = false;
-                            }}
-                            onTouchEnd={(e) => {
-                              e.stopPropagation();
-                              e.preventDefault();
-                              setShowSettings(false);
-                              showSettingsRef.current = false;
-                            }}
-                            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 transition-all"
-                            aria-label="Đóng"
-                            style={{ 
-                              WebkitTapHighlightColor: 'transparent',
-                              touchAction: 'manipulation'
-                            }}
-                          >
-                            <X className="w-5 h-5 text-white" />
-                          </button>
-                          
-                          <div className="text-white text-base font-semibold mb-4 text-center">Tốc độ phát</div>
-                          <div className="space-y-2">
-                            {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
-                              <button
-                                key={rate}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  e.preventDefault();
-                                  setPlaybackRate(rate);
-                                  setShowSettings(false);
-                                  showSettingsRef.current = false;
-                                }}
-                                onTouchStart={(e) => {
-                                  e.stopPropagation();
-                                }}
-                                onTouchEnd={(e) => {
-                                  e.stopPropagation();
-                                  e.preventDefault();
-                                  setPlaybackRate(rate);
-                                  setShowSettings(false);
-                                  showSettingsRef.current = false;
-                                }}
-                                className={`w-full text-left px-4 py-3 text-sm rounded-lg hover:bg-gradient-to-r hover:from-[#F6C453]/10 hover:to-[#D3A13A]/10 active:bg-gradient-to-r active:from-[#F6C453]/20 active:to-[#D3A13A]/20 transition-all ${
-                                  playbackRate === rate
-                                    ? "text-[#F6C453] font-semibold bg-gradient-to-r from-[#F6C453]/10 to-[#D3A13A]/10 border border-[#F6C453]/30"
-                                    : "text-white border border-white/10"
-                                }`}
-                                style={{ 
-                                  WebkitTapHighlightColor: 'transparent',
-                                  touchAction: 'manipulation',
-                                  userSelect: 'none',
-                                  WebkitUserSelect: 'none'
-                                }}
-                              >
-                                {rate}x
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      // Desktop: Small dropdown menu
-                      <div 
-                        data-settings-menu
-                        className="absolute bottom-full right-0 mb-2 min-w-[160px] w-auto bg-black/95 backdrop-blur-sm rounded-lg p-2 space-y-1 border border-white/10 shadow-2xl z-[110] pointer-events-auto"
-                        onClick={(e) => e.stopPropagation()}
-                        onTouchStart={(e) => {
-                          const target = e.target as HTMLElement;
-                          if (target.tagName !== 'BUTTON') {
-                            e.stopPropagation();
-                          }
+                  // Dropdown menu - dùng chung cho cả mobile và desktop
+                  <div 
+                    data-settings-menu
+                    className="absolute bottom-full right-0 mb-0.5 min-w-[160px] w-auto bg-black/95 backdrop-blur-sm rounded-lg p-2 space-y-1 border border-white/10 shadow-2xl z-[110] pointer-events-auto"
+                    onClick={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (target.tagName !== 'BUTTON') {
+                        e.stopPropagation();
+                      }
+                    }}
+                  >
+                    <div className="text-white text-xs px-3 py-2 border-b border-white/10 font-medium whitespace-nowrap pointer-events-none">Tốc độ phát</div>
+                    {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
+                      <button
+                        key={rate}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          setPlaybackRate(rate);
+                          setShowSettings(false);
+                          showSettingsRef.current = false;
+                        }}
+                        onTouchEnd={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          setPlaybackRate(rate);
+                          setShowSettings(false);
+                          showSettingsRef.current = false;
+                        }}
+                        className={`w-full text-left px-3 py-1.5 text-sm rounded hover:bg-gradient-to-r hover:from-[#F6C453]/10 hover:to-[#D3A13A]/10 active:bg-gradient-to-r active:from-[#F6C453]/20 active:to-[#D3A13A]/20 transition-all whitespace-nowrap ${
+                          playbackRate === rate
+                            ? "text-[#F6C453] font-medium bg-gradient-to-r from-[#F6C453]/10 to-[#D3A13A]/10"
+                            : "text-white"
+                        }`}
+                        style={{ 
+                          WebkitTapHighlightColor: 'transparent',
+                          touchAction: 'manipulation'
                         }}
                       >
-                        <div className="text-white text-xs px-3 py-2 border-b border-white/10 font-medium whitespace-nowrap pointer-events-none">Tốc độ phát</div>
-                        {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
-                          <button
-                            key={rate}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              e.preventDefault();
-                              setPlaybackRate(rate);
-                              setShowSettings(false);
-                              showSettingsRef.current = false;
-                            }}
-                            className={`w-full text-left px-3 py-1.5 text-sm rounded hover:bg-gradient-to-r hover:from-[#F6C453]/10 hover:to-[#D3A13A]/10 active:bg-gradient-to-r active:from-[#F6C453]/20 active:to-[#D3A13A]/20 transition-all whitespace-nowrap ${
-                              playbackRate === rate
-                                ? "text-[#F6C453] font-medium bg-gradient-to-r from-[#F6C453]/10 to-[#D3A13A]/10"
-                                : "text-white"
-                            }`}
-                          >
-                            {rate}x
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </>
+                        {rate}x
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
 
