@@ -73,6 +73,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   alternates: {
     canonical: "/",
+    languages: {
+      "vi": siteUrl,
+      "vi-VN": siteUrl,
+      "x-default": siteUrl,
+    },
   },
   openGraph: {
     title: "MovPey - Phim xịn mỗi ngày",

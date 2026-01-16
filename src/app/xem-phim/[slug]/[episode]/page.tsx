@@ -576,6 +576,11 @@ export async function generateMetadata({ params }: WatchPageProps) {
       },
       alternates: {
         canonical: watchUrl,
+        languages: {
+          "vi": watchUrl,
+          "vi-VN": watchUrl,
+          "x-default": watchUrl,
+        },
       },
       robots: {
         index: true,

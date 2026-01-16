@@ -271,6 +271,11 @@ export async function generateMetadata({ params }: CategoryPageProps) {
     ],
     alternates: {
       canonical: categoryUrl,
+      languages: {
+        "vi": categoryUrl,
+        "vi-VN": categoryUrl,
+        "x-default": categoryUrl,
+      },
     },
     openGraph: {
       title: `${categoryName} - Xem phim online Vietsub | MovPey`,

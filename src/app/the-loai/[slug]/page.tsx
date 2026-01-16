@@ -176,6 +176,11 @@ export async function generateMetadata({ params }: GenrePageProps) {
     ],
     alternates: {
       canonical: genreUrl,
+      languages: {
+        "vi": genreUrl,
+        "vi-VN": genreUrl,
+        "x-default": genreUrl,
+      },
     },
     openGraph: {
       title: `Phim ${genreName} - Xem phim ${genreName.toLowerCase()} Vietsub | MovPey`,

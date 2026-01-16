@@ -229,6 +229,11 @@ export async function generateMetadata({ params }: CountryPageProps) {
     ],
     alternates: {
       canonical: countryUrl,
+      languages: {
+        "vi": countryUrl,
+        "vi-VN": countryUrl,
+        "x-default": countryUrl,
+      },
     },
     openGraph: {
       title: `Phim ${countryName} - Xem phim ${countryName} Vietsub | MovPey`,

@@ -38,8 +38,9 @@ function getSiteUrl(): string {
 const siteUrl = getSiteUrl();
 
 // Limit số lượng phim trong sitemap để tránh timeout
-// Giảm xuống 500 để đảm bảo sitemap không quá lớn
-const MAX_MOVIES_IN_SITEMAP = 500;
+// Tăng lên 1000 để index nhiều phim hơn (Google hỗ trợ tối đa 50,000 URLs/sitemap)
+// Nhưng giữ ở 1000 để tránh timeout và đảm bảo performance
+const MAX_MOVIES_IN_SITEMAP = 1000;
 
 async function getMoviesForSitemap(): Promise<FilmItem[]> {
   try {

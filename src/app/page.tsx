@@ -57,6 +57,11 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: siteUrl,
+    languages: {
+      "vi": siteUrl,
+      "vi-VN": siteUrl,
+      "x-default": siteUrl,
+    },
   },
   openGraph: {
     title: "MovPey - Phim xịn mỗi ngày | Xem phim online HD Vietsub miễn phí",

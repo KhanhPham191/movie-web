@@ -21,7 +21,7 @@ import {
   VolumeX,
   Info,
 } from "lucide-react";
-import { getFilmDetail, getImageUrl, searchFilmsMerged } from "@/lib/api";
+import { getFilmDetail, getImageUrl, searchFilmsMerged, getFilmsByGenre } from "@/lib/api";
 import type { FilmItem } from "@/lib/api";
 import { MovieSection } from "@/components/movie-section";
 import { isValidTime } from "@/lib/utils";
@@ -106,6 +106,29 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
     } catch {
       // Không chặn trang nếu search lỗi
       seriesParts = [];
+    }
+    
+    // Lấy phim liên quan cùng thể loại (để tăng internal linking cho SEO)
+    let relatedMovies: FilmItem[] = [];
+    try {
+      if (categories.length > 0) {
+        // Lấy phim cùng thể loại đầu tiên, loại trừ phim hiện tại
+        const genreSlug = categories[0].slug;
+        const relatedResponse = await getFilmsByGenre(genreSlug, 1, {
+          limit: 12,
+          sort_field: "modified",
+          sort_type: "desc",
+        });
+        
+        if (relatedResponse.status === "success" && relatedResponse.items) {
+          relatedMovies = relatedResponse.items
+            .filter((item) => item.slug !== movie.slug)
+            .slice(0, 12);
+        }
+      }
+    } catch {
+      // Không chặn trang nếu fetch related movies lỗi
+      relatedMovies = [];
     }
     
     // Normalize category và country về dạng mảng
@@ -491,6 +514,50 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
               </div>
             )}
 
+            {/* Related Movies Section - Phim cùng thể loại (SEO Internal Linking) */}
+            {Array.isArray(relatedMovies) && relatedMovies.length > 0 && (
+              <div className="mx-3 sm:mx-4 md:mx-12">
+                <MovieSection
+                  title={`Phim cùng thể loại${categories[0] ? `: ${categories[0].name}` : ''}`}
+                  movies={relatedMovies}
+                  variant="default"
+                />
+              </div>
+            )}
+
+            {/* Content Section - Mô tả dài hơn cho SEO */}
+            {movie.description && (
+              <div className="mx-3 sm:mx-4 md:mx-12">
+                <div className="bg-[#0f1116] rounded-lg p-6 sm:p-8 border border-white/5">
+                  <h2 className="text-xl sm:text-2xl font-bold text-white mb-4">
+                    Nội dung phim {movie.name}
+                  </h2>
+                  <div 
+                    className="text-gray-300 leading-relaxed prose prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{ 
+                      __html: typeof movie.description === "string" 
+                        ? movie.description 
+                        : `<p>Xem phim ${movie.name}${releaseYear ? ` (${releaseYear})` : ''} online HD Vietsub, thuyết minh miễn phí trên MovPey. ${categories.length > 0 ? `Phim thuộc thể loại ${categories.map(c => c.name).join(', ')}.` : ''} ${countries.length > 0 ? `Sản xuất tại ${countries.map(c => c.name).join(', ')}.` : ''}</p>` 
+                    }}
+                  />
+                  {movie.casts && (
+                    <div className="mt-4 pt-4 border-t border-white/10">
+                      <p className="text-sm text-gray-400">
+                        <strong className="text-white">Diễn viên:</strong> {movie.casts}
+                      </p>
+                    </div>
+                  )}
+                  {movie.director && (
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-400">
+                        <strong className="text-white">Đạo diễn:</strong> {movie.director}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Comments Section */}
             <div className="mx-3 sm:mx-4 md:mx-12">
               <MovieComments movieSlug={movie.slug} movieName={movie.name} />
@@ -654,6 +721,11 @@ export async function generateMetadata({ params }: MoviePageProps) {
       },
       alternates: {
         canonical: movieUrl,
+        languages: {
+          "vi": movieUrl,
+          "vi-VN": movieUrl,
+          "x-default": movieUrl,
+        },
       },
     };
   } catch (error) {
