@@ -218,15 +218,22 @@ export function Header() {
         const items = await searchFilmsMerged(searchQuery.trim());
         
         // Map và tính điểm relevance
-        const mapped = items.map((m) => ({
-          name: m?.name ?? "",
-          slug: m?.slug ?? "",
-          thumb: getImageUrl(m?.poster_url || m?.thumb_url || ""),
-          current_episode: m?.current_episode ?? "",
-          quality: m?.quality ?? "",
-          time: m?.time ?? "",
-          score: calculateRelevanceScore(m?.name ?? "", searchQuery.trim()),
-        }));
+        const mapped = items.map((m) => {
+          const imageUrl = m?.poster_url || m?.thumb_url || "";
+          const thumb = imageUrl ? getImageUrl(imageUrl) : "";
+          // Nếu getImageUrl trả về logo.svg (fallback), coi như không có ảnh
+          const finalThumb = thumb && thumb !== "/logo.svg" ? thumb : "";
+          
+          return {
+            name: m?.name ?? "",
+            slug: m?.slug ?? "",
+            thumb: finalThumb,
+            current_episode: m?.current_episode ?? "",
+            quality: m?.quality ?? "",
+            time: m?.time ?? "",
+            score: calculateRelevanceScore(m?.name ?? "", searchQuery.trim()),
+          };
+        });
 
         // Sắp xếp theo điểm relevance giảm dần, sau đó lấy top 8
         const sorted = mapped
@@ -260,6 +267,20 @@ export function Header() {
       }, 100);
     }
   }, [isSearchOpen, isScrolled]);
+
+  // Clear search autocomplete khi chuyển trang
+  useEffect(() => {
+    setSearchQuery("");
+    setSuggestions([]);
+    setIsSuggestOpen(false);
+    setIsSearchOpen(false);
+    setIsMobileSearchOpen(false);
+    // Clear debounce timeout nếu có
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+  }, [pathname]);
 
   const shouldDisableTransform = isMobileHamburgerOpen || isMobileSearchOpen;
 
@@ -390,14 +411,23 @@ export function Header() {
                     >
                       {/* Thumbnail */}
                       <div className="relative w-12 h-16 sm:w-14 sm:h-20 rounded-md overflow-hidden bg-white/5 shrink-0">
-                        {s.thumb && (
+                        {s.thumb && s.thumb !== "/logo.svg" ? (
                           <Image
                             src={s.thumb}
                             alt={s.name || "Poster"}
                             fill
                             sizes="56px"
                             className="object-cover"
+                            unoptimized
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = "/logo.svg";
+                            }}
                           />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-white/5">
+                            <span className="text-xs text-white/40">No image</span>
+                          </div>
                         )}
                       </div>
 
@@ -500,14 +530,23 @@ export function Header() {
                       >
                         {/* Thumbnail */}
                         <div className="relative w-12 h-16 sm:w-14 sm:h-20 rounded-md overflow-hidden bg-white/5 shrink-0">
-                          {s.thumb && (
+                          {s.thumb && s.thumb !== "/logo.svg" ? (
                             <Image
                               src={s.thumb}
                               alt={s.name || "Poster"}
                               fill
                               sizes="56px"
                               className="object-cover"
+                              unoptimized
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = "/logo.svg";
+                              }}
                             />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-white/5">
+                              <span className="text-xs text-white/40">No image</span>
+                            </div>
                           )}
                         </div>
 
@@ -778,14 +817,23 @@ export function Header() {
                     }}
                   >
                     <div className="relative w-12 h-16 sm:w-14 sm:h-20 rounded-md overflow-hidden bg-white/5 shrink-0">
-                      {s.thumb && (
+                      {s.thumb && s.thumb !== "/logo.svg" ? (
                         <Image
                           src={s.thumb}
                           alt={s.name || "Poster"}
                           fill
                           sizes="56px"
                           className="object-cover"
+                          unoptimized
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = "/logo.svg";
+                          }}
                         />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-white/5">
+                          <span className="text-xs text-white/40">No image</span>
+                        </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">

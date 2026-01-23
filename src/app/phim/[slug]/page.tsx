@@ -24,6 +24,7 @@ import {
 import { getFilmDetail, getImageUrl, searchFilmsMerged, getFilmsByGenre } from "@/lib/api";
 import type { FilmItem } from "@/lib/api";
 import { MovieSection } from "@/components/movie-section";
+import { MovieSectionWithNav } from "@/components/movie-section-with-nav";
 import { isValidTime } from "@/lib/utils";
 import {
   generateMovieStructuredData,
@@ -108,6 +109,37 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
       seriesParts = [];
     }
     
+    // Normalize category và country về dạng mảng
+    const categories = Array.isArray(movie.category) 
+      ? movie.category 
+      : movie.category 
+        ? [movie.category] 
+        : [];
+    const countries = Array.isArray(movie.country) 
+      ? movie.country 
+      : movie.country 
+        ? [movie.country] 
+        : [];
+
+    // Lấy tên + slug thể loại đầu tiên (nếu có) để hiển thị title/SEO & link an toàn
+    const firstCategoryName = (() => {
+      const first = categories[0] as any;
+      if (!first) return "";
+      if (typeof first === "object" && first !== null) {
+        const name = String(first?.name || "").trim();
+        if (name) return name;
+        const id = String(first?.id || "").trim();
+        return id;
+      }
+      return String(first || "").trim();
+    })();
+
+    const firstCategorySlug = (() => {
+      const first = categories[0] as any;
+      if (!first || typeof first !== "object") return "";
+      return String(first?.slug || "").trim();
+    })();
+    
     // Lấy phim liên quan cùng thể loại (để tăng internal linking cho SEO)
     let relatedMovies: FilmItem[] = [];
     try {
@@ -130,18 +162,6 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
       // Không chặn trang nếu fetch related movies lỗi
       relatedMovies = [];
     }
-    
-    // Normalize category và country về dạng mảng
-    const categories = Array.isArray(movie.category) 
-      ? movie.category 
-      : movie.category 
-        ? [movie.category] 
-        : [];
-    const countries = Array.isArray(movie.country) 
-      ? movie.country 
-      : movie.country 
-        ? [movie.country] 
-        : [];
     
     // backdropUrl: dùng thumb_url (landscape/backdrop) cho hero section
     // posterUrl: dùng thumb_url cho episode selector
@@ -517,10 +537,16 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
             {/* Related Movies Section - Phim cùng thể loại (SEO Internal Linking) */}
             {Array.isArray(relatedMovies) && relatedMovies.length > 0 && (
               <div className="mx-3 sm:mx-4 md:mx-12">
-                <MovieSection
-                  title={`Phim cùng thể loại${categories[0] ? `: ${categories[0].name}` : ''}`}
+                <MovieSectionWithNav
+                  title={
+                    firstCategoryName
+                      ? `Phim cùng thể loại: ${firstCategoryName}`
+                      : "Phim cùng thể loại"
+                  }
                   movies={relatedMovies}
-                  variant="default"
+                  href={firstCategorySlug ? `/the-loai/${firstCategorySlug}` : undefined}
+                  variant="series"
+                  disableTilt={true}
                 />
               </div>
             )}
