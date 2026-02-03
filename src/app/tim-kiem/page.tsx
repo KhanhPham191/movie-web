@@ -62,6 +62,7 @@ export default function SearchPage() {
   const [movies, setMovies] = useState<FilmItem[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
     if (!query) {
@@ -191,7 +192,7 @@ export default function SearchPage() {
     return () => {
       cancelled = true;
     };
-  }, [query]);
+  }, [query, retryToken]);
 
   return (
     <main className="min-h-screen">
@@ -243,7 +244,7 @@ export default function SearchPage() {
               </p>
 
               <button
-                onClick={() => window.location.reload()}
+                onClick={() => setRetryToken((prev) => prev + 1)}
                 className="px-6 py-3 rounded-lg bg-[#F6C453] hover:bg-[#D3A13A] text-black font-semibold transition-all duration-300 flex items-center gap-2"
               >
                 Thử lại

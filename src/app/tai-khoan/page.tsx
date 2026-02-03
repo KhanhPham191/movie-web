@@ -58,7 +58,7 @@ export default function AccountPage() {
         setMessage({ type: "success", text: "Cập nhật hồ sơ thành công!" });
         // Refresh để cập nhật user data
         setTimeout(() => {
-          window.location.reload();
+          router.refresh();
         }, 1500);
       }
     } catch (error: any) {
