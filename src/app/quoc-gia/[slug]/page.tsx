@@ -11,6 +11,7 @@ import {
   CATEGORIES,
   type FilmItem,
   COUNTRIES,
+  getAvailableGenres,
 } from "@/lib/api";
 
 // ISR: Revalidate every 5 minutes for country pages
@@ -181,10 +182,12 @@ export default async function CountryPage({
   const country = COUNTRIES.find((c) => c.slug === slug);
   const countryName = country?.name || slug;
 
+  const availableGenres = await getAvailableGenres();
+
   return (
     <main className="min-h-screen">
       <div className="pt-20 md:pt-24">
-        <GenreSection />
+        <GenreSection genres={availableGenres} />
       </div>
 
       <div className="py-8">

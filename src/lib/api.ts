@@ -919,6 +919,38 @@ export const COUNTRIES = [
   { name: "Ấn Độ", slug: "an-do" },
 ] as const;
 
+// Fetch available genres dynamically from PhimAPI
+export async function getAvailableGenres(): Promise<{ name: string; slug: string }[]> {
+  try {
+    const isBrowser = typeof window !== "undefined";
+    const url = isBrowser
+      ? "/api/phimapi?endpoint=" + encodeURIComponent("/the-loai")
+      : "https://phimapi.com/the-loai";
+
+    const res = await fetch(url, {
+      ...(isBrowser ? {} : { next: { revalidate: 86400 } }), // Cache 24h on server
+      headers: isBrowser
+        ? { Accept: "application/json" }
+        : { Accept: "application/json", "User-Agent": "Mozilla/5.0" },
+    });
+
+    if (!res.ok) {
+      return [...GENRES];
+    }
+
+    const data: Array<{ _id: string; name: string; slug: string }> = await res.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      return [...GENRES];
+    }
+
+    return data.map((g) => ({ name: g.name, slug: g.slug }));
+  } catch {
+    // Fallback to hardcoded genres if API fails
+    return [...GENRES];
+  }
+}
+
 // PhimAPI Image Converter API - chuyển đổi ảnh sang WebP format
 const PHIMAPI_IMAGE_CONVERTER = "https://phimapi.com/image.php";
 

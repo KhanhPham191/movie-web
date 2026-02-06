@@ -7,7 +7,7 @@ import { MovieCard } from "@/components/movie-card";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { getFilmsByCategory, getNewlyUpdatedFilms, getDailyUpdatedFilms } from "@/lib/api";
+import { getFilmsByCategory, getNewlyUpdatedFilms, getDailyUpdatedFilms, getAvailableGenres } from "@/lib/api";
 
 // ISR: Revalidate every 30 seconds for real-time updates
 export const revalidate = 30;
@@ -225,7 +225,7 @@ export default async function CategoryPage({
         <div className="relative bg-[#191b24] border-b border-[#F6C453]/5">
           <div className="absolute inset-0 bg-gradient-to-r from-[#F6C453]/3 via-transparent to-[#D3A13A]/3" />
           <div className="relative z-10">
-            <GenreSection />
+            <GenreSection genres={await getAvailableGenres()} />
           </div>
         </div>
 

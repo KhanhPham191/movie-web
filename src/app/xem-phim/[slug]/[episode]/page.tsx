@@ -473,13 +473,6 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
           {/* Breadcrumb / meta row */}
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm text-white/60 animate-fade-in">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center rounded-full bg-white/5 px-3 py-1 glass">
-                <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-[#F6C453] animate-pulse" />
-                <span className="uppercase tracking-[0.16em] text-[10px] sm:text-[11px] text-white/80">
-                  Đang xem
-                </span>
-              </span>
-              <span className="hidden xs:inline text-white/40">•</span>
               <Link
                 href="/"
                 className="hidden xs:inline-flex items-center gap-1 text-white/60 hover:text-white transition-colors"

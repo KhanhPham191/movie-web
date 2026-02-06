@@ -70,13 +70,13 @@
 
 /* Smooth page transition */
 .page-transition {
-  animation: page-fade-slide 320ms ease both;
+  animation: page-fade-slide 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes page-fade-slide {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -89,13 +89,12 @@ a,
 button,
 [role="button"] {
   transition:
-    color 200ms ease,
-    background-color 220ms ease,
-    border-color 220ms ease,
-    box-shadow 220ms ease,
-    transform 220ms ease,
-    opacity 200ms ease,
-    filter 200ms ease;
+    color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 250ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 250ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 250ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -269,76 +268,76 @@ button,
 
 /* Animation Classes */
 .animate-fade-in {
-  animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slide-up {
-  animation: slideUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slide-up-smooth {
-  animation: slideUpSmooth 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: slideUpSmooth 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-scale-in {
-  animation: scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slide-in-right {
-  animation: slideInRight 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slide-in-left {
-  animation: slideInLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-zoom-in {
-  animation: zoomIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: zoomIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-fade-in-scale {
-  animation: fadeInScale 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: fadeInScale 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slide-in-from-right {
-  animation: slideInFromRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: slideInFromRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-fade-in-backdrop {
-  animation: fadeInBackdrop 0.3s ease-out forwards;
+  animation: fadeInBackdrop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Stagger Animation Utilities */
 .animate-stagger-1 {
-  animation: fadeInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   animation-delay: 0.1s;
   opacity: 0;
 }
 
 .animate-stagger-2 {
-  animation: fadeInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   animation-delay: 0.2s;
   opacity: 0;
 }
 
 .animate-stagger-3 {
-  animation: fadeInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   animation-delay: 0.3s;
   opacity: 0;
 }
 
 .animate-stagger-4 {
-  animation: fadeInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   animation-delay: 0.4s;
   opacity: 0;
 }
 
 .animate-stagger-5 {
-  animation: fadeInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   animation-delay: 0.5s;
   opacity: 0;
 }
@@ -357,24 +356,21 @@ button,
 
 .animate-on-scroll {
   opacity: 0;
-  animation: fadeInOnScroll 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: fadeInOnScroll 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Premium Hover Effects - Netflix Style */
 .premium-hover {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform, filter;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (min-width: 640px) {
-  .premium-hover {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  .premium-hover:hover {
+    will-change: transform, filter;
+    transform: translateY(-4px) scale(1.02);
+    filter: brightness(1.08);
   }
-}
-
-.premium-hover:hover {
-  transform: translateY(-4px) scale(1.02);
-  filter: brightness(1.08);
 }
 
 @media (max-width: 639px) {
@@ -384,17 +380,10 @@ button,
   }
 }
 
-/* Smooth section transitions */
+/* Smooth section transitions - only for elements that need it */
 section {
-  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@media (min-width: 640px) {
-  section {
-    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  }
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Smooth Card Reveal - Netflix Style */
@@ -410,7 +399,7 @@ section {
 }
 
 .card-reveal {
-  animation: cardReveal 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: cardReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: opacity, transform;
 }
 
@@ -571,35 +560,49 @@ img, video, iframe {
 
 /* Premium Card hover effects - Netflix Style */
 .card-hover {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform, box-shadow;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .card-hover:hover {
+  will-change: transform, box-shadow;
   transform: scale(1.02) translateY(-2px);
   box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8);
 }
 
-/* Smooth transitions for all interactive elements */
-* {
+/* Smooth transitions for interactive elements only */
+a, button, [role="button"], input, select, textarea {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Reduce animations on mobile for better performance */
 @media (max-width: 639px) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.2s !important;
+  /* Shorten heavy animations on mobile, but keep them visible */
+  .animate-slide-up,
+  .animate-slide-up-smooth,
+  .animate-fade-in-up,
+  .animate-fade-in,
+  .card-reveal {
+    animation-duration: 0.35s !important;
     animation-delay: 0s !important;
-    transition-duration: 0.2s !important;
-    transition-delay: 0s !important;
   }
   
   /* Disable complex transforms on mobile */
   .premium-hover:hover,
   .card-hover:hover {
     transform: none !important;
+  }
+}
+
+/* Respect prefers-reduced-motion globally */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -799,14 +802,10 @@ img, video, iframe {
   }
 }
 
-/* Fix card border-radius jagged edges on all devices */
+/* Fix card border-radius jagged edges - only use isolation, avoid GPU promotion for every element */
 .rounded-md,
 .rounded-lg,
 .rounded-xl {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
   isolation: isolate;
 }
 

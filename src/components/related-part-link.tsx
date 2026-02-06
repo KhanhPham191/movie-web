@@ -21,7 +21,7 @@ export function RelatedPartLink({ part, movieName, movieSlug }: RelatedPartLinkP
       className="group relative aspect-[2/3] rounded-md sm:rounded-lg md:rounded-xl overflow-hidden bg-[#151515] border border-white/10 hover:border-[#F6C453]/60 transition-all duration-300 hover:scale-[1.02] sm:hover:scale-105 hover:shadow-[0_12px_40px_rgba(246,196,83,0.4)]"
     >
       <Image
-        src={getImageUrl(part.thumb_url || part.poster_url)}
+        src={getImageUrl(part.poster_url)}
         alt={part.name}
         fill
         className="object-cover transition-transform duration-300 group-hover:scale-110"

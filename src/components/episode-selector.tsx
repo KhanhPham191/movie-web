@@ -176,14 +176,14 @@ export function EpisodeSelector({
               <Link
                 key={server.server_name}
                 href={href}
-                className="block w-[280px] sm:w-[360px] md:w-[420px] flex-shrink-0"
+                className="block w-[280px] sm:w-[360px] md:w-[480px] lg:w-[540px] flex-shrink-0"
                 onClick={() => {
                   if (movieName) {
                     analytics.trackFilmDetailPlayNow(movieName, movieSlug, firstEpisode.slug);
                   }
                 }}
               >
-                <div className="relative w-full h-[157px] sm:h-[144px] md:h-[168px] rounded-xl overflow-hidden border border-[#F6C453]/50 shadow-lg hover:shadow-[#F6C453]/30 transition-all hover:scale-[1.01] group cursor-pointer">
+                <div className="relative w-full h-[157px] sm:h-[144px] md:h-[192px] lg:h-[216px] rounded-xl overflow-hidden border border-[#F6C453]/50 shadow-lg hover:shadow-[#F6C453]/30 transition-all hover:scale-[1.01] group cursor-pointer">
                   {/* Background Image */}
                   <div className="absolute inset-0">
                     <Image
@@ -191,7 +191,7 @@ export function EpisodeSelector({
                       alt={movieName}
                       fill
                       className="object-cover"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 600px"
+                      sizes="(max-width: 640px) 280px, (max-width: 768px) 360px, (max-width: 1024px) 480px, 540px"
                       loading="lazy"
                       quality={75}
                       unoptimized
@@ -201,7 +201,7 @@ export function EpisodeSelector({
                   </div>
 
                   {/* Content bên trái - kích thước cố định theo breakpoint */}
-                  <div className="relative z-10 h-full flex flex-col justify-center p-3 sm:p-4 md:p-5 w-[180px] sm:w-[200px] md:w-[220px]">
+                    <div className="relative z-10 h-full flex flex-col justify-center p-3 sm:p-4 md:p-5 w-[180px] sm:w-[200px] md:w-[260px] lg:w-[280px]">
                     {/* Label */}
                     <div className="flex items-center gap-1.5 mb-2 sm:mb-3">
                       <div className={`w-2 h-2 rounded-full ${iconColor} shadow-sm`} />
@@ -241,14 +241,14 @@ export function EpisodeSelector({
     return (
       <Link 
         href={href} 
-        className="block w-[280px] sm:w-[360px] md:w-[420px]"
+        className="block w-[280px] sm:w-[360px] md:w-[480px] lg:w-[540px]"
         onClick={() => {
           if (movieName) {
             analytics.trackFilmDetailPlayNow(movieName, movieSlug, firstEpisode.slug);
           }
         }}
       >
-        <div className="relative w-full h-[157px] sm:h-[144px] md:h-[168px] rounded-xl overflow-hidden border border-[#F6C453]/50 shadow-lg hover:shadow-[#F6C453]/30 transition-all hover:scale-[1.01] group cursor-pointer">
+        <div className="relative w-full h-[157px] sm:h-[144px] md:h-[192px] lg:h-[216px] rounded-xl overflow-hidden border border-[#F6C453]/50 shadow-lg hover:shadow-[#F6C453]/30 transition-all hover:scale-[1.01] group cursor-pointer">
           {/* Background Image */}
           <div className="absolute inset-0">
             <Image
@@ -256,7 +256,7 @@ export function EpisodeSelector({
               alt={movieName}
               fill
               className="object-cover"
-              sizes="(max-width: 640px) 280px, (max-width: 768px) 360px, 420px"
+              sizes="(max-width: 640px) 280px, (max-width: 768px) 360px, (max-width: 1024px) 480px, 540px"
               unoptimized
             />
             {/* Gradient overlay theo màu indication */}
@@ -264,7 +264,7 @@ export function EpisodeSelector({
           </div>
 
           {/* Content bên trái - kích thước cố định theo breakpoint */}
-          <div className="relative z-10 h-full flex flex-col justify-center p-3 sm:p-4 md:p-5 w-[180px] sm:w-[200px] md:w-[220px]">
+          <div className="relative z-10 h-full flex flex-col justify-center p-3 sm:p-4 md:p-5 w-[180px] sm:w-[200px] md:w-[260px] lg:w-[280px]">
             {/* Label */}
             <div className="flex items-center gap-1.5 mb-2 sm:mb-3">
               <div className={`w-2 h-2 rounded-full ${iconColor} shadow-sm`} />
