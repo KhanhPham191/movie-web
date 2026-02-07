@@ -451,7 +451,6 @@ function MovieCardWithPopup({
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 0px, 480px"
-                unoptimized
               />
             </div>
           )}
@@ -577,7 +576,6 @@ function MovieCardWithPopup({
               fill
               className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-[1.03]"
               sizes="(max-width: 640px) 280px, (max-width: 768px) 320px, 360px"
-              unoptimized
             />
             {/* Language Badges - Bottom Left Corner */}
             <LanguageBadges language={movie.language} />
@@ -615,7 +613,6 @@ function MovieCardWithPopup({
                   fill
                   className="object-cover"
                   sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, 96px"
-                  unoptimized
                 />
               </div>
             )}

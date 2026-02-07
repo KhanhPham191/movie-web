@@ -14,14 +14,16 @@ interface WatchFilmEpisodeNavProps {
 }
 
 export function WatchFilmEpisodeNav({ movieName, movieSlug, currentEpisodeSlug, prevEpisode, nextEpisode }: WatchFilmEpisodeNavProps) {
+  if (!prevEpisode && !nextEpisode) return null;
+
   return (
-    <div className="mt-2 flex items-center justify-between gap-2 sm:gap-4">
+    <div className="flex items-center gap-2">
       {prevEpisode && (
         <Button
           asChild
           variant="outline"
-          size="lg"
-          className="relative group/prev min-w-[130px] sm:min-w-[150px] bg-[#191b24] text-white border-white/15 hover:bg-white/5 hover:border-[#F6C453] text-xs sm:text-sm transition-all duration-300"
+          size="sm"
+          className="group/prev bg-white/[0.04] text-white/80 border-white/[0.08] hover:bg-white/[0.08] hover:border-[#F6C453]/40 hover:text-white text-xs transition-all duration-200 rounded-lg h-8 sm:h-9 px-3 sm:px-4"
         >
           <Link 
             href={`/xem-phim/${movieSlug}/${prevEpisode.slug}`}
@@ -29,16 +31,16 @@ export function WatchFilmEpisodeNav({ movieName, movieSlug, currentEpisodeSlug, 
               analytics.trackWatchFilmEpisodeNav(movieName, movieSlug, currentEpisodeSlug, prevEpisode.slug, 'prev');
             }}
           >
-            <ChevronLeft className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 mr-1" />
-            <span className="relative z-10 truncate">Tập trước</span>
+            <ChevronLeft className="w-3.5 h-3.5 mr-0.5 transition-transform group-hover/prev:-translate-x-0.5" />
+            <span className="truncate">Tập trước</span>
           </Link>
         </Button>
       )}
       {nextEpisode && (
         <Button
           asChild
-          size="lg"
-          className="relative group/next ml-auto min-w-[130px] sm:min-w-[150px] bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white font-semibold text-xs sm:text-sm shadow-[0_8px_25px_rgba(246,196,83,0.4)] hover:shadow-[0_12px_35px_rgba(246,196,83,0.5)] transition-all duration-300"
+          size="sm"
+          className="group/next bg-[#F6C453] hover:bg-[#e5b742] text-black font-semibold text-xs shadow-[0_4px_16px_rgba(246,196,83,0.25)] hover:shadow-[0_6px_20px_rgba(246,196,83,0.35)] transition-all duration-200 rounded-lg h-8 sm:h-9 px-3 sm:px-4"
         >
           <Link 
             href={`/xem-phim/${movieSlug}/${nextEpisode.slug}`}
@@ -46,10 +48,8 @@ export function WatchFilmEpisodeNav({ movieName, movieSlug, currentEpisodeSlug, 
               analytics.trackWatchFilmEpisodeNav(movieName, movieSlug, currentEpisodeSlug, nextEpisode.slug, 'next');
             }}
           >
-            <span className="relative z-10 truncate">
-              Tập tiếp theo
-            </span>
-            <ChevronRight className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 ml-1" />
+            <span className="truncate">Tập tiếp</span>
+            <ChevronRight className="w-3.5 h-3.5 ml-0.5 transition-transform group-hover/next:translate-x-0.5" />
           </Link>
         </Button>
       )}

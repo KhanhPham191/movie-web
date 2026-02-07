@@ -1,17 +1,12 @@
 import { Suspense } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Footer } from "@/components/footer";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, ChevronRight, Home, Info, Play } from "lucide-react";
+import { Home } from "lucide-react";
 import { getFilmDetail, getImageUrl, searchFilmsMerged, type FilmItem } from "@/lib/api";
 import { isValidTime } from "@/lib/utils";
 import { generateVideoStructuredData, generateBreadcrumbStructuredData } from "@/lib/structured-data";
-import { IframePlayer } from "@/components/player/iframe-player";
-import { M3u8Player } from "@/components/player/m3u8-player";
 import { NetflixPlayer } from "@/components/player/netflix-player";
 import { EpisodeSelectorWatch } from "@/components/episode-selector-watch";
 import { MovieInfoPanel } from "@/components/movie-info-panel";
@@ -297,7 +292,7 @@ async function VideoPlayer({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }}
         />
-        <div className="space-y-10">
+        <div className="space-y-6 sm:space-y-8">
           {/* Watch Film Tracker - Track page view */}
           <WatchFilmTracker
             movieName={movie.name}
@@ -314,24 +309,12 @@ async function VideoPlayer({
             />
           </div>
 
-          {/* Khối player + meta đơn giản, bỏ nền blur phía sau */}
-          <div className="space-y-4 sm:space-y-6 max-w-full text-white">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-white/70">
-            {movie.quality && (
-              <Badge className="bg-[#F6C453] text-black font-semibold">
-                {movie.quality}
-              </Badge>
-            )}
-            {movie.current_episode && (
-              <span className="text-[#F6C453]">{movie.current_episode}</span>
-            )}
-            {isValidTime(movie.time) && <span>{movie.time}</span>}
-            {countries[0] && <span>{formatLabel(countries[0])}</span>}
-          </div>
+          {/* Player Section - Cinema Layout */}
+          <div className="space-y-0 max-w-full text-white">
 
-          {/* Video Player - Netflix Style */}
-          <div className="relative mx-auto w-full max-w-[600px] sm:max-w-[800px] rounded-lg sm:rounded-xl overflow-hidden shadow-2xl bg-black border border-white/10">
-            {/* Aspect ratio: 16:9 cho cả mobile và desktop */}
+          {/* Video Player - Full Width Cinema */}
+          <div className="relative w-full rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.5),0_24px_80px_rgba(0,0,0,0.6)] bg-black ring-1 ring-white/10 before:absolute before:inset-0 before:rounded-xl sm:before:rounded-2xl before:ring-1 before:ring-inset before:ring-white/[0.06] before:pointer-events-none before:z-10">
+            {/* Aspect ratio: 16:9 */}
             <div className="relative aspect-video bg-black w-full">
               {currentEpisode.m3u8 ? (
                 <NetflixPlayer
@@ -345,32 +328,59 @@ async function VideoPlayer({
                   episodeSlug={currentEpisode.slug}
                 />
               ) : (
-                <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black text-white p-8">
-                  <div className="text-center space-y-4">
-                    <div className="w-16 h-16 mx-auto border-4 border-white/20 border-t-white rounded-full animate-spin" />
-                    <p className="text-sm sm:text-base text-white/70">Đang tải video...</p>
-                    <p className="text-xs text-white/50">Vui lòng đợi trong giây lát</p>
+                <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-black via-gray-900/95 to-black text-white p-8">
+                  <div className="text-center space-y-5">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto border-[3px] border-white/10 border-t-[#F6C453] rounded-full animate-spin" />
+                    <p className="text-xs sm:text-sm text-white/50 font-medium tracking-wide">Đang tải video...</p>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Episode Navigation */}
-          <WatchFilmEpisodeNav
-            movieName={movie.name}
-            movieSlug={movie.slug}
-            currentEpisodeSlug={currentEpisode.slug}
-            prevEpisode={prevEpisode ? { slug: prevEpisode.slug, name: prevEpisode.name } : null}
-            nextEpisode={nextEpisode ? { slug: nextEpisode.slug, name: nextEpisode.name } : null}
-          />
+          {/* Below Player Bar - Meta + Nav + Actions in one integrated strip */}
+          <div className="mt-4 sm:mt-5 space-y-3 sm:space-y-4">
+            {/* Title & Meta Row */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <h1 className="text-base sm:text-lg md:text-xl font-bold text-white truncate leading-tight">{movie.name}</h1>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {movie.quality && (
+                    <span className="px-2 py-0.5 bg-[#F6C453]/12 text-[#F6C453] text-[10px] sm:text-xs font-semibold rounded-md border border-[#F6C453]/15">
+                      {movie.quality}
+                    </span>
+                  )}
+                  {movie.current_episode && (
+                    <span className="text-[10px] sm:text-xs text-white/45 font-medium">{movie.current_episode}</span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-[10px] sm:text-xs text-white/40 font-medium">
+                {isValidTime(movie.time) && <span>{movie.time}</span>}
+                {isValidTime(movie.time) && countries[0] && <span className="text-white/15">•</span>}
+                {countries[0] && <span>{formatLabel(countries[0])}</span>}
+              </div>
+            </div>
 
-          {/* Action Buttons */}
-          <WatchFilmButtons
-            movieName={movie.name}
-            movieSlug={movie.slug}
-            episodeSlug={currentEpisode.slug}
-          />
+            {/* Episode Nav + Actions Row */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-4">
+              {/* Episode Navigation */}
+              <WatchFilmEpisodeNav
+                movieName={movie.name}
+                movieSlug={movie.slug}
+                currentEpisodeSlug={currentEpisode.slug}
+                prevEpisode={prevEpisode ? { slug: prevEpisode.slug, name: prevEpisode.name } : null}
+                nextEpisode={nextEpisode ? { slug: nextEpisode.slug, name: nextEpisode.name } : null}
+              />
+
+              {/* Action Buttons */}
+              <WatchFilmButtons
+                movieName={movie.name}
+                movieSlug={movie.slug}
+                episodeSlug={currentEpisode.slug}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Các bản phim - Layout riêng ở dưới player */}
@@ -401,18 +411,16 @@ async function VideoPlayer({
 
         {/* Premium Related Parts Section */}
         {relatedParts.length > 0 && (
-          <div className="space-y-4 sm:space-y-5 md:space-y-6 animate-slide-up">
+          <div className="space-y-3 sm:space-y-4 animate-slide-up">
             {/* Premium Header */}
-            <div className="space-y-2 sm:space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-1.5 h-8 sm:h-10 bg-gradient-to-b from-[#F6C453] to-[#D3A13A] rounded-full" />
-                <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
-                  <span className="text-gradient-premium">Các phần khác</span>
-                </h2>
-                <span className="px-3 py-1 bg-[#F6C453]/10 border border-[#F6C453]/30 rounded-full text-[10px] sm:text-xs text-[#F6C453] font-semibold">
-                  {relatedParts.length} {relatedParts.length === 1 ? "phần" : "phần"}
-                </span>
-              </div>
+            <div className="flex items-center gap-2.5">
+              <div className="w-1 h-6 sm:h-7 bg-gradient-to-b from-[#F6C453] to-[#D3A13A] rounded-full" />
+              <h2 className="text-base sm:text-lg md:text-xl font-bold text-white tracking-tight">
+                Các phần khác
+              </h2>
+              <span className="px-2 py-0.5 bg-[#F6C453]/10 border border-[#F6C453]/20 rounded-full text-[10px] text-[#F6C453] font-semibold">
+                {relatedParts.length}
+              </span>
             </div>
             
             {/* Grid responsive cho mobile, tablet và desktop */}
@@ -441,15 +449,20 @@ async function VideoPlayer({
 }
 function VideoPlayerSkeleton() {
   return (
-    <div className="space-y-6">
-      <Skeleton className="aspect-video rounded-lg" />
-      <div className="flex justify-between">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-8 w-32" />
+    <div className="space-y-5">
+      <div className="relative w-full rounded-xl sm:rounded-2xl overflow-hidden bg-white/[0.03] ring-1 ring-white/[0.06]">
+        <Skeleton className="aspect-video w-full rounded-none" />
       </div>
-      <div className="flex justify-between">
-        <Skeleton className="h-10 w-24" />
-        <Skeleton className="h-10 w-24" />
+      <div className="flex items-center justify-between gap-4 mt-4">
+        <div className="flex items-center gap-2.5">
+          <Skeleton className="h-6 sm:h-7 w-40 sm:w-52 rounded-md" />
+          <Skeleton className="h-5 w-12 rounded-md" />
+        </div>
+        <Skeleton className="h-5 w-24 rounded-md" />
+      </div>
+      <div className="flex justify-between items-center">
+        <Skeleton className="h-9 w-28 rounded-lg" />
+        <Skeleton className="h-9 w-28 rounded-lg" />
       </div>
     </div>
   );
@@ -460,27 +473,25 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
   const { server } = await searchParams;
 
   return (
-    <main className="min-h-screen bg-[#191b24]">
+    <main className="min-h-screen bg-[#0c0d14]">
       {/* Cinematic background */}
-      <div className="relative pt-20 md:pt-24 pb-16 overflow-hidden">
+      <div className="relative pt-16 sm:pt-20 md:pt-24 pb-12 overflow-hidden">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-40 -top-40 h-72 w-72 rounded-full bg-[#F6C453]/15 blur-3xl animate-fade-in" />
-          <div className="absolute right-0 top-1/4 h-80 w-80 rounded-full bg-[#D3A13A]/10 blur-3xl animate-fade-in" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black via-black/90 to-[#191b24]" />
+          <div className="absolute -left-60 -top-60 h-96 w-96 rounded-full bg-[#F6C453]/8 blur-[100px] animate-fade-in" />
+          <div className="absolute right-[-10%] top-[15%] h-80 w-80 rounded-full bg-[#D3A13A]/6 blur-[80px] animate-fade-in" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/95 via-[#0c0d14]/95 to-[#0c0d14]" />
         </div>
 
-        <div className="relative z-10 container mx-auto px-3 sm:px-4 lg:px-6 max-w-[1600px] space-y-10 lg:space-y-14">
-          {/* Breadcrumb / meta row */}
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm text-white/60 animate-fade-in">
-            <div className="flex items-center gap-2">
-              <Link
-                href="/"
-                className="hidden xs:inline-flex items-center gap-1 text-white/60 hover:text-white transition-colors"
-              >
-                <Home className="h-3.5 w-3.5" />
-                Trang chủ
-              </Link>
-            </div>
+        <div className="relative z-10 container mx-auto px-3 sm:px-4 lg:px-6 max-w-[1400px] space-y-4 sm:space-y-6">
+          {/* Breadcrumb - minimal */}
+          <div className="flex items-center gap-2 text-xs text-white/40 animate-fade-in">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1 text-white/40 hover:text-white/70 transition-colors"
+            >
+              <Home className="h-3 w-3" />
+              <span className="hidden sm:inline">Trang chủ</span>
+            </Link>
           </div>
 
           {/* Main content area */}
@@ -490,8 +501,8 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
             </div>
           </Suspense>
 
-          {/* Floating bottom gradient to merge with footer */}
-          <div className="pointer-events-none h-32 w-full bg-gradient-to-b from-transparent via-[#191b24] to-[#191b24]" />
+          {/* Bottom gradient fade */}
+          <div className="pointer-events-none h-20 w-full bg-gradient-to-b from-transparent to-[#0c0d14]" />
         </div>
       </div>
 

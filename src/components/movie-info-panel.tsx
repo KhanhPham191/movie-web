@@ -70,13 +70,13 @@ export function MovieInfoPanel({
   const episodeInfo = parseEpisode(movie.current_episode);
 
   return (
-    <div className="card-surface p-2.5 sm:p-3">
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-3 sm:gap-4 items-start">
-        {/* Cột trái: Thông tin phim - Cố định để không bị ảnh hưởng */}
-        <div className="space-y-2 min-w-0">
-          <div className="flex gap-2 sm:gap-3">
-            {/* Poster - Smaller */}
-            <div className="relative aspect-[2/3] w-20 sm:w-24 flex-shrink-0 rounded-lg overflow-hidden bg-[#0a0a0a]">
+    <div className="rounded-xl bg-white/[0.03] ring-1 ring-white/[0.06] p-3 sm:p-4">
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-3 sm:gap-5 items-start">
+        {/* Cột trái: Thông tin phim */}
+        <div className="space-y-2.5 min-w-0">
+          <div className="flex gap-2.5 sm:gap-3">
+            {/* Poster */}
+            <div className="relative aspect-[2/3] w-20 sm:w-24 flex-shrink-0 rounded-lg overflow-hidden bg-black/40 ring-1 ring-white/[0.06]">
               <Image
                 src={posterUrl}
                 alt={movie.name}
@@ -86,22 +86,22 @@ export function MovieInfoPanel({
               />
             </div>
 
-            {/* Content - Cố định width */}
+            {/* Content */}
             <div className="flex-1 space-y-1.5 min-w-0 max-w-full">
-              {/* Titles - Tăng kích thước text */}
+              {/* Titles */}
               <div className="space-y-0.5 min-h-[32px] sm:min-h-[36px]">
-                <h1 className="text-base sm:text-lg font-bold text-white line-clamp-1">
+                <h1 className="text-sm sm:text-base font-bold text-white line-clamp-1">
                   {movie.name}
                 </h1>
                 {movie.original_name && movie.original_name !== movie.name && (
-                  <p className="text-xs sm:text-sm text-white/70 line-clamp-1">
+                  <p className="text-[11px] sm:text-xs text-white/50 line-clamp-1">
                     {movie.original_name}
                   </p>
                 )}
               </div>
 
-              {/* Info Badges - Tăng kích thước text */}
-              <div className="flex flex-wrap gap-1.5 min-h-[20px]">
+              {/* Info Badges */}
+              <div className="flex flex-wrap gap-1 min-h-[20px]">
                 {(() => {
                   const imdbNumber = Number(movie.imdb);
                   const hasValidImdb =
@@ -111,7 +111,7 @@ export function MovieInfoPanel({
                     imdbNumber > 0;
 
                   return hasValidImdb ? (
-                    <Badge className="bg-yellow-500 text-black font-semibold text-[10px] sm:text-xs px-2 py-1">
+                    <Badge className="bg-yellow-500/90 text-black font-semibold text-[10px] px-1.5 py-0.5">
                       IMDb {movie.imdb}
                     </Badge>
                   ) : null;
@@ -125,32 +125,29 @@ export function MovieInfoPanel({
                     tmdbNumber > 0;
 
                   return hasValidTmdb ? (
-                    <Badge className="bg-blue-500 text-white font-semibold text-[10px] sm:text-xs px-2 py-1">
+                    <Badge className="bg-blue-500/90 text-white font-semibold text-[10px] px-1.5 py-0.5">
                       TMDB {movie.tmdb}
                     </Badge>
                   ) : null;
                 })()}
-                <Badge className="bg-black text-white font-semibold text-[10px] sm:text-xs px-2 py-1 border border-white/20">
-                  T18
-                </Badge>
                 {year && (
-                  <Badge className="bg-white text-black font-semibold text-[10px] sm:text-xs px-2 py-1">
+                  <Badge className="bg-white/10 text-white/70 font-medium text-[10px] px-1.5 py-0.5">
                     {year}
                   </Badge>
                 )}
                 {episodeInfo?.part && (
-                  <Badge className="bg-white text-black font-semibold text-[10px] sm:text-xs px-2 py-1">
+                  <Badge className="bg-white/10 text-white/70 font-medium text-[10px] px-1.5 py-0.5">
                     Phần {episodeInfo.part}
                   </Badge>
                 )}
                 {maxTotalEpisodes > 0 && (
-                  <Badge className="bg-white text-black font-semibold text-[10px] sm:text-xs px-2 py-1">
-                    Tập {maxTotalEpisodes}
+                  <Badge className="bg-white/10 text-white/70 font-medium text-[10px] px-1.5 py-0.5">
+                    {maxTotalEpisodes} tập
                   </Badge>
                 )}
               </div>
 
-              {/* Genre Tags - Smaller - Cố định height */}
+              {/* Genre Tags */}
               {categories.length > 0 && (
                 <div className="min-h-[24px]">
                   <ExpandableCategories categories={categories} showExpandButton={false} />
@@ -159,7 +156,7 @@ export function MovieInfoPanel({
             </div>
           </div>
 
-          {/* Synopsis - Cố định để không bị shift */}
+          {/* Synopsis */}
           {cleanDescription && (
             <div className="min-h-[60px]">
               <ExpandableContent
@@ -171,7 +168,7 @@ export function MovieInfoPanel({
           )}
         </div>
 
-        {/* Cột phải: Danh sách tập phim - Không ảnh hưởng cột trái */}
+        {/* Cột phải: Danh sách tập phim */}
         {servers.length > 0 && allEpisodes.length > 0 && (
           <div className="min-w-0">
             <EpisodeSelectorWatch

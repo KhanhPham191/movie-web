@@ -255,8 +255,6 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
               className="object-cover object-top scale-105"
               priority
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
-              quality={80}
-              unoptimized
             />
             {/* Dark gradient overlays giống screenshot */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/70 to-[#050814]" />
@@ -274,8 +272,6 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                     fill
                     className="object-cover object-center"
                     sizes="260px"
-                    quality={80}
-                    unoptimized
                   />
                 </div>
 

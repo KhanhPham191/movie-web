@@ -13,10 +13,11 @@ interface WatchFilmButtonsProps {
 
 export function WatchFilmButtons({ movieName, movieSlug, episodeSlug }: WatchFilmButtonsProps) {
   return (
-    <div className="flex flex-wrap gap-2 sm:gap-3">
+    <div className="flex items-center gap-2">
       <Button
-        size="lg"
-        className="relative bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white font-semibold flex-1 sm:flex-none text-sm sm:text-base shadow-[0_8px_25px_rgba(246,196,83,0.3)] hover:shadow-[0_12px_35px_rgba(246,196,83,0.4)] transition-all duration-300"
+        size="sm"
+        variant="outline"
+        className="bg-white/[0.04] border-white/[0.08] text-white/70 hover:bg-white/[0.08] hover:border-[#F6C453]/40 hover:text-white text-xs transition-all duration-200 rounded-lg h-8 sm:h-9 px-3 sm:px-4"
         asChild
       >
         <Link 
@@ -25,14 +26,14 @@ export function WatchFilmButtons({ movieName, movieSlug, episodeSlug }: WatchFil
             analytics.trackWatchFilmButtonClick(movieName, movieSlug, 'Chi tiết', episodeSlug);
           }}
         >
-          <Info className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
+          <Info className="w-3.5 h-3.5 mr-1.5" />
           <span>Chi tiết</span>
         </Link>
       </Button>
       <Button
-        size="lg"
+        size="sm"
         variant="outline"
-        className="border-[#F6C453]/40 text-white hover:bg-[#F6C453]/10 hover:border-[#F6C453] flex-1 sm:flex-none text-sm sm:text-base transition-all duration-300"
+        className="bg-white/[0.04] border-white/[0.08] text-white/70 hover:bg-white/[0.08] hover:border-[#F6C453]/40 hover:text-white text-xs transition-all duration-200 rounded-lg h-8 sm:h-9 px-3 sm:px-4"
         asChild
       >
         <Link 
@@ -41,7 +42,7 @@ export function WatchFilmButtons({ movieName, movieSlug, episodeSlug }: WatchFil
             analytics.trackWatchFilmButtonClick(movieName, movieSlug, 'Trang chủ', episodeSlug);
           }}
         >
-          <Home className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
+          <Home className="w-3.5 h-3.5 mr-1.5" />
           <span>Trang chủ</span>
         </Link>
       </Button>

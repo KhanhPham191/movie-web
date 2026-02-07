@@ -1353,7 +1353,6 @@ export function NetflixPlayer({
         className={`relative ${isFullscreen ? 'flex items-center justify-center' : 'h-full w-full'}`}
         style={isFullscreen ? {
           position: 'absolute',
-          // In fullscreen, always use full space - controls overlay on top
           top: 0,
           left: 0,
           right: 0,
@@ -1362,18 +1361,17 @@ export function NetflixPlayer({
       >
         <video
           ref={videoRef}
-          className={`h-full w-full cursor-pointer select-none ${isFullscreen ? 'object-cover' : 'object-contain'}`}
+          className={`h-full w-full cursor-pointer select-none ${isFullscreen ? 'object-contain' : 'object-contain'}`}
         style={{ 
           userSelect: 'none', 
           WebkitUserSelect: 'none', 
           pointerEvents: 'auto', 
-          // Video element cũng khoá scroll trên mobile để tránh scroll ngoài
           touchAction: isMobile ? 'none' : (isFullscreen ? 'none' : 'auto'),
           ...(isFullscreen
             ? {
                 width: '100%',
                 height: '100%',
-                objectFit: 'cover',
+                objectFit: 'contain',
               }
             : {})
         }}
@@ -1512,38 +1510,38 @@ export function NetflixPlayer({
           transition: "opacity 0.3s ease-in-out",
         }}
       >
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-8 sm:gap-12">
           {/* Skip Backward Button */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleSkip(-10, true);
             }}
-            className={`pointer-events-auto hover:scale-110 transition-all duration-200 flex items-center justify-center ${isMobile ? 'w-12 h-12' : 'w-16 h-16'}`}
+            className={`pointer-events-auto hover:scale-110 active:scale-90 transition-all duration-200 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/10 hover:bg-white/20 ${isMobile ? 'w-11 h-11' : 'w-12 h-12'}`}
             style={{
               animation: showControls ? 'skipButtonSlideInLeft 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both' : 'none',
             }}
             aria-label="Lùi 10 giây"
           >
-            <SkipBack className={`text-[#F6C453] ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}`} strokeWidth={2.5} />
+            <SkipBack className={`text-white/90 ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} strokeWidth={2} />
           </button>
 
-          {/* Play/Pause Button - Center - Always visible */}
+          {/* Play/Pause Button - Center */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleTogglePlay();
             }}
-            className={`pointer-events-auto hover:scale-110 transition-all duration-200 flex items-center justify-center ${isMobile ? 'w-12 h-12' : 'w-16 h-16'}`}
+            className={`pointer-events-auto hover:scale-105 active:scale-90 transition-all duration-200 flex items-center justify-center rounded-full bg-white/95 hover:bg-white shadow-[0_0_40px_rgba(255,255,255,0.15)] ${isMobile ? 'w-14 h-14' : 'w-16 h-16'}`}
             style={{
               animation: showControls ? 'playButtonScaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'none',
             }}
             aria-label={isPlaying ? "Tạm dừng" : "Phát"}
           >
             {isPlaying ? (
-              <Pause className={`text-[#F6C453] ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}`} strokeWidth={2.5} />
+              <Pause className={`text-black ${isMobile ? 'w-6 h-6' : 'w-7 h-7'}`} fill="black" strokeWidth={0} />
             ) : (
-              <Play className={`text-[#F6C453] ml-0.5 ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}`} fill="#F6C453" strokeWidth={2.5} />
+              <Play className={`text-black ml-0.5 ${isMobile ? 'w-6 h-6' : 'w-7 h-7'}`} fill="black" strokeWidth={0} />
             )}
           </button>
 
@@ -1553,13 +1551,13 @@ export function NetflixPlayer({
               e.stopPropagation();
               handleSkip(10, true);
             }}
-            className={`pointer-events-auto hover:scale-110 transition-all duration-200 flex items-center justify-center ${isMobile ? 'w-12 h-12' : 'w-16 h-16'}`}
+            className={`pointer-events-auto hover:scale-110 active:scale-90 transition-all duration-200 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/10 hover:bg-white/20 ${isMobile ? 'w-11 h-11' : 'w-12 h-12'}`}
             style={{
               animation: showControls ? 'skipButtonSlideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both' : 'none',
             }}
             aria-label="Tới 10 giây"
           >
-            <SkipForward className={`text-[#F6C453] ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}`} strokeWidth={2.5} />
+            <SkipForward className={`text-white/90 ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} strokeWidth={2} />
           </button>
         </div>
       </div>
@@ -1569,17 +1567,14 @@ export function NetflixPlayer({
         className="absolute top-0 left-0 right-0 z-30 pointer-events-none"
         style={{
           opacity: showControls ? 1 : 0,
-          transition: "opacity 0.3s ease-in-out",
-          transform: showControls ? 'translateY(0)' : 'translateY(-100%)',
+          transition: "opacity 0.3s ease-in-out, transform 0.3s ease-in-out",
+          transform: showControls ? 'translateY(0)' : 'translateY(-8px)',
         }}
       >
         <div 
-          className="bg-gradient-to-b from-black/80 via-black/60 to-transparent px-4 py-3"
-          style={{
-            animation: showControls ? 'topBarSlideDown 0.3s ease-out' : 'none',
-          }}
+          className="bg-gradient-to-b from-black/80 via-black/40 to-transparent px-4 sm:px-6 pt-3 pb-8 sm:pt-4 sm:pb-10"
         >
-          <h3 className="text-white text-sm font-medium truncate">{title}</h3>
+          <h3 className="text-white/90 text-xs sm:text-sm font-medium truncate tracking-wide">{title}</h3>
         </div>
       </div>
 
@@ -1588,22 +1583,19 @@ export function NetflixPlayer({
         className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none"
         style={{
           opacity: showControls ? 1 : 0,
-          transition: "opacity 0.3s ease-in-out",
-          transform: showControls ? 'translateY(0)' : 'translateY(100%)',
+          transition: "opacity 0.3s ease-in-out, transform 0.3s ease-in-out",
+          transform: showControls ? 'translateY(0)' : 'translateY(8px)',
         }}
       >
         <div 
-          className="bg-gradient-to-t from-black/90 via-black/70 to-transparent px-4 py-3 space-y-3"
-          style={{
-            animation: showControls ? 'bottomBarSlideUp 0.3s ease-out' : 'none',
-          }}
+          className="bg-gradient-to-t from-black/90 via-black/60 to-transparent px-4 sm:px-6 pt-10 pb-3 sm:pt-12 sm:pb-4 space-y-2.5"
         >
           {/* Progress Bar */}
           <div className="py-2 -my-2 cursor-pointer pointer-events-auto" onClick={(e) => e.stopPropagation()}>
             <div
               ref={progressBarRef}
-              className={`relative bg-white/20 rounded-full cursor-pointer group/progress touch-none transition-all duration-200 ${
-                isHoveringProgress || isDragging ? 'h-2' : 'h-1.5'
+              className={`relative bg-white/15 rounded-full cursor-pointer group/progress touch-none transition-all duration-200 ${
+                isHoveringProgress || isDragging ? 'h-[5px]' : 'h-[3px]'
               }`}
               onMouseEnter={() => {
                 setIsHoveringProgress(true);
@@ -1678,26 +1670,26 @@ export function NetflixPlayer({
             >
               {/* Buffered progress */}
               <div
-                className={`absolute inset-y-0 left-0 rounded-full bg-white/30 transition-all ${
-                  isHoveringProgress || isDragging ? 'h-2' : 'h-1.5'
+                className={`absolute inset-y-0 left-0 rounded-full bg-white/25 transition-all ${
+                  isHoveringProgress || isDragging ? 'h-[5px]' : 'h-[3px]'
                 }`}
                 style={{ width: `${bufferedPercent}%` }}
               />
               {/* Current progress */}
               <div
-                className={`absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A] transition-all ${
-                  isHoveringProgress || isDragging ? 'h-2' : 'h-1.5'
+                className={`absolute inset-y-0 left-0 rounded-full bg-[#e50914] transition-all ${
+                  isHoveringProgress || isDragging ? 'h-[5px]' : 'h-[3px]'
                 }`}
                 style={{ width: `${progressPercent}%` }}
               />
-              {/* Progress thumb - always visible and larger */}
+              {/* Progress thumb */}
               <div
-                className={`absolute top-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A] transition-all pointer-events-none shadow-[0_0_8px_rgba(246,196,83,0.6)] ${
+                className={`absolute top-1/2 -translate-y-1/2 rounded-full bg-[#e50914] transition-all pointer-events-none ${
                   isHoveringProgress || isDragging || isMobile
-                    ? 'w-5 h-5 opacity-100 shadow-[0_0_12px_rgba(246,196,83,0.8)]'
-                    : 'w-4 h-4 opacity-100'
+                    ? 'w-4 h-4 opacity-100 shadow-[0_0_8px_rgba(229,9,20,0.6)]'
+                    : 'w-3 h-3 opacity-0 group-hover/progress:opacity-100'
                 }`}
-                style={{ left: `calc(${progressPercent}% - ${isHoveringProgress || isDragging || isMobile ? '10px' : '8px'})` }}
+                style={{ left: `calc(${progressPercent}% - ${isHoveringProgress || isDragging || isMobile ? '8px' : '6px'})` }}
               />
               {/* Timeline tooltip - show on both mobile and desktop */}
               {hoverTime !== null && (
@@ -1705,7 +1697,7 @@ export function NetflixPlayer({
                   className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none z-50"
                   style={{ left: `${((hoverTime / duration) * 100)}%`, transform: 'translateX(-50%)' }}
                 >
-                  <div className="px-2 py-1 bg-black/95 backdrop-blur-sm rounded text-white text-xs whitespace-nowrap border border-white/20 shadow-lg">
+                  <div className="px-2.5 py-1 bg-black/95 backdrop-blur-md rounded-md text-white text-xs font-medium tabular-nums whitespace-nowrap shadow-xl">
                     {formatTime(hoverTime)}
                   </div>
                 </div>
@@ -1758,20 +1750,20 @@ export function NetflixPlayer({
 
           {/* Controls Row */}
           <div className="flex items-center justify-between gap-3 pointer-events-auto">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-1.5">
               {/* Play/Pause */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleTogglePlay();
                 }}
-                className={`flex items-center justify-center rounded-full bg-white/10 hover:bg-gradient-to-r hover:from-[#F6C453]/20 hover:to-[#D3A13A]/20 hover:border hover:border-[#F6C453]/50 transition-all ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}`}
+                className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? 'w-9 h-9' : 'w-10 h-10'}`}
                 aria-label={isPlaying ? "Tạm dừng" : "Phát"}
               >
                 {isPlaying ? (
-                  <Pause className={`text-white ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} fill="white" />
+                  <Pause className={`text-white ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} fill="white" strokeWidth={0} />
                 ) : (
-                  <Play className={`text-white ml-0.5 ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} fill="white" />
+                  <Play className={`text-white ml-0.5 ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} fill="white" strokeWidth={0} />
                 )}
               </button>
 
@@ -1781,10 +1773,10 @@ export function NetflixPlayer({
                   e.stopPropagation();
                   handleSkip(-10);
                 }}
-                className={`flex items-center justify-center rounded-full bg-white/10 hover:bg-gradient-to-r hover:from-[#F6C453]/20 hover:to-[#D3A13A]/20 hover:border hover:border-[#F6C453]/50 active:bg-gradient-to-r active:from-[#F6C453]/30 active:to-[#D3A13A]/30 transition-all ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}`}
+                className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? 'w-9 h-9' : 'w-10 h-10'}`}
                 aria-label="Lùi 10 giây"
               >
-                <SkipBack className={`text-white ${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} />
+                <SkipBack className={`text-white ${isMobile ? 'w-[18px] h-[18px]' : 'w-[18px] h-[18px]'}`} />
               </button>
 
               {/* Skip Forward */}
@@ -1793,33 +1785,33 @@ export function NetflixPlayer({
                   e.stopPropagation();
                   handleSkip(10);
                 }}
-                className={`flex items-center justify-center rounded-full bg-white/10 hover:bg-gradient-to-r hover:from-[#F6C453]/20 hover:to-[#D3A13A]/20 hover:border hover:border-[#F6C453]/50 active:bg-gradient-to-r active:from-[#F6C453]/30 active:to-[#D3A13A]/30 transition-all ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}`}
+                className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? 'w-9 h-9' : 'w-10 h-10'}`}
                 aria-label="Tới 10 giây"
               >
-                <SkipForward className={`text-white ${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} />
+                <SkipForward className={`text-white ${isMobile ? 'w-[18px] h-[18px]' : 'w-[18px] h-[18px]'}`} />
               </button>
 
               {/* Volume - Inline slider for desktop */}
-              <div className="relative flex items-center gap-2">
+              <div className="relative flex items-center gap-1.5">
                 <button
                   onClick={handleVolumeButtonClick}
-                  className={`flex items-center justify-center rounded-full bg-white/10 hover:bg-gradient-to-r hover:from-[#F6C453]/20 hover:to-[#D3A13A]/20 hover:border hover:border-[#F6C453]/50 active:bg-gradient-to-r active:from-[#F6C453]/30 active:to-[#D3A13A]/30 transition-all ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}`}
+                  className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? 'w-9 h-9' : 'w-10 h-10'}`}
                   aria-label="Âm lượng"
                 >
                   {isMuted || volume === 0 ? (
-                    <VolumeX className={`text-white ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                    <VolumeX className={`text-white ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} />
                   ) : (
-                    <Volume2 className={`text-white ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                    <Volume2 className={`text-white ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} />
                   )}
                 </button>
                 {/* Inline volume slider - desktop only */}
                 {!isMobile && (
-                  <div className="relative w-24 h-6 flex items-center">
+                  <div className="relative w-20 h-6 flex items-center group/vol">
                     {/* Background track */}
-                    <div className="absolute inset-x-0 h-1 rounded-full bg-white/20" />
+                    <div className="absolute inset-x-0 h-[3px] rounded-full bg-white/20" />
                     {/* Progress fill */}
                     <div
-                      className="absolute inset-x-0 left-0 h-1 rounded-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A] transition-all"
+                      className="absolute inset-x-0 left-0 h-[3px] rounded-full bg-white transition-all"
                       style={{ width: `${volume * 100}%` }}
                     />
                     {/* Slider input */}
@@ -1836,19 +1828,19 @@ export function NetflixPlayer({
                       onClick={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                       onMouseUp={(e) => e.stopPropagation()}
-                      className="relative z-10 w-full h-1 appearance-none cursor-pointer bg-transparent
+                      className="relative z-10 w-full h-[3px] appearance-none cursor-pointer bg-transparent
                         [&::-webkit-slider-thumb]:appearance-none
                         [&::-webkit-slider-thumb]:w-3
                         [&::-webkit-slider-thumb]:h-3
                         [&::-webkit-slider-thumb]:rounded-full
-                        [&::-webkit-slider-thumb]:bg-[#F6C453]
-                        [&::-webkit-slider-thumb]:shadow-[0_0_4px_rgba(246,196,83,0.6)]
+                        [&::-webkit-slider-thumb]:bg-white
                         [&::-webkit-slider-thumb]:hover:scale-125
                         [&::-webkit-slider-thumb]:active:scale-125
+                        [&::-webkit-slider-thumb]:transition-transform
                         [&::-moz-range-thumb]:w-3
                         [&::-moz-range-thumb]:h-3
                         [&::-moz-range-thumb]:rounded-full
-                        [&::-moz-range-thumb]:bg-[#F6C453]
+                        [&::-moz-range-thumb]:bg-white
                         [&::-moz-range-thumb]:border-0
                         [&::-moz-range-thumb]:hover:scale-125
                         [&::-moz-range-thumb]:active:scale-125"
@@ -1859,13 +1851,13 @@ export function NetflixPlayer({
 
               {/* Time Display - Hidden on mobile */}
               {!isMobile && (
-                <div className="text-white text-sm font-medium tabular-nums">
-                  {formatTime(currentTime)} / {formatTime(duration)}
+                <div className="text-white/70 text-[13px] font-medium tabular-nums ml-2">
+                  {formatTime(currentTime)} <span className="text-white/30">/</span> {formatTime(duration)}
                 </div>
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-1.5">
               {/* Settings */}
               <div className="relative z-50">
                 <button
@@ -1875,16 +1867,16 @@ export function NetflixPlayer({
                     setShowSettings(newValue);
                     showSettingsRef.current = newValue;
                   }}
-                  className={`flex items-center justify-center rounded-full bg-white/10 hover:bg-gradient-to-r hover:from-[#F6C453]/20 hover:to-[#D3A13A]/20 hover:border hover:border-[#F6C453]/50 active:bg-gradient-to-r active:from-[#F6C453]/30 active:to-[#D3A13A]/30 transition-all ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}`}
+                  className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? 'w-9 h-9' : 'w-10 h-10'}`}
                   aria-label="Cài đặt"
                 >
-                  <Settings className={`text-white ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                  <Settings className={`text-white ${isMobile ? 'w-5 h-5' : 'w-5 h-5'} transition-transform duration-300 ${showSettings ? 'rotate-45' : ''}`} />
                 </button>
                 {showSettings && (
                   // Dropdown menu - dùng chung cho cả mobile và desktop
                   <div 
                     data-settings-menu
-                    className="absolute bottom-full right-0 mb-0.5 min-w-[160px] w-auto bg-black/95 backdrop-blur-sm rounded-lg p-2 space-y-1 border border-white/10 shadow-2xl z-[110] pointer-events-auto"
+                    className="absolute bottom-full right-0 mb-2 min-w-[150px] w-auto bg-black/95 backdrop-blur-xl rounded-lg p-1.5 space-y-0.5 ring-1 ring-white/10 shadow-2xl z-[110] pointer-events-auto"
                     onClick={(e) => e.stopPropagation()}
                     onTouchStart={(e) => {
                       const target = e.target as HTMLElement;
@@ -1893,7 +1885,7 @@ export function NetflixPlayer({
                       }
                     }}
                   >
-                    <div className="text-white text-xs px-3 py-2 border-b border-white/10 font-medium whitespace-nowrap pointer-events-none">Tốc độ phát</div>
+                    <div className="text-white/40 text-[10px] px-2.5 py-1.5 font-semibold whitespace-nowrap pointer-events-none uppercase tracking-widest">Tốc độ</div>
                     {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
                       <button
                         key={rate}
@@ -1911,10 +1903,10 @@ export function NetflixPlayer({
                           setShowSettings(false);
                           showSettingsRef.current = false;
                         }}
-                        className={`w-full text-left px-3 py-1.5 text-sm rounded hover:bg-gradient-to-r hover:from-[#F6C453]/10 hover:to-[#D3A13A]/10 active:bg-gradient-to-r active:from-[#F6C453]/20 active:to-[#D3A13A]/20 transition-all whitespace-nowrap ${
+                        className={`w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-white/10 active:bg-white/15 transition-all whitespace-nowrap ${
                           playbackRate === rate
-                            ? "text-[#F6C453] font-medium bg-gradient-to-r from-[#F6C453]/10 to-[#D3A13A]/10"
-                            : "text-white"
+                            ? "text-[#F6C453] font-medium bg-[#F6C453]/10"
+                            : "text-white/80"
                         }`}
                         style={{ 
                           WebkitTapHighlightColor: 'transparent',
@@ -1934,13 +1926,13 @@ export function NetflixPlayer({
                   e.stopPropagation();
                   handleToggleFullscreen();
                 }}
-                className={`flex items-center justify-center rounded-full bg-white/10 hover:bg-gradient-to-r hover:from-[#F6C453]/20 hover:to-[#D3A13A]/20 hover:border hover:border-[#F6C453]/50 active:bg-gradient-to-r active:from-[#F6C453]/30 active:to-[#D3A13A]/30 transition-all ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}`}
+                className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? 'w-9 h-9' : 'w-10 h-10'}`}
                 aria-label="Toàn màn hình"
               >
                 {isFullscreen ? (
-                  <Minimize2 className={`text-white ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                  <Minimize2 className={`text-white ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} />
                 ) : (
-                  <Maximize2 className={`text-white ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                  <Maximize2 className={`text-white ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} />
                 )}
               </button>
             </div>

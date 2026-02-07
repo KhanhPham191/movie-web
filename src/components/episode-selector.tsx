@@ -193,8 +193,6 @@ export function EpisodeSelector({
                       className="object-cover"
                       sizes="(max-width: 640px) 280px, (max-width: 768px) 360px, (max-width: 1024px) 480px, 540px"
                       loading="lazy"
-                      quality={75}
-                      unoptimized
                     />
                     {/* Gradient overlay theo màu indication */}
                     <div className={`absolute inset-0 ${gradientClass}`} />
@@ -257,7 +255,6 @@ export function EpisodeSelector({
               fill
               className="object-cover"
               sizes="(max-width: 640px) 280px, (max-width: 768px) 360px, (max-width: 1024px) 480px, 540px"
-              unoptimized
             />
             {/* Gradient overlay theo màu indication */}
             <div className={`absolute inset-0 ${gradientClass}`} />

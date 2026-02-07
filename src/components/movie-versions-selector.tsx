@@ -98,12 +98,15 @@ export function MovieVersionsSelector({
   const imageUrl = getImageUrl(posterUrl);
 
   return (
-    <div className="animate-slide-up mb-6 sm:mb-8">
+    <div className="animate-slide-up">
       {/* Title */}
-      <h2 className="text-base sm:text-lg md:text-xl font-semibold text-white mb-3 sm:mb-4 flex items-center gap-1.5">
-        <span className="text-[#F6C453]">Các bản phim</span>
-      </h2>
-      <div className="flex flex-wrap gap-3 sm:gap-4">
+      <div className="flex items-center gap-2 mb-3 sm:mb-4">
+        <div className="w-1 h-5 sm:h-6 bg-gradient-to-b from-[#F6C453] to-[#D3A13A] rounded-full" />
+        <h2 className="text-sm sm:text-base md:text-lg font-bold text-white">
+          Các bản phim
+        </h2>
+      </div>
+      <div className="flex flex-wrap gap-2.5 sm:gap-3">
         {phimLeServers.map((server) => {
           const firstEpisode = server.items[0];
           const serverParam = getServerParam(server.server_name);
@@ -118,15 +121,15 @@ export function MovieVersionsSelector({
             <Link
               key={server.server_name}
               href={href}
-              className="block flex-1 min-w-[280px] sm:min-w-[320px] max-w-full"
+              className="block flex-1 min-w-[260px] sm:min-w-[300px] max-w-full"
               onClick={() => {
                 if (movieName) {
                   analytics.trackWatchFilmEpisodeClick(movieName, movieSlug, firstEpisode.name, firstEpisode.slug, server.server_name);
                 }
               }}
             >
-              <div className={`relative w-full aspect-[16/9] sm:aspect-[2.5/1] rounded-xl overflow-hidden border shadow-lg hover:shadow-[#F6C453]/30 transition-all hover:scale-[1.01] group cursor-pointer ${
-                isActive ? "border-[#F6C453] border-2" : "border-[#F6C453]/50"
+              <div className={`relative w-full aspect-[16/9] sm:aspect-[2.5/1] rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:scale-[1.005] group cursor-pointer ring-1 ${
+                isActive ? "ring-[#F6C453] ring-2" : "ring-white/[0.08] hover:ring-[#F6C453]/40"
               }`}>
                 {/* Background Image */}
                 <div className="absolute inset-0">
@@ -137,30 +140,29 @@ export function MovieVersionsSelector({
                     className="object-cover"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 600px"
                   />
-                  {/* Gradient overlay theo màu indication */}
                   <div className={`absolute inset-0 ${gradientClass}`} />
                 </div>
 
                 {/* Content bên trái */}
-                <div className="relative z-10 h-full flex flex-col justify-center p-4 sm:p-6 md:p-8 max-w-[55%] sm:max-w-[45%] md:max-w-[40%]">
+                <div className="relative z-10 h-full flex flex-col justify-center p-4 sm:p-5 md:p-6 max-w-[55%] sm:max-w-[45%]">
                   {/* Label */}
-                  <div className="flex items-center gap-1.5 mb-3 sm:mb-4">
-                    <div className={`w-2 h-2 rounded-full ${iconColor} shadow-sm`} />
-                    <span className="text-white/90 text-xs sm:text-sm font-medium">{label}</span>
+                  <div className="flex items-center gap-1.5 mb-2 sm:mb-3">
+                    <div className={`w-1.5 h-1.5 rounded-full ${iconColor}`} />
+                    <span className="text-white/80 text-[11px] sm:text-xs font-medium">{label}</span>
                   </div>
 
                   {/* Tên phim */}
-                  <h3 className="text-white font-bold text-base sm:text-lg md:text-xl lg:text-2xl mb-4 sm:mb-6 line-clamp-3 leading-tight group-hover:text-[#F6C453] transition-colors">
+                  <h3 className="text-white font-bold text-sm sm:text-base md:text-lg mb-3 sm:mb-4 line-clamp-2 leading-tight group-hover:text-[#F6C453] transition-colors">
                     {movieName}
                   </h3>
 
                   {/* Nút Play/Đang xem */}
-                  <div className={`inline-flex items-center justify-center px-4 sm:px-5 py-2 sm:py-2.5 font-semibold text-sm sm:text-base rounded-lg transition-all shadow-md group-hover:shadow-lg w-fit ${
+                  <div className={`inline-flex items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 font-semibold text-xs sm:text-sm rounded-lg transition-all w-fit ${
                     isActive 
                       ? "bg-[#F6C453] text-black" 
-                      : "bg-white/95 hover:bg-white text-[#1a1a2e]"
+                      : "bg-white/90 hover:bg-white text-black"
                   }`}>
-                    <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2 fill-current" />
+                    <Play className="w-3.5 h-3.5 mr-1.5 fill-current" />
                     <span>{isActive ? "Đang xem" : "Play"}</span>
                   </div>
                 </div>

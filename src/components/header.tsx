@@ -418,7 +418,6 @@ export function Header() {
                             fill
                             sizes="56px"
                             className="object-cover"
-                            unoptimized
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.src = "/logo.svg";
@@ -537,7 +536,6 @@ export function Header() {
                               fill
                               sizes="56px"
                               className="object-cover"
-                              unoptimized
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.src = "/logo.svg";
@@ -824,7 +822,6 @@ export function Header() {
                           fill
                           sizes="56px"
                           className="object-cover"
-                          unoptimized
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.src = "/logo.svg";
