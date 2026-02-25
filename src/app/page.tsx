@@ -17,8 +17,8 @@ import { ScrollReveal } from "@/components/scroll-reveal";
 import { LazySection } from "@/components/lazy-section";
 import { generateWebsiteStructuredData, generateOrganizationStructuredData } from "@/lib/structured-data";
 
-// ISR: Revalidate every 5 minutes để giảm số lần gọi API
-export const revalidate = 300;
+// ISR: Revalidate every 1 hour — fetch cache is 2h, no need to re-render more often
+export const revalidate = 3600;
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -164,17 +164,19 @@ export default async function Home() {
               </div>
             </ScrollReveal>
 
-            {/* Top 10 phim lẻ - Premium Priority Section */}
-            <ScrollReveal variant="fade-up" duration={700}>
-              <div className="mt-1 sm:mt-2 md:mt-3 lg:mt-4 rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
-                <div className="relative">
-                  <div className="absolute -inset-4 bg-gradient-to-r from-[#F6C453]/5 via-transparent to-[#D3A13A]/5 rounded-3xl blur-2xl opacity-50" />
+            {/* Top 10 phim lẻ - Wrapped in Suspense to allow streaming */}
+            <Suspense fallback={<MovieSectionSkeleton />}>
+              <ScrollReveal variant="fade-up" duration={700}>
+                <div className="mt-1 sm:mt-2 md:mt-3 lg:mt-4 rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
                   <div className="relative">
-                    <Top10PhimLe />
+                    <div className="absolute -inset-4 bg-gradient-to-r from-[#F6C453]/5 via-transparent to-[#D3A13A]/5 rounded-3xl blur-2xl opacity-50" />
+                    <div className="relative">
+                      <Top10PhimLe />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </ScrollReveal>
+              </ScrollReveal>
+            </Suspense>
 
             {/* Top 10 phim bộ - Lazy mounted */}
             <LazySection minHeight="320px" fallback={<MovieSectionSkeleton />}>

@@ -249,7 +249,7 @@ async function fetchPhimAPI<T>(endpoint: string): Promise<T> {
   
   const fetchPromise = (async () => {
     try {
-      const timeoutMs = 30000;
+      const timeoutMs = 10000;
       const headers = isBrowser
         ? { Accept: "application/json", "Accept-Language": "vi,en;q=0.9" }
         : DEFAULT_FETCH_HEADERS;

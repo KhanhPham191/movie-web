@@ -37,20 +37,35 @@ export async function HeroSectionWrapper() {
   try {
     const MIN_CINEMA_YEAR = 2025;
     
-    // Strategy 1: Lấy phim chiếu rạp mới nhất, filter năm >= 2025
-    let phimLeRaw = await getFilmsByCategoryMultiple(
-      CATEGORIES.PHIM_LE,
-      4, // Lấy nhiều page để đủ phim chiếu rạp các năm gần đây
-      {
-        sort_field: "modified",
-        sort_type: "desc",
-        chieurap: true,
-        limit: 40,
-      }
-    );
+    // Fetch cinema movies and fallback in PARALLEL to avoid sequential waterfall
+    // This reduces worst-case from 14 sequential API calls to ~2 parallel batches
+    const [cinemaResult, fallbackResult] = await Promise.allSettled([
+      // Primary: cinema movies (1 page, large limit)
+      getFilmsByCategoryMultiple(
+        CATEGORIES.PHIM_LE,
+        1, // Only 1 page instead of 4 — much faster
+        {
+          sort_field: "modified",
+          sort_type: "desc",
+          chieurap: true,
+          limit: 50, // Large limit to get enough from 1 page
+        }
+      ),
+      // Fallback: regular movies (fetched in parallel, used only if cinema is empty)
+      getFilmsByCategoryMultiple(
+        CATEGORIES.PHIM_LE,
+        1,
+        {
+          sort_field: "modified",
+          sort_type: "desc",
+          limit: 30,
+        }
+      ),
+    ]);
     
-    // Filter chỉ lấy phim chiếu rạp và năm >= 2025
-    let phimLeFiltered = (phimLeRaw || []).filter((movie) => {
+    // Try cinema movies first
+    const cinemaMovies = cinemaResult.status === "fulfilled" ? cinemaResult.value : [];
+    let phimLeFiltered = (cinemaMovies || []).filter((movie) => {
       const isCinema =
         movie.chieurap === true ||
         (typeof movie.chieurap === "number" && movie.chieurap === 1);
@@ -58,50 +73,16 @@ export async function HeroSectionWrapper() {
       return isCinema && year !== null && year >= MIN_CINEMA_YEAR;
     });
     
-    // Strategy 2: Nếu chưa có, lấy thêm phim chiếu rạp không filter năm rồi lọc >= 2025
+    // If no cinema movies, use the fallback (already fetched in parallel)
     if (phimLeFiltered.length === 0) {
-      phimLeRaw = await getFilmsByCategoryMultiple(
-        CATEGORIES.PHIM_LE,
-        5,
-        {
-          sort_field: "modified",
-          sort_type: "desc",
-          chieurap: true,
-          limit: 50,
-        }
-      );
-      
-      phimLeFiltered = (phimLeRaw || []).filter((movie) => {
-        const isCinema =
-          movie.chieurap === true ||
-          (typeof movie.chieurap === "number" && movie.chieurap === 1);
-        const year = getReleaseYear(movie);
-        return isCinema && year !== null && year >= MIN_CINEMA_YEAR;
-      });
+      const fallbackMovies = fallbackResult.status === "fulfilled" ? fallbackResult.value : [];
+      phimLeFiltered = fallbackMovies || [];
     }
     
-    // Strategy 3: Nếu vẫn không có phim chiếu rạp, lấy phim lẻ mới nhất (không filter chieurap)
-    if (phimLeFiltered.length === 0) {
-      phimLeRaw = await getFilmsByCategoryMultiple(
-        CATEGORIES.PHIM_LE,
-        5, // Lấy nhiều pages hơn
-        {
-          sort_field: 'modified',
-          sort_type: 'desc',
-          limit: 30
-        }
-      );
-      
-      phimLeFiltered = phimLeRaw || [];
-    }
-    
-    // Sắp xếp theo modified time (mới nhất trước) để hiển thị phim mới cập nhật nhất
+    // Sắp xếp theo modified time (mới nhất trước)
     const phimLeSorted = sortByModifiedDesc(phimLeFiltered);
-    
-    // Lấy tối đa 10 phim đầu (đã được limit từ API, HeroSection sẽ lấy 5 phim đầu)
     const phimLe = phimLeSorted.slice(0, 10);
     
-    // Nếu vẫn không có phim, hiển thị placeholder
     if (phimLe.length === 0) {
       return <div className="h-[60vh] bg-[#191b24]" />;
     }
