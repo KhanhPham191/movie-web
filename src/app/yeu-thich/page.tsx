@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth, AUTH_DISABLED } from "@/contexts/auth-context";
 import { Footer } from "@/components/footer";
 import { getFavorites, removeFromFavorites, type Favorite } from "@/lib/supabase/movies";
 import { getImageUrl } from "@/lib/api";
@@ -17,6 +17,15 @@ export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [removingId, setRemovingId] = useState<string | null>(null);
+
+  // Redirect về trang chủ nếu auth bị tắt
+  useEffect(() => {
+    if (AUTH_DISABLED) {
+      router.replace("/");
+    }
+  }, [router]);
+
+  if (AUTH_DISABLED) return null;
 
   useEffect(() => {
     if (!authLoading && !user) {

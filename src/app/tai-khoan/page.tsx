@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth, AUTH_DISABLED } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,10 +15,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Footer } from "@/components/footer";
-import { createClient } from "@/lib/supabase/client";
 
 export default function AccountPage() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, updateProfile, updatePassword } = useAuth();
   const router = useRouter();
   const [name, setName] = useState("");
   const [avatar, setAvatar] = useState("");
@@ -28,9 +27,16 @@ export default function AccountPage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const supabase = createClient();
+
+  // Redirect về trang chủ nếu auth bị tắt
+  useEffect(() => {
+    if (AUTH_DISABLED) {
+      router.replace("/");
+    }
+  }, [router]);
 
   useEffect(() => {
+    if (AUTH_DISABLED) return;
     if (!authLoading && !user) {
       router.push("/dang-nhap");
     } else if (user) {
@@ -39,27 +45,23 @@ export default function AccountPage() {
     }
   }, [user, authLoading, router]);
 
+  if (AUTH_DISABLED) return null;
+
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsUpdating(true);
     setMessage(null);
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          name: name.trim() || user?.user_metadata?.username,
-          avatar_url: avatar.trim() || undefined,
-        },
+      const { error } = await updateProfile({
+        name: name.trim() || user?.user_metadata?.username,
+        avatar_url: avatar.trim() || undefined,
       });
 
       if (error) {
         setMessage({ type: "error", text: error.message || "Có lỗi xảy ra" });
       } else {
         setMessage({ type: "success", text: "Cập nhật hồ sơ thành công!" });
-        // Refresh để cập nhật user data
-        setTimeout(() => {
-          router.refresh();
-        }, 1500);
       }
     } catch (error: any) {
       setMessage({ type: "error", text: error.message || "Có lỗi xảy ra" });
@@ -86,10 +88,7 @@ export default function AccountPage() {
     }
 
     try {
-      // Update password
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
+      const { error } = await updatePassword(newPassword);
 
       if (error) {
         setMessage({ type: "error", text: error.message || "Có lỗi xảy ra khi đổi mật khẩu" });

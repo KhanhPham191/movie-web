@@ -258,7 +258,7 @@ export default function SearchPage() {
             <div className="flex flex-col items-center justify-center py-20 md:py-32 px-4">
               {/* Icon với animation */}
               <div className="relative mb-6">
-                <div className="absolute inset-0 bg-gradient-to-r from-[#F6C453]/20 to-[#D3A13A]/20 rounded-full blur-2xl md:animate-[pulse_0.8s_ease-in-out_infinite]" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#F6C453]/20 to-[#D3A13A]/20 rounded-full blur-2x" />
                 <div className="relative bg-gradient-to-br from-[#F6C453]/10 to-[#D3A13A]/10 rounded-full p-6 border border-[#F6C453]/20">
                   <SearchX className="w-20 h-20 md:w-24 md:h-24 text-[#F6C453]" />
                 </div>

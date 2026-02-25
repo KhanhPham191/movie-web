@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth, AUTH_DISABLED } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,6 +28,15 @@ export default function SignUpPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const { signUp, signInWithGoogle } = useAuth();
   const router = useRouter();
+
+  // Redirect về trang chủ nếu auth bị tắt
+  useEffect(() => {
+    if (AUTH_DISABLED) {
+      router.replace("/");
+    }
+  }, [router]);
+
+  if (AUTH_DISABLED) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

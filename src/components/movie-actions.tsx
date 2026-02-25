@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth, AUTH_DISABLED } from "@/contexts/auth-context";
 import { Heart, Star, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { analytics } from "@/lib/analytics";
@@ -113,6 +113,8 @@ export function MovieActions({ movie, onRatingChange }: MovieActionsProps) {
   };
 
   if (!isAuthenticated) {
+    // Khi auth bị tắt, ẩn hoàn toàn nút yêu thích/đánh giá
+    if (AUTH_DISABLED) return null;
     return (
       <div className="flex items-center gap-2">
         <Button

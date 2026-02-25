@@ -54,7 +54,6 @@ export function NetflixPlayer({
   const lastControlsShowTimeRef = useRef<number>(0);
   const autoHideCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const showControlsRef = useRef(false);
-  const orientationResizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Get video progress context to share with WatchProgressTracker (optional)
   const videoProgressContext = useVideoProgressOptional();
@@ -418,87 +417,7 @@ export function NetflixPlayer({
     };
   }, [movieName, movieSlug, episodeSlug]);
 
-  // Auto fullscreen when rotating to landscape on mobile
-  useEffect(() => {
-    if (!isMobile) return;
 
-    const checkOrientationAndFullscreen = () => {
-      const video = videoRef.current;
-      const container = containerRef.current;
-      if (!video || !container) return;
-
-      // Check if screen is in landscape mode
-      const isLandscape = window.innerWidth > window.innerHeight;
-      
-      // Check current fullscreen state
-      const isFullscreenActive = !!(
-        document.fullscreenElement ||
-        (document as any).webkitFullscreenElement ||
-        (document as any).mozFullScreenElement ||
-        (document as any).msFullscreenElement
-      );
-
-      // Auto enter fullscreen when rotating to landscape
-      if (isLandscape && !isFullscreenActive) {
-        // iOS Safari requires webkitEnterFullscreen on video element
-        if (isIOS && (video as any).webkitEnterFullscreen) {
-          (video as any).webkitEnterFullscreen();
-          if (movieName && movieSlug && episodeSlug) {
-            analytics.trackWatchFilmFullscreen(movieName, movieSlug, episodeSlug, true);
-          }
-          if (showControlsWithTimeoutRef.current) {
-            showControlsWithTimeoutRef.current();
-          }
-        } else {
-          // Standard fullscreen API for other browsers
-          const requestFullscreen = 
-            container.requestFullscreen ||
-            (container as any).webkitRequestFullscreen ||
-            (container as any).mozRequestFullScreen ||
-            (container as any).msRequestFullscreen;
-          
-          if (requestFullscreen) {
-            requestFullscreen.call(container).catch(() => {});
-            if (movieName && movieSlug && episodeSlug) {
-              analytics.trackWatchFilmFullscreen(movieName, movieSlug, episodeSlug, true);
-            }
-            if (showControlsWithTimeoutRef.current) {
-              showControlsWithTimeoutRef.current();
-            }
-          }
-        }
-      }
-    };
-
-    // Check on orientation change
-    const handleOrientationChange = () => {
-      // Delay to ensure dimensions are updated
-      setTimeout(checkOrientationAndFullscreen, 100);
-    };
-
-    // Throttle resize events
-    const handleResize = () => {
-      if (orientationResizeTimeoutRef.current) {
-        clearTimeout(orientationResizeTimeoutRef.current);
-      }
-      orientationResizeTimeoutRef.current = setTimeout(checkOrientationAndFullscreen, 200);
-    };
-
-    window.addEventListener('orientationchange', handleOrientationChange);
-    window.addEventListener('resize', handleResize);
-
-    // Initial check
-    checkOrientationAndFullscreen();
-
-    return () => {
-      window.removeEventListener('orientationchange', handleOrientationChange);
-      window.removeEventListener('resize', handleResize);
-      if (orientationResizeTimeoutRef.current) {
-        clearTimeout(orientationResizeTimeoutRef.current);
-        orientationResizeTimeoutRef.current = null;
-      }
-    };
-  }, [isMobile, isIOS, movieName, movieSlug, episodeSlug]);
 
   // HLS setup
   useEffect(() => {
@@ -1591,11 +1510,129 @@ export function NetflixPlayer({
           className="bg-gradient-to-t from-black/90 via-black/60 to-transparent px-4 sm:px-6 pt-10 pb-3 sm:pt-12 sm:pb-4 space-y-2.5"
         >
           {/* Progress Bar */}
-          <div className="py-2 -my-2 cursor-pointer pointer-events-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="relative cursor-pointer pointer-events-auto" onClick={(e) => e.stopPropagation()}>
+            {/* Invisible expanded touch target for mobile - 44px tall (Apple minimum) */}
+            {isMobile && (
+              <div
+                className="absolute inset-x-0 z-20 touch-none"
+                style={{
+                  top: isDragging ? '-200px' : '-20px',
+                  bottom: isDragging ? '-200px' : '-12px',
+                }}
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDragging(true);
+                  isDraggingRef.current = true;
+                  setIsHoveringProgress(true);
+                  // Keep controls visible during drag
+                  setShowControls(true);
+                  lastControlsShowTimeRef.current = Date.now();
+                  if (controlsTimeoutRef.current) {
+                    clearTimeout(controlsTimeoutRef.current);
+                  }
+                  const video = videoRef.current;
+                  const progressBar = progressBarRef.current;
+                  if (video && progressBar && e.touches[0]) {
+                    const rect = progressBar.getBoundingClientRect();
+                    const percent = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
+                    const hoverTimeValue = percent * video.duration;
+                    setHoverTime(hoverTimeValue);
+                    video.currentTime = hoverTimeValue;
+                    setCurrentTime(hoverTimeValue);
+                  }
+                }}
+                onTouchMove={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  // Keep controls visible
+                  setShowControls(true);
+                  lastControlsShowTimeRef.current = Date.now();
+                  if (controlsTimeoutRef.current) {
+                    clearTimeout(controlsTimeoutRef.current);
+                  }
+                  const video = videoRef.current;
+                  const progressBar = progressBarRef.current;
+                  if (video && progressBar && e.touches[0]) {
+                    const rect = progressBar.getBoundingClientRect();
+                    const percent = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
+                    const hoverTimeValue = percent * video.duration;
+                    setHoverTime(hoverTimeValue);
+                    video.currentTime = hoverTimeValue;
+                    setCurrentTime(hoverTimeValue);
+                  }
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDragging(false);
+                  isDraggingRef.current = false;
+                  setIsHoveringProgress(false);
+                  setTimeout(() => {
+                    setHoverTime(null);
+                  }, 800);
+                  // Resume auto-hide after drag
+                  showControlsWithTimeout();
+                }}
+                onTouchCancel={(e) => {
+                  e.stopPropagation();
+                  setIsDragging(false);
+                  isDraggingRef.current = false;
+                  setIsHoveringProgress(false);
+                  setHoverTime(null);
+                }}
+              />
+            )}
+            {/* Full-screen drag overlay when actively dragging on mobile - captures all touch even if finger wanders */}
+            {isMobile && isDragging && (
+              <div
+                className="fixed inset-0 z-[200] touch-none"
+                style={{ background: 'transparent' }}
+                onTouchMove={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowControls(true);
+                  lastControlsShowTimeRef.current = Date.now();
+                  if (controlsTimeoutRef.current) {
+                    clearTimeout(controlsTimeoutRef.current);
+                  }
+                  const video = videoRef.current;
+                  const progressBar = progressBarRef.current;
+                  if (video && progressBar && e.touches[0]) {
+                    const rect = progressBar.getBoundingClientRect();
+                    const percent = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
+                    const hoverTimeValue = percent * video.duration;
+                    setHoverTime(hoverTimeValue);
+                    video.currentTime = hoverTimeValue;
+                    setCurrentTime(hoverTimeValue);
+                  }
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDragging(false);
+                  isDraggingRef.current = false;
+                  setIsHoveringProgress(false);
+                  setTimeout(() => {
+                    setHoverTime(null);
+                  }, 800);
+                  showControlsWithTimeout();
+                }}
+                onTouchCancel={(e) => {
+                  e.stopPropagation();
+                  setIsDragging(false);
+                  isDraggingRef.current = false;
+                  setIsHoveringProgress(false);
+                  setHoverTime(null);
+                }}
+              />
+            )}
             <div
               ref={progressBarRef}
               className={`relative bg-white/15 rounded-full cursor-pointer group/progress touch-none transition-all duration-200 ${
-                isHoveringProgress || isDragging ? 'h-[5px]' : 'h-[3px]'
+                isMobile
+                  ? (isDragging ? 'h-[10px]' : 'h-[5px]')
+                  : (isHoveringProgress || isDragging ? 'h-[5px]' : 'h-[3px]')
               }`}
               onMouseEnter={() => {
                 setIsHoveringProgress(true);
@@ -1617,50 +1654,6 @@ export function NetflixPlayer({
                 setIsDragging(false);
                 isDraggingRef.current = false;
               }}
-              onTouchStart={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setIsDragging(true);
-                isDraggingRef.current = true;
-                // Set hover time for mobile tooltip
-                const video = videoRef.current;
-                const progressBar = progressBarRef.current;
-                if (video && progressBar && e.touches[0]) {
-                  const rect = progressBar.getBoundingClientRect();
-                  const percent = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
-                  const hoverTimeValue = percent * video.duration;
-                  setHoverTime(hoverTimeValue);
-                  // Seek to the position
-                  video.currentTime = hoverTimeValue;
-                  setCurrentTime(hoverTimeValue);
-                }
-              }}
-              onTouchMove={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                // Update hover time and seek for mobile tooltip
-                const video = videoRef.current;
-                const progressBar = progressBarRef.current;
-                if (video && progressBar && e.touches[0]) {
-                  const rect = progressBar.getBoundingClientRect();
-                  const percent = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
-                  const hoverTimeValue = percent * video.duration;
-                  setHoverTime(hoverTimeValue);
-                  // Update video time while dragging
-                  video.currentTime = hoverTimeValue;
-                  setCurrentTime(hoverTimeValue);
-                }
-              }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setIsDragging(false);
-                isDraggingRef.current = false;
-                // Keep tooltip visible briefly on mobile, then hide
-                setTimeout(() => {
-                  setHoverTime(null);
-                }, 800);
-              }}
               onClick={(e) => {
                 e.stopPropagation();
                 if (!isDragging) {
@@ -1671,34 +1664,57 @@ export function NetflixPlayer({
               {/* Buffered progress */}
               <div
                 className={`absolute inset-y-0 left-0 rounded-full bg-white/25 transition-all ${
-                  isHoveringProgress || isDragging ? 'h-[5px]' : 'h-[3px]'
+                  isMobile
+                    ? (isDragging ? 'h-[10px]' : 'h-[5px]')
+                    : (isHoveringProgress || isDragging ? 'h-[5px]' : 'h-[3px]')
                 }`}
                 style={{ width: `${bufferedPercent}%` }}
               />
               {/* Current progress */}
               <div
-                className={`absolute inset-y-0 left-0 rounded-full bg-[#e50914] transition-all ${
-                  isHoveringProgress || isDragging ? 'h-[5px]' : 'h-[3px]'
+                className={`absolute inset-y-0 left-0 rounded-full bg-[#F6C453] transition-all ${
+                  isMobile
+                    ? (isDragging ? 'h-[10px]' : 'h-[5px]')
+                    : (isHoveringProgress || isDragging ? 'h-[5px]' : 'h-[3px]')
                 }`}
                 style={{ width: `${progressPercent}%` }}
               />
               {/* Progress thumb */}
               <div
-                className={`absolute top-1/2 -translate-y-1/2 rounded-full bg-[#e50914] transition-all pointer-events-none ${
-                  isHoveringProgress || isDragging || isMobile
-                    ? 'w-4 h-4 opacity-100 shadow-[0_0_8px_rgba(229,9,20,0.6)]'
-                    : 'w-3 h-3 opacity-0 group-hover/progress:opacity-100'
+                className={`absolute top-1/2 -translate-y-1/2 rounded-full bg-[#F6C453] transition-all pointer-events-none ${
+                  isMobile
+                    ? (isDragging
+                        ? 'w-6 h-6 opacity-100 shadow-[0_0_12px_rgba(246,196,83,0.8)]'
+                        : 'w-[18px] h-[18px] opacity-100 shadow-[0_0_8px_rgba(246,196,83,0.6)]')
+                    : (isHoveringProgress || isDragging
+                        ? 'w-4 h-4 opacity-100 shadow-[0_0_8px_rgba(246,196,83,0.6)]'
+                        : 'w-3 h-3 opacity-0 group-hover/progress:opacity-100')
                 }`}
-                style={{ left: `calc(${progressPercent}% - ${isHoveringProgress || isDragging || isMobile ? '8px' : '6px'})` }}
+                style={{ left: `calc(${progressPercent}% - ${
+                  isMobile
+                    ? (isDragging ? '12px' : '9px')
+                    : (isHoveringProgress || isDragging ? '8px' : '6px')
+                })` }}
               />
               {/* Timeline tooltip - show on both mobile and desktop */}
               {hoverTime !== null && (
                 <div
-                  className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none z-50"
-                  style={{ left: `${((hoverTime / duration) * 100)}%`, transform: 'translateX(-50%)' }}
+                  className="absolute bottom-full left-1/2 -translate-x-1/2 pointer-events-none z-50"
+                  style={{
+                    left: `${((hoverTime / duration) * 100)}%`,
+                    transform: 'translateX(-50%)',
+                    marginBottom: isMobile ? (isDragging ? '16px' : '8px') : '8px',
+                  }}
                 >
-                  <div className="px-2.5 py-1 bg-black/95 backdrop-blur-md rounded-md text-white text-xs font-medium tabular-nums whitespace-nowrap shadow-xl">
+                  <div className={`bg-black/95 backdrop-blur-md rounded-md text-white font-medium tabular-nums whitespace-nowrap shadow-xl ${
+                    isMobile && isDragging
+                      ? 'px-4 py-2 text-base'
+                      : 'px-2.5 py-1 text-xs'
+                  }`}>
                     {formatTime(hoverTime)}
+                    {isMobile && isDragging && duration > 0 && (
+                      <span className="text-white/50 ml-1.5">/ {formatTime(duration)}</span>
+                    )}
                   </div>
                 </div>
               )}
@@ -1849,12 +1865,10 @@ export function NetflixPlayer({
                 )}
               </div>
 
-              {/* Time Display - Hidden on mobile */}
-              {!isMobile && (
-                <div className="text-white/70 text-[13px] font-medium tabular-nums ml-2">
-                  {formatTime(currentTime)} <span className="text-white/30">/</span> {formatTime(duration)}
-                </div>
-              )}
+              {/* Time Display */}
+              <div className={`text-white/70 font-medium tabular-nums ${isMobile ? 'text-[11px] ml-1' : 'text-[13px] ml-2'}`}>
+                {formatTime(currentTime)} <span className="text-white/30">/</span> {formatTime(duration)}
+              </div>
             </div>
 
             <div className="flex items-center gap-1 sm:gap-1.5">
@@ -1999,4 +2013,3 @@ export function NetflixPlayer({
     </div>
   );
 }
-

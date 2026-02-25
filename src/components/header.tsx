@@ -12,7 +12,7 @@ import {
   searchFilmsMerged,
 } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth, AUTH_DISABLED } from "@/contexts/auth-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -697,7 +697,7 @@ export function Header() {
           </button>
 
           {/* Desktop Profile Dropdown or Login Button */}
-          {isMounted && (
+          {isMounted && !AUTH_DISABLED && (
             <>
               {isAuthenticated ? (
                 <DropdownMenu>
@@ -895,6 +895,7 @@ export function Header() {
               {/* Content */}
               <div className="flex-1 p-4 space-y-6">
                 {/* Login Section */}
+                {!AUTH_DISABLED && (
                 <div className="space-y-3">
                   {isAuthenticated ? (
                     <>
@@ -944,6 +945,7 @@ export function Header() {
                     </button>
                   )}
                 </div>
+                )}
 
                 {/* Main Navigation */}
                 <div className="space-y-2">
@@ -1026,18 +1028,22 @@ export function Header() {
       )}
 
       {/* Login Modal */}
-      <LoginModal 
-        open={isLoginModalOpen} 
-        onOpenChange={setIsLoginModalOpen}
-        onSwitchToSignup={() => setIsSignupModalOpen(true)}
-      />
+      {!AUTH_DISABLED && (
+        <LoginModal 
+          open={isLoginModalOpen} 
+          onOpenChange={setIsLoginModalOpen}
+          onSwitchToSignup={() => setIsSignupModalOpen(true)}
+        />
+      )}
       
       {/* Signup Modal */}
-      <SignupModal 
-        open={isSignupModalOpen} 
-        onOpenChange={setIsSignupModalOpen}
-        onSwitchToLogin={() => setIsLoginModalOpen(true)}
-      />
+      {!AUTH_DISABLED && (
+        <SignupModal 
+          open={isSignupModalOpen} 
+          onOpenChange={setIsSignupModalOpen}
+          onSwitchToLogin={() => setIsLoginModalOpen(true)}
+        />
+      )}
     </header>
   );
 }
