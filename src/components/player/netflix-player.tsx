@@ -14,6 +14,7 @@ import {
   SkipBack,
   Settings,
   FastForward,
+  ChevronRight,
 } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { useVideoProgressOptional } from "@/contexts/video-progress-context";
@@ -28,6 +29,8 @@ interface NetflixPlayerProps {
   movieName?: string;
   movieSlug?: string;
   episodeSlug?: string;
+  nextEpisodeUrl?: string;
+  nextEpisodeName?: string;
 }
 
 export function NetflixPlayer({
@@ -40,6 +43,8 @@ export function NetflixPlayer({
   movieName,
   movieSlug,
   episodeSlug,
+  nextEpisodeUrl,
+  nextEpisodeName,
 }: NetflixPlayerProps) {
   const searchParams = useSearchParams();
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -85,6 +90,7 @@ export function NetflixPlayer({
     direction: 'forward' | 'backward';
     seconds: number;
   } | null>(null);
+  const [showNextEpisode, setShowNextEpisode] = useState(false);
   const accumulatedSkipSecondsRef = useRef<number>(0);
   const lastSkipDirectionRef = useRef<'forward' | 'backward' | null>(null);
   const lastSkipTimeRef = useRef<number>(0);
@@ -305,6 +311,13 @@ export function NetflixPlayer({
       // Update context for WatchProgressTracker
       updateProgress?.(time, video.duration);
       onTimeUpdate?.(time, video.duration);
+      
+      // Show next episode button when near end (remaining <= 60s or 95% watched)
+      if (nextEpisodeUrl && video.duration > 0) {
+        const remaining = video.duration - time;
+        const threshold = Math.min(60, video.duration * 0.05); // 60s or 5% of duration
+        setShowNextEpisode(remaining <= threshold && remaining > 0);
+      }
     };
     const handleSeekToTimestamp = () => {
       if (!hasSeekedRef.current && video.duration > 0) {
@@ -1995,6 +2008,32 @@ export function NetflixPlayer({
         </div>
       )}
 
+
+      {/* Next Episode Button - shows when near end of video for series */}
+      {showNextEpisode && nextEpisodeUrl && (
+        <div 
+          className="absolute bottom-20 sm:bottom-24 right-4 sm:right-6 z-[90] pointer-events-auto animate-fade-in"
+          style={{
+            animation: 'nextEpisodeSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+        >
+          <a
+            href={nextEpisodeUrl}
+            onClick={(e) => e.stopPropagation()}
+            className="group flex items-center gap-2 sm:gap-2.5 px-4 sm:px-5 py-2.5 sm:py-3 bg-white/95 hover:bg-white text-black rounded-lg sm:rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.4)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-300 hover:scale-[1.03] active:scale-95 backdrop-blur-sm"
+          >
+            <div className="flex flex-col min-w-0">
+              <span className="text-[10px] sm:text-xs text-black/50 font-medium leading-tight">Tập tiếp theo</span>
+              <span className="text-xs sm:text-sm font-bold text-black truncate max-w-[140px] sm:max-w-[200px] leading-tight">
+                {nextEpisodeName || 'Tập kế tiếp'}
+              </span>
+            </div>
+            <div className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black flex items-center justify-center group-hover:bg-black/90 transition-colors">
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
+            </div>
+          </a>
+        </div>
+      )}
 
       {/* Click outside settings to close - only for desktop */}
       {showSettings && !isMobile && (

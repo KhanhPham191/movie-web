@@ -326,6 +326,8 @@ async function VideoPlayer({
                   movieName={movie.name}
                   movieSlug={movie.slug}
                   episodeSlug={currentEpisode.slug}
+                  nextEpisodeUrl={nextEpisode ? `/xem-phim/${slug}/${nextEpisode.slug}${serverParam ? `?server=${serverParam}` : ''}` : undefined}
+                  nextEpisodeName={nextEpisode ? nextEpisode.name : undefined}
                 />
               ) : (
                 <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-black via-gray-900/95 to-black text-white p-8">
