@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { getImageUrl } from "@/lib/api";
+
+const BLUR_DATA_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjE1IiBmaWxsPSIjMWExYTJlIi8+PC9zdmc+";
 import { ExpandableContent } from "./expandable-content";
 import { ExpandableCategories } from "./expandable-categories";
 import { EpisodeSelectorWatch } from "./episode-selector-watch";
@@ -83,6 +85,9 @@ export function MovieInfoPanel({
                 fill
                 className="object-cover"
                 sizes="(max-width: 640px) 80px, 96px"
+                quality={70}
+                placeholder="blur"
+                blurDataURL={BLUR_DATA_URL}
               />
             </div>
 

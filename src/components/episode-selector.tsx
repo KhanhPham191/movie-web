@@ -6,6 +6,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Play } from "lucide-react";
 import { getImageUrl } from "@/lib/api";
+
+const BLUR_DATA_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjE1IiBmaWxsPSIjMWExYTJlIi8+PC9zdmc+";
 import { analytics } from "@/lib/analytics";
 
 interface Episode {
@@ -195,7 +197,8 @@ export function EpisodeSelector({
                       sizes="(max-width: 640px) 280px, (max-width: 768px) 360px, (max-width: 1024px) 480px, 540px"
                       loading="lazy"
                       quality={75}
-                      unoptimized
+                      placeholder="blur"
+                      blurDataURL={BLUR_DATA_URL}
                     />
                     {/* Gradient overlay theo màu indication */}
                     <div className={`absolute inset-0 ${gradientClass}`} />
@@ -258,7 +261,9 @@ export function EpisodeSelector({
               fill
               className="object-cover"
               sizes="(max-width: 640px) 280px, (max-width: 768px) 360px, (max-width: 1024px) 480px, 540px"
-              unoptimized
+              quality={75}
+              placeholder="blur"
+              blurDataURL={BLUR_DATA_URL}
             />
             {/* Gradient overlay theo màu indication */}
             <div className={`absolute inset-0 ${gradientClass}`} />

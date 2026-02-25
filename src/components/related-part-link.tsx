@@ -3,6 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getImageUrl, type FilmItem } from "@/lib/api";
+
+const BLUR_DATA_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjE1IiBmaWxsPSIjMWExYTJlIi8+PC9zdmc+";
 import { analytics } from "@/lib/analytics";
 
 interface RelatedPartLinkProps {
@@ -27,6 +29,9 @@ export function RelatedPartLink({ part, movieName, movieSlug }: RelatedPartLinkP
         className="object-cover transition-transform duration-300 group-hover:scale-110"
         sizes="(max-width: 475px) 50vw, (max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 16vw"
         loading="lazy"
+        quality={70}
+        placeholder="blur"
+        blurDataURL={BLUR_DATA_URL}
       />
       {/* Gradient overlay - luôn hiển thị một phần trên mobile */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300" />

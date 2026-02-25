@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Play, X } from "lucide-react";
 import { getImageUrl } from "@/lib/api";
+
+const BLUR_DATA_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjE1IiBmaWxsPSIjMWExYTJlIi8+PC9zdmc+";
 import { removeFromCurrentlyWatching } from "@/lib/supabase/movies";
 import type { CurrentlyWatching } from "@/lib/supabase/movies";
 import { useState } from "react";
@@ -100,6 +102,9 @@ export function CurrentlyWatchingCard({ item, index = 0 }: CurrentlyWatchingCard
             className="object-cover transition-transform duration-300 group-hover:scale-110"
             sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
             loading="lazy"
+            quality={70}
+            placeholder="blur"
+            blurDataURL={BLUR_DATA_URL}
           />
 
           {/* Play button overlay khi hover */}

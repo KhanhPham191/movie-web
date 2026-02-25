@@ -8,6 +8,9 @@ import { Play, Info, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { FilmItem } from "@/lib/api";
 import { getImageUrl } from "@/lib/api";
+
+// Tiny blur placeholder — hiện nền mờ trong lúc ảnh đang tải
+const BLUR_DATA_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjE1IiBmaWxsPSIjMWExYTJlIi8+PC9zdmc+";
 import { isValidTime } from "@/lib/utils";
 
 interface HeroSectionProps {
@@ -155,6 +158,9 @@ export function HeroSection({ movies }: HeroSectionProps) {
               priority={index === 0}
               loading={index === 0 ? undefined : "lazy"}
               sizes="100vw"
+              quality={75}
+              placeholder="blur"
+              blurDataURL={BLUR_DATA_URL}
               style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
             />
           </div>

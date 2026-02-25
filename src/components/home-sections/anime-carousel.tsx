@@ -3,6 +3,9 @@
 import { useMemo, useRef, useState, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
+
+const BLUR_DATA_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjE1IiBmaWxsPSIjMWExYTJlIi8+PC9zdmc+";
+
 import Link from "next/link";
 import { Play, Heart, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -451,6 +454,9 @@ function MovieCardWithPopup({
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 0px, 480px"
+                quality={70}
+                placeholder="blur"
+                blurDataURL={BLUR_DATA_URL}
               />
             </div>
           )}
@@ -576,6 +582,9 @@ function MovieCardWithPopup({
               fill
               className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-[1.03]"
               sizes="(max-width: 640px) 280px, (max-width: 768px) 320px, 360px"
+              quality={70}
+              placeholder="blur"
+              blurDataURL={BLUR_DATA_URL}
             />
             {/* Language Badges - Bottom Left Corner */}
             <LanguageBadges language={movie.language} />
@@ -613,6 +622,9 @@ function MovieCardWithPopup({
                   fill
                   className="object-cover"
                   sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, 96px"
+                  quality={60}
+                  placeholder="blur"
+                  blurDataURL={BLUR_DATA_URL}
                 />
               </div>
             )}

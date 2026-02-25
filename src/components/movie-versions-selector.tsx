@@ -5,6 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Play } from "lucide-react";
 import { getImageUrl } from "@/lib/api";
+
+const BLUR_DATA_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjE1IiBmaWxsPSIjMWExYTJlIi8+PC9zdmc+";
 import { analytics } from "@/lib/analytics";
 
 interface Episode {
@@ -139,6 +141,9 @@ export function MovieVersionsSelector({
                     fill
                     className="object-cover"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 600px"
+                    quality={70}
+                    placeholder="blur"
+                    blurDataURL={BLUR_DATA_URL}
                   />
                   <div className={`absolute inset-0 ${gradientClass}`} />
                 </div>

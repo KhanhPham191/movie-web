@@ -157,7 +157,7 @@ interface PhimAPIDetailResponse {
 }
 
 // Helper to normalize image URL from PhimAPI
-function normalizePhimAPIImageUrl(url: string, useWebP: boolean = true): string {
+function normalizePhimAPIImageUrl(url: string, useWebP: boolean = false): string {
   if (!url) return "";
   let normalizedUrl: string;
   
@@ -983,7 +983,7 @@ export function convertImageToWebP(imageUrl: string): string {
 }
 
 // Helper to get full image URL (defensive against non-string values)
-export function getImageUrl(path: unknown, useWebP: boolean = true): string {
+export function getImageUrl(path: unknown, useWebP: boolean = false): string {
   // Fallback to existing logo in /public when path không hợp lệ
   if (typeof path !== "string" || !path) return "/logo.svg";
   
