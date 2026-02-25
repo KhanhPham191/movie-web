@@ -157,7 +157,7 @@ interface PhimAPIDetailResponse {
 }
 
 // Helper to normalize image URL from PhimAPI
-function normalizePhimAPIImageUrl(url: string, useWebP: boolean = false): string {
+function normalizePhimAPIImageUrl(url: string, useWebP: boolean = true): string {
   if (!url) return "";
   let normalizedUrl: string;
   
@@ -249,7 +249,7 @@ async function fetchPhimAPI<T>(endpoint: string): Promise<T> {
   
   const fetchPromise = (async () => {
     try {
-      const timeoutMs = 10000;
+      const timeoutMs = 30000;
       const headers = isBrowser
         ? { Accept: "application/json", "Accept-Language": "vi,en;q=0.9" }
         : DEFAULT_FETCH_HEADERS;
@@ -983,7 +983,7 @@ export function convertImageToWebP(imageUrl: string): string {
 }
 
 // Helper to get full image URL (defensive against non-string values)
-export function getImageUrl(path: unknown, useWebP: boolean = false): string {
+export function getImageUrl(path: unknown, useWebP: boolean = true): string {
   // Fallback to existing logo in /public when path không hợp lệ
   if (typeof path !== "string" || !path) return "/logo.svg";
   

@@ -8,8 +8,6 @@ import { useAuth, AUTH_DISABLED } from "@/contexts/auth-context";
 import { Footer } from "@/components/footer";
 import { getFavorites, removeFromFavorites, type Favorite } from "@/lib/supabase/movies";
 import { getImageUrl } from "@/lib/api";
-
-const BLUR_DATA_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjE1IiBmaWxsPSIjMWExYTJlIi8+PC9zdmc+";
 import { Button } from "@/components/ui/button";
 import { Heart, Trash2 } from "lucide-react";
 
@@ -108,9 +106,6 @@ export default function FavoritesPage() {
                       fill
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                       className="object-cover transition-transform duration-300 group-hover:scale-110"
-                      quality={70}
-                      placeholder="blur"
-                      blurDataURL={BLUR_DATA_URL}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>

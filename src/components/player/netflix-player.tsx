@@ -970,7 +970,7 @@ export function NetflixPlayer({
 
   // Handle vertical swipe gestures for brightness and volume (Netflix-style) - Mobile only
   const handleTouchStartGesture = (e: React.TouchEvent) => {
-    if (!isMobile || !isFullscreen) return;
+    if (!isMobile) return;
     
     // Don't interfere with controls or progress bar
     const target = e.target as HTMLElement;
@@ -1004,7 +1004,7 @@ export function NetflixPlayer({
   };
 
   const handleTouchMoveGesture = (e: React.TouchEvent) => {
-    if (!isMobile || !isFullscreen) return;
+    if (!isMobile) return;
     
     // Nếu đang long press, không xử lý gesture vuốt
     if (isLongPressActiveRef.current) {
@@ -1134,7 +1134,7 @@ export function NetflixPlayer({
   };
 
   const handleTouchEndGesture = (e: React.TouchEvent) => {
-    if (!isMobile || !isFullscreen) return;
+    if (!isMobile) return;
     
     // Nếu đang có gesture active (brightness/volume), prevent default để tránh scroll
     const wasGestureActive = gestureModeRef.current === 'brightness' || gestureModeRef.current === 'volume';

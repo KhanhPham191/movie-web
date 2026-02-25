@@ -291,7 +291,7 @@ export function MovieSectionWithNav({
           // Tăng padding-top cho newRelease để tránh clipping khi card nghiêng nhiều hơn
           className={`flex items-start justify-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-6 sm:pb-8 ${variant === "newRelease" ? "pt-6 sm:pt-8" : "pt-1"} select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
-          {movies.slice(0, 12).map((movie, index) => (
+          {movies.slice(0, 20).map((movie, index) => (
             <div
               key={`${movie.slug}-${index}`}
               className={`shrink-0 flex flex-col ${

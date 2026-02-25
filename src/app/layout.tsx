@@ -161,11 +161,6 @@ export default function RootLayout({
   return (
     <html lang="vi" suppressHydrationWarning>
       <head>
-        {/* Preconnect tới CDN ảnh → giảm DNS + TLS latency cho lần load đầu */}
-        <link rel="preconnect" href="https://phimimg.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://img.ophim.live" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://phimapi.com" />
-        <link rel="dns-prefetch" href="https://image.tmdb.org" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteStructuredData) }}

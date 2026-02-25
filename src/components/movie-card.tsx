@@ -12,9 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import type { FilmItem } from "@/lib/api";
 import { getImageUrl } from "@/lib/api";
 import { isValidTime } from "@/lib/utils";
-
-// Tiny shimmer SVG placeholder — hiện blur mờ trong lúc ảnh đang tải
-const BLUR_DATA_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjE1IiBmaWxsPSIjMWExYTJlIi8+PC9zdmc+";
 import { analytics } from "@/lib/analytics";
 
 interface MovieCardProps {
@@ -553,9 +550,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               className="object-cover object-center transition-transform duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03]"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               loading="lazy"
-              quality={70}
-              placeholder="blur"
-              blurDataURL={BLUR_DATA_URL}
             />
             
             {/* Rank Badge - Top Left Corner */}
@@ -633,9 +627,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               className="object-cover object-center transition-transform duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03]"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               loading="lazy"
-              quality={70}
-              placeholder="blur"
-              blurDataURL={BLUR_DATA_URL}
             />
             {/* Language Badges - Bottom Left Corner */}
             <LanguageBadges language={movie.language} />
@@ -734,9 +725,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               className="object-cover object-center transition-transform duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03]"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               loading="lazy"
-              quality={70}
-              placeholder="blur"
-              blurDataURL={BLUR_DATA_URL}
             />
               {/* Language Badges - Bottom Left Corner */}
               <LanguageBadges language={movie.language} />
@@ -825,11 +813,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               alt={movie.name}
               fill
               className="object-cover object-center transition-transform duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03]"
-              sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 15vw"
+              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               loading="lazy"
-              quality={70}
-              placeholder="blur"
-              blurDataURL={BLUR_DATA_URL}
             />
             {/* Language Badges - Bottom Left Corner */}
             <LanguageBadges language={movie.language} />
@@ -911,11 +896,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               alt={movie.name}
               fill
               className="object-cover object-center"
-              sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               loading="lazy"
-              quality={70}
-              placeholder="blur"
-              blurDataURL={BLUR_DATA_URL}
             />
 
             {/* Language Badges - Bottom Left Corner */}
@@ -948,9 +930,6 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                   className="object-cover object-center"
                   sizes="56px"
                   loading="lazy"
-                  quality={60}
-                  placeholder="blur"
-                  blurDataURL={BLUR_DATA_URL}
                 />
               </div>
 
@@ -1042,11 +1021,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               alt={movie.name}
               fill
               className="object-cover object-center"
-              sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 15vw"
+              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               loading="lazy"
-              quality={70}
-              placeholder="blur"
-              blurDataURL={BLUR_DATA_URL}
             />
 
             {/* Language Badges - Top Right Corner */}

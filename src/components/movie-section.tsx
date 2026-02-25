@@ -7,9 +7,6 @@ import { ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { MovieCard } from "@/components/movie-card";
 import { getImageUrl } from "@/lib/api";
-
-// Tiny blur placeholder
-const BLUR_DATA_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjE1IiBmaWxsPSIjMWExYTJlIi8+PC9zdmc+";
 import type { FilmItem } from "@/lib/api";
 import { isValidTime } from "@/lib/utils";
 
@@ -390,9 +387,6 @@ function CinemaCard({ movie }: { movie: FilmItem }) {
             className="object-cover"
             sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 25vw"
             loading="lazy"
-            quality={70}
-            placeholder="blur"
-            blurDataURL={BLUR_DATA_URL}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/25 to-[#0b0b0f] opacity-70" />
           {/* Language Badges - Bottom Left Corner */}
@@ -409,7 +403,7 @@ function CinemaCard({ movie }: { movie: FilmItem }) {
         <div className="relative -mt-12 rounded-t-2xl bg-[#0f111a] px-3 pb-3 pt-4 shadow-[0_-10px_30px_rgba(0,0,0,0.55)]">
           <div className="flex items-start gap-3">
             <div className="relative aspect-[2/3] w-14 overflow-hidden rounded-lg border border-white/10 bg-black/60 shadow-lg shadow-black/60">
-              <Image src={posterImage} alt={movie.name} fill className="object-cover" sizes="64px" loading="lazy" quality={60} placeholder="blur" blurDataURL={BLUR_DATA_URL} />
+              <Image src={posterImage} alt={movie.name} fill className="object-cover" sizes="64px" loading="lazy" />
             </div>
 
             <div className="flex-1 min-w-0">

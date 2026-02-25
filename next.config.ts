@@ -2,8 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    // Next.js Image Optimization: tự động resize, convert WebP/AVIF, cache
-    // Poster 1500px gốc → chỉ serve 200-400px tùy viewport → giảm 80-90% dung lượng
+    // Tắt image optimization toàn cục → trình duyệt load trực tiếp từ URL API
+    // Tránh Next.js tải ảnh về server resize/convert/cache → tiết kiệm bộ nhớ server
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
@@ -42,13 +43,6 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
-    // Ưu tiên AVIF (nhỏ hơn ~20% so với WebP), fallback WebP
-    formats: ["image/avif", "image/webp"],
-    // Kích thước ảnh phù hợp với layout thực tế (poster card, hero, thumbnail)
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
-    imageSizes: [64, 96, 128, 256, 384],
-    // Cache ảnh đã optimize 30 ngày (giảm re-process)
-    minimumCacheTTL: 2592000,
     dangerouslyAllowSVG: true,
   },
 };
