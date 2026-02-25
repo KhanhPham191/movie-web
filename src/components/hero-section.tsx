@@ -141,30 +141,39 @@ export function HeroSection({ movies }: HeroSectionProps) {
           }
         }
       `}</style>
-      {/* Background Images */}
+      {/* Background Images - Only render current + adjacent slides */}
       <div className="absolute inset-0">
-        {featuredMovies.map((m, index) => (
-          <div
-            key={`${m.slug}-${m.id || index}`}
-            className={`absolute inset-0 transition-opacity duration-300 sm:duration-700 ${
-              index === currentIndex ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            <Image
-              src={getImageUrl(m.thumb_url)}
-              alt={m.name}
-              fill
-              className="object-cover object-center"
-              priority={index === 0}
-              loading={index === 0 ? undefined : "lazy"}
-              sizes="100vw"
-              quality={75}
-              placeholder="blur"
-              blurDataURL={BLUR_DATA_URL}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
-            />
-          </div>
-        ))}
+        {featuredMovies.map((m, index) => {
+          // Only mount current slide, previous, and next (wrap around)
+          const total = featuredMovies.length;
+          const prev = (currentIndex - 1 + total) % total;
+          const next = (currentIndex + 1) % total;
+          const shouldMount = index === currentIndex || index === prev || index === next;
+          if (!shouldMount) return null;
+
+          return (
+            <div
+              key={`${m.slug}-${m.id || index}`}
+              className={`absolute inset-0 transition-opacity duration-300 sm:duration-700 ${
+                index === currentIndex ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              <Image
+                src={getImageUrl(m.thumb_url)}
+                alt={m.name}
+                fill
+                className="object-cover object-center"
+                priority={index === currentIndex && currentIndex === 0}
+                loading={index === currentIndex && currentIndex === 0 ? undefined : "lazy"}
+                sizes="100vw"
+                quality={75}
+                placeholder="blur"
+                blurDataURL={BLUR_DATA_URL}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+              />
+            </div>
+          );
+        })}
         
         {/* Premium Vignette & Gradients */}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(13,13,13,0.1)_0%,rgba(13,13,13,0)_25%,rgba(13,13,13,0)_50%,rgba(13,13,13,0.7)_80%,rgba(13,13,13,0.98)_100%)]" />

@@ -14,6 +14,7 @@ import { ThaiLanSection } from "@/components/home-sections/thai-lan";
 import { HongKongSection } from "@/components/home-sections/hong-kong";
 import { TopicTags, DEFAULT_TOPIC_TAGS } from "@/components/topic-tags";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { LazySection } from "@/components/lazy-section";
 import { generateWebsiteStructuredData, generateOrganizationStructuredData } from "@/lib/structured-data";
 
 // ISR: Revalidate every 5 minutes để giảm số lần gọi API
@@ -175,64 +176,76 @@ export default async function Home() {
               </div>
             </ScrollReveal>
 
-            {/* Top 10 phim bộ - Premium Section */}
-            <ScrollReveal variant="fade-up" duration={700}>
-              <div className="-mt-1 sm:-mt-2 rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
-                <div className="relative">
-                  <div className="absolute -inset-4 bg-gradient-to-l from-[#D3A13A]/5 via-transparent to-[#F6C453]/5 rounded-3xl blur-2xl opacity-50" />
+            {/* Top 10 phim bộ - Lazy mounted */}
+            <LazySection minHeight="320px" fallback={<MovieSectionSkeleton />}>
+              <ScrollReveal variant="fade-up" duration={700}>
+                <div className="-mt-1 sm:-mt-2 rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
                   <div className="relative">
-                    <Suspense fallback={<MovieSectionSkeleton />}>
-                      <Top10PhimBo />
-                    </Suspense>
+                    <div className="absolute -inset-4 bg-gradient-to-l from-[#D3A13A]/5 via-transparent to-[#F6C453]/5 rounded-3xl blur-2xl opacity-50" />
+                    <div className="relative">
+                      <Suspense fallback={<MovieSectionSkeleton />}>
+                        <Top10PhimBo />
+                      </Suspense>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </ScrollReveal>
+              </ScrollReveal>
+            </LazySection>
 
-            {/* Korean Dramas */}
-            <ScrollReveal variant="fade-up" duration={700}>
-              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
-                <Suspense fallback={<MovieSectionSkeleton />}>
-                  <HanQuocSection />
-                </Suspense>
-              </div>
-            </ScrollReveal>
+            {/* Korean Dramas - Lazy mounted */}
+            <LazySection minHeight="320px" fallback={<MovieSectionSkeleton />}>
+              <ScrollReveal variant="fade-up" duration={700}>
+                <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
+                  <Suspense fallback={<MovieSectionSkeleton />}>
+                    <HanQuocSection />
+                  </Suspense>
+                </div>
+              </ScrollReveal>
+            </LazySection>
 
-            {/* Chinese Dramas */}
-            <ScrollReveal variant="fade-up" duration={700}>
-              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
-                <Suspense fallback={<MovieSectionSkeleton />}>
-                  <TrungQuocSection />
-                </Suspense>
-              </div>
-            </ScrollReveal>
+            {/* Chinese Dramas - Lazy mounted */}
+            <LazySection minHeight="320px" fallback={<MovieSectionSkeleton />}>
+              <ScrollReveal variant="fade-up" duration={700}>
+                <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
+                  <Suspense fallback={<MovieSectionSkeleton />}>
+                    <TrungQuocSection />
+                  </Suspense>
+                </div>
+              </ScrollReveal>
+            </LazySection>
 
-            {/* Anime */}
-            <ScrollReveal variant="fade-up" duration={700}>
-              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
-                <Suspense fallback={<MovieSectionSkeleton />}>
-                  <AnimeSection />
-                </Suspense>
-              </div>
-            </ScrollReveal>
+            {/* Anime - Lazy mounted */}
+            <LazySection minHeight="320px" fallback={<MovieSectionSkeleton />}>
+              <ScrollReveal variant="fade-up" duration={700}>
+                <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
+                  <Suspense fallback={<MovieSectionSkeleton />}>
+                    <AnimeSection />
+                  </Suspense>
+                </div>
+              </ScrollReveal>
+            </LazySection>
 
-            {/* Thai Movies */}
-            <ScrollReveal variant="fade-up" duration={700}>
-              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
-                <Suspense fallback={<MovieSectionSkeleton />}>
-                  <ThaiLanSection />
-                </Suspense>
-              </div>
-            </ScrollReveal>
+            {/* Thai Movies - Lazy mounted */}
+            <LazySection minHeight="320px" fallback={<MovieSectionSkeleton />}>
+              <ScrollReveal variant="fade-up" duration={700}>
+                <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
+                  <Suspense fallback={<MovieSectionSkeleton />}>
+                    <ThaiLanSection />
+                  </Suspense>
+                </div>
+              </ScrollReveal>
+            </LazySection>
 
-            {/* Hong Kong Movies */}
-            <ScrollReveal variant="fade-up" duration={700}>
-              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
-                <Suspense fallback={<MovieSectionSkeleton />}>
-                  <HongKongSection />
-                </Suspense>
-              </div>
-            </ScrollReveal>
+            {/* Hong Kong Movies - Lazy mounted */}
+            <LazySection minHeight="320px" fallback={<MovieSectionSkeleton />}>
+              <ScrollReveal variant="fade-up" duration={700}>
+                <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
+                  <Suspense fallback={<MovieSectionSkeleton />}>
+                    <HongKongSection />
+                  </Suspense>
+                </div>
+              </ScrollReveal>
+            </LazySection>
 
           </div>
         </div>

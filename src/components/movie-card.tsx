@@ -825,8 +825,11 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               alt={movie.name}
               fill
               className="object-cover object-center transition-transform duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03]"
-              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+              sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 15vw"
               loading="lazy"
+              quality={70}
+              placeholder="blur"
+              blurDataURL={BLUR_DATA_URL}
             />
             {/* Language Badges - Bottom Left Corner */}
             <LanguageBadges language={movie.language} />
@@ -908,8 +911,11 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               alt={movie.name}
               fill
               className="object-cover object-center"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
               loading="lazy"
+              quality={70}
+              placeholder="blur"
+              blurDataURL={BLUR_DATA_URL}
             />
 
             {/* Language Badges - Bottom Left Corner */}
@@ -942,6 +948,9 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                   className="object-cover object-center"
                   sizes="56px"
                   loading="lazy"
+                  quality={60}
+                  placeholder="blur"
+                  blurDataURL={BLUR_DATA_URL}
                 />
               </div>
 
@@ -1033,8 +1042,11 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               alt={movie.name}
               fill
               className="object-cover object-center"
-              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+              sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 15vw"
               loading="lazy"
+              quality={70}
+              placeholder="blur"
+              blurDataURL={BLUR_DATA_URL}
             />
 
             {/* Language Badges - Top Right Corner */}
