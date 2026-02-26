@@ -369,14 +369,9 @@ export const analytics = {
     });
   },
 
-  trackWatchFilmPause: (movieName: string, movieSlug: string, episodeSlug: string, currentTime?: number) => {
-    trackEvent('wflim_pause', {
-      event_category: 'video',
-      event_label: movieName,
-      movie_slug: movieSlug,
-      episode_slug: episodeSlug,
-      current_time: currentTime,
-    });
+  // Disabled: không cần ghi nhận event wflim_pause
+  trackWatchFilmPause: (_movieName: string, _movieSlug: string, _episodeSlug: string, _currentTime?: number) => {
+    // no-op
   },
 
   trackWatchFilmSeek: (movieName: string, movieSlug: string, episodeSlug: string, fromTime: number, toTime: number) => {
@@ -412,16 +407,9 @@ export const analytics = {
     });
   },
 
-  trackWatchFilmSkip: (movieName: string, movieSlug: string, episodeSlug: string, seconds: number, currentTime: number) => {
-    trackEvent('wflim_skip', {
-      event_category: 'video',
-      event_label: movieName,
-      movie_slug: movieSlug,
-      episode_slug: episodeSlug,
-      skip_seconds: seconds,
-      current_time: currentTime,
-      direction: seconds > 0 ? 'forward' : 'backward',
-    });
+  // Disabled: không cần ghi nhận event wflim_skip
+  trackWatchFilmSkip: (_movieName: string, _movieSlug: string, _episodeSlug: string, _seconds: number, _currentTime: number) => {
+    // no-op
   },
 
   trackWatchFilmPlaybackRate: (movieName: string, movieSlug: string, episodeSlug: string, playbackRate: number) => {

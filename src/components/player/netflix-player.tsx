@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { useVideoProgressOptional } from "@/contexts/video-progress-context";
+import { createAdFreeLoader, isAdUrl, blockPageAds } from "@/lib/ad-blocker";
 
 interface NetflixPlayerProps {
   src: string;
@@ -312,10 +313,10 @@ export function NetflixPlayer({
       updateProgress?.(time, video.duration);
       onTimeUpdate?.(time, video.duration);
       
-      // Show next episode button when near end (remaining <= 60s or 95% watched)
+      // Show next episode button when near end (remaining <= 90s or 15% of duration)
       if (nextEpisodeUrl && video.duration > 0) {
         const remaining = video.duration - time;
-        const threshold = Math.min(60, video.duration * 0.05); // 60s or 5% of duration
+        const threshold = Math.min(90, video.duration * 0.15); // 90s or 15% of duration
         setShowNextEpisode(remaining <= threshold && remaining > 0);
       }
     };
@@ -432,7 +433,12 @@ export function NetflixPlayer({
 
 
 
-  // HLS setup
+  // Block page ads (popup, iframe, overlay)
+  useEffect(() => {
+    blockPageAds();
+  }, []);
+
+  // HLS setup with ad-free loader
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !src) return;
@@ -440,9 +446,23 @@ export function NetflixPlayer({
     let hls: Hls | null = null;
 
     if (Hls.isSupported()) {
+      // Dùng custom loader để lọc M3U8 manifest trước khi Hls.js parse
+      const AdFreeLoaderClass = createAdFreeLoader(Hls);
       hls = new Hls({
         enableWorker: true,
         backBufferLength: 90,
+        loader: AdFreeLoaderClass as unknown as typeof Hls.DefaultConfig.loader,
+      });
+
+      // Skip ad fragments nếu vẫn lọt qua
+      hls.on(Hls.Events.FRAG_LOADING, (_event: string, data: { frag: { url: string; start: number; duration: number } }) => {
+        const fragUrl = data.frag?.url || '';
+        if (isAdUrl(fragUrl)) {
+          console.log('🚫 [AdBlock] Skipping ad fragment:', fragUrl.substring(0, 80));
+          if (video && data.frag) {
+            video.currentTime = data.frag.start + data.frag.duration;
+          }
+        }
       });
 
       hls.loadSource(src);
