@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { useVideoProgressOptional } from "@/contexts/video-progress-context";
-import { createAdFreeLoader, isAdUrl, blockPageAds } from "@/lib/ad-blocker";
 
 interface NetflixPlayerProps {
   src: string;
@@ -433,12 +432,7 @@ export function NetflixPlayer({
 
 
 
-  // Block page ads (popup, iframe, overlay)
-  useEffect(() => {
-    blockPageAds();
-  }, []);
-
-  // HLS setup with ad-free loader
+  // HLS setup
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !src) return;
@@ -446,23 +440,9 @@ export function NetflixPlayer({
     let hls: Hls | null = null;
 
     if (Hls.isSupported()) {
-      // Dùng custom loader để lọc M3U8 manifest trước khi Hls.js parse
-      const AdFreeLoaderClass = createAdFreeLoader(Hls);
       hls = new Hls({
         enableWorker: true,
         backBufferLength: 90,
-        loader: AdFreeLoaderClass as unknown as typeof Hls.DefaultConfig.loader,
-      });
-
-      // Skip ad fragments nếu vẫn lọt qua
-      hls.on(Hls.Events.FRAG_LOADING, (_event: string, data: { frag: { url: string; start: number; duration: number } }) => {
-        const fragUrl = data.frag?.url || '';
-        if (isAdUrl(fragUrl)) {
-          console.log('🚫 [AdBlock] Skipping ad fragment:', fragUrl.substring(0, 80));
-          if (video && data.frag) {
-            video.currentTime = data.frag.start + data.frag.duration;
-          }
-        }
       });
 
       hls.loadSource(src);
