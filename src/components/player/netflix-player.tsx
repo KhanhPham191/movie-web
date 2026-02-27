@@ -18,6 +18,16 @@ import {
 } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { useVideoProgressOptional } from "@/contexts/video-progress-context";
+import {
+  createAdBlockingLoader,
+  setupFragmentAdDetection,
+  resetAdBlocker,
+  checkAdAtTime,
+  getAdRanges,
+  onAdRangesUpdate,
+  type AdSegmentRange,
+  type AdDetectionState,
+} from "@/lib/hls-ad-blocker";
 
 interface NetflixPlayerProps {
   src: string;
@@ -94,6 +104,12 @@ export function NetflixPlayer({
   const accumulatedSkipSecondsRef = useRef<number>(0);
   const lastSkipDirectionRef = useRef<'forward' | 'backward' | null>(null);
   const lastSkipTimeRef = useRef<number>(0);
+
+  // Ad blocker state
+  const [adState, setAdState] = useState<AdDetectionState | null>(null);
+  const [adRanges, setAdRanges] = useState<AdSegmentRange[]>([]);
+  const adAutoSkipRef = useRef(true); // auto-skip ads by default
+  const hlsInstanceRef = useRef<Hls | null>(null);
 
   // Long press state for 1.75x speed
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -432,17 +448,51 @@ export function NetflixPlayer({
 
 
 
-  // HLS setup
+  // HLS setup with ad blocker
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !src) return;
 
+    // Reset ad blocker state when source changes
+    resetAdBlocker();
+    setAdState(null);
+    setAdRanges([]);
+
     let hls: Hls | null = null;
+    let fragCleanup: (() => void) | null = null;
+    let adRangesCleanup: (() => void) | null = null;
 
     if (Hls.isSupported()) {
+      // Create HLS instance with ad-blocking loader
+      const AdBlockLoader = createAdBlockingLoader(Hls);
       hls = new Hls({
         enableWorker: true,
         backBufferLength: 90,
+        loader: AdBlockLoader,
+      });
+      hlsInstanceRef.current = hls;
+
+      // Listen for ad range updates from playlist filtering
+      adRangesCleanup = onAdRangesUpdate((ranges) => {
+        setAdRanges(ranges);
+        console.log('[AdBlocker] Updated ad ranges:', ranges);
+      });
+
+      // Setup fragment-level ad detection
+      fragCleanup = setupFragmentAdDetection(hls, video, {
+        onAdDetected: (state) => {
+          console.log('[AdBlocker] Ad detected at fragment level:', state);
+          setAdState(state);
+          // Auto-skip if enabled
+          if (adAutoSkipRef.current && state.skipToTime > 0) {
+            console.log('[AdBlocker] Auto-skipping ad to:', state.skipToTime);
+            video.currentTime = state.skipToTime;
+            setAdState(null);
+          }
+        },
+        onAdEnded: () => {
+          setAdState(null);
+        },
       });
 
       hls.loadSource(src);
@@ -452,11 +502,39 @@ export function NetflixPlayer({
     }
 
     return () => {
+      fragCleanup?.();
+      adRangesCleanup?.();
+      hlsInstanceRef.current = null;
       if (hls) {
         hls.destroy();
       }
     };
   }, [src]);
+
+  // Monitor playback time for known ad ranges and auto-skip
+  useEffect(() => {
+    if (adRanges.length === 0) return;
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleTimeCheck = () => {
+      const state = checkAdAtTime(video.currentTime, adRanges);
+      if (state) {
+        setAdState(state);
+        if (adAutoSkipRef.current && state.skipToTime > 0) {
+          console.log('[AdBlocker] Time-based auto-skip to:', state.skipToTime);
+          video.currentTime = state.skipToTime;
+          setAdState(null);
+        }
+      } else if (adState?.isAdPlaying) {
+        setAdState(null);
+      }
+    };
+
+    video.addEventListener('timeupdate', handleTimeCheck);
+    return () => video.removeEventListener('timeupdate', handleTimeCheck);
+  }, [adRanges, adState]);
 
   // Update playback rate
   useEffect(() => {
@@ -1683,6 +1761,23 @@ export function NetflixPlayer({
                 }`}
                 style={{ width: `${bufferedPercent}%` }}
               />
+              {/* Ad range indicators on progress bar */}
+              {duration > 0 && adRanges.map((range, idx) => {
+                const leftPercent = (range.start / duration) * 100;
+                const widthPercent = ((range.end - range.start) / duration) * 100;
+                return (
+                  <div
+                    key={`ad-range-${idx}`}
+                    className={`absolute inset-y-0 rounded-full bg-yellow-500/70 z-[1] ${
+                      isMobile
+                        ? (isDragging ? 'h-[10px]' : 'h-[5px]')
+                        : (isHoveringProgress || isDragging ? 'h-[5px]' : 'h-[3px]')
+                    }`}
+                    style={{ left: `${leftPercent}%`, width: `${Math.max(widthPercent, 0.5)}%` }}
+                    title={`Quảng cáo (${Math.round(range.end - range.start)}s)`}
+                  />
+                );
+              })}
               {/* Current progress */}
               <div
                 className={`absolute inset-y-0 left-0 rounded-full bg-[#F6C453] transition-all ${
@@ -2008,6 +2103,36 @@ export function NetflixPlayer({
         </div>
       )}
 
+
+      {/* Ad Detected Overlay - Skip Ad Button */}
+      {adState?.isAdPlaying && (
+        <div 
+          className="absolute top-4 right-4 z-[95] pointer-events-auto animate-fade-in"
+          style={{
+            animation: 'skipIndicatorFadeIn 0.3s ease-out',
+          }}
+        >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const video = videoRef.current;
+              if (video && adState.skipToTime > 0) {
+                video.currentTime = adState.skipToTime;
+                setAdState(null);
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#F6C453] hover:bg-[#F6C453]/90 text-black rounded-lg shadow-[0_4px_24px_rgba(246,196,83,0.4)] hover:shadow-[0_8px_32px_rgba(246,196,83,0.5)] transition-all duration-200 hover:scale-[1.03] active:scale-95"
+          >
+            <SkipForward className="w-4 h-4" strokeWidth={2.5} />
+            <span className="text-sm font-bold">
+              Bỏ qua QC {adState.remainingSeconds > 0 && `(${adState.remainingSeconds}s)`}
+            </span>
+          </button>
+        </div>
+      )}
+
+      {/* Ad ranges indicator on progress bar - shows ad segments in red */}
+      {/* This is rendered inside the progress bar section via adRanges state */}
 
       {/* Next Episode Button - shows when near end of video for series */}
       {showNextEpisode && nextEpisodeUrl && (
