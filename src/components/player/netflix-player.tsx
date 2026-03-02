@@ -883,9 +883,12 @@ export function NetflixPlayer({
       return;
     }
     
-    // Khi đang xử lý long press, luôn chặn scroll/trình duyệt
-    e.preventDefault();
-    e.stopPropagation();
+    // Only block scrolling when long press is active or in fullscreen
+    // In normal mode, allow page scrolling
+    if (isLongPressActiveRef.current || isFullscreen) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
 
     // Don't start long press if gesture mode is already active (brightness/volume)
     if (gestureModeRef.current === 'brightness' || gestureModeRef.current === 'volume') {
@@ -986,13 +989,17 @@ export function NetflixPlayer({
     // Kiểm tra xem có đang gesture không (brightness/volume)
     const isGestureActive = gestureModeRef.current === 'brightness' || gestureModeRef.current === 'volume';
     
-    // Nếu đã long press hoặc đã di chuyển nhiều hoặc đang gesture, KHÔNG hiển thị controls
-    if (isLongPressActiveRef.current || moveDistance > moveThreshold || isGestureActive) {
+    // Nếu đã long press hoặc đang gesture, KHÔNG hiển thị controls và chặn default
+    if (isLongPressActiveRef.current || isGestureActive) {
       e.preventDefault();
       e.stopPropagation();
-      // Đảm bảo controls không được hiển thị khi có long press hoặc gesture
-      if (isLongPressActiveRef.current || isGestureActive) {
-        setShowControls(false);
+      setShowControls(false);
+    }
+    // Nếu di chuyển nhiều nhưng không phải long press/gesture, chỉ chặn trong fullscreen
+    else if (moveDistance > moveThreshold) {
+      if (isFullscreen) {
+        e.preventDefault();
+        e.stopPropagation();
       }
     }
     // Nếu là tap đơn giản vào video (không phải controls, không phải long press, không phải gesture), check vị trí tap
