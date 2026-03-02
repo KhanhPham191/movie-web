@@ -59,6 +59,9 @@ export function NetflixPlayer({
   const lastControlsShowTimeRef = useRef<number>(0);
   const autoHideCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const showControlsRef = useRef(false);
+  const isSeekingRef = useRef(false);
+  const seekDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingSeekTimeRef = useRef<number | null>(null);
   
   // Get video progress context to share with WatchProgressTracker (optional)
   const videoProgressContext = useVideoProgressOptional();
@@ -161,6 +164,9 @@ export function NetflixPlayer({
   }, [isMobile, isFullscreen]);
 
   const showControlsWithTimeout = useCallback(() => {
+    // Don't show controls during active long press (1.75x speed)
+    if (isLongPressActiveRef.current) return;
+    
     // Show controls immediately
     setShowControls(true);
     lastControlsShowTimeRef.current = Date.now();
@@ -202,12 +208,15 @@ export function NetflixPlayer({
     if (!container) return;
 
     const handleMouseMove = () => {
+      // Skip synthetic mouse events on mobile to avoid controls appearing during long press or gestures
+      if (isMobile) return;
       if (showControlsWithTimeoutRef.current) {
         showControlsWithTimeoutRef.current();
       }
     };
 
     const handleMouseLeave = () => {
+      if (isMobile) return;
       setIsHovering(false);
       isHoveringRef.current = false;
       // Hide with delay when leaving if playing
@@ -219,6 +228,7 @@ export function NetflixPlayer({
     };
 
     const handleMouseEnter = () => {
+      if (isMobile) return;
       setIsHovering(true);
       isHoveringRef.current = true;
       // Show immediately when entering
@@ -302,6 +312,8 @@ export function NetflixPlayer({
       }
     };
     const handleTimeUpdate = () => {
+      // Skip timeupdate during active seeking to prevent progress bar jitter
+      if (isSeekingRef.current) return;
       const time = video.currentTime;
       setCurrentTime(time);
       if (video.buffered.length > 0 && video.duration > 0) {
@@ -346,6 +358,20 @@ export function NetflixPlayer({
       // Also try to seek when video can play (in case metadata loaded before this)
       handleSeekToTimestamp();
     };
+    const handleSeeking = () => {
+      isSeekingRef.current = true;
+    };
+    const handleSeeked = () => {
+      isSeekingRef.current = false;
+      // Sync state with actual video time after seek completes
+      setCurrentTime(video.currentTime);
+      if (video.buffered.length > 0 && video.duration > 0) {
+        const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+        setBuffered(bufferedEnd);
+      }
+      updateProgress?.(video.currentTime, video.duration);
+      onTimeUpdate?.(video.currentTime, video.duration);
+    };
     const handleProgress = () => {
       if (video.buffered.length > 0 && video.duration > 0) {
         const bufferedEnd = video.buffered.end(video.buffered.length - 1);
@@ -364,6 +390,8 @@ export function NetflixPlayer({
     video.addEventListener("canplay", handleCanPlay);
     video.addEventListener("progress", handleProgress);
     video.addEventListener("volumechange", handleVolumeChange);
+    video.addEventListener("seeking", handleSeeking);
+    video.addEventListener("seeked", handleSeeked);
 
     return () => {
       video.removeEventListener("play", handlePlay);
@@ -373,6 +401,8 @@ export function NetflixPlayer({
       video.removeEventListener("canplay", handleCanPlay);
       video.removeEventListener("progress", handleProgress);
       video.removeEventListener("volumechange", handleVolumeChange);
+      video.removeEventListener("seeking", handleSeeking);
+      video.removeEventListener("seeked", handleSeeked);
     };
   }, [onTimeUpdate, searchParams, movieName, movieSlug, episodeSlug, updateProgress]);
 
@@ -443,6 +473,10 @@ export function NetflixPlayer({
       hls = new Hls({
         enableWorker: true,
         backBufferLength: 90,
+        maxBufferHole: 0.3,
+        nudgeMaxRetry: 5,
+        nudgeOffset: 0.2,
+        maxFragLookUpTolerance: 0.25,
       });
 
       hls.loadSource(src);
@@ -501,6 +535,9 @@ export function NetflixPlayer({
       }
       if (skipIndicatorTimeoutRef.current) {
         clearTimeout(skipIndicatorTimeoutRef.current);
+      }
+      if (seekDebounceRef.current) {
+        clearTimeout(seekDebounceRef.current);
       }
     };
   }, []);
@@ -616,6 +653,8 @@ export function NetflixPlayer({
     if (!video) return;
     const currentTime = video.currentTime;
     const newTime = Math.max(0, Math.min(video.duration, currentTime + seconds));
+    // Update UI immediately for responsive feel
+    setCurrentTime(newTime);
     video.currentTime = newTime;
     
     // Show skip indicator animation with accumulated seconds
@@ -656,7 +695,16 @@ export function NetflixPlayer({
     if (movieName && movieSlug && episodeSlug) {
       analytics.trackWatchFilmSkip(movieName, movieSlug, episodeSlug, seconds, currentTime);
     }
-    showControlsWithTimeout();
+    // Hide controls bar when skipping during playback — only the skip indicator is shown
+    const video2 = videoRef.current;
+    if (video2 && !video2.paused) {
+      // Clear any pending show-controls timeout
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current);
+        controlsTimeoutRef.current = null;
+      }
+      setShowControls(false);
+    }
   };
 
   // Keyboard controls: ArrowLeft / ArrowRight skip 10s
@@ -669,10 +717,10 @@ export function NetflixPlayer({
 
       if (e.key === "ArrowLeft") {
         e.preventDefault();
-        handleSkip(-10);
+        handleSkip(-10, true);
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        handleSkip(10);
+        handleSkip(10, true);
       }
     };
 
@@ -778,12 +826,13 @@ export function NetflixPlayer({
   const handleLongPressTouchStart = (e: React.TouchEvent) => {
     if (!isMobile) return;
     
-    // Don't trigger long press if touching controls
+    // Don't trigger long press if touching interactive controls
     const target = e.target as HTMLElement;
     if (target.closest('[data-settings-menu]') || 
         target.closest('button') || 
         target.closest('input') ||
-        target.closest('.pointer-events-auto')) {
+        target.closest('[class*="progress"]') ||
+        target.tagName === 'A') {
       return;
     }
     
@@ -824,12 +873,13 @@ export function NetflixPlayer({
   const handleLongPressTouchMove = (e: React.TouchEvent) => {
     if (!isMobile) return;
     
-    // Don't interfere if touching controls
+    // Don't interfere if touching interactive controls
     const target = e.target as HTMLElement;
     if (target.closest('[data-settings-menu]') || 
         target.closest('button') || 
         target.closest('input') ||
-        target.closest('.pointer-events-auto')) {
+        target.closest('[class*="progress"]') ||
+        target.tagName === 'A') {
       return;
     }
     
@@ -896,13 +946,13 @@ export function NetflixPlayer({
   const handleLongPressTouchEnd = (e: React.TouchEvent) => {
     if (!isMobile) return;
     
-    // Don't interfere if touching controls
+    // Don't interfere if touching interactive controls
     const target = e.target as HTMLElement;
     const isTouchingControls = target.closest('[data-settings-menu]') || 
         target.closest('button') || 
         target.closest('input') ||
-        target.closest('.pointer-events-auto') ||
-        target.closest('[class*="progress"]');
+        target.closest('[class*="progress"]') ||
+        target.tagName === 'A';
     
     // Nếu đang tap vào controls, không làm gì cả - để controls tự xử lý
     if (isTouchingControls) {
@@ -985,13 +1035,13 @@ export function NetflixPlayer({
   const handleTouchStartGesture = (e: React.TouchEvent) => {
     if (!isMobile) return;
     
-    // Don't interfere with controls or progress bar
+    // Don't interfere with interactive controls or progress bar
     const target = e.target as HTMLElement;
     if (target.closest('[data-settings-menu]') || 
         target.closest('button') || 
         target.closest('input') ||
-        target.closest('.pointer-events-auto') ||
-        target.closest('[class*="progress"]')) {
+        target.closest('[class*="progress"]') ||
+        target.tagName === 'A') {
       return;
     }
 
@@ -1195,16 +1245,16 @@ export function NetflixPlayer({
               aspectRatio: '16/9',
             })
       }}
-      onMouseMove={showControlsWithTimeout}
+      onMouseMove={() => { if (!isMobile) showControlsWithTimeout(); }}
       onTouchStart={(e) => {
         if (isMobile) {
-          // Don't interfere if touching controls
+          // Don't interfere if touching interactive controls
           const target = e.target as HTMLElement;
           if (target.closest('[data-settings-menu]') || 
               target.closest('button') || 
               target.closest('input') ||
-              target.closest('.pointer-events-auto') ||
-              target.closest('[class*="progress"]')) {
+              target.closest('[class*="progress"]') ||
+              target.tagName === 'A') {
             return; // Let controls handle their own events
           }
           
@@ -1221,13 +1271,13 @@ export function NetflixPlayer({
       }}
       onTouchMove={(e) => {
         if (isMobile) {
-          // Don't interfere if touching controls
+          // Don't interfere if touching interactive controls
           const target = e.target as HTMLElement;
           if (target.closest('[data-settings-menu]') || 
               target.closest('button') || 
               target.closest('input') ||
-              target.closest('.pointer-events-auto') ||
-              target.closest('[class*="progress"]')) {
+              target.closest('[class*="progress"]') ||
+              target.tagName === 'A') {
             return; // Let controls handle their own events
           }
           
@@ -1243,13 +1293,13 @@ export function NetflixPlayer({
       }}
       onTouchEnd={(e) => {
         if (isMobile) {
-          // Don't interfere if touching controls
+          // Don't interfere if touching interactive controls
           const target = e.target as HTMLElement;
           if (target.closest('[data-settings-menu]') || 
               target.closest('button') || 
               target.closest('input') ||
-              target.closest('.pointer-events-auto') ||
-              target.closest('[class*="progress"]')) {
+              target.closest('[class*="progress"]') ||
+              target.tagName === 'A') {
             return; // Let controls handle their own events
           }
           
@@ -1551,8 +1601,15 @@ export function NetflixPlayer({
                     const percent = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
                     const hoverTimeValue = percent * video.duration;
                     setHoverTime(hoverTimeValue);
-                    video.currentTime = hoverTimeValue;
                     setCurrentTime(hoverTimeValue);
+                    // Debounce actual video seek to avoid overwhelming HLS
+                    pendingSeekTimeRef.current = hoverTimeValue;
+                    if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
+                    seekDebounceRef.current = setTimeout(() => {
+                      if (pendingSeekTimeRef.current !== null && videoRef.current) {
+                        videoRef.current.currentTime = pendingSeekTimeRef.current;
+                      }
+                    }, 80);
                   }
                 }}
                 onTouchMove={(e) => {
@@ -1571,13 +1628,26 @@ export function NetflixPlayer({
                     const percent = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
                     const hoverTimeValue = percent * video.duration;
                     setHoverTime(hoverTimeValue);
-                    video.currentTime = hoverTimeValue;
                     setCurrentTime(hoverTimeValue);
+                    // Debounce actual video seek to avoid overwhelming HLS
+                    pendingSeekTimeRef.current = hoverTimeValue;
+                    if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
+                    seekDebounceRef.current = setTimeout(() => {
+                      if (pendingSeekTimeRef.current !== null && videoRef.current) {
+                        videoRef.current.currentTime = pendingSeekTimeRef.current;
+                      }
+                    }, 80);
                   }
                 }}
                 onTouchEnd={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  // Commit final seek position immediately
+                  if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
+                  if (pendingSeekTimeRef.current !== null && videoRef.current) {
+                    videoRef.current.currentTime = pendingSeekTimeRef.current;
+                    pendingSeekTimeRef.current = null;
+                  }
                   setIsDragging(false);
                   isDraggingRef.current = false;
                   setIsHoveringProgress(false);
@@ -1616,13 +1686,26 @@ export function NetflixPlayer({
                     const percent = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
                     const hoverTimeValue = percent * video.duration;
                     setHoverTime(hoverTimeValue);
-                    video.currentTime = hoverTimeValue;
                     setCurrentTime(hoverTimeValue);
+                    // Debounce actual video seek to avoid overwhelming HLS
+                    pendingSeekTimeRef.current = hoverTimeValue;
+                    if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
+                    seekDebounceRef.current = setTimeout(() => {
+                      if (pendingSeekTimeRef.current !== null && videoRef.current) {
+                        videoRef.current.currentTime = pendingSeekTimeRef.current;
+                      }
+                    }, 80);
                   }
                 }}
                 onTouchEnd={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  // Commit final seek position immediately
+                  if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
+                  if (pendingSeekTimeRef.current !== null && videoRef.current) {
+                    videoRef.current.currentTime = pendingSeekTimeRef.current;
+                    pendingSeekTimeRef.current = null;
+                  }
                   setIsDragging(false);
                   isDraggingRef.current = false;
                   setIsHoveringProgress(false);
@@ -1633,6 +1716,8 @@ export function NetflixPlayer({
                 }}
                 onTouchCancel={(e) => {
                   e.stopPropagation();
+                  if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
+                  pendingSeekTimeRef.current = null;
                   setIsDragging(false);
                   isDraggingRef.current = false;
                   setIsHoveringProgress(false);
@@ -1800,7 +1885,7 @@ export function NetflixPlayer({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleSkip(-10);
+                  handleSkip(-10, true);
                 }}
                 className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? 'w-9 h-9' : 'w-10 h-10'}`}
                 aria-label="Lùi 10 giây"
@@ -1812,7 +1897,7 @@ export function NetflixPlayer({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleSkip(10);
+                  handleSkip(10, true);
                 }}
                 className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? 'w-9 h-9' : 'w-10 h-10'}`}
                 aria-label="Tới 10 giây"
