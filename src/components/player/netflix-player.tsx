@@ -1031,9 +1031,9 @@ export function NetflixPlayer({
     resetLongPress();
   };
 
-  // Handle vertical swipe gestures for brightness and volume (Netflix-style) - Mobile only
+  // Handle vertical swipe gestures for brightness and volume (Netflix-style) - Fullscreen only
   const handleTouchStartGesture = (e: React.TouchEvent) => {
-    if (!isMobile) return;
+    if (!isMobile || !isFullscreen) return;
     
     // Don't interfere with interactive controls or progress bar
     const target = e.target as HTMLElement;
@@ -1052,8 +1052,7 @@ export function NetflixPlayer({
     const touch = e.touches[0];
     if (!touch) return;
 
-    // Prevent default để tránh scroll trang khi bắt đầu gesture
-    // Quan trọng cho cả fullscreen và normal mode
+    // Prevent default để tránh scroll trang khi bắt đầu gesture (chỉ trong fullscreen)
     e.preventDefault();
     e.stopPropagation();
 
@@ -1067,7 +1066,7 @@ export function NetflixPlayer({
   };
 
   const handleTouchMoveGesture = (e: React.TouchEvent) => {
-    if (!isMobile) return;
+    if (!isMobile || !isFullscreen) return;
     
     // Nếu đang long press, không xử lý gesture vuốt
     if (isLongPressActiveRef.current) {
@@ -1197,7 +1196,7 @@ export function NetflixPlayer({
   };
 
   const handleTouchEndGesture = (e: React.TouchEvent) => {
-    if (!isMobile) return;
+    if (!isMobile || !isFullscreen) return;
     
     // Nếu đang có gesture active (brightness/volume), prevent default để tránh scroll
     const wasGestureActive = gestureModeRef.current === 'brightness' || gestureModeRef.current === 'volume';
@@ -1233,8 +1232,8 @@ export function NetflixPlayer({
         userSelect: 'none', 
         WebkitUserSelect: 'none',
         filter: `brightness(${brightness})`,
-        // Trên mobile, luôn khoá scroll khi chạm vào player để gesture không bị dính scroll ngoài
-        touchAction: isMobile ? 'none' : (isFullscreen ? 'none' : 'auto'),
+        // Chỉ khoá scroll khi fullscreen để gesture hoạt động, bình thường cho phép scroll trang
+        touchAction: isFullscreen ? 'none' : 'auto',
         ...(isFullscreen
           ? {
               display: 'flex',
@@ -1348,7 +1347,7 @@ export function NetflixPlayer({
           userSelect: 'none', 
           WebkitUserSelect: 'none', 
           pointerEvents: 'auto', 
-          touchAction: isMobile ? 'none' : (isFullscreen ? 'none' : 'auto'),
+          touchAction: isFullscreen ? 'none' : 'auto',
           ...(isFullscreen
             ? {
                 width: '100%',
