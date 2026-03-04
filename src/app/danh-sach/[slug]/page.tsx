@@ -286,10 +286,11 @@ export async function generateMetadata({ params }: CategoryPageProps) {
       type: "website",
       images: [
         {
-          url: `${siteUrl}/logo.svg`,
+          url: `${siteUrl}/opengraph-image`,
           width: 1200,
           height: 630,
           alt: `${categoryName} - MovPey`,
+          type: "image/png",
         },
       ],
     },
@@ -297,7 +298,7 @@ export async function generateMetadata({ params }: CategoryPageProps) {
       card: "summary_large_image",
       title: `${categoryName} - Xem phim online Vietsub | MovPey`,
       description: `Xem ${categoryName.toLowerCase()} full HD Vietsub, thuyết minh miễn phí trên MovPey.`,
-      images: [`${siteUrl}/logo.svg`],
+      images: [`${siteUrl}/opengraph-image`],
     },
     robots: {
       index: true,

@@ -95,10 +95,11 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: `${siteUrl}/logo.svg`,
+        url: `${siteUrl}/opengraph-image`,
         width: 1200,
         height: 630,
         alt: "MovPey - Phim xịn mỗi ngày",
+        type: "image/png",
       },
     ],
   },
@@ -107,7 +108,7 @@ export const metadata: Metadata = {
     title: "MovPey - Phim xịn mỗi ngày",
     description:
       "Xem phim online chất lượng cao, cập nhật liên tục, đầy đủ thể loại với Vietsub/Thuyết minh.",
-    images: [`${siteUrl}/logo.svg`],
+    images: [`${siteUrl}/opengraph-image`],
     creator: "@MovPey",
   },
   robots: {
@@ -160,6 +161,12 @@ export default function RootLayout({
   return (
     <html lang="vi" suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://phimapi.com" />
+        <link rel="preconnect" href="https://phimimg.com" />
+        <link rel="preconnect" href="https://img.ophim.live" />
+        <link rel="dns-prefetch" href="https://phimapi.com" />
+        <link rel="dns-prefetch" href="https://phimimg.com" />
+        <link rel="dns-prefetch" href="https://img.ophim.live" />
         <Script
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9880216034435046"
           crossOrigin="anonymous"

@@ -74,10 +74,11 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: `${siteUrl}/logo.svg`,
+        url: `${siteUrl}/opengraph-image`,
         width: 1200,
         height: 630,
         alt: "MovPey - Phim xịn mỗi ngày",
+        type: "image/png",
       },
     ],
   },
@@ -86,7 +87,7 @@ export const metadata: Metadata = {
     title: "MovPey - Phim xịn mỗi ngày | Xem phim online HD Vietsub miễn phí",
     description:
       "Xem phim online chất lượng cao, cập nhật liên tục, đầy đủ thể loại với Vietsub/Thuyết minh.",
-    images: [`${siteUrl}/logo.svg`],
+    images: [`${siteUrl}/opengraph-image`],
     creator: "@MovPey",
   },
   robots: {

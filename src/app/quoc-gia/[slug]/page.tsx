@@ -32,7 +32,7 @@ function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
 
 async function CountryContent({ slug, page }: { slug: string; page: number }) {
   try {
-    const ITEMS_PER_PAGE = 10;
+    const ITEMS_PER_PAGE = 24;
     // Tất cả quốc gia: dùng nguồn phim-bo + phim-le có country filter (giống danh-sach) và bỏ Hoạt Hình
     const [phimBo, phimLe] = await Promise.allSettled([
       getFilmsByCategoryMultiple(CATEGORIES.PHIM_BO, 3, {
@@ -247,10 +247,11 @@ export async function generateMetadata({ params }: CountryPageProps) {
       type: "website",
       images: [
         {
-          url: `${siteUrl}/logo.svg`,
+          url: `${siteUrl}/opengraph-image`,
           width: 1200,
           height: 630,
           alt: `Phim ${countryName} - MovPey`,
+          type: "image/png",
         },
       ],
     },
@@ -258,7 +259,7 @@ export async function generateMetadata({ params }: CountryPageProps) {
       card: "summary_large_image",
       title: `Phim ${countryName} - Xem phim ${countryName} Vietsub | MovPey`,
       description: `Kho phim ${countryName} full HD Vietsub, thuyết minh, cập nhật liên tục trên MovPey.`,
-      images: [`${siteUrl}/logo.svg`],
+      images: [`${siteUrl}/opengraph-image`],
     },
     robots: {
       index: true,

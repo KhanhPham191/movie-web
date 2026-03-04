@@ -263,10 +263,11 @@ export async function generateMetadata({ params }: GenrePageProps) {
       type: "website",
       images: [
         {
-          url: `${siteUrl}/logo.svg`,
+          url: `${siteUrl}/opengraph-image`,
           width: 1200,
           height: 630,
           alt: `Phim ${genreName} - MovPey`,
+          type: "image/png",
         },
       ],
     },
@@ -274,7 +275,7 @@ export async function generateMetadata({ params }: GenrePageProps) {
       card: "summary_large_image",
       title: `Phim ${genreName} - Xem phim ${genreName.toLowerCase()} Vietsub | MovPey`,
       description: `Xem phim ${genreName.toLowerCase()} full HD Vietsub, thuyết minh miễn phí trên MovPey.`,
-      images: [`${siteUrl}/logo.svg`],
+      images: [`${siteUrl}/opengraph-image`],
     },
     robots: {
       index: true,
