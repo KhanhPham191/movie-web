@@ -24,6 +24,8 @@ import {
 import { getFilmDetail, getImageUrl, searchFilmsMerged, getFilmsByGenre } from "@/lib/api";
 import type { FilmItem } from "@/lib/api";
 import { MovieSection } from "@/components/movie-section";
+
+export const revalidate = 300;
 import { MovieSectionWithNav } from "@/components/movie-section-with-nav";
 import { isValidTime } from "@/lib/utils";
 import {

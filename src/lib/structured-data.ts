@@ -1,4 +1,5 @@
 import type { FilmDetail, FilmItem } from "./api";
+import { getImageUrl } from "./api";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -13,7 +14,8 @@ export function generateMovieStructuredData(movie: FilmDetail | FilmItem, curren
     : "";
 
   const movieUrl = currentUrl || `${siteUrl}/phim/${movie.slug}`;
-  const imageUrl = movie.poster_url || movie.thumb_url || `${siteUrl}/logo.svg`;
+  const rawImage = movie.poster_url || movie.thumb_url;
+  const imageUrl = rawImage ? getImageUrl(rawImage, true) : `${siteUrl}/logo.svg`;
 
   const structuredData: any = {
     "@context": "https://schema.org",
@@ -130,7 +132,8 @@ export function generateVideoStructuredData(
     : "";
 
   const videoUrl = currentUrl || `${siteUrl}/xem-phim/${movie.slug}/${episode.slug}`;
-  const thumbnailUrl = movie.poster_url || movie.thumb_url || `${siteUrl}/logo.svg`;
+  const rawThumb = movie.poster_url || movie.thumb_url;
+  const thumbnailUrl = rawThumb ? getImageUrl(rawThumb, true) : `${siteUrl}/logo.svg`;
   const movieUrl = `${siteUrl}/phim/${movie.slug}`;
 
   const structuredData: any = {

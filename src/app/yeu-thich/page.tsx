@@ -25,15 +25,16 @@ export default function FavoritesPage() {
     }
   }, [router]);
 
-  if (AUTH_DISABLED) return null;
-
   useEffect(() => {
+    if (AUTH_DISABLED) return;
     if (!authLoading && !user) {
       router.push("/dang-nhap");
     } else if (user) {
       loadFavorites();
     }
   }, [user, authLoading, router]);
+
+  if (AUTH_DISABLED) return null;
 
   const loadFavorites = async () => {
     setIsLoading(true);

@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Film } from "lucide-react";
 import { getFilmsByGenre, getFilmsByGenreAll, GENRES, getAvailableGenres } from "@/lib/api";
 
+export const revalidate = 600;
+
 interface GenrePageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string }>;

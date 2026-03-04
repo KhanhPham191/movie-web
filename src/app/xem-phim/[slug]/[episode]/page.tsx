@@ -18,6 +18,8 @@ import { WatchFilmButtons } from "@/components/watch-film-buttons";
 import { RelatedPartLink } from "@/components/related-part-link";
 import { VideoProgressProvider } from "@/contexts/video-progress-context";
 
+export const revalidate = 300;
+
 interface WatchPageProps {
   params: Promise<{ slug: string; episode: string }>;
   searchParams: Promise<{ server?: string }>;
