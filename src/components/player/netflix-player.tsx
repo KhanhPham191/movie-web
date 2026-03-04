@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import Hls from "hls.js";
 import {
   Play,
@@ -466,6 +467,16 @@ export function NetflixPlayer({
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !src) return;
+
+    // Reset player state when src changes
+    setCurrentTime(0);
+    setDuration(0);
+    setBuffered(0);
+    setShowNextEpisode(false);
+    setIsPlaying(false);
+    hasSeekedRef.current = false;
+    isSeekingRef.current = false;
+    pendingSeekTimeRef.current = null;
 
     let hls: Hls | null = null;
 
@@ -2108,7 +2119,7 @@ export function NetflixPlayer({
             animation: 'nextEpisodeSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          <a
+          <Link
             href={nextEpisodeUrl}
             onClick={(e) => e.stopPropagation()}
             className="group flex items-center gap-2 sm:gap-2.5 px-4 sm:px-5 py-2.5 sm:py-3 bg-white/95 hover:bg-white text-black rounded-lg sm:rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.4)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-300 hover:scale-[1.03] active:scale-95 backdrop-blur-sm"
@@ -2122,7 +2133,7 @@ export function NetflixPlayer({
             <div className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black flex items-center justify-center group-hover:bg-black/90 transition-colors">
               <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
             </div>
-          </a>
+          </Link>
         </div>
       )}
 

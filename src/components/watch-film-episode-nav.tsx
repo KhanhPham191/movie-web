@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { analytics } from "@/lib/analytics";
@@ -14,7 +15,15 @@ interface WatchFilmEpisodeNavProps {
 }
 
 export function WatchFilmEpisodeNav({ movieName, movieSlug, currentEpisodeSlug, prevEpisode, nextEpisode }: WatchFilmEpisodeNavProps) {
+  const searchParams = useSearchParams();
+  const serverParam = searchParams?.get('server');
+
   if (!prevEpisode && !nextEpisode) return null;
+
+  const buildHref = (episodeSlug: string) => {
+    const base = `/xem-phim/${movieSlug}/${episodeSlug}`;
+    return serverParam ? `${base}?server=${serverParam}` : base;
+  };
 
   return (
     <div className="flex items-center gap-2">
@@ -26,7 +35,7 @@ export function WatchFilmEpisodeNav({ movieName, movieSlug, currentEpisodeSlug, 
           className="group/prev bg-white/[0.04] text-white/80 border-white/[0.08] hover:bg-white/[0.08] hover:border-[#F6C453]/40 hover:text-white text-xs transition-all duration-200 rounded-lg h-8 sm:h-9 px-3 sm:px-4"
         >
           <Link 
-            href={`/xem-phim/${movieSlug}/${prevEpisode.slug}`}
+            href={buildHref(prevEpisode.slug)}
             onClick={() => {
               analytics.trackWatchFilmEpisodeNav(movieName, movieSlug, currentEpisodeSlug, prevEpisode.slug, 'prev');
             }}
@@ -43,7 +52,7 @@ export function WatchFilmEpisodeNav({ movieName, movieSlug, currentEpisodeSlug, 
           className="group/next bg-[#F6C453] hover:bg-[#e5b742] text-black font-semibold text-xs shadow-[0_4px_16px_rgba(246,196,83,0.25)] hover:shadow-[0_6px_20px_rgba(246,196,83,0.35)] transition-all duration-200 rounded-lg h-8 sm:h-9 px-3 sm:px-4"
         >
           <Link 
-            href={`/xem-phim/${movieSlug}/${nextEpisode.slug}`}
+            href={buildHref(nextEpisode.slug)}
             onClick={() => {
               analytics.trackWatchFilmEpisodeNav(movieName, movieSlug, currentEpisodeSlug, nextEpisode.slug, 'next');
             }}

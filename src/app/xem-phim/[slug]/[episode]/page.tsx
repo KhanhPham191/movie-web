@@ -320,6 +320,7 @@ async function VideoPlayer({
             <div className="relative aspect-video bg-black w-full">
               {currentEpisode.m3u8 ? (
                 <NetflixPlayer
+                  key={`${currentEpisode.slug}-${currentServer?.server_name || ''}`}
                   src={currentEpisode.m3u8}
                   title={`${movie.name} - ${currentEpisode.name}`}
                   className="h-full w-full"
