@@ -136,26 +136,6 @@ interface PhimAPIDetailResponse {
   };
 }
 
-interface PhimAPIDetailResponse {
-  status: boolean;
-  msg?: string;
-  data: {
-    item: PhimAPIItem & {
-      content?: string;
-      episodes?: Array<{
-        server_name: string;
-        server_data: Array<{
-          name: string;
-          slug: string;
-          filename?: string;
-          link_embed?: string;
-          link_m3u8?: string;
-        }>;
-      }>;
-    };
-  };
-}
-
 // Helper to normalize image URL from PhimAPI
 function normalizePhimAPIImageUrl(url: string, useWebP: boolean = true): string {
   if (!url) return "";

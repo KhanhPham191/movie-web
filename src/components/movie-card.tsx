@@ -14,6 +14,9 @@ import { getImageUrl } from "@/lib/api";
 import { isValidTime } from "@/lib/utils";
 import { analytics } from "@/lib/analytics";
 
+// Module-level cache: slug -> first episode slug (avoids re-fetching getFilmDetail)
+const episodeSlugCache = new Map<string, string | null>();
+
 interface MovieCardProps {
   movie: FilmItem;
   index?: number;
@@ -169,19 +172,18 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
     }
     
     try {
-      const detailRes = await getFilmDetail(movie.slug);
-      const epSlug = selectFirstEpisodeSlug(detailRes.movie);
+      // Check cache first to avoid redundant API call
+      let epSlug = episodeSlugCache.get(movie.slug);
+      if (epSlug === undefined) {
+        const detailRes = await getFilmDetail(movie.slug);
+        epSlug = selectFirstEpisodeSlug(detailRes.movie);
+        episodeSlugCache.set(movie.slug, epSlug);
+      }
       if (epSlug) {
         window.location.href = `/xem-phim/${movie.slug}/${epSlug}`;
-      } else {
-        // Không fallback, chỉ log để kiểm tra chuỗi slug tập
-        // eslint-disable-next-line no-console
-        // console.log("No episode slug found for", movie.slug, detailRes.movie?.episodes);
       }
     } catch (err) {
-      // Không fallback để quan sát lỗi
-      // eslint-disable-next-line no-console
-      // console.error("Failed to fetch detail for watch now:", err);
+      // Silent fail
     } finally {
       isNavigatingRef.current = false;
     }

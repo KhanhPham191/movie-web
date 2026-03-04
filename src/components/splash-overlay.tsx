@@ -2,20 +2,22 @@
 
 import { useEffect, useState } from "react";
 
+// Check sessionStorage synchronously to avoid mounting heavy component
+function hasShownSplash(): boolean {
+  try {
+    return typeof window !== "undefined" && sessionStorage.getItem("splashShown") === "true";
+  } catch {
+    return false;
+  }
+}
+
 export function SplashOverlay() {
-  const [isVisible, setIsVisible] = useState(true);
-  const [shouldRender, setShouldRender] = useState(true);
+  const [isVisible, setIsVisible] = useState(() => !hasShownSplash());
+  const [shouldRender, setShouldRender] = useState(() => !hasShownSplash());
 
   useEffect(() => {
-    // Check if splash was already shown (stored in sessionStorage)
-    const hasShownSplash = sessionStorage.getItem('splashShown');
-    
-    if (hasShownSplash === 'true') {
-      // If already shown in this session, don't show again
-      setIsVisible(false);
-      setShouldRender(false);
-      return;
-    }
+    // If already shown, bail immediately — nothing to do
+    if (!shouldRender) return;
 
     // Hide splash after minimum display time and when page is ready
     const minDisplayTime = 600; // Minimum 600ms display
