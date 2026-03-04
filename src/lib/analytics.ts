@@ -1,7 +1,5 @@
 // Google Analytics event tracking utility
 
-import { detectDevice, type DeviceInfo } from './device-detection';
-
 declare global {
   interface Window {
     gtag?: (
@@ -28,50 +26,27 @@ export interface GAEvent {
  */
 export function trackEvent(eventName: string, params?: Record<string, any>) {
   if (typeof window !== 'undefined' && window.gtag) {
-    // Add device info to all events
-    const deviceInfo = detectDevice();
+    // GA4 already tracks device/browser/OS natively in built-in dimensions
+    // No need to send custom device info — it wastes event parameter quota
     window.gtag('event', eventName, {
       ...params,
       event_category: params?.event_category || 'engagement',
       event_label: params?.event_label || '',
-      // Device info - để phân tích browser trên thiết bị nào
-      device_type: deviceInfo.deviceType,
-      platform: deviceInfo.platform,
-      browser: deviceInfo.browser,
-      is_mobile: deviceInfo.isMobile,
-      is_tablet: deviceInfo.isTablet,
-      is_desktop: deviceInfo.isDesktop,
-      // Combined field để dễ filter trong GA: "mobile_chrome", "desktop_firefox", etc.
-      device_browser: `${deviceInfo.deviceType}_${deviceInfo.browser}`,
-      // Combined field với platform: "mobile_ios_safari", "desktop_windows_chrome", etc.
-      device_platform_browser: `${deviceInfo.deviceType}_${deviceInfo.platform}_${deviceInfo.browser}`,
     });
   }
 }
 
 /**
- * Track page view with device info
- * Note: gtag('config') với page_path tự động track page view trong GA
- * Chúng ta cần include device info mỗi lần để đảm bảo nó được track trong page view
+ * Track page view for SPA navigation
+ * Uses gtag('event', 'page_view') instead of gtag('config') to avoid
+ * reinitializing the tag and losing client_id
  */
 export function trackPageView(url: string) {
   if (typeof window !== 'undefined' && window.gtag) {
-    // Get device info để include trong page view
-    const deviceInfo = detectDevice();
-    
-    // Update config với page_path và device info - GA tự động track page view
-    window.gtag('config', process.env.NEXT_PUBLIC_GA_ID || 'G-5GN4EFTX0Q', {
+    // Send page_view event (NOT gtag config — that would reinitialize and lose client_id)
+    window.gtag('event', 'page_view', {
       page_path: url,
-      // Device info để track trong page view
-      device_type: deviceInfo.deviceType,
-      platform: deviceInfo.platform,
-      browser: deviceInfo.browser,
-      is_mobile: deviceInfo.isMobile,
-      is_tablet: deviceInfo.isTablet,
-      is_desktop: deviceInfo.isDesktop,
-      // Combined fields để dễ filter trong GA
-      device_browser: `${deviceInfo.deviceType}_${deviceInfo.browser}`,
-      device_platform_browser: `${deviceInfo.deviceType}_${deviceInfo.platform}_${deviceInfo.browser}`,
+      page_title: document.title,
     });
   }
 }
