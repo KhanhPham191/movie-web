@@ -14,7 +14,7 @@ import { ThaiLanSection } from "@/components/home-sections/thai-lan";
 import { HongKongSection } from "@/components/home-sections/hong-kong";
 import { TopicTags, DEFAULT_TOPIC_TAGS } from "@/components/topic-tags";
 import { ScrollReveal } from "@/components/scroll-reveal";
-import { generateWebsiteStructuredData, generateOrganizationStructuredData } from "@/lib/structured-data";
+
 
 // ISR: Revalidate every 5 minutes để giảm số lần gọi API
 export const revalidate = 300;
@@ -103,19 +103,8 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const websiteStructuredData = generateWebsiteStructuredData(siteUrl);
-  const organizationStructuredData = generateOrganizationStructuredData(siteUrl);
-
   return (
     <main className="min-h-screen bg-[#191b24] relative overflow-x-hidden">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteStructuredData) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationStructuredData) }}
-      />
       {/* Hero - Priority load (full-width) */}
       <div className="w-full max-w-full overflow-hidden">
         <Suspense fallback={<div className="h-[60vh] bg-[#191b24]" />}>

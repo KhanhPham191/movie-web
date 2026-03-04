@@ -114,51 +114,36 @@ export function HeroSection({ movies }: HeroSectionProps) {
       onTouchEnd={handleTouchEnd}
       style={{ width: '100%', maxWidth: '100%' }}
     >
-      {/* Global animation keyframes cho hero content */}
-      <style jsx global>{`
-        @keyframes heroFadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(16px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes heroFadeInUpSoft {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
-      {/* Background Images */}
+      {/* Background Images - Only render current + adjacent for performance */}
       <div className="absolute inset-0">
-        {featuredMovies.map((m, index) => (
-          <div
-            key={`${m.slug}-${m.id || index}`}
-            className={`absolute inset-0 transition-opacity duration-300 sm:duration-700 ${
-              index === currentIndex ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            <Image
-              src={getImageUrl(m.thumb_url)}
-              alt={m.name}
-              fill
-              className="object-cover object-center"
-              priority={index === 0}
-              loading={index === 0 ? undefined : "lazy"}
-              sizes="100vw"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
-            />
-          </div>
-        ))}
+        {featuredMovies.map((m, index) => {
+          // Only render current, previous, and next slides
+          const prevIndex = (currentIndex - 1 + featuredMovies.length) % featuredMovies.length;
+          const nextIndex = (currentIndex + 1) % featuredMovies.length;
+          const shouldRender = index === currentIndex || index === prevIndex || index === nextIndex;
+          
+          if (!shouldRender) return null;
+          
+          return (
+            <div
+              key={`${m.slug}-${m.id || index}`}
+              className={`absolute inset-0 transition-opacity duration-300 sm:duration-700 ${
+                index === currentIndex ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              <Image
+                src={getImageUrl(m.thumb_url)}
+                alt={m.name}
+                fill
+                className="object-cover object-center"
+                priority={index === currentIndex}
+                loading={index === currentIndex ? undefined : "lazy"}
+                sizes="100vw"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+              />
+            </div>
+          );
+        })}
         
         {/* Premium Vignette & Gradients */}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(13,13,13,0.1)_0%,rgba(13,13,13,0)_25%,rgba(13,13,13,0)_50%,rgba(13,13,13,0.7)_80%,rgba(13,13,13,0.98)_100%)]" />

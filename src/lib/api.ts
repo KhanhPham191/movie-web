@@ -277,7 +277,7 @@ async function fetchPhimAPI<T>(endpoint: string): Promise<T> {
   fetchPromise.finally(() => {
     setTimeout(() => {
       requestCache.delete(cacheKey);
-    }, 100);
+    }, 30000);
   });
   
   requestCache.set(cacheKey, fetchPromise);

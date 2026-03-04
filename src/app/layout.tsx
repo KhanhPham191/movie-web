@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { Noto_Sans, Noto_Sans_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -6,8 +6,8 @@ import { AuthProvider } from "@/contexts/auth-context";
 import { URLCleaner } from "@/components/url-cleaner";
 import { PageTransition } from "@/components/page-transition";
 import { Header } from "@/components/header";
+import Script from "next/script";
 import { GoogleAnalytics } from "@/components/google-analytics";
-import { DevToolsBlocker } from "@/components/devtools-blocker";
 import { PageViewTracker } from "@/components/page-view-tracker";
 import { SplashOverlay } from "@/components/splash-overlay";
 import { generateWebsiteStructuredData, generateOrganizationStructuredData } from "@/lib/structured-data";
@@ -30,6 +30,14 @@ const notoSansMono = Noto_Sans_Mono({
   display: "swap",
   weight: ["400", "500", "600", "700"],
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: {
@@ -120,13 +128,6 @@ export const metadata: Metadata = {
     shortcut: ["/logo.svg"],
     apple: "/logo.svg",
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-    viewportFit: "cover",
-  },
   verification: {
     // Google Search Console verification code
     // Lấy từ: https://search.google.com/search-console
@@ -161,10 +162,10 @@ export default function RootLayout({
   return (
     <html lang="vi" suppressHydrationWarning>
       <head>
-        <script
-          async
+        <Script
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9880216034435046"
           crossOrigin="anonymous"
+          strategy="lazyOnload"
         />
         <script
           type="application/ld+json"
@@ -181,7 +182,6 @@ export default function RootLayout({
         <SplashOverlay />
         {gaId && <GoogleAnalytics gaId={gaId} />}
         <PageViewTracker />
-        <DevToolsBlocker />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

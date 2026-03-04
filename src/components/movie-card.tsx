@@ -299,23 +299,20 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
   useEffect(() => {
     if (!isHovered || !shouldShowPopup) {
       setPopupPosition(null);
-      if (positionFrameRef.current) {
-        cancelAnimationFrame(positionFrameRef.current);
-        positionFrameRef.current = null;
-      }
       return;
     }
 
-    // Đồng bộ liên tục để popup bám đúng card khi carousel đang kéo/scroll
-    const syncPosition = () => {
-      updatePopupPosition();
-      positionFrameRef.current = requestAnimationFrame(syncPosition);
-    };
-
+    // Calculate position once on hover, then update on scroll/resize events only
     updatePopupPosition();
-    positionFrameRef.current = requestAnimationFrame(syncPosition);
 
-    const handleScrollOrResize = () => updatePopupPosition();
+    const handleScrollOrResize = () => {
+      // Use rAF to batch with browser paint — but only one frame, not a loop
+      if (positionFrameRef.current) cancelAnimationFrame(positionFrameRef.current);
+      positionFrameRef.current = requestAnimationFrame(() => {
+        updatePopupPosition();
+        positionFrameRef.current = null;
+      });
+    };
 
     // Ngăn scroll khi hover vào popup
     const preventWheel = (e: WheelEvent) => {
