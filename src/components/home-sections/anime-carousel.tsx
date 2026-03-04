@@ -4,6 +4,7 @@ import { useMemo, useRef, useState, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Play, Heart, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { FilmItem, FilmDetail } from "@/lib/api";
@@ -305,6 +306,7 @@ function MovieCardWithPopup({
   dragDistance: React.MutableRefObject<number>;
   scrollRef: React.RefObject<HTMLDivElement | null>;
 }) {
+  const router = useRouter();
   const cardRef = useRef<HTMLAnchorElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const [popupPosition, setPopupPosition] = useState<{ left: number; top: number } | null>(null);
@@ -388,16 +390,14 @@ function MovieCardWithPopup({
       const detailRes = await getFilmDetail(movie.slug);
       const epSlug = selectFirstEpisodeSlug(detailRes.movie);
       if (epSlug) {
-        window.location.href = `/xem-phim/${movie.slug}/${epSlug}`;
+        router.push(`/xem-phim/${movie.slug}/${epSlug}`);
       } else {
-        // Không fallback, log để xem chuỗi slug
-        // eslint-disable-next-line no-console
-        // console.log("No episode slug found for", movie.slug, detailRes.movie?.episodes);
+        // Fallback: chuyển đến trang chi tiết phim nếu không tìm được episode
+        router.push(`/phim/${movie.slug}`);
       }
     } catch (err) {
-      // Không fallback để quan sát lỗi
-      // eslint-disable-next-line no-console
-      // console.error("Failed to fetch detail for watch now:", err);
+      // Fallback khi API lỗi: chuyển đến trang chi tiết phim
+      router.push(`/phim/${movie.slug}`);
     } finally {
       isNavigatingRef.current = false;
     }
@@ -596,7 +596,7 @@ function MovieCardWithPopup({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    window.location.href = `/phim/${movie.slug}`;
+                    router.push(`/phim/${movie.slug}`);
                   }}
                 >
                   <Play className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white fill-white ml-0.5" />

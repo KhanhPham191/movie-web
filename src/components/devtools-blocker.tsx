@@ -93,17 +93,15 @@ export function DevToolsBlocker() {
       }
     };
 
-    // Phát hiện bằng console
-    const detectConsole = () => {
-      const element = new Image();
-      Object.defineProperty(element, "id", {
-        get: function () {
-          handleDevToolsOpen();
-        },
-      });
-      // console.log(element);
-      // console.clear();
-    };
+    // Phát hiện bằng console (disabled - gây tạo object liên tục, ảnh hưởng hiệu năng)
+    // const detectConsole = () => {
+    //   const element = new Image();
+    //   Object.defineProperty(element, "id", {
+    //     get: function () {
+    //       handleDevToolsOpen();
+    //     },
+    //   });
+    // };
 
     // Hàm xử lý khi phát hiện DevTools mở
     const handleDevToolsOpen = () => {
@@ -156,11 +154,10 @@ export function DevToolsBlocker() {
     document.addEventListener("dragstart", handleDragStart);
     document.addEventListener("selectstart", handleSelectStart);
 
-    // Kiểm tra định kỳ
+    // Kiểm tra định kỳ (chỉ check kích thước window, không tạo object)
     const interval = setInterval(() => {
       detectDevTools();
-      detectConsole();
-    }, 500);
+    }, 2000); // Giảm từ 500ms xuống 2000ms để tiết kiệm CPU
 
     // Cleanup
     return () => {

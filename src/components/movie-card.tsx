@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { getFilmDetail, type FilmDetail } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Play, Plus, ThumbsUp, ChevronDown, Volume2, VolumeX, Info, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -113,6 +113,7 @@ function LanguageBadges({ language }: { language?: string }) {
 
 export function MovieCard({ movie, index = 0, variant = "default", rank, disableTilt = false }: MovieCardProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const isHome = pathname === '/';
   const isFilmDetail = pathname?.startsWith('/phim/') || false;
   const [isHovered, setIsHovered] = useState(false);
@@ -173,17 +174,26 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
     
     try {
       // Check cache first to avoid redundant API call
-      let epSlug = episodeSlugCache.get(movie.slug);
+      // Chỉ dùng cache nếu có giá trị hợp lệ (string), bỏ qua null (lỗi trước đó)
+      let epSlug = episodeSlugCache.get(movie.slug) || undefined;
       if (epSlug === undefined) {
         const detailRes = await getFilmDetail(movie.slug);
-        epSlug = selectFirstEpisodeSlug(detailRes.movie);
-        episodeSlugCache.set(movie.slug, epSlug);
+        epSlug = selectFirstEpisodeSlug(detailRes.movie) || undefined;
+        // Chỉ cache khi tìm được episode slug, không cache null để retry lần sau
+        if (epSlug) {
+          episodeSlugCache.set(movie.slug, epSlug);
+        }
       }
       if (epSlug) {
-        window.location.href = `/xem-phim/${movie.slug}/${epSlug}`;
+        // Dùng router.push thay vì window.location.href để client-side navigation nhanh hơn
+        router.push(`/xem-phim/${movie.slug}/${epSlug}`);
+      } else {
+        // Fallback: chuyển đến trang chi tiết phim nếu không tìm được episode
+        router.push(`/phim/${movie.slug}`);
       }
     } catch (err) {
-      // Silent fail
+      // Fallback khi API lỗi: chuyển đến trang chi tiết phim
+      router.push(`/phim/${movie.slug}`);
     } finally {
       isNavigatingRef.current = false;
     }
@@ -580,7 +590,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    window.location.href = `/phim/${movie.slug}`;
+                    router.push(`/phim/${movie.slug}`);
                   }}
                 >
                   <Play className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white fill-white ml-0.5" />
@@ -646,7 +656,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    window.location.href = `/phim/${movie.slug}`;
+                    router.push(`/phim/${movie.slug}`);
                   }}
                 >
                   <Play className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white fill-white ml-0.5" />
@@ -744,7 +754,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      window.location.href = `/phim/${movie.slug}`;
+                      router.push(`/phim/${movie.slug}`);
                     }}
                   >
                     <Play className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white fill-white ml-0.5" />
@@ -834,7 +844,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    window.location.href = `/phim/${movie.slug}`;
+                    router.push(`/phim/${movie.slug}`);
                   }}
                 >
                   <Play className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white fill-white ml-0.5" />

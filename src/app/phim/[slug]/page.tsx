@@ -76,40 +76,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
     
     const movie = response.movie;
 
-    // Tìm các phần khác trong cùng series (nếu có)
-    // Ưu tiên gom theo base slug: tai-xe-an-danh-phan-1, tai-xe-an-danh-phan-2, ...
-    let seriesParts: FilmItem[] = [];
-    const baseSlug = movie.slug.replace(/-phan-\d+$/i, "");
-    const baseName = movie.name.replace(/\s*\(Phần\s*\d+\)\s*$/i, "");
-    const baseOriginalName = movie.original_name
-      ? movie.original_name.replace(/\s*\(Season\s*\d+\)\s*$/i, "")
-      : "";
-    const searchKeyword = baseOriginalName || baseName || movie.name;
-    try {
-      if (searchKeyword) {
-        const searchResults = await searchFilmsMerged(searchKeyword);
-        const filtered = searchResults.filter((item) => {
-          const itemBaseSlug = item.slug.replace(/-phan-\d+$/i, "");
-          return item.slug !== movie.slug && itemBaseSlug === baseSlug;
-        });
-
-        // Sắp xếp theo thứ tự phần 1, 2, 3,...
-        const withPart = filtered
-          .map((item) => ({
-            item,
-            part: getSeriesPartNumber(item),
-          }))
-          .filter((x) => x.part !== null) as { item: FilmItem; part: number }[];
-
-        withPart.sort((a, b) => a.part - b.part);
-        seriesParts = withPart.map((x) => x.item);
-      }
-    } catch {
-      // Không chặn trang nếu search lỗi
-      seriesParts = [];
-    }
-    
-    // Normalize category và country về dạng mảng
+    // Normalize category và country về dạng mảng (cần cho cả search lẫn related)
     const categories = Array.isArray(movie.category) 
       ? movie.category 
       : movie.category 
@@ -120,6 +87,47 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
       : movie.country 
         ? [movie.country] 
         : [];
+
+    // Tìm các phần khác trong cùng series VÀ phim liên quan SONG SONG
+    const baseSlug = movie.slug.replace(/-phan-\d+$/i, "");
+    const baseName = movie.name.replace(/\s*\(Phần\s*\d+\)\s*$/i, "");
+    const baseOriginalName = movie.original_name
+      ? movie.original_name.replace(/\s*\(Season\s*\d+\)\s*$/i, "")
+      : "";
+    const searchKeyword = baseOriginalName || baseName || movie.name;
+
+    // Chạy song song: search series parts + fetch related movies
+    const [seriesResult, relatedResult] = await Promise.allSettled([
+      // Search series parts
+      searchKeyword
+        ? searchFilmsMerged(searchKeyword).then((searchResults) => {
+            const filtered = searchResults.filter((item) => {
+              const itemBaseSlug = item.slug.replace(/-phan-\d+$/i, "");
+              return item.slug !== movie.slug && itemBaseSlug === baseSlug;
+            });
+            const withPart = filtered
+              .map((item) => ({ item, part: getSeriesPartNumber(item) }))
+              .filter((x) => x.part !== null) as { item: FilmItem; part: number }[];
+            withPart.sort((a, b) => a.part - b.part);
+            return withPart.map((x) => x.item);
+          })
+        : Promise.resolve([] as FilmItem[]),
+      // Fetch related movies by genre
+      categories.length > 0
+        ? getFilmsByGenre(categories[0].slug, 1, {
+            limit: 12,
+            sort_field: "modified",
+            sort_type: "desc",
+          }).then((res) =>
+            res.status === "success" && res.items
+              ? res.items.filter((item) => item.slug !== movie.slug).slice(0, 12)
+              : []
+          )
+        : Promise.resolve([] as FilmItem[]),
+    ]);
+
+    const seriesParts = seriesResult.status === "fulfilled" ? seriesResult.value : [];
+    const relatedMovies = relatedResult.status === "fulfilled" ? relatedResult.value : [];
 
     // Lấy tên + slug thể loại đầu tiên (nếu có) để hiển thị title/SEO & link an toàn
     const firstCategoryName = (() => {
@@ -139,29 +147,6 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
       if (!first || typeof first !== "object") return "";
       return String(first?.slug || "").trim();
     })();
-    
-    // Lấy phim liên quan cùng thể loại (để tăng internal linking cho SEO)
-    let relatedMovies: FilmItem[] = [];
-    try {
-      if (categories.length > 0) {
-        // Lấy phim cùng thể loại đầu tiên, loại trừ phim hiện tại
-        const genreSlug = categories[0].slug;
-        const relatedResponse = await getFilmsByGenre(genreSlug, 1, {
-          limit: 12,
-          sort_field: "modified",
-          sort_type: "desc",
-        });
-        
-        if (relatedResponse.status === "success" && relatedResponse.items) {
-          relatedMovies = relatedResponse.items
-            .filter((item) => item.slug !== movie.slug)
-            .slice(0, 12);
-        }
-      }
-    } catch {
-      // Không chặn trang nếu fetch related movies lỗi
-      relatedMovies = [];
-    }
     
     // backdropUrl: dùng thumb_url (landscape/backdrop) cho hero section
     // posterUrl: dùng thumb_url cho episode selector

@@ -158,7 +158,9 @@ export default async function Home() {
                 <div className="relative">
                   <div className="absolute -inset-4 bg-gradient-to-r from-[#F6C453]/5 via-transparent to-[#D3A13A]/5 rounded-3xl blur-2xl opacity-50" />
                   <div className="relative">
-                    <Top10PhimLe />
+                    <Suspense fallback={<MovieSectionSkeleton />}>
+                      <Top10PhimLe />
+                    </Suspense>
                   </div>
                 </div>
               </div>

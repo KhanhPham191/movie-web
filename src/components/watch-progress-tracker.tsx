@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { addToCurrentlyWatching, updateCurrentlyWatching } from "@/lib/supabase/movies";
 import { useAuth } from "@/contexts/auth-context";
@@ -21,11 +21,18 @@ export function WatchProgressTracker({
   const { isAuthenticated } = useAuth();
   const { currentTime, duration } = useVideoProgress();
   const searchParams = useSearchParams();
-  const startTimeRef = useRef<number>(Date.now());
+
+  // Dùng refs để lưu giá trị mới nhất, tránh dependency array chạy lại liên tục
+  const currentTimeRef = useRef<number>(0);
+  const durationRef = useRef<number>(0);
   const watchTimeRef = useRef<number>(0);
-  const totalDurationRef = useRef<number>(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number>(Date.now());
   const hasInitializedRef = useRef(false);
+  const isSavingRef = useRef(false);
+
+  // Luôn cập nhật refs khi context thay đổi (KHÔNG tạo effect mới)
+  currentTimeRef.current = currentTime;
+  durationRef.current = duration;
 
   // Lấy timestamp từ URL nếu có (ví dụ: ?t=120) - chỉ lấy một lần khi mount
   useEffect(() => {
@@ -34,33 +41,47 @@ export function WatchProgressTracker({
       const timestamp = parseInt(tParam, 10);
       if (!isNaN(timestamp) && timestamp > 0) {
         watchTimeRef.current = timestamp;
-        // Nếu có timestamp từ URL, user đã xem đến đó rồi
-        // Bắt đầu tính từ timestamp đó
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Chỉ chạy một lần khi mount để lấy timestamp từ URL
+  }, []); // Chỉ chạy một lần khi mount
 
-  // Cập nhật duration từ context
-  useEffect(() => {
-    if (!isAuthenticated) return;
+  // Hàm lưu tiến độ - dùng ref values thay vì state
+  const saveProgress = useCallback(async () => {
+    if (isSavingRef.current) return;
 
-    if (duration > 0 && duration !== totalDurationRef.current && !isNaN(duration)) {
-      const durationFloor = Math.floor(duration);
-      if (durationFloor !== totalDurationRef.current && durationFloor > 0) {
-        totalDurationRef.current = durationFloor;
-        // Cập nhật ngay lập tức nếu đã initialized
-        if (hasInitializedRef.current) {
-          updateCurrentlyWatching(
-            movie.slug,
-            watchTimeRef.current,
-            durationFloor,
-            episodeSlug
-          ).catch(() => {});
+    try {
+      isSavingRef.current = true;
+      const ct = Math.floor(currentTimeRef.current);
+      const dur = Math.floor(durationRef.current || 0);
+
+      // Nếu đã xem xong, xóa khỏi currently_watching
+      if (dur > 0 && ct >= dur) {
+        const { removeFromCurrentlyWatching } = await import("@/lib/supabase/movies");
+        await removeFromCurrentlyWatching(movie.slug);
+        return;
+      }
+
+      // Chỉ lưu nếu currentTime > 0 và có thay đổi (ít nhất 1 giây)
+      if (ct > 0 && Math.abs(ct - watchTimeRef.current) >= 1) {
+        const { error } = await updateCurrentlyWatching(
+          movie.slug,
+          ct,
+          dur,
+          episodeSlug
+        );
+
+        if (!error) {
+          watchTimeRef.current = ct;
+          startTimeRef.current = Date.now();
         }
       }
+    } catch {
+      // Error saving progress
+    } finally {
+      isSavingRef.current = false;
     }
-  }, [isAuthenticated, movie.slug, episodeSlug, duration]);
+  }, [movie.slug, episodeSlug]);
 
   // Khởi tạo và lưu vào currently_watching khi vào trang
   useEffect(() => {
@@ -68,20 +89,19 @@ export function WatchProgressTracker({
 
     const initializeWatch = async () => {
       try {
-        // Lưu vào currently_watching với watch_time hiện tại từ URL hoặc 0
         const { error } = await addToCurrentlyWatching(
           movie,
           episodeSlug,
           episodeName,
           watchTimeRef.current,
-          totalDurationRef.current || 0
+          durationRef.current || 0
         );
 
         if (!error) {
           hasInitializedRef.current = true;
           startTimeRef.current = Date.now();
         }
-      } catch (error) {
+      } catch {
         // Error initializing watch
       }
     };
@@ -89,100 +109,38 @@ export function WatchProgressTracker({
     initializeWatch();
   }, [isAuthenticated, movie, episodeSlug, episodeName]);
 
-  // Cập nhật tiến độ mỗi 5 giây - lấy từ context
+  // Cập nhật tiến độ mỗi 5 giây - dùng một interval duy nhất, đọc từ refs
   useEffect(() => {
-    if (!isAuthenticated || !hasInitializedRef.current) return;
+    if (!isAuthenticated) return;
 
-    intervalRef.current = setInterval(async () => {
-      try {
-        const currentTimeFloor = Math.floor(currentTime);
-        const totalDurationFloor = Math.floor(duration || totalDurationRef.current || 0);
-
-        // Cập nhật totalDurationRef nếu có
-        if (totalDurationFloor > 0 && totalDurationFloor !== totalDurationRef.current && !isNaN(totalDurationFloor)) {
-          totalDurationRef.current = totalDurationFloor;
-        }
-
-        // Nếu đã xem xong (progress >= 100%), xóa khỏi currently_watching
-        if (totalDurationFloor > 0 && currentTimeFloor >= totalDurationFloor) {
-          const { removeFromCurrentlyWatching } = await import("@/lib/supabase/movies");
-          await removeFromCurrentlyWatching(movie.slug);
-          
-          // Dừng interval vì đã xem xong
-          if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-            intervalRef.current = null;
-          }
-          return;
-        }
-
-        // Chỉ lưu nếu currentTime > 0 và có thay đổi (ít nhất 1 giây)
-        if (currentTimeFloor > 0 && Math.abs(currentTimeFloor - watchTimeRef.current) >= 1) {
-          // Cập nhật vào database
-          const { error } = await updateCurrentlyWatching(
-            movie.slug,
-            currentTimeFloor,
-            totalDurationFloor,
-            episodeSlug
-          );
-
-          if (!error) {
-            watchTimeRef.current = currentTimeFloor;
-            startTimeRef.current = Date.now(); // Reset để tính lại từ điểm hiện tại
-          }
-        }
-      } catch (error) {
-        // Error in watch progress interval
-      }
-    }, 5000); // Cập nhật mỗi 5 giây
+    const intervalId = setInterval(() => {
+      if (!hasInitializedRef.current) return;
+      saveProgress();
+    }, 5000);
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      clearInterval(intervalId);
     };
-  }, [isAuthenticated, movie.slug, episodeSlug, hasInitializedRef.current, currentTime, duration]);
+  }, [isAuthenticated, saveProgress]);
 
   // Lưu tiến độ khi rời trang (beforeunload, visibilitychange)
   useEffect(() => {
-    if (!isAuthenticated || !hasInitializedRef.current) return;
+    if (!isAuthenticated) return;
 
-    const saveProgress = async () => {
-      try {
-        // Lấy currentTime từ context
-        const currentTimeFloor = Math.floor(currentTime) || watchTimeRef.current;
-        const totalDurationFloor = Math.floor(duration || totalDurationRef.current || 0);
-
-        // Nếu đã xem xong, xóa khỏi currently_watching
-        if (totalDurationFloor > 0 && currentTimeFloor >= totalDurationFloor) {
-          const { removeFromCurrentlyWatching } = await import("@/lib/supabase/movies");
-          await removeFromCurrentlyWatching(movie.slug);
-          return;
-        }
-
-        if (currentTimeFloor > 0) {
-          await updateCurrentlyWatching(
-            movie.slug,
-            currentTimeFloor,
-            totalDurationFloor,
-            episodeSlug
-          );
-        }
-      } catch (error) {
-        // Error saving progress on unload
+    const handleBeforeUnload = () => {
+      if (!hasInitializedRef.current) return;
+      const ct = Math.floor(currentTimeRef.current) || watchTimeRef.current;
+      const dur = Math.floor(durationRef.current || 0);
+      if (ct > 0) {
+        updateCurrentlyWatching(movie.slug, ct, dur, episodeSlug).catch(() => {});
       }
     };
 
-    // Lưu khi tab/window bị đóng hoặc ẩn
-    const handleBeforeUnload = () => {
-      saveProgress();
-    };
-
     const handleVisibilityChange = () => {
+      if (!hasInitializedRef.current) return;
       if (document.hidden) {
         saveProgress();
       } else {
-        // Khi quay lại, reset startTime để tính lại từ điểm hiện tại
         startTimeRef.current = Date.now();
       }
     };
@@ -194,91 +152,34 @@ export function WatchProgressTracker({
       window.removeEventListener("beforeunload", handleBeforeUnload);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       // Lưu lần cuối khi component unmount
-      saveProgress();
+      if (hasInitializedRef.current) {
+        const ct = Math.floor(currentTimeRef.current) || watchTimeRef.current;
+        const dur = Math.floor(durationRef.current || 0);
+        if (ct > 0) {
+          updateCurrentlyWatching(movie.slug, ct, dur, episodeSlug).catch(() => {});
+        }
+      }
     };
-  }, [isAuthenticated, movie.slug, episodeSlug, hasInitializedRef.current, currentTime, duration]);
+  }, [isAuthenticated, movie.slug, episodeSlug, saveProgress]);
 
-  // Lưu khi component unmount (chuyển trang)
+  // Cập nhật duration vào database khi nó thay đổi lần đầu (chỉ khi khác biệt lớn)
+  const lastSavedDurationRef = useRef<number>(0);
   useEffect(() => {
     if (!isAuthenticated || !hasInitializedRef.current) return;
+    if (duration <= 0 || isNaN(duration)) return;
 
-    return () => {
-      // Lấy currentTime từ context
-      const currentTimeFloor = Math.floor(currentTime) || watchTimeRef.current;
-      const totalDurationFloor = Math.floor(duration || totalDurationRef.current || 0);
+    const durationFloor = Math.floor(duration);
+    // Chỉ cập nhật nếu duration thay đổi đáng kể (> 2 giây)
+    if (Math.abs(durationFloor - lastSavedDurationRef.current) < 2) return;
+    lastSavedDurationRef.current = durationFloor;
 
-      // Nếu đã xem xong, xóa khỏi currently_watching
-      if (totalDurationFloor > 0 && currentTimeFloor >= totalDurationFloor) {
-        import("@/lib/supabase/movies").then(({ removeFromCurrentlyWatching }) => {
-          removeFromCurrentlyWatching(movie.slug).catch(() => {});
-        });
-        return;
-      }
-
-      if (currentTimeFloor > 0) {
-        updateCurrentlyWatching(
-          movie.slug,
-          currentTimeFloor,
-          totalDurationFloor,
-          episodeSlug
-        ).catch(() => {});
-      }
-    };
-  }, [isAuthenticated, movie.slug, episodeSlug, hasInitializedRef.current, currentTime, duration]);
-
-  // Lưu tiến độ khi video pause hoặc timeupdate (mỗi 10 giây từ timeupdate)
-  useEffect(() => {
-    if (!isAuthenticated || !hasInitializedRef.current) return;
-
-    let lastSaveTime = 0;
-    const SAVE_INTERVAL = 10000; // Lưu mỗi 10 giây từ timeupdate
-
-    const saveCurrentTime = async (currentTimeValue: number, totalDurationValue: number) => {
-      if (currentTimeValue > 0 && currentTimeValue !== watchTimeRef.current) {
-        watchTimeRef.current = currentTimeValue;
-        startTimeRef.current = Date.now();
-
-        await updateCurrentlyWatching(
-          movie.slug,
-          currentTimeValue,
-          totalDurationValue,
-          episodeSlug
-        );
-      }
-    };
-
-    // Lưu mỗi 10 giây từ timeupdate (sử dụng currentTime từ context)
-    const checkAndSave = () => {
-      try {
-        const currentTimeFloor = Math.floor(currentTime);
-        const totalDurationFloor = Math.floor(duration || totalDurationRef.current || 0);
-
-        // Cập nhật totalDurationRef nếu có
-        if (totalDurationFloor > 0 && totalDurationFloor !== totalDurationRef.current && !isNaN(totalDurationFloor)) {
-          totalDurationRef.current = totalDurationFloor;
-        }
-
-        // Lưu mỗi 10 giây từ timeupdate
-        const now = Date.now();
-        if (now - lastSaveTime >= SAVE_INTERVAL && currentTimeFloor > 0) {
-          lastSaveTime = now;
-          saveCurrentTime(currentTimeFloor, totalDurationFloor).catch(() => {});
-        }
-      } catch (error) {
-        // Error in timeupdate handler
-      }
-    };
-
-    // Check và lưu mỗi giây để đảm bảo bắt được thay đổi từ context
-    const intervalId = setInterval(checkAndSave, 1000);
-
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [isAuthenticated, movie.slug, episodeSlug, hasInitializedRef.current, currentTime, duration]);
+    updateCurrentlyWatching(
+      movie.slug,
+      watchTimeRef.current,
+      durationFloor,
+      episodeSlug
+    ).catch(() => {});
+  }, [isAuthenticated, movie.slug, episodeSlug, duration]);
 
   return null; // Component này không render gì
 }
-
