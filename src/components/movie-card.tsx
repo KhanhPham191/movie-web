@@ -13,6 +13,7 @@ import type { FilmItem } from "@/lib/api";
 import { getImageUrl } from "@/lib/api";
 import { isValidTime } from "@/lib/utils";
 import { analytics } from "@/lib/analytics";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 // Module-level cache: slug -> first episode slug (avoids re-fetching getFilmDetail)
 const episodeSlugCache = new Map<string, string | null>();
@@ -116,6 +117,7 @@ function LanguageBadges({ language }: { language?: string }) {
 export function MovieCard({ movie, index = 0, variant = "default", rank, disableTilt = false, priority = false }: MovieCardProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const isMobile = useIsMobile();
   const isHome = pathname === '/';
   const isFilmDetail = pathname?.startsWith('/phim/') || false;
   const [isHovered, setIsHovered] = useState(false);
@@ -129,7 +131,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
   const isNavigatingRef = useRef(false);
   // Use poster_url for movie cards (portrait posters)
   const imageUrl = getImageUrl(movie.poster_url || movie.thumb_url);
-  const popupBackdropUrl = useMemo(() => getImageUrl(movie.thumb_url || movie.poster_url), [movie.thumb_url, movie.poster_url]);
+  const popupBackdropUrl = useMemo(() => isMobile ? "" : getImageUrl(movie.thumb_url || movie.poster_url), [movie.thumb_url, movie.poster_url, isMobile]);
   const shortDescription = useMemo(() => getShortDescription(movie.description, 140), [movie.description]);
   const year = useMemo(() => {
     const parsed = movie.created ? new Date(movie.created).getFullYear() : undefined;
@@ -137,7 +139,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
   }, [movie.created]);
   const episodeLabel = formatEpisodeLabel(movie.current_episode);
   const qualityLabel = movie.quality ? movie.quality.toUpperCase() : "";
-  const shouldShowPopup = variant !== "portrait";
+  // Skip popup on mobile — no hover on touch devices, saves memory + event listeners
+  const shouldShowPopup = !isMobile && variant !== "portrait";
 
   const selectFirstEpisodeSlug = (detail?: FilmDetail | null) => {
     const eps = detail?.episodes || [];

@@ -571,14 +571,46 @@ a, button, [role="button"], input, select, textarea {
   .animate-fade-in-up,
   .animate-fade-in,
   .card-reveal {
-    animation-duration: 0.35s !important;
+    animation-duration: 0.25s !important;
     animation-delay: 0s !important;
+  }
+
+  /* Remove stagger delays on mobile — all cards appear together */
+  .animate-stagger-1,
+  .animate-stagger-2,
+  .animate-stagger-3,
+  .animate-stagger-4,
+  .animate-stagger-5 {
+    animation-delay: 0s !important;
+    animation-duration: 0.2s !important;
   }
   
   /* Disable complex transforms on mobile */
   .premium-hover:hover,
   .card-hover:hover {
     transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Remove will-change on mobile — save GPU memory */
+  .card-reveal {
+    will-change: auto !important;
+  }
+
+  /* Disable backdrop-filter on mobile — very expensive on low-end devices */
+  .glass {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Remove shimmer animation on mobile to save CPU */
+  .shimmer-premium {
+    animation: none !important;
+  }
+
+  /* Simplify global transitions on mobile for snappier feel */
+  a, button, [role="button"] {
+    transition: color 100ms ease, background-color 100ms ease, opacity 100ms ease !important;
   }
 }
 
@@ -778,15 +810,13 @@ a, button, [role="button"], input, select, textarea {
     overscroll-behavior-x: contain;
   }
   
-  /* Fix card jagged edges on iPad */
+  /* Fix card jagged edges on iPad - use isolation instead of translateZ(0) 
+     to avoid creating expensive GPU compositing layers on every element */
   [class*="rounded"],
   img {
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
     image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
   }
 }
 

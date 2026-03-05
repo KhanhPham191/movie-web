@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 type AnimationVariant =
   | "fade-up"
@@ -70,6 +71,7 @@ export function ScrollReveal({
   className = "",
   as: Tag = "div",
 }: ScrollRevealProps) {
+  const isMobile = useIsMobile();
   const { ref, isVisible } = useScrollReveal<HTMLDivElement>({
     threshold,
     rootMargin: "0px 0px -40px 0px",
@@ -79,14 +81,23 @@ export function ScrollReveal({
 
   const Component = Tag as React.ElementType;
 
+  // On mobile: use simpler fade-only animation with shorter duration, no transform
+  const mobileDuration = Math.min(duration, 300);
+
   return (
     <Component
       ref={ref}
       className={className}
       style={{
-        ...(isVisible ? styles.visible : styles.hidden),
-        transition: `opacity ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
-        willChange: isVisible ? "auto" : "opacity, transform",
+        ...(isVisible
+          ? styles.visible
+          : isMobile
+            ? { opacity: 0 }
+            : styles.hidden),
+        transition: isMobile
+          ? `opacity ${mobileDuration}ms ease-out`
+          : `opacity ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
+        willChange: isVisible ? "auto" : "opacity",
       }}
     >
       {children}

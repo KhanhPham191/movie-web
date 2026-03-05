@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import type { FilmItem } from "@/lib/api";
 import { getImageUrl } from "@/lib/api";
 import { isValidTime } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface HeroSectionProps {
   movies: FilmItem[];
@@ -28,9 +29,11 @@ export function HeroSection({ movies }: HeroSectionProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [dragStartX, setDragStartX] = useState<number | null>(null);
   const [dragDeltaX, setDragDeltaX] = useState(0);
+  const isMobile = useIsMobile();
 
   // Movies đã được filter chieurap từ API, chỉ cần slice
-  const featuredMovies = movies.slice(0, 5);
+  // On mobile: show fewer slides to reduce memory
+  const featuredMovies = movies.slice(0, isMobile ? 3 : 5);
   const movie = featuredMovies[currentIndex];
 
   useEffect(() => {
@@ -114,13 +117,16 @@ export function HeroSection({ movies }: HeroSectionProps) {
       onTouchEnd={handleTouchEnd}
       style={{ width: '100%', maxWidth: '100%' }}
     >
-      {/* Background Images - Only render current + adjacent for performance */}
+      {/* Background Images - Only render current + adjacent (desktop) or current only (mobile) */}
       <div className="absolute inset-0">
         {featuredMovies.map((m, index) => {
-          // Only render current, previous, and next slides
+          // On mobile: only render current slide to save memory
+          // On desktop: render current + prev + next for smooth transitions
           const prevIndex = (currentIndex - 1 + featuredMovies.length) % featuredMovies.length;
           const nextIndex = (currentIndex + 1) % featuredMovies.length;
-          const shouldRender = index === currentIndex || index === prevIndex || index === nextIndex;
+          const shouldRender = isMobile
+            ? index === currentIndex
+            : (index === currentIndex || index === prevIndex || index === nextIndex);
           
           if (!shouldRender) return null;
           

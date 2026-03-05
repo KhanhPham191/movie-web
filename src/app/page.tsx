@@ -116,8 +116,8 @@ export default async function Home() {
       <div className="mx-auto max-w-[1800px] px-3 sm:px-4 md:px-8 lg:px-12">
         {/* Content Rows - Premium Layout */}
         <div className="relative z-20 -mt-4 sm:-mt-12 md:-mt-18 lg:-mt-24 pb-20 sm:pb-24">
-          {/* Premium Background Effects */}
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          {/* Premium Background Effects - Hidden on mobile for performance */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden hidden sm:block">
             {/* Gradient orbs */}
             <div className="absolute right-0 top-1/3 h-96 w-96 rounded-full bg-gradient-to-l from-[#D3A13A]/15 via-[#F6C453]/10 to-transparent blur-3xl" />
             <div className="absolute left-1/2 top-2/3 h-80 w-80 rounded-full bg-gradient-to-r from-[#F6C453]/8 to-[#D3A13A]/8 blur-3xl" />
@@ -130,7 +130,7 @@ export default async function Home() {
             {/* Category Pills - Render ngay, không ScrollReveal (above fold) */}
             <div className="relative pt-4 sm:pt-6 mb-4 sm:mb-6">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-[#F6C453]/5 via-transparent to-[#D3A13A]/5 rounded-2xl blur-xl" />
+                <div className="hidden sm:block absolute inset-0 bg-gradient-to-r from-[#F6C453]/5 via-transparent to-[#D3A13A]/5 rounded-2xl blur-xl" />
                 <div className="relative">
                   <CategoryPills />
                 </div>
@@ -150,7 +150,7 @@ export default async function Home() {
             {/* Top 10 phim lẻ - Render ngay (above fold trên mobile) */}
             <div className="mt-1 sm:mt-2 md:mt-3 lg:mt-4 rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
               <div className="relative">
-                <div className="absolute -inset-4 bg-gradient-to-r from-[#F6C453]/5 via-transparent to-[#D3A13A]/5 rounded-3xl blur-2xl opacity-50" />
+                <div className="hidden sm:block absolute -inset-4 bg-gradient-to-r from-[#F6C453]/5 via-transparent to-[#D3A13A]/5 rounded-3xl blur-2xl opacity-50" />
                 <div className="relative">
                   <Suspense fallback={<MovieSectionSkeleton />}>
                     <Top10PhimLe />
@@ -163,7 +163,7 @@ export default async function Home() {
             <ScrollReveal variant="fade-up" duration={700}>
               <div className="-mt-1 sm:-mt-2 rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
                 <div className="relative">
-                  <div className="absolute -inset-4 bg-gradient-to-l from-[#D3A13A]/5 via-transparent to-[#F6C453]/5 rounded-3xl blur-2xl opacity-50" />
+                  <div className="hidden sm:block absolute -inset-4 bg-gradient-to-l from-[#D3A13A]/5 via-transparent to-[#F6C453]/5 rounded-3xl blur-2xl opacity-50" />
                   <div className="relative">
                     <Suspense fallback={<MovieSectionSkeleton />}>
                       <Top10PhimBo />
