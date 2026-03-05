@@ -12,16 +12,22 @@ function hasShownSplash(): boolean {
 }
 
 export function SplashOverlay() {
-  const [isVisible, setIsVisible] = useState(() => !hasShownSplash());
-  const [shouldRender, setShouldRender] = useState(() => !hasShownSplash());
+  // Khởi tạo true trên server (chưa biết sessionStorage), client sẽ sửa ngay trong useEffect
+  const [isVisible, setIsVisible] = useState(true);
+  const [shouldRender, setShouldRender] = useState(true);
 
   useEffect(() => {
-    // If already shown, bail immediately — nothing to do
-    if (!shouldRender) return;
+    // Check sessionStorage ngay lập tức trên client
+    // Nếu đã hiển thị splash trước đó → ẩn ngay, không delay
+    if (hasShownSplash()) {
+      setIsVisible(false);
+      setShouldRender(false);
+      return;
+    }
 
-    // Hide splash after minimum display time and when page is ready
-    const minDisplayTime = 150; // Giảm từ 300ms xuống 150ms
-    const maxDisplayTime = 400; // Giảm từ 800ms xuống 400ms
+    // Lần đầu truy cập → hiển thị splash
+    const minDisplayTime = 150;
+    const maxDisplayTime = 400;
     const startTime = Date.now();
 
     let hideTimer: NodeJS.Timeout | null = null;
@@ -32,22 +38,19 @@ export function SplashOverlay() {
       if (isHiding) return;
       isHiding = true;
       
-      // Mark splash as shown in sessionStorage
       sessionStorage.setItem('splashShown', 'true');
       
       setIsVisible(false);
-      // Remove from DOM after fade out animation completes
+      // Remove from DOM sau khi fade out xong (duration-300)
       removeTimer = setTimeout(() => {
         setShouldRender(false);
-      }, 600); // Match fade out duration (500ms + 100ms delay)
+      }, 350);
     };
 
-    // Set maximum display time
     hideTimer = setTimeout(() => {
       hideSplash();
     }, maxDisplayTime);
 
-    // Hide when page is fully loaded (but respect minimum time)
     const handleLoad = () => {
       if (hideTimer) {
         clearTimeout(hideTimer);
@@ -63,25 +66,10 @@ export function SplashOverlay() {
       }
     };
 
-    // Check if already loaded
     if (document.readyState === "complete") {
       handleLoad();
     } else {
       window.addEventListener("load", handleLoad, { once: true });
-    }
-
-    // Also check DOMContentLoaded for faster response
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", () => {
-        const elapsed = Date.now() - startTime;
-        if (elapsed >= minDisplayTime) {
-          handleLoad();
-        } else {
-          setTimeout(() => {
-            handleLoad();
-          }, minDisplayTime - elapsed);
-        }
-      }, { once: true });
     }
 
     return () => {
@@ -95,16 +83,11 @@ export function SplashOverlay() {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-[#0D0D0D] transition-opacity duration-500 ease-out min-h-screen ${
-        isVisible ? "opacity-100" : "opacity-0"
+      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-[#0D0D0D] transition-opacity duration-300 ease-out ${
+        isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
       style={{ 
         pointerEvents: isVisible ? "auto" : "none",
-        minHeight: '-webkit-fill-available', // iOS Safari
-        paddingTop: 'env(safe-area-inset-top)',
-        paddingRight: 'env(safe-area-inset-right)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
-        paddingLeft: 'env(safe-area-inset-left)',
       }}
       aria-hidden={!isVisible}
     >
