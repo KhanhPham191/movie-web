@@ -869,6 +869,21 @@ a, button, [role="button"], input, select, textarea {
   }
 }
 
+/* ===== Ken Burns zoom effect ===== */
+@keyframes kenBurns {
+  0% {
+    transform: scale(1) translateZ(0);
+  }
+  100% {
+    transform: scale(1.08) translateZ(0);
+  }
+}
+
+.hero-ken-burns {
+  animation: kenBurns 8s ease-out forwards;
+  will-change: transform;
+}
+
 /* iPad / Tablet fix — full width only for root + background layer */
 @media (min-width: 768px) and (max-width: 1366px) {
   .hero-section-root {

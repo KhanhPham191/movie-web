@@ -206,7 +206,9 @@ export function HeroSection({ movies }: HeroSectionProps) {
                 src={getImageUrl(m.thumb_url)}
                 alt={m.name}
                 fill
-                className="object-cover object-[center_20%]"
+                className={`object-cover object-[center_20%] ${
+                  isActive ? "hero-ken-burns" : ""
+                }`}
                 priority={index === 0}
                 loading={index === 0 ? undefined : "lazy"}
                 sizes="100vw"
