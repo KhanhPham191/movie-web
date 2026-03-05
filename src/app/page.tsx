@@ -12,7 +12,6 @@ import { TrungQuocSection } from "@/components/home-sections/trung-quoc";
 import { AnimeSection } from "@/components/home-sections/anime";
 import { ThaiLanSection } from "@/components/home-sections/thai-lan";
 import { HongKongSection } from "@/components/home-sections/hong-kong";
-import { TopicTags, DEFAULT_TOPIC_TAGS } from "@/components/topic-tags";
 import { ScrollReveal } from "@/components/scroll-reveal";
 
 
@@ -127,19 +126,9 @@ export default async function Home() {
 
           {/* Giảm khoảng cách dọc giữa các section để đỡ trống hơn nữa */}
           <div className="relative z-10 space-y-2 sm:space-y-3 lg:space-y-4">
-            {/* Category Pills - Render ngay, không ScrollReveal (above fold) */}
-            <div className="relative pt-4 sm:pt-6 mb-4 sm:mb-6">
-              <div className="relative">
-                <div className="hidden sm:block absolute inset-0 bg-gradient-to-r from-[#F6C453]/5 via-transparent to-[#D3A13A]/5 rounded-2xl blur-xl" />
-                <div className="relative">
-                  <CategoryPills />
-                </div>
-              </div>
-            </div>
-
-            {/* Topic Tags - Render ngay (above fold) */}
-            <div className="px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12">
-              <TopicTags tags={DEFAULT_TOPIC_TAGS} />
+            {/* Category Section - Genres, Countries, Quick filters */}
+            <div className="relative pt-10 sm:pt-16 md:pt-20 lg:pt-24 mb-2 sm:mb-4 px-1 sm:px-2">
+              <CategoryPills />
             </div>
 
             {/* Currently Watching - Render ngay (above fold) */}
