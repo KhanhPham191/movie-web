@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Play, Info, Volume2, VolumeX } from "lucide-react";
+import { Play, Info, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { FilmItem } from "@/lib/api";
 import { getImageUrl } from "@/lib/api";
@@ -15,7 +15,10 @@ interface HeroSectionProps {
   movies: FilmItem[];
 }
 
-// Chuẩn hoá text số tập: "Hoàn tất (20/20)" -> "20/20"
+const SLIDE_DURATION = 8000;
+// Mobile: cập nhật progress ít hơn để giảm re-render (mỗi 300ms thay vì mỗi frame)
+const MOBILE_PROGRESS_INTERVAL = 300;
+
 function formatEpisodeLabel(episode?: string) {
   if (!episode) return "";
   const match = episode.match(/Hoàn tất\s*\(([^)]+)\)/i);
@@ -25,37 +28,98 @@ function formatEpisodeLabel(episode?: string) {
 
 export function HeroSection({ movies }: HeroSectionProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [prevIndex, setPrevIndex] = useState<number | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [contentVisible, setContentVisible] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const [dragStartX, setDragStartX] = useState<number | null>(null);
   const [dragDeltaX, setDragDeltaX] = useState(0);
+  const progressRef = useRef<number>(0);
+  const animFrameRef = useRef<number>(0);
+  const lastTimeRef = useRef<number>(0);
+  const lastProgressUpdateRef = useRef<number>(0);
   const isMobile = useIsMobile();
 
-  // Movies đã được filter chieurap từ API, chỉ cần slice
-  // On mobile: show fewer slides to reduce memory
+  // Mobile: chỉ 3 slide để giảm memory
   const featuredMovies = movies.slice(0, isMobile ? 3 : 5);
   const movie = featuredMovies[currentIndex];
 
+  const goToSlide = useCallback(
+    (index: number) => {
+      if (index === currentIndex || isTransitioning) return;
+      setContentVisible(false);
+      setIsTransitioning(true);
+
+      // Mobile: transition nhanh hơn để giảm thời gian animation
+      const fadeOutDelay = isMobile ? 100 : 200;
+      const fadeInDelay = isMobile ? 300 : 500;
+
+      setTimeout(() => {
+        setPrevIndex(currentIndex);
+        setCurrentIndex(index);
+        setProgress(0);
+        progressRef.current = 0;
+        lastTimeRef.current = 0;
+        lastProgressUpdateRef.current = 0;
+
+        setTimeout(() => {
+          setContentVisible(true);
+          setIsTransitioning(false);
+          setPrevIndex(null);
+        }, fadeInDelay);
+      }, fadeOutDelay);
+    },
+    [currentIndex, isTransitioning]
+  );
+
+  const goNext = useCallback(() => {
+    goToSlide((currentIndex + 1) % featuredMovies.length);
+  }, [currentIndex, featuredMovies.length, goToSlide]);
+
+  const goPrev = useCallback(() => {
+    goToSlide(
+      (currentIndex - 1 + featuredMovies.length) % featuredMovies.length
+    );
+  }, [currentIndex, featuredMovies.length, goToSlide]);
+
+  // Auto-rotate with progress
   useEffect(() => {
-    setIsLoaded(true);
-  }, []);
+    if (featuredMovies.length <= 1 || isPaused || isTransitioning) return;
 
-  // Auto-rotate every 10 seconds
-  useEffect(() => {
-    if (featuredMovies.length <= 1) return;
-    
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % featuredMovies.length);
-    }, 10000);
+    const tick = (timestamp: number) => {
+      if (!lastTimeRef.current) lastTimeRef.current = timestamp;
+      const delta = timestamp - lastTimeRef.current;
+      lastTimeRef.current = timestamp;
 
-    return () => clearInterval(interval);
-  }, [featuredMovies.length]);
+      progressRef.current += delta;
 
-  if (!movie) return null;
+      if (progressRef.current >= SLIDE_DURATION) {
+        goNext();
+        return;
+      }
 
+      // Mobile: chỉ cập nhật state progress mỗi 300ms thay vì mỗi frame
+      // để giảm re-render từ ~60fps xuống ~3fps — giảm CPU/GPU đáng kể
+      const timeSinceUpdate = timestamp - lastProgressUpdateRef.current;
+      if (!isMobile || timeSinceUpdate >= MOBILE_PROGRESS_INTERVAL) {
+        const pct = Math.min((progressRef.current / SLIDE_DURATION) * 100, 100);
+        setProgress(pct);
+        lastProgressUpdateRef.current = timestamp;
+      }
+
+      animFrameRef.current = requestAnimationFrame(tick);
+    };
+
+    animFrameRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animFrameRef.current);
+  }, [featuredMovies.length, isPaused, isTransitioning, goNext]);
+
+  // Swipe handling
   const startDrag = (clientX: number) => {
     setDragStartX(clientX);
     setDragDeltaX(0);
+    setIsPaused(true);
   };
 
   const moveDrag = (clientX: number) => {
@@ -65,204 +129,378 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
   const endDrag = () => {
     if (dragStartX === null) return;
-    if (Math.abs(dragDeltaX) > 60 && featuredMovies.length > 1) {
-      setCurrentIndex((prev) => {
-        if (dragDeltaX < 0) {
-          return (prev + 1) % featuredMovies.length;
-        }
-        return (prev - 1 + featuredMovies.length) % featuredMovies.length;
-      });
+    if (Math.abs(dragDeltaX) > 50 && featuredMovies.length > 1) {
+      if (dragDeltaX < 0) goNext();
+      else goPrev();
     }
     setDragStartX(null);
     setDragDeltaX(0);
+    setIsPaused(false);
   };
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLElement>) => {
+  const handleMouseDown = (e: React.MouseEvent<HTMLElement>) =>
     startDrag(e.clientX);
-  };
-
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
     if (dragStartX === null) return;
     moveDrag(e.clientX);
   };
-
-  const handleMouseUp = () => {
-    endDrag();
-  };
-
+  const handleMouseUp = () => endDrag();
   const handleTouchStart = (e: React.TouchEvent<HTMLElement>) => {
-    if (e.touches.length > 0) {
-      startDrag(e.touches[0].clientX);
-    }
+    if (e.touches.length > 0) startDrag(e.touches[0].clientX);
   };
-
   const handleTouchMove = (e: React.TouchEvent<HTMLElement>) => {
     if (dragStartX === null || e.touches.length === 0) return;
     moveDrag(e.touches[0].clientX);
   };
+  const handleTouchEnd = () => endDrag();
 
-  const handleTouchEnd = () => {
-    endDrag();
-  };
+  if (!movie) return null;
+
+  const adjacentPrev =
+    (currentIndex - 1 + featuredMovies.length) % featuredMovies.length;
+  const adjacentNext = (currentIndex + 1) % featuredMovies.length;
+
+  // Get IMDb/TMDB rating
+  const rating = movie.imdb || movie.tmdb || movie.vote_average;
+  const ratingDisplay = rating
+    ? typeof rating === "number"
+      ? rating.toFixed(1)
+      : parseFloat(String(rating)) > 0
+        ? parseFloat(String(rating)).toFixed(1)
+        : null
+    : null;
 
   return (
     <section
-      className="hero-section-root relative aspect-[16/9] w-full max-w-full overflow-hidden rounded-none lg:rounded-lg 2xl:aspect-[16/7] h-[260px] xs:h-[300px] sm:h-[56.25vw] max-h-[70vh] sm:max-h-[80vh] min-h-[240px] xs:min-h-[260px] sm:min-h-[400px] lg:h-[70vh] lg:min-h-[460px] xl:h-[75vh] select-none"
+      className="hero-section-root relative w-full max-w-full overflow-hidden rounded-none lg:rounded-xl select-none"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      onMouseLeave={() => {
+        endDrag();
+        setIsPaused(false);
+      }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ width: '100%', maxWidth: '100%' }}
+      onMouseEnter={() => setIsPaused(true)}
+      style={{ width: "100%", maxWidth: "100%" }}
     >
-      {/* Background Images - Only render current + adjacent (desktop) or current only (mobile) */}
+      {/* ===== Background Images ===== */}
       <div className="absolute inset-0">
         {featuredMovies.map((m, index) => {
-          // On mobile: only render current slide to save memory
-          // On desktop: render current + prev + next for smooth transitions
-          const prevIndex = (currentIndex - 1 + featuredMovies.length) % featuredMovies.length;
-          const nextIndex = (currentIndex + 1) % featuredMovies.length;
           const shouldRender = isMobile
-            ? index === currentIndex
-            : (index === currentIndex || index === prevIndex || index === nextIndex);
-          
+            ? index === currentIndex || index === prevIndex
+            : index === currentIndex ||
+              index === prevIndex ||
+              index === adjacentPrev ||
+              index === adjacentNext;
+
           if (!shouldRender) return null;
-          
+
+          const isActive = index === currentIndex;
+          const isLeaving = index === prevIndex;
+
           return (
             <div
-              key={`${m.slug}-${m.id || index}`}
-              className={`absolute inset-0 transition-opacity duration-300 sm:duration-700 ${
-                index === currentIndex ? "opacity-100" : "opacity-0"
-              }`}
+              key={`bg-${m.slug}-${m.id || index}`}
+              className="absolute inset-0"
+              style={{
+                opacity: isActive ? 1 : isLeaving ? 0 : 0,
+                // Mobile: transition ngắn hơn, dùng ease đơn giản hơn
+                transition: isMobile
+                  ? "opacity 0.4s ease"
+                  : "opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1)",
+                zIndex: isActive ? 2 : isLeaving ? 1 : 0,
+              }}
             >
-              <Image
-                src={getImageUrl(m.thumb_url)}
-                alt={m.name}
-                fill
-                className="object-cover object-center"
-                priority={index === currentIndex}
-                loading={index === currentIndex ? undefined : "lazy"}
-                sizes="100vw"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
-              />
+              <div
+                // Mobile: tắt Ken Burns để tiết kiệm GPU
+                className={`absolute inset-0 ${isActive && !isMobile ? "hero-ken-burns" : ""}`}
+                style={{ willChange: isActive && !isMobile ? "transform" : "auto" }}
+              >
+                <Image
+                  src={getImageUrl(m.thumb_url)}
+                  alt={m.name}
+                  fill
+                  className="object-cover object-[center_20%]"
+                  priority={index === 0}
+                  loading={index === 0 ? undefined : "lazy"}
+                  // Mobile: nhỏ hơn, không cần ảnh full 100vw
+                  sizes={isMobile ? "100vw" : "100vw"}
+                  quality={isMobile ? 60 : 80}
+                />
+              </div>
             </div>
           );
         })}
-        
-        {/* Premium Vignette & Gradients */}
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(13,13,13,0.1)_0%,rgba(13,13,13,0)_25%,rgba(13,13,13,0)_50%,rgba(13,13,13,0.7)_80%,rgba(13,13,13,0.98)_100%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(13,13,13,0.5)_0%,rgba(13,13,13,0.15)_30%,rgba(13,13,13,0)_50%)]" />
+
+        {/* Gradient overlays — gộp 2 gradient vào 1 element trên mobile */}
+        <div
+          className="absolute inset-0 z-[3]"
+          style={{
+            background: isMobile
+              ? `linear-gradient(180deg, rgba(13,13,13,0.1) 0%, transparent 20%, transparent 40%, rgba(13,13,13,0.6) 68%, rgba(13,13,13,0.95) 90%, rgba(13,13,13,1) 100%)`
+              : `linear-gradient(180deg, rgba(13,13,13,0.15) 0%, transparent 15%, transparent 45%, rgba(13,13,13,0.55) 68%, rgba(13,13,13,0.92) 88%, rgba(13,13,13,1) 100%)`,
+          }}
+        />
+        {/* Left gradient — chỉ desktop, mobile không cần vì text đã ở dưới */}
+        {!isMobile && (
+          <div
+            className="absolute inset-0 z-[3]"
+            style={{
+              background: `linear-gradient(90deg, rgba(13,13,13,0.6) 0%, rgba(13,13,13,0.2) 30%, transparent 55%)`,
+            }}
+          />
+        )}
       </div>
 
-      {/* Content */}
+      {/* ===== Movie Info Content (Left side — Rophim layout) ===== */}
       <div
-        key={movie.slug}
-        className={`absolute z-10 bottom-0 sm:bottom-[15%] md:bottom-[20%] left-0 right-0 sm:left-4 md:left-12 sm:right-4 md:right-[50%] px-3 sm:px-0 pb-4 sm:pb-0 ${
-          isLoaded ? "opacity-100" : "opacity-0"
-        }`}
+        className="absolute z-10 bottom-0 left-0 right-0 sm:bottom-[10%] md:bottom-[13%] lg:bottom-[15%] sm:left-6 md:left-12 lg:left-14 sm:right-[38%] md:right-[42%] px-4 sm:px-0 pb-20 sm:pb-0"
         style={{
-          animation: isLoaded ? undefined : undefined,
+          opacity: contentVisible ? 1 : 0,
+          // Mobile: bỏ transform animation, chỉ fade opacity (ít tốn GPU hơn)
+          transform: !isMobile && !contentVisible ? "translateY(14px)" : "translateY(0)",
+          transition: isMobile
+            ? "opacity 0.3s ease"
+            : "opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1), transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)",
+          contain: "content",
         }}
       >
-        {/* Premium Badge */}
-        <div
-          className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4"
-        >
-          <div className="inline-flex px-1 py-0.5 xs:px-1.5 xs:py-0.5 sm:px-3 sm:py-1 md:px-4 md:py-1.5 rounded-full bg-gradient-to-r from-[#F6C453]/90 to-[#D3A13A]/90 backdrop-blur-sm border-[0.5px] xs:border border-[#F6C453]/40 shadow-sm xs:shadow-md sm:shadow-lg">
-            <span className="text-[7px] xs:text-[8px] sm:text-xs font-bold text-white tracking-tight xs:tracking-wide sm:tracking-widest uppercase whitespace-nowrap">
-              Phim hot
-            </span>
-          </div>
-        </div>
-
-        {/* Premium Title */}
-        <h1
-          className="text-base sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-black text-white mb-2 sm:mb-4 drop-shadow-2xl line-clamp-2 leading-tight tracking-tight"
-        >
-          <span className="bg-gradient-to-r from-white via-white to-white/90 bg-clip-text text-transparent">
-            {movie.name}
-          </span>
-        </h1>
-
-        {/* Original Title */}
-        {movie.original_name && movie.original_name !== movie.name && (
+        {/* Original Title — trên tên chính, nhỏ nhẹ (ẩn trên mobile để giảm DOM) */}
+        {!isMobile && movie.original_name && movie.original_name !== movie.name && (
           <p
-            className="text-[10px] sm:text-base md:text-lg text-gray-300 mb-1 sm:mb-3 line-clamp-1 hidden sm:block"
+            className="text-sm text-gray-400 mb-1.5 line-clamp-1 font-medium tracking-wide"
+            style={{
+              opacity: contentVisible ? 1 : 0,
+              transition: "opacity 0.35s ease 0.05s",
+            }}
           >
             {movie.original_name}
           </p>
         )}
 
-        {/* Meta Info */}
-        <div
-          className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1.5 sm:mb-4 text-[10px] sm:text-sm"
+        {/* Main Title */}
+        <h1
+          className="text-xl sm:text-3xl md:text-4xl lg:text-[2.75rem] xl:text-5xl font-extrabold text-white mb-2.5 sm:mb-3.5 drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)] line-clamp-2 leading-[1.15] tracking-tight"
+          style={
+            isMobile
+              ? undefined  // Mobile: không cần inline style, chỉ dùng class
+              : {
+                  opacity: contentVisible ? 1 : 0,
+                  transform: contentVisible ? "translateY(0)" : "translateY(10px)",
+                  transition:
+                    "opacity 0.45s cubic-bezier(0.4,0,0.2,1) 0.1s, transform 0.45s cubic-bezier(0.4,0,0.2,1) 0.1s",
+                }
+          }
         >
-          {movie.current_episode && (
-            <span className="text-gray-300 text-[10px] sm:text-sm">
-              {formatEpisodeLabel(movie.current_episode)}
+          {movie.name}
+        </h1>
+
+        {/* Meta row: IMDb · Quality · Episodes · Year · Duration */}
+        <div
+          className="flex flex-wrap items-center gap-1.5 sm:gap-2.5 mb-2.5 sm:mb-4"
+          style={
+            isMobile
+              ? undefined
+              : {
+                  opacity: contentVisible ? 1 : 0,
+                  transform: contentVisible ? "translateY(0)" : "translateY(6px)",
+                  transition: "opacity 0.4s ease 0.15s, transform 0.4s ease 0.15s",
+                }
+          }
+        >
+          {/* IMDb Rating — nổi bật */}
+          {ratingDisplay && (
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded bg-[#F6C453]/15 text-[10px] sm:text-[13px] font-bold text-[#F6C453]">
+              <Star className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-[#F6C453] text-[#F6C453]" />
+              {ratingDisplay}
             </span>
           )}
-          {isValidTime(movie.time) && (
-            <span className="text-gray-400 text-[10px] sm:text-sm">{movie.time}</span>
+
+          {/* Quality badge — solid like Rophim */}
+          {movie.quality && (
+            <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded text-[9px] sm:text-[11px] font-bold bg-[#F6C453] text-black tracking-wide uppercase">
+              {movie.quality}
+            </span>
           )}
-          <span className="px-1 sm:px-1.5 py-0.5 border border-gray-400 text-[9px] sm:text-xs">18+</span>
+
+          {/* Các meta khác */}
+          {movie.current_episode && (
+            <>
+              <span className="text-gray-600 text-[8px] sm:text-[10px]">•</span>
+              <span className="text-gray-300 text-[10px] sm:text-[13px] font-medium">
+                {formatEpisodeLabel(movie.current_episode)}
+              </span>
+            </>
+          )}
+
+          {movie.year && (
+            <>
+              <span className="text-gray-600 text-[8px] sm:text-[10px]">•</span>
+              <span className="text-gray-300 text-[10px] sm:text-[13px] font-medium">
+                {movie.year}
+              </span>
+            </>
+          )}
+
+          {isValidTime(movie.time) && (
+            <>
+              <span className="text-gray-600 text-[8px] sm:text-[10px]">•</span>
+              <span className="text-gray-400 text-[10px] sm:text-[13px]">
+                {movie.time}
+              </span>
+            </>
+          )}
+
+          {movie.language && (
+            <>
+              <span className="text-gray-600 text-[8px] sm:text-[10px] hidden sm:inline">•</span>
+              <span className="hidden sm:inline text-gray-400 text-[13px]">
+                {movie.language}
+              </span>
+            </>
+          )}
         </div>
 
-        {/* Description - Ẩn trên mobile để tiết kiệm không gian */}
+        {/* Description — 2 dòng trên desktop */}
         {movie.description && (
-          <p 
-            className="hidden sm:block text-xs sm:text-sm md:text-base text-gray-200 line-clamp-2 sm:line-clamp-3 mb-2 sm:mb-5 max-w-xl"
+          <p
+            className="hidden sm:block text-[13px] md:text-sm text-gray-300/80 line-clamp-2 mb-4 sm:mb-5 max-w-lg leading-relaxed"
+            style={{
+              opacity: contentVisible ? 1 : 0,
+              transition: "opacity 0.35s ease 0.2s",
+            }}
             dangerouslySetInnerHTML={{
-              __html: movie.description.replace(/<[^>]*>/g, "").slice(0, 120) + "...",
+              __html:
+                movie.description.replace(/<[^>]*>/g, "").slice(0, 160) + "...",
             }}
           />
         )}
 
-        {/* Genres - Ẩn trên mobile */}
-        {movie.category && movie.category.length > 0 && (
-          <div
-            className="hidden sm:flex flex-wrap items-center gap-1 text-xs sm:text-sm text-gray-300 mb-2 sm:mb-5"
-          >
-            {movie.category.slice(0, 3).map((cat, i) => (
-              <span key={cat.id}>
-                {cat.name}
-                {i < Math.min(movie.category.length, 3) - 1 && (
-                  <span className="mx-1.5 sm:mx-2 text-gray-600">•</span>
-                )}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Premium Action Buttons */}
+        {/* Action Buttons */}
         <div
-          className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-0"
+          className="flex items-center gap-2.5 sm:gap-3"
+          style={
+            isMobile
+              ? undefined
+              : {
+                  opacity: contentVisible ? 1 : 0,
+                  transform: contentVisible ? "translateY(0)" : "translateY(6px)",
+                  transition:
+                    "opacity 0.4s cubic-bezier(0.4,0,0.2,1) 0.25s, transform 0.4s cubic-bezier(0.4,0,0.2,1) 0.25s",
+                }
+          }
         >
           <Link href={`/phim/${movie.slug}`}>
             <Button
               size="lg"
-              className="relative group/btn bg-gradient-to-r from-[#F6C453] to-[#D3A13A] hover:from-[#F6C453]/90 hover:to-[#D3A13A]/90 text-white font-bold text-[10px] sm:text-sm md:text-base px-4 sm:px-6 md:px-8 h-9 sm:h-11 md:h-12 rounded-full shadow-[0_8px_30px_rgba(246,196,83,0.4)] hover:shadow-[0_12px_40px_rgba(246,196,83,0.5)] transition-all duration-150 sm:duration-300 flex-1 sm:flex-initial border border-[#F6C453]/30 cursor-pointer"
+              className="bg-[#F6C453] hover:bg-[#FFD76E] text-black font-bold text-[11px] sm:text-sm px-5 sm:px-7 h-9 sm:h-11 rounded-lg shadow-[0_4px_20px_rgba(246,196,83,0.3)] hover:shadow-[0_6px_28px_rgba(246,196,83,0.45)] sm:hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-full opacity-0 group-hover/btn:opacity-100 transition-opacity" />
-              <Play className="relative z-10 w-3 h-3 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2 fill-white" />
-              <span className="relative z-10">Phát ngay</span>
+              <Play className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 mr-1.5 fill-black" />
+              Xem ngay
             </Button>
           </Link>
           <Link href={`/phim/${movie.slug}`}>
             <Button
               size="lg"
               variant="secondary"
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-semibold text-[10px] sm:text-sm md:text-base px-4 sm:px-6 md:px-8 h-9 sm:h-11 md:h-12 rounded-full transition-all duration-150 sm:duration-300"
+              className={`bg-white/10 hover:bg-white/[0.18] border border-white/15 hover:border-white/30 text-white font-semibold text-[11px] sm:text-sm px-5 sm:px-7 h-9 sm:h-11 rounded-lg sm:hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer ${isMobile ? "" : "backdrop-blur-md"}`}
             >
-              <Info className="w-3 h-3 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2" />
-              <span className="hidden sm:inline">Thông tin</span>
-              <span className="sm:hidden">Info</span>
+              <Info className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 mr-1.5" />
+              Chi tiết
             </Button>
           </Link>
         </div>
       </div>
+
+      {/* ===== Navigation ===== */}
+      {featuredMovies.length > 1 && (
+        isMobile ? (
+          /* Mobile: dots đơn giản, không load thêm ảnh poster → tiết kiệm RAM + bandwidth */
+          <div className="absolute z-20 bottom-3.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+            {featuredMovies.map((_, i) => (
+              <button
+                key={`dot-${i}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToSlide(i);
+                }}
+                className={`rounded-full transition-all duration-300 cursor-pointer ${
+                  i === currentIndex
+                    ? "w-6 h-1.5 bg-[#F6C453]"
+                    : "w-1.5 h-1.5 bg-white/30"
+                }`}
+                aria-label={`Slide ${i + 1}`}
+              />
+            ))}
+          </div>
+        ) : (
+          /* Desktop: thumbnail navigation — Rophim style */
+          <div
+            className="absolute z-20 bottom-5 md:bottom-6 right-6 md:right-12 lg:right-14 flex items-end gap-2"
+            onMouseEnter={() => setIsPaused(true)}
+          >
+            {featuredMovies.map((m, i) => {
+              const isActive = i === currentIndex;
+              return (
+                <button
+                  key={`thumb-${m.slug}-${i}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToSlide(i);
+                  }}
+                  className={`
+                    relative overflow-hidden rounded-lg transition-all duration-300 cursor-pointer group/thumb flex-shrink-0
+                    ${isActive
+                      ? "w-[56px] h-[78px] md:w-[64px] md:h-[90px] ring-2 ring-[#F6C453] shadow-[0_0_12px_rgba(246,196,83,0.25)]"
+                      : "w-[44px] h-[62px] md:w-[52px] md:h-[72px] ring-1 ring-white/10 opacity-50 hover:opacity-85 hover:ring-white/30"
+                    }
+                  `}
+                  aria-label={m.name}
+                >
+                  <Image
+                    src={getImageUrl(m.poster_url || m.thumb_url)}
+                    alt={m.name}
+                    fill
+                    className="object-cover"
+                    sizes="80px"
+                    loading="lazy"
+                  />
+
+                  {/* Progress bar trên thumbnail active */}
+                  {isActive && (
+                    <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-black/40 z-10">
+                      <div
+                        className="h-full bg-[#F6C453]"
+                        style={{
+                          width: `${progress}%`,
+                          transition: "width 0.1s linear",
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Dim overlay cho inactive */}
+                  {!isActive && (
+                    <div className="absolute inset-0 bg-black/20 group-hover/thumb:bg-black/5 transition-colors duration-200" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )
+      )}
+
+      {/* ===== Slide Counter (mobile, top-right) ===== */}
+      {featuredMovies.length > 1 && (
+        <div className="absolute z-20 top-3 right-3 sm:hidden">
+          <span className="px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm text-[10px] text-white/60 font-medium tabular-nums">
+            {currentIndex + 1}/{featuredMovies.length}
+          </span>
+        </div>
+      )}
     </section>
   );
 }

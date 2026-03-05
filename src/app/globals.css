@@ -827,87 +827,73 @@ a, button, [role="button"], input, select, textarea {
   isolation: isolate;
 }
 
-/* iPad Pro hero banner height and width fix */
-@media only screen 
-  and (min-device-width: 1024px) 
-  and (max-device-width: 1366px) 
-  and (-webkit-min-device-pixel-ratio: 2) {
+/* ===== Hero Section — Responsive Height ===== */
+.hero-section-root {
+  height: 58vw;
+  min-height: 260px;
+  max-height: 80vh;
+  /* Paint containment — giúp browser tối ưu repaint */
+  contain: layout style;
+  /* Promote lên GPU layer riêng — tránh repaint toàn page */
+  will-change: auto;
+  transform: translateZ(0);
+}
+
+@media (min-width: 640px) {
   .hero-section-root {
-    height: 80vh !important;
-    max-height: 80vh !important;
-    min-height: 520px !important;
+    height: 56vw;
+    min-height: 380px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-section-root {
+    height: 70vh;
+    min-height: 460px;
+    max-height: 82vh;
+  }
+}
+
+@media (min-width: 1280px) {
+  .hero-section-root {
+    height: 75vh;
+    min-height: 500px;
+  }
+}
+
+/* iPad Pro fix — full width */
+@media (min-width: 768px) and (max-width: 1366px) {
+  .hero-section-root,
+  .hero-section-root > * {
     width: 100vw !important;
     max-width: 100vw !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
   }
-  
-  /* Đảm bảo image trong hero section không bị bóp trên iPad Pro */
+
   .hero-section-root img {
     width: 100% !important;
     height: 100% !important;
     object-fit: cover !important;
     object-position: center !important;
-    min-width: 100% !important;
-  }
-  
-  /* Đảm bảo container cha của hero section full width */
-  .hero-section-root,
-  .hero-section-root > * {
-    width: 100% !important;
-    max-width: 100% !important;
   }
 }
 
-/* iPad Pro landscape - đảm bảo banner full width */
-@media only screen 
-  and (min-width: 1024px) 
-  and (max-width: 1366px) 
-  and (orientation: landscape) {
-  .hero-section-root {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+/* ===== Ken Burns Animation ===== */
+@keyframes hero-ken-burns {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+  100% {
+    transform: scale(1.08) translate(-0.5%, -0.5%);
   }
 }
 
-/* iPad Pro portrait - đảm bảo banner full width */
-@media only screen 
-  and (min-width: 768px) 
-  and (max-width: 1024px) 
-  and (orientation: portrait) {
-  .hero-section-root {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
+.hero-ken-burns {
+  animation: hero-ken-burns 9s ease-out forwards;
 }
 
-/* iPad Pro general - đảm bảo banner không bị bóp */
-@media only screen 
-  and (min-width: 768px) 
-  and (max-width: 1366px) {
-  .hero-section-root {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    left: 0 !important;
-    right: 0 !important;
-  }
-  
-  /* Đảm bảo image fill toàn bộ container */
-  .hero-section-root .absolute.inset-0 img {
-    width: 100% !important;
-    height: 100% !important;
-    min-width: 100% !important;
-    min-height: 100% !important;
+@media (prefers-reduced-motion: reduce) {
+  .hero-ken-burns {
+    animation: none !important;
   }
 }
 
