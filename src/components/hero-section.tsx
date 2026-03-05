@@ -16,8 +16,10 @@ interface HeroSectionProps {
 }
 
 const SLIDE_DURATION = 8000;
-// Mobile: cập nhật progress ít hơn để giảm re-render (mỗi 300ms thay vì mỗi frame)
-const MOBILE_PROGRESS_INTERVAL = 300;
+// Throttle progress state updates để giảm re-render
+// Desktop: 150ms (~6fps), Mobile: 500ms (~2fps) — đủ mượt cho progress bar nhỏ
+const DESKTOP_PROGRESS_INTERVAL = 150;
+const MOBILE_PROGRESS_INTERVAL = 500;
 
 function formatEpisodeLabel(episode?: string) {
   if (!episode) return "";
@@ -41,8 +43,8 @@ export function HeroSection({ movies }: HeroSectionProps) {
   const lastProgressUpdateRef = useRef<number>(0);
   const isMobile = useIsMobile();
 
-  // Mobile: chỉ 3 slide để giảm memory
-  const featuredMovies = movies.slice(0, isMobile ? 3 : 5);
+  // Giới hạn slide: mobile 3, desktop 4 (giảm từ 5)
+  const featuredMovies = movies.slice(0, isMobile ? 3 : 4);
   const movie = featuredMovies[currentIndex];
 
   const goToSlide = useCallback(
@@ -99,10 +101,10 @@ export function HeroSection({ movies }: HeroSectionProps) {
         return;
       }
 
-      // Mobile: chỉ cập nhật state progress mỗi 300ms thay vì mỗi frame
-      // để giảm re-render từ ~60fps xuống ~3fps — giảm CPU/GPU đáng kể
+      // Throttle cả desktop + mobile — không cần 60fps cho thanh progress nhỏ
+      const interval = isMobile ? MOBILE_PROGRESS_INTERVAL : DESKTOP_PROGRESS_INTERVAL;
       const timeSinceUpdate = timestamp - lastProgressUpdateRef.current;
-      if (!isMobile || timeSinceUpdate >= MOBILE_PROGRESS_INTERVAL) {
+      if (timeSinceUpdate >= interval) {
         const pct = Math.min((progressRef.current / SLIDE_DURATION) * 100, 100);
         setProgress(pct);
         lastProgressUpdateRef.current = timestamp;
@@ -156,10 +158,6 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
   if (!movie) return null;
 
-  const adjacentPrev =
-    (currentIndex - 1 + featuredMovies.length) % featuredMovies.length;
-  const adjacentNext = (currentIndex + 1) % featuredMovies.length;
-
   // Get IMDb/TMDB rating
   const rating = movie.imdb || movie.tmdb || movie.vote_average;
   const ratingDisplay = rating
@@ -183,18 +181,13 @@ export function HeroSection({ movies }: HeroSectionProps) {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      onMouseEnter={() => setIsPaused(true)}
       style={{ width: "100%", maxWidth: "100%" }}
     >
       {/* ===== Background Images ===== */}
       <div className="absolute inset-0">
         {featuredMovies.map((m, index) => {
-          const shouldRender = isMobile
-            ? index === currentIndex || index === prevIndex
-            : index === currentIndex ||
-              index === prevIndex ||
-              index === adjacentPrev ||
-              index === adjacentNext;
+          // Chỉ render current + prev (đang fade out) — không preload adjacent
+          const shouldRender = index === currentIndex || index === prevIndex;
 
           if (!shouldRender) return null;
 
@@ -214,11 +207,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
                 zIndex: isActive ? 2 : isLeaving ? 1 : 0,
               }}
             >
-              <div
-                // Mobile: tắt Ken Burns để tiết kiệm GPU
-                className={`absolute inset-0 ${isActive && !isMobile ? "hero-ken-burns" : ""}`}
-                style={{ willChange: isActive && !isMobile ? "transform" : "auto" }}
-              >
+              <div className="absolute inset-0">
                 <Image
                   src={getImageUrl(m.thumb_url)}
                   alt={m.name}
@@ -406,7 +395,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
             <Button
               size="lg"
               variant="secondary"
-              className={`bg-white/10 hover:bg-white/[0.18] border border-white/15 hover:border-white/30 text-white font-semibold text-[11px] sm:text-sm px-5 sm:px-7 h-9 sm:h-11 rounded-lg sm:hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer ${isMobile ? "" : "backdrop-blur-md"}`}
+              className="bg-white/10 hover:bg-white/[0.18] border border-white/15 hover:border-white/30 text-white font-semibold text-[11px] sm:text-sm px-5 sm:px-7 h-9 sm:h-11 rounded-lg sm:hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer"
             >
               <Info className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 mr-1.5" />
               Chi tiết
@@ -437,58 +426,33 @@ export function HeroSection({ movies }: HeroSectionProps) {
             ))}
           </div>
         ) : (
-          /* Desktop: thumbnail navigation — Rophim style */
-          <div
-            className="absolute z-20 bottom-5 md:bottom-6 right-6 md:right-12 lg:right-14 flex items-end gap-2"
-            onMouseEnter={() => setIsPaused(true)}
-          >
-            {featuredMovies.map((m, i) => {
-              const isActive = i === currentIndex;
-              return (
-                <button
-                  key={`thumb-${m.slug}-${i}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    goToSlide(i);
-                  }}
-                  className={`
-                    relative overflow-hidden rounded-lg transition-all duration-300 cursor-pointer group/thumb flex-shrink-0
-                    ${isActive
-                      ? "w-[56px] h-[78px] md:w-[64px] md:h-[90px] ring-2 ring-[#F6C453] shadow-[0_0_12px_rgba(246,196,83,0.25)]"
-                      : "w-[44px] h-[62px] md:w-[52px] md:h-[72px] ring-1 ring-white/10 opacity-50 hover:opacity-85 hover:ring-white/30"
-                    }
-                  `}
-                  aria-label={m.name}
-                >
-                  <Image
-                    src={getImageUrl(m.poster_url || m.thumb_url)}
-                    alt={m.name}
-                    fill
-                    className="object-cover"
-                    sizes="80px"
-                    loading="lazy"
+          /* Desktop: dots đơn giản — nhẹ, không load thêm ảnh */
+          <div className="absolute z-20 bottom-5 md:bottom-6 right-6 md:right-12 lg:right-14 flex items-center gap-2">
+            {featuredMovies.map((_, i) => (
+              <button
+                key={`dot-${i}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToSlide(i);
+                }}
+                className={`relative rounded-full transition-all duration-300 cursor-pointer overflow-hidden ${
+                  i === currentIndex
+                    ? "w-8 h-2 bg-white/20"
+                    : "w-2 h-2 bg-white/25 hover:bg-white/40"
+                }`}
+                aria-label={`Slide ${i + 1}`}
+              >
+                {i === currentIndex && (
+                  <div
+                    className="absolute inset-y-0 left-0 rounded-full bg-[#F6C453]"
+                    style={{
+                      width: `${progress}%`,
+                      transition: "width 0.15s linear",
+                    }}
                   />
-
-                  {/* Progress bar trên thumbnail active */}
-                  {isActive && (
-                    <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-black/40 z-10">
-                      <div
-                        className="h-full bg-[#F6C453]"
-                        style={{
-                          width: `${progress}%`,
-                          transition: "width 0.1s linear",
-                        }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Dim overlay cho inactive */}
-                  {!isActive && (
-                    <div className="absolute inset-0 bg-black/20 group-hover/thumb:bg-black/5 transition-colors duration-200" />
-                  )}
-                </button>
-              );
-            })}
+                )}
+              </button>
+            ))}
           </div>
         )
       )}
