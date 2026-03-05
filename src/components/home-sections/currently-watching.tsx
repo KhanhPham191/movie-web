@@ -183,10 +183,10 @@ export function CurrentlyWatchingSection() {
       if (focusTimeout) {
         clearTimeout(focusTimeout);
       }
-      // Debounce 2 giây để tránh gọi quá nhiều khi user switch tabs nhanh
+      // Debounce 30 giây để tránh gọi quá nhiều khi user switch tabs
       focusTimeout = setTimeout(() => {
       fetchData();
-      }, 2000);
+      }, 30000);
     };
 
     // Listen for custom event khi xóa phim

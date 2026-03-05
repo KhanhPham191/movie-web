@@ -23,6 +23,8 @@ interface MovieCardProps {
   variant?: "default" | "portrait" | "top10" | "newRelease" | "series" | "cinema";
   rank?: number;
   disableTilt?: boolean;
+  /** Mark image as priority (above-fold, first 3 cards) */
+  priority?: boolean;
 }
 
 // Chuẩn hoá text số tập: "Hoàn tất (20/20)" -> "20/20"
@@ -111,7 +113,7 @@ function LanguageBadges({ language }: { language?: string }) {
   );
 }
 
-export function MovieCard({ movie, index = 0, variant = "default", rank, disableTilt = false }: MovieCardProps) {
+export function MovieCard({ movie, index = 0, variant = "default", rank, disableTilt = false, priority = false }: MovieCardProps) {
   const pathname = usePathname();
   const router = useRouter();
   const isHome = pathname === '/';
@@ -557,8 +559,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               alt={movie.name}
               fill
               className="object-cover object-center transition-transform duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03]"
-              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-              loading="lazy"
+              sizes="(max-width: 640px) 150px, (max-width: 1024px) 200px, 250px"
+              {...(priority ? { priority: true } : { loading: "lazy" })}
             />
             
             {/* Rank Badge - Top Left Corner */}
@@ -634,8 +636,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               alt={movie.name}
               fill
               className="object-cover object-center transition-transform duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03]"
-              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-              loading="lazy"
+              sizes="(max-width: 640px) 150px, (max-width: 1024px) 200px, 250px"
+              {...(priority ? { priority: true } : { loading: "lazy" })}
             />
             {/* Language Badges - Bottom Left Corner */}
             <LanguageBadges language={movie.language} />
@@ -732,8 +734,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               alt={movie.name}
               fill
               className="object-cover object-center transition-transform duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03]"
-              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-              loading="lazy"
+              sizes="(max-width: 640px) 150px, (max-width: 1024px) 200px, 250px"
+              {...(priority ? { priority: true } : { loading: "lazy" })}
             />
               {/* Language Badges - Bottom Left Corner */}
               <LanguageBadges language={movie.language} />
@@ -822,8 +824,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               alt={movie.name}
               fill
               className="object-cover object-center transition-transform duration-200 sm:duration-500 ease-in-out sm:group-hover:scale-[1.03]"
-              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-              loading="lazy"
+              sizes="(max-width: 640px) 150px, (max-width: 1024px) 200px, 250px"
+              {...(priority ? { priority: true } : { loading: "lazy" })}
             />
             {/* Language Badges - Bottom Left Corner */}
             <LanguageBadges language={movie.language} />

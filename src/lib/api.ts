@@ -229,7 +229,7 @@ async function fetchPhimAPI<T>(endpoint: string): Promise<T> {
   
   const fetchPromise = (async () => {
     try {
-      const timeoutMs = 30000;
+      const timeoutMs = 8000;
       const headers = isBrowser
         ? { Accept: "application/json", "Accept-Language": "vi,en;q=0.9" }
         : DEFAULT_FETCH_HEADERS;
@@ -1052,51 +1052,26 @@ export async function getMultiplePages(
   pages: number = 3
 ): Promise<FilmItem[]> {
   try {
-    // First, try to fetch page 1 to check total pages available
-    let firstPage: FilmListResponse;
-    try {
-      firstPage = await fetchFn(1);
-    } catch (fetchError) {
-      // Nếu fetch throw error (network error, etc.), return empty array
+    // Fetch tất cả pages song song để giảm thời gian chờ
+    const allPromises = Array.from(
+      { length: pages },
+      (_, i) => fetchFn(i + 1).catch(() => null)
+    );
+    
+    const allResults = await Promise.all(allPromises);
+    
+    // Filter kết quả hợp lệ
+    const validResults = allResults.filter(
+      (r): r is FilmListResponse => r !== null && r.status !== "error"
+    );
+    
+    if (validResults.length === 0) {
       return [];
     }
     
-    // Kiểm tra nếu API trả về lỗi
-    if (firstPage.status === "error") {
-      return [];
-    }
-    
-    const totalPages = firstPage.paginate?.total_page || 1;
-    
-    // Only fetch pages that actually exist
-    const pagesToFetch = Math.min(pages, totalPages);
-    
-    if (pagesToFetch === 1) {
-      return firstPage.items || [];
-    }
-    
-    // Batch requests: fetch tối đa 3 pages cùng lúc để tránh quá tải
-    const BATCH_SIZE = 3;
-    const remainingPages = pagesToFetch - 1;
-    const allResults: FilmListResponse[] = [firstPage];
-    
-    // Fetch remaining pages theo batch
-    for (let i = 0; i < remainingPages; i += BATCH_SIZE) {
-      const batchPromises = Array.from(
-        { length: Math.min(BATCH_SIZE, remainingPages - i) },
-        (_, j) => fetchFn(i + j + 2).catch(() => null)
-    );
-    
-      const batchResults = await Promise.all(batchPromises);
-      const validBatchResults = batchResults.filter(
-        (r): r is FilmListResponse => r !== null && r.status !== "error"
-    );
-      allResults.push(...validBatchResults);
-    }
-    
-    return allResults.flatMap((r) => r.items || []);
+    return validResults.flatMap((r) => r.items || []);
   } catch (error) {
-    // If even page 1 fails, return empty array
+    // If all fails, return empty array
     return [];
   }
 }

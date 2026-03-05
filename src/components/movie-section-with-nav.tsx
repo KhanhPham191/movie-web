@@ -13,6 +13,8 @@ interface MovieSectionWithNavProps {
   variant?: "default" | "portrait" | "top10" | "newRelease" | "series" | "cinema";
   showViewAll?: boolean;
   disableTilt?: boolean;
+  /** Number of first cards to load with priority (above-fold) */
+  priorityCount?: number;
 }
 
 // Chuẩn hoá nhãn tập giống bên movie-card
@@ -29,7 +31,8 @@ export function MovieSectionWithNav({
   href, 
   variant = "default",
   showViewAll = true,
-  disableTilt = false
+  disableTilt = false,
+  priorityCount = 0
 }: MovieSectionWithNavProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -318,6 +321,7 @@ export function MovieSectionWithNav({
                 variant={variant}
                 rank={variant === "top10" || variant === "newRelease" ? index + 1 : undefined}
                 disableTilt={disableTilt}
+                priority={index < priorityCount}
               />
             </div>
           ))}

@@ -20,8 +20,8 @@ export function SplashOverlay() {
     if (!shouldRender) return;
 
     // Hide splash after minimum display time and when page is ready
-    const minDisplayTime = 300; // Minimum 300ms display
-    const maxDisplayTime = 800; // Maximum 800ms display
+    const minDisplayTime = 150; // Giảm từ 300ms xuống 150ms
+    const maxDisplayTime = 400; // Giảm từ 800ms xuống 400ms
     const startTime = Date.now();
 
     let hideTimer: NodeJS.Timeout | null = null;

@@ -15,6 +15,8 @@ interface MovieSectionProps {
   movies: FilmItem[];
   href?: string;
   variant?: "default" | "portrait" | "top10" | "newRelease" | "series" | "cinema";
+  /** Number of first cards to load with priority (above-fold) */
+  priorityCount?: number;
 }
 
 // Chuẩn hoá nhãn tập giống bên movie-card
@@ -71,7 +73,7 @@ function LanguageBadges({ language }: { language?: string }) {
   );
 }
 
-export function MovieSection({ title, movies, href, variant = "default" }: MovieSectionProps) {
+export function MovieSection({ title, movies, href, variant = "default", priorityCount = 0 }: MovieSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const hasDragged = useRef(false);
@@ -355,6 +357,7 @@ export function MovieSection({ title, movies, href, variant = "default" }: Movie
                   index={index}
                   variant={variant}
                   rank={variant === "top10" || variant === "newRelease" ? index + 1 : undefined}
+                  priority={index < priorityCount}
                 />
               )}
             </div>

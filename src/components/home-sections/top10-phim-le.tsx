@@ -84,6 +84,7 @@ export async function Top10PhimLe() {
         title="Top 10 phim lẻ"
         movies={phimLe}
         variant="newRelease"
+        priorityCount={3}
       />
     );
   } catch (error) {

@@ -127,49 +127,41 @@ export default async function Home() {
 
           {/* Giảm khoảng cách dọc giữa các section để đỡ trống hơn nữa */}
           <div className="relative z-10 space-y-2 sm:space-y-3 lg:space-y-4">
-            {/* Category Pills - Premium Sticky */}
-            <ScrollReveal variant="fade-up" duration={600}>
-              <div className="relative pt-4 sm:pt-6 mb-4 sm:mb-6">
+            {/* Category Pills - Render ngay, không ScrollReveal (above fold) */}
+            <div className="relative pt-4 sm:pt-6 mb-4 sm:mb-6">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-[#F6C453]/5 via-transparent to-[#D3A13A]/5 rounded-2xl blur-xl" />
                 <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#F6C453]/5 via-transparent to-[#D3A13A]/5 rounded-2xl blur-xl" />
-                  <div className="relative">
-                    <CategoryPills />
-                  </div>
+                  <CategoryPills />
                 </div>
               </div>
-            </ScrollReveal>
+            </div>
 
-            {/* Topic Tags - Inspired by RoPhim */}
-            <ScrollReveal variant="fade-up" delay={80} duration={600}>
-              <div className="px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12">
-                <TopicTags tags={DEFAULT_TOPIC_TAGS} />
-              </div>
-            </ScrollReveal>
+            {/* Topic Tags - Render ngay (above fold) */}
+            <div className="px-2 xs:px-3 sm:px-4 md:px-8 lg:px-12">
+              <TopicTags tags={DEFAULT_TOPIC_TAGS} />
+            </div>
 
-            {/* Currently Watching - Premium Highlight */}
-            <ScrollReveal variant="fade-up" delay={120} duration={700}>
-              <div className="-mt-1 sm:-mt-2 rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
-                <CurrentlyWatchingSection />
-              </div>
-            </ScrollReveal>
+            {/* Currently Watching - Render ngay (above fold) */}
+            <div className="-mt-1 sm:-mt-2 rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
+              <CurrentlyWatchingSection />
+            </div>
 
-            {/* Top 10 phim lẻ - Premium Priority Section */}
-            <ScrollReveal variant="fade-up" duration={700}>
-              <div className="mt-1 sm:mt-2 md:mt-3 lg:mt-4 rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
+            {/* Top 10 phim lẻ - Render ngay (above fold trên mobile) */}
+            <div className="mt-1 sm:mt-2 md:mt-3 lg:mt-4 rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
+              <div className="relative">
+                <div className="absolute -inset-4 bg-gradient-to-r from-[#F6C453]/5 via-transparent to-[#D3A13A]/5 rounded-3xl blur-2xl opacity-50" />
                 <div className="relative">
-                  <div className="absolute -inset-4 bg-gradient-to-r from-[#F6C453]/5 via-transparent to-[#D3A13A]/5 rounded-3xl blur-2xl opacity-50" />
-                  <div className="relative">
-                    <Suspense fallback={<MovieSectionSkeleton />}>
-                      <Top10PhimLe />
-                    </Suspense>
-                  </div>
+                  <Suspense fallback={<MovieSectionSkeleton />}>
+                    <Top10PhimLe />
+                  </Suspense>
                 </div>
               </div>
-            </ScrollReveal>
+            </div>
 
-            {/* Top 10 phim bộ - Premium Section */}
+            {/* Top 10 phim bộ */}
             <ScrollReveal variant="fade-up" duration={700}>
-              <div className="-mt-1 sm:-mt-2 rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
+              <div className="-mt-1 sm:-mt-2 rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
                 <div className="relative">
                   <div className="absolute -inset-4 bg-gradient-to-l from-[#D3A13A]/5 via-transparent to-[#F6C453]/5 rounded-3xl blur-2xl opacity-50" />
                   <div className="relative">
@@ -183,7 +175,7 @@ export default async function Home() {
 
             {/* Korean Dramas */}
             <ScrollReveal variant="fade-up" duration={700}>
-              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
+              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
                 <Suspense fallback={<MovieSectionSkeleton />}>
                   <HanQuocSection />
                 </Suspense>
@@ -192,7 +184,7 @@ export default async function Home() {
 
             {/* Chinese Dramas */}
             <ScrollReveal variant="fade-up" duration={700}>
-              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
+              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
                 <Suspense fallback={<MovieSectionSkeleton />}>
                   <TrungQuocSection />
                 </Suspense>
@@ -201,7 +193,7 @@ export default async function Home() {
 
             {/* Anime */}
             <ScrollReveal variant="fade-up" duration={700}>
-              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
+              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
                 <Suspense fallback={<MovieSectionSkeleton />}>
                   <AnimeSection />
                 </Suspense>
@@ -210,7 +202,7 @@ export default async function Home() {
 
             {/* Thai Movies */}
             <ScrollReveal variant="fade-up" duration={700}>
-              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
+              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
                 <Suspense fallback={<MovieSectionSkeleton />}>
                   <ThaiLanSection />
                 </Suspense>
@@ -219,7 +211,7 @@ export default async function Home() {
 
             {/* Hong Kong Movies */}
             <ScrollReveal variant="fade-up" duration={700}>
-              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 backdrop-blur-sm">
+              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
                 <Suspense fallback={<MovieSectionSkeleton />}>
                   <HongKongSection />
                 </Suspense>
