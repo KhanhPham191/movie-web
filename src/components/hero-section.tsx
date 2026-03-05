@@ -207,7 +207,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
                 alt={m.name}
                 fill
                 className={`object-cover object-[center_20%] ${
-                  isActive ? "hero-ken-burns" : ""
+                  isActive && !isMobile ? "hero-ken-burns" : ""
                 }`}
                 priority={index === 0}
                 loading={index === 0 ? undefined : "lazy"}
