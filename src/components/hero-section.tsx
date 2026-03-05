@@ -16,10 +16,9 @@ interface HeroSectionProps {
 }
 
 const SLIDE_DURATION = 8000;
-// Throttle progress state updates để giảm re-render
-// Desktop: 150ms (~6fps), Mobile: 500ms (~2fps) — đủ mượt cho progress bar nhỏ
+// Throttle progress re-renders: desktop 150ms, mobile 400ms (thay vì 60fps)
 const DESKTOP_PROGRESS_INTERVAL = 150;
-const MOBILE_PROGRESS_INTERVAL = 500;
+const MOBILE_PROGRESS_INTERVAL = 400;
 
 function formatEpisodeLabel(episode?: string) {
   if (!episode) return "";
@@ -43,8 +42,8 @@ export function HeroSection({ movies }: HeroSectionProps) {
   const lastProgressUpdateRef = useRef<number>(0);
   const isMobile = useIsMobile();
 
-  // Giới hạn slide: mobile 3, desktop 4 (giảm từ 5)
-  const featuredMovies = movies.slice(0, isMobile ? 3 : 4);
+  // Cả mobile lẫn desktop đều render 5 slide
+  const featuredMovies = movies.slice(0, 5);
   const movie = featuredMovies[currentIndex];
 
   const goToSlide = useCallback(
@@ -53,9 +52,8 @@ export function HeroSection({ movies }: HeroSectionProps) {
       setContentVisible(false);
       setIsTransitioning(true);
 
-      // Mobile: transition nhanh hơn để giảm thời gian animation
-      const fadeOutDelay = isMobile ? 100 : 200;
-      const fadeInDelay = isMobile ? 300 : 500;
+      const fadeOutDelay = isMobile ? 120 : 180;
+      const fadeInDelay = isMobile ? 350 : 450;
 
       setTimeout(() => {
         setPrevIndex(currentIndex);
@@ -101,7 +99,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
         return;
       }
 
-      // Throttle cả desktop + mobile — không cần 60fps cho thanh progress nhỏ
+      // Throttle re-render cả desktop lẫn mobile
       const interval = isMobile ? MOBILE_PROGRESS_INTERVAL : DESKTOP_PROGRESS_INTERVAL;
       const timeSinceUpdate = timestamp - lastProgressUpdateRef.current;
       if (timeSinceUpdate >= interval) {
@@ -176,7 +174,6 @@ export function HeroSection({ movies }: HeroSectionProps) {
       onMouseUp={handleMouseUp}
       onMouseLeave={() => {
         endDrag();
-        setIsPaused(false);
       }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -186,9 +183,8 @@ export function HeroSection({ movies }: HeroSectionProps) {
       {/* ===== Background Images ===== */}
       <div className="absolute inset-0">
         {featuredMovies.map((m, index) => {
-          // Chỉ render current + prev (đang fade out) — không preload adjacent
+          // Chỉ render slide hiện tại + slide đang fade out
           const shouldRender = index === currentIndex || index === prevIndex;
-
           if (!shouldRender) return null;
 
           const isActive = index === currentIndex;
@@ -199,107 +195,65 @@ export function HeroSection({ movies }: HeroSectionProps) {
               key={`bg-${m.slug}-${m.id || index}`}
               className="absolute inset-0"
               style={{
-                opacity: isActive ? 1 : isLeaving ? 0 : 0,
-                // Mobile: transition ngắn hơn, dùng ease đơn giản hơn
+                opacity: isActive ? 1 : 0,
                 transition: isMobile
                   ? "opacity 0.4s ease"
-                  : "opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1)",
+                  : "opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
                 zIndex: isActive ? 2 : isLeaving ? 1 : 0,
               }}
             >
-              <div className="absolute inset-0">
-                <Image
-                  src={getImageUrl(m.thumb_url)}
-                  alt={m.name}
-                  fill
-                  className="object-cover object-[center_20%]"
-                  priority={index === 0}
-                  loading={index === 0 ? undefined : "lazy"}
-                  // Mobile: nhỏ hơn, không cần ảnh full 100vw
-                  sizes={isMobile ? "100vw" : "100vw"}
-                  quality={isMobile ? 60 : 80}
-                />
-              </div>
+              <Image
+                src={getImageUrl(m.thumb_url)}
+                alt={m.name}
+                fill
+                className="object-cover object-[center_20%]"
+                priority={index === 0}
+                loading={index === 0 ? undefined : "lazy"}
+                sizes="100vw"
+                quality={isMobile ? 65 : 80}
+              />
             </div>
           );
         })}
 
-        {/* Gradient overlays — gộp 2 gradient vào 1 element trên mobile */}
+        {/* Gradient overlays */}
         <div
           className="absolute inset-0 z-[3]"
           style={{
-            background: isMobile
-              ? `linear-gradient(180deg, rgba(13,13,13,0.1) 0%, transparent 20%, transparent 40%, rgba(13,13,13,0.6) 68%, rgba(13,13,13,0.95) 90%, rgba(13,13,13,1) 100%)`
-              : `linear-gradient(180deg, rgba(13,13,13,0.15) 0%, transparent 15%, transparent 45%, rgba(13,13,13,0.55) 68%, rgba(13,13,13,0.92) 88%, rgba(13,13,13,1) 100%)`,
+            background: `linear-gradient(180deg, rgba(13,13,13,0.1) 0%, transparent 18%, transparent 42%, rgba(13,13,13,0.55) 68%, rgba(13,13,13,0.93) 89%, rgba(13,13,13,1) 100%)`,
           }}
         />
-        {/* Left gradient — chỉ desktop, mobile không cần vì text đã ở dưới */}
-        {!isMobile && (
-          <div
-            className="absolute inset-0 z-[3]"
-            style={{
-              background: `linear-gradient(90deg, rgba(13,13,13,0.6) 0%, rgba(13,13,13,0.2) 30%, transparent 55%)`,
-            }}
-          />
-        )}
+        <div
+          className="absolute inset-0 z-[3] hidden sm:block"
+          style={{
+            background: `linear-gradient(90deg, rgba(13,13,13,0.55) 0%, rgba(13,13,13,0.15) 30%, transparent 55%)`,
+          }}
+        />
       </div>
 
-      {/* ===== Movie Info Content (Left side — Rophim layout) ===== */}
+      {/* ===== Movie Info Content ===== */}
       <div
-        className="absolute z-10 bottom-0 left-0 right-0 sm:bottom-[10%] md:bottom-[13%] lg:bottom-[15%] sm:left-6 md:left-12 lg:left-14 sm:right-[38%] md:right-[42%] px-4 sm:px-0 pb-20 sm:pb-0"
+        className="absolute z-10 bottom-0 left-0 right-0 sm:bottom-[6%] md:bottom-[8%] lg:bottom-[10%] sm:left-6 md:left-12 lg:left-14 sm:right-[38%] md:right-[42%] px-4 sm:px-0 pb-5 sm:pb-0"
         style={{
           opacity: contentVisible ? 1 : 0,
-          // Mobile: bỏ transform animation, chỉ fade opacity (ít tốn GPU hơn)
-          transform: !isMobile && !contentVisible ? "translateY(14px)" : "translateY(0)",
-          transition: isMobile
-            ? "opacity 0.3s ease"
-            : "opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1), transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)",
-          contain: "content",
+          transform: contentVisible ? "translateY(0)" : "translateY(10px)",
+          transition: "opacity 0.4s ease, transform 0.4s ease",
         }}
       >
-        {/* Original Title — trên tên chính, nhỏ nhẹ (ẩn trên mobile để giảm DOM) */}
-        {!isMobile && movie.original_name && movie.original_name !== movie.name && (
-          <p
-            className="text-sm text-gray-400 mb-1.5 line-clamp-1 font-medium tracking-wide"
-            style={{
-              opacity: contentVisible ? 1 : 0,
-              transition: "opacity 0.35s ease 0.05s",
-            }}
-          >
+        {/* Original Title */}
+        {movie.original_name && movie.original_name !== movie.name && (
+          <p className="hidden sm:block text-sm text-gray-400 mb-1.5 line-clamp-1 font-medium tracking-wide">
             {movie.original_name}
           </p>
         )}
 
         {/* Main Title */}
-        <h1
-          className="text-xl sm:text-3xl md:text-4xl lg:text-[2.75rem] xl:text-5xl font-extrabold text-white mb-2.5 sm:mb-3.5 drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)] line-clamp-2 leading-[1.15] tracking-tight"
-          style={
-            isMobile
-              ? undefined  // Mobile: không cần inline style, chỉ dùng class
-              : {
-                  opacity: contentVisible ? 1 : 0,
-                  transform: contentVisible ? "translateY(0)" : "translateY(10px)",
-                  transition:
-                    "opacity 0.45s cubic-bezier(0.4,0,0.2,1) 0.1s, transform 0.45s cubic-bezier(0.4,0,0.2,1) 0.1s",
-                }
-          }
-        >
+        <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-[2.75rem] xl:text-5xl font-extrabold text-white mb-2 sm:mb-3.5 drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)] line-clamp-2 leading-[1.15] tracking-tight">
           {movie.name}
         </h1>
 
-        {/* Meta row: IMDb · Quality · Episodes · Year · Duration */}
-        <div
-          className="flex flex-wrap items-center gap-1.5 sm:gap-2.5 mb-2.5 sm:mb-4"
-          style={
-            isMobile
-              ? undefined
-              : {
-                  opacity: contentVisible ? 1 : 0,
-                  transform: contentVisible ? "translateY(0)" : "translateY(6px)",
-                  transition: "opacity 0.4s ease 0.15s, transform 0.4s ease 0.15s",
-                }
-          }
-        >
+        {/* Meta row */}
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2.5 mb-2 sm:mb-4">
           {/* IMDb Rating — nổi bật */}
           {ratingDisplay && (
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded bg-[#F6C453]/15 text-[10px] sm:text-[13px] font-bold text-[#F6C453]">
@@ -369,19 +323,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
         )}
 
         {/* Action Buttons */}
-        <div
-          className="flex items-center gap-2.5 sm:gap-3"
-          style={
-            isMobile
-              ? undefined
-              : {
-                  opacity: contentVisible ? 1 : 0,
-                  transform: contentVisible ? "translateY(0)" : "translateY(6px)",
-                  transition:
-                    "opacity 0.4s cubic-bezier(0.4,0,0.2,1) 0.25s, transform 0.4s cubic-bezier(0.4,0,0.2,1) 0.25s",
-                }
-          }
-        >
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <Link href={`/phim/${movie.slug}`}>
             <Button
               size="lg"
@@ -395,7 +337,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
             <Button
               size="lg"
               variant="secondary"
-              className="bg-white/10 hover:bg-white/[0.18] border border-white/15 hover:border-white/30 text-white font-semibold text-[11px] sm:text-sm px-5 sm:px-7 h-9 sm:h-11 rounded-lg sm:hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer"
+              className="bg-white/10 hover:bg-white/[0.18] border border-white/15 hover:border-white/30 text-white font-semibold text-[11px] sm:text-sm px-5 sm:px-7 h-9 sm:h-11 rounded-lg sm:hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer sm:backdrop-blur-md"
             >
               <Info className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 mr-1.5" />
               Chi tiết
@@ -404,57 +346,57 @@ export function HeroSection({ movies }: HeroSectionProps) {
         </div>
       </div>
 
-      {/* ===== Navigation ===== */}
+      {/* ===== Thumbnail Navigation — Rophim style ===== */}
       {featuredMovies.length > 1 && (
-        isMobile ? (
-          /* Mobile: dots đơn giản, không load thêm ảnh poster → tiết kiệm RAM + bandwidth */
-          <div className="absolute z-20 bottom-3.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
-            {featuredMovies.map((_, i) => (
+        <div
+          className="absolute z-20 bottom-5 md:bottom-8 lg:bottom-6 right-4 sm:right-6 md:right-10 lg:right-14 hidden sm:flex items-end gap-2 md:gap-2.5"
+        >
+          {featuredMovies.map((m, i) => {
+            const isActive = i === currentIndex;
+            return (
               <button
-                key={`dot-${i}`}
+                key={`thumb-${m.slug}-${i}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   goToSlide(i);
                 }}
-                className={`rounded-full transition-all duration-300 cursor-pointer ${
-                  i === currentIndex
-                    ? "w-6 h-1.5 bg-[#F6C453]"
-                    : "w-1.5 h-1.5 bg-white/30"
-                }`}
-                aria-label={`Slide ${i + 1}`}
-              />
-            ))}
-          </div>
-        ) : (
-          /* Desktop: dots đơn giản — nhẹ, không load thêm ảnh */
-          <div className="absolute z-20 bottom-5 md:bottom-6 right-6 md:right-12 lg:right-14 flex items-center gap-2">
-            {featuredMovies.map((_, i) => (
-              <button
-                key={`dot-${i}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  goToSlide(i);
-                }}
-                className={`relative rounded-full transition-all duration-300 cursor-pointer overflow-hidden ${
-                  i === currentIndex
-                    ? "w-8 h-2 bg-white/20"
-                    : "w-2 h-2 bg-white/25 hover:bg-white/40"
-                }`}
-                aria-label={`Slide ${i + 1}`}
+                className={`
+                  relative overflow-hidden rounded-md sm:rounded-lg transition-all duration-300 cursor-pointer group/thumb flex-shrink-0
+                  ${isActive
+                    ? "w-[40px] h-[56px] sm:w-[56px] sm:h-[78px] md:w-[72px] md:h-[100px] lg:w-[64px] lg:h-[90px] ring-2 ring-[#F6C453] shadow-[0_0_10px_rgba(246,196,83,0.2)]"
+                    : "w-[32px] h-[44px] sm:w-[44px] sm:h-[62px] md:w-[58px] md:h-[80px] lg:w-[52px] lg:h-[72px] ring-1 ring-white/10 opacity-50 hover:opacity-85 hover:ring-white/30"
+                  }
+                `}
+                aria-label={m.name}
               >
-                {i === currentIndex && (
-                  <div
-                    className="absolute inset-y-0 left-0 rounded-full bg-[#F6C453]"
-                    style={{
-                      width: `${progress}%`,
-                      transition: "width 0.15s linear",
-                    }}
-                  />
+                <Image
+                  src={getImageUrl(m.poster_url || m.thumb_url)}
+                  alt={m.name}
+                  fill
+                  className="object-cover"
+                  sizes="80px"
+                  loading="lazy"
+                />
+
+                {isActive && (
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] sm:h-[2.5px] bg-black/40 z-10">
+                    <div
+                      className="h-full bg-[#F6C453]"
+                      style={{
+                        width: `${progress}%`,
+                        transition: "width 0.15s linear",
+                      }}
+                    />
+                  </div>
+                )}
+
+                {!isActive && (
+                  <div className="absolute inset-0 bg-black/20 group-hover/thumb:bg-black/5 transition-colors duration-200" />
                 )}
               </button>
-            ))}
-          </div>
-        )
+            );
+          })}
+        </div>
       )}
 
       {/* ===== Slide Counter (mobile, top-right) ===== */}
