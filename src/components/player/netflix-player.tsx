@@ -775,13 +775,27 @@ export function NetflixPlayer({
         (container as any).msRequestFullscreen;
       
       if (requestFullscreen) {
-        requestFullscreen.call(container).catch(() => {});
+        requestFullscreen.call(container).then(() => {
+          // Lock to landscape on mobile for better fullscreen experience
+          try {
+            if (screen.orientation && (screen.orientation as any).lock) {
+              (screen.orientation as any).lock('landscape').catch(() => {});
+            }
+          } catch {}
+        }).catch(() => {});
         // Track fullscreen event
         if (movieName && movieSlug && episodeSlug) {
           analytics.trackWatchFilmFullscreen(movieName, movieSlug, episodeSlug, true);
         }
       }
     } else {
+      // Unlock orientation before exiting fullscreen
+      try {
+        if (screen.orientation && (screen.orientation as any).unlock) {
+          (screen.orientation as any).unlock();
+        }
+      } catch {}
+
       const exitFullscreen = 
         document.exitFullscreen ||
         (document as any).webkitExitFullscreen ||
@@ -1254,9 +1268,20 @@ export function NetflixPlayer({
         touchAction: isFullscreen ? 'none' : 'auto',
         ...(isFullscreen
           ? {
+              position: 'fixed' as const,
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              maxWidth: '100vw',
+              maxHeight: '100vh',
+              zIndex: 2147483647,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              background: '#000',
+              borderRadius: 0,
+              overflow: 'hidden',
             }
           : {
               aspectRatio: '16/9',
@@ -1356,11 +1381,13 @@ export function NetflixPlayer({
           left: 0,
           right: 0,
           bottom: 0,
+          width: '100%',
+          height: '100%',
         } : {}}
       >
         <video
           ref={videoRef}
-          className={`h-full w-full cursor-pointer select-none ${isFullscreen ? 'object-contain' : 'object-contain'}`}
+          className={`cursor-pointer select-none ${isFullscreen ? 'object-contain' : 'h-full w-full object-contain'}`}
         style={{ 
           userSelect: 'none', 
           WebkitUserSelect: 'none', 
@@ -1370,7 +1397,9 @@ export function NetflixPlayer({
             ? {
                 width: '100%',
                 height: '100%',
-                objectFit: 'contain',
+                maxWidth: '100vw',
+                maxHeight: '100vh',
+                objectFit: 'contain' as const,
               }
             : {})
         }}
