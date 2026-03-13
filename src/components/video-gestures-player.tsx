@@ -25,6 +25,8 @@ export function VideoGesturesPlayer({ src, poster }: VideoGesturesPlayerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const gestureRef = useRef<GestureState | null>(null);
+  const seekDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingSeekTimeRef = useRef<number | null>(null);
 
   const [brightness, setBrightness] = useState(1);
   const [hud, setHud] = useState<string | null>(null);
@@ -84,8 +86,19 @@ export function VideoGesturesPlayer({ src, poster }: VideoGesturesPlayerProps) {
       const deltaSeconds = (dx / 80) * 10; // 80px ~ 10s
       const duration = video.duration || gesture.initialTime + deltaSeconds;
       const newTime = clamp(gesture.initialTime + deltaSeconds, 0, duration);
-      video.currentTime = newTime;
+      
+      // Update UI immediately for responsive feel
       showHud(`Tua: ${Math.round(newTime)}s`);
+      
+      // Debounce actual video seek to prevent freezing from rapid seeking
+      pendingSeekTimeRef.current = newTime;
+      if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
+      
+      seekDebounceRef.current = setTimeout(() => {
+        if (pendingSeekTimeRef.current !== null && videoRef.current) {
+          videoRef.current.currentTime = pendingSeekTimeRef.current;
+        }
+      }, 60); // Shorter debounce for smooth gesture seeking
       return;
     }
 
@@ -107,6 +120,17 @@ export function VideoGesturesPlayer({ src, poster }: VideoGesturesPlayerProps) {
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     const container = containerRef.current;
+    const video = videoRef.current;
+    
+    // Commit any pending seek immediately
+    if (seekDebounceRef.current) {
+      clearTimeout(seekDebounceRef.current);
+      if (pendingSeekTimeRef.current !== null && video) {
+        video.currentTime = pendingSeekTimeRef.current;
+        pendingSeekTimeRef.current = null;
+      }
+    }
+    
     if (container) {
       try {
         container.releasePointerCapture(e.pointerId);

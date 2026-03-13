@@ -101,6 +101,11 @@ export async function HeroSectionWrapper() {
       phimLeFiltered = raw3 || [];
     }
     
+    // Loại bỏ phim Việt Nam
+    phimLeFiltered = phimLeFiltered.filter(
+      (movie) => !(movie.country || []).some((c) => c.slug === "viet-nam")
+    );
+
     // Sắp xếp theo modified time (mới nhất trước) để hiển thị phim mới cập nhật nhất
     const phimLeSorted = sortByModifiedDesc(phimLeFiltered);
     

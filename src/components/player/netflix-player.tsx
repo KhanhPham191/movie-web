@@ -62,7 +62,9 @@ export function NetflixPlayer({
   const showControlsRef = useRef(false);
   const isSeekingRef = useRef(false);
   const seekDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const skipSeekDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const pendingSeekTimeRef = useRef<number | null>(null);
+  const pendingSkipTimeRef = useRef<number | null>(null);
   
   // Get video progress context to share with WatchProgressTracker (optional)
   const videoProgressContext = useVideoProgressOptional();
@@ -485,6 +487,7 @@ export function NetflixPlayer({
         enableWorker: true,
         backBufferLength: 90,
         maxBufferHole: 0.3,
+        maxMaxBufferLength: 150,
         nudgeMaxRetry: 5,
         nudgeOffset: 0.2,
         maxFragLookUpTolerance: 0.25,
@@ -664,9 +667,20 @@ export function NetflixPlayer({
     if (!video) return;
     const currentTime = video.currentTime;
     const newTime = Math.max(0, Math.min(video.duration, currentTime + seconds));
+    
     // Update UI immediately for responsive feel
     setCurrentTime(newTime);
-    video.currentTime = newTime;
+    
+    // Debounce actual video seek to prevent freezing from multiple rapid seeks
+    pendingSkipTimeRef.current = newTime;
+    if (skipSeekDebounceRef.current) clearTimeout(skipSeekDebounceRef.current);
+    
+    skipSeekDebounceRef.current = setTimeout(() => {
+      if (pendingSkipTimeRef.current !== null && videoRef.current) {
+        videoRef.current.currentTime = pendingSkipTimeRef.current;
+        isSeekingRef.current = true;
+      }
+    }, 50); // Shorter debounce for responsive skip feeling
     
     // Show skip indicator animation with accumulated seconds
     if (showIndicator) {
@@ -1654,8 +1668,9 @@ export function NetflixPlayer({
                     seekDebounceRef.current = setTimeout(() => {
                       if (pendingSeekTimeRef.current !== null && videoRef.current) {
                         videoRef.current.currentTime = pendingSeekTimeRef.current;
+                        isSeekingRef.current = true;
                       }
-                    }, 80);
+                    }, 100);
                   }
                 }}
                 onTouchMove={(e) => {
@@ -1739,8 +1754,9 @@ export function NetflixPlayer({
                     seekDebounceRef.current = setTimeout(() => {
                       if (pendingSeekTimeRef.current !== null && videoRef.current) {
                         videoRef.current.currentTime = pendingSeekTimeRef.current;
+                        isSeekingRef.current = true;
                       }
-                    }, 80);
+                    }, 100);
                   }
                 }}
                 onTouchEnd={(e) => {
@@ -1750,6 +1766,7 @@ export function NetflixPlayer({
                   if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
                   if (pendingSeekTimeRef.current !== null && videoRef.current) {
                     videoRef.current.currentTime = pendingSeekTimeRef.current;
+                    isSeekingRef.current = true;
                     pendingSeekTimeRef.current = null;
                   }
                   setIsDragging(false);
