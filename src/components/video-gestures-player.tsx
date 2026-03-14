@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
 interface VideoGesturesPlayerProps {
   src: string;
@@ -27,9 +27,16 @@ export function VideoGesturesPlayer({ src, poster }: VideoGesturesPlayerProps) {
   const gestureRef = useRef<GestureState | null>(null);
   const seekDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const pendingSeekTimeRef = useRef<number | null>(null);
+  const [isIOS, setIsIOS] = useState(false);
 
   const [brightness, setBrightness] = useState(1);
   const [hud, setHud] = useState<string | null>(null);
+
+  // Detect iOS on mount
+  useEffect(() => {
+    const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    setIsIOS(ios);
+  }, []);
 
   const showHud = (text: string) => {
     setHud(text);
@@ -91,6 +98,8 @@ export function VideoGesturesPlayer({ src, poster }: VideoGesturesPlayerProps) {
       showHud(`Tua: ${Math.round(newTime)}s`);
       
       // Debounce actual video seek to prevent freezing from rapid seeking
+      // iOS Safari needs longer debounce time (100ms vs 60ms for desktop)
+      const seekDelay = isIOS ? 100 : 60;
       pendingSeekTimeRef.current = newTime;
       if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
       
@@ -98,7 +107,7 @@ export function VideoGesturesPlayer({ src, poster }: VideoGesturesPlayerProps) {
         if (pendingSeekTimeRef.current !== null && videoRef.current) {
           videoRef.current.currentTime = pendingSeekTimeRef.current;
         }
-      }, 60); // Shorter debounce for smooth gesture seeking
+      }, seekDelay);
       return;
     }
 

@@ -485,9 +485,9 @@ export function NetflixPlayer({
     if (Hls.isSupported()) {
       hls = new Hls({
         enableWorker: true,
-        backBufferLength: 90,
-        maxBufferHole: 0.3,
-        maxMaxBufferLength: 150,
+        backBufferLength: isIOS ? 120 : 90,
+        maxBufferHole: isIOS ? 0.5 : 0.3,
+        maxMaxBufferLength: isIOS ? 200 : 150,
         nudgeMaxRetry: 5,
         nudgeOffset: 0.2,
         maxFragLookUpTolerance: 0.25,
@@ -671,6 +671,9 @@ export function NetflixPlayer({
     // Update UI immediately for responsive feel
     setCurrentTime(newTime);
     
+    // iOS Safari needs longer debounce for seeking (150ms vs 50ms for desktop)
+    const debounceDelay = isIOS ? 150 : 50;
+    
     // Debounce actual video seek to prevent freezing from multiple rapid seeks
     pendingSkipTimeRef.current = newTime;
     if (skipSeekDebounceRef.current) clearTimeout(skipSeekDebounceRef.current);
@@ -680,7 +683,7 @@ export function NetflixPlayer({
         videoRef.current.currentTime = pendingSkipTimeRef.current;
         isSeekingRef.current = true;
       }
-    }, 50); // Shorter debounce for responsive skip feeling
+    }, debounceDelay);
     
     // Show skip indicator animation with accumulated seconds
     if (showIndicator) {
@@ -1663,6 +1666,8 @@ export function NetflixPlayer({
                     setHoverTime(hoverTimeValue);
                     setCurrentTime(hoverTimeValue);
                     // Debounce actual video seek to avoid overwhelming HLS
+                    // iOS Safari needs longer debounce time
+                    const seekDelay = isIOS ? 150 : 100;
                     pendingSeekTimeRef.current = hoverTimeValue;
                     if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
                     seekDebounceRef.current = setTimeout(() => {
@@ -1670,7 +1675,7 @@ export function NetflixPlayer({
                         videoRef.current.currentTime = pendingSeekTimeRef.current;
                         isSeekingRef.current = true;
                       }
-                    }, 100);
+                    }, seekDelay);
                   }
                 }}
                 onTouchMove={(e) => {
@@ -1691,13 +1696,16 @@ export function NetflixPlayer({
                     setHoverTime(hoverTimeValue);
                     setCurrentTime(hoverTimeValue);
                     // Debounce actual video seek to avoid overwhelming HLS
+                    // iOS Safari needs longer debounce time
+                    const seekDelay = isIOS ? 150 : 100;
                     pendingSeekTimeRef.current = hoverTimeValue;
                     if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
                     seekDebounceRef.current = setTimeout(() => {
                       if (pendingSeekTimeRef.current !== null && videoRef.current) {
                         videoRef.current.currentTime = pendingSeekTimeRef.current;
+                        isSeekingRef.current = true;
                       }
-                    }, 80);
+                    }, seekDelay);
                   }
                 }}
                 onTouchEnd={(e) => {
@@ -1749,6 +1757,8 @@ export function NetflixPlayer({
                     setHoverTime(hoverTimeValue);
                     setCurrentTime(hoverTimeValue);
                     // Debounce actual video seek to avoid overwhelming HLS
+                    // iOS Safari needs longer debounce time
+                    const seekDelay = isIOS ? 150 : 100;
                     pendingSeekTimeRef.current = hoverTimeValue;
                     if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
                     seekDebounceRef.current = setTimeout(() => {
@@ -1756,7 +1766,7 @@ export function NetflixPlayer({
                         videoRef.current.currentTime = pendingSeekTimeRef.current;
                         isSeekingRef.current = true;
                       }
-                    }, 100);
+                    }, seekDelay);
                   }
                 }}
                 onTouchEnd={(e) => {
