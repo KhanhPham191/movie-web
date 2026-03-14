@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { useVideoProgressOptional } from "@/contexts/video-progress-context";
+import { useAutoplaySettings } from "@/hooks/useAutoplaySettings";
+import { useRouter } from "next/navigation";
 
 interface NetflixPlayerProps {
   src: string;
@@ -48,6 +50,8 @@ export function NetflixPlayer({
   nextEpisodeName,
 }: NetflixPlayerProps) {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { isAutoplayEnabled, toggleAutoplay } = useAutoplaySettings();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoContainerRef = useRef<HTMLDivElement | null>(null);
@@ -119,6 +123,7 @@ export function NetflixPlayer({
   const togglePlayRef = useRef<(() => void) | null>(null);
   const showControlsWithTimeoutRef = useRef<(() => void) | null>(null);
   const hideControlsRef = useRef<(() => void) | null>(null);
+  const autoplayCountdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Detect mobile device and iOS
   useEffect(() => {
@@ -386,6 +391,13 @@ export function NetflixPlayer({
       setIsMuted(video.muted);
     };
 
+    const handleEnded = () => {
+      // Auto-navigate to next episode if autoplay is enabled
+      if (isAutoplayEnabled && nextEpisodeUrl) {
+        router.push(nextEpisodeUrl);
+      }
+    };
+
     video.addEventListener("play", handlePlay);
     video.addEventListener("pause", handlePause);
     video.addEventListener("timeupdate", handleTimeUpdate);
@@ -395,6 +407,7 @@ export function NetflixPlayer({
     video.addEventListener("volumechange", handleVolumeChange);
     video.addEventListener("seeking", handleSeeking);
     video.addEventListener("seeked", handleSeeked);
+    video.addEventListener("ended", handleEnded);
 
     return () => {
       video.removeEventListener("play", handlePlay);
@@ -406,8 +419,9 @@ export function NetflixPlayer({
       video.removeEventListener("volumechange", handleVolumeChange);
       video.removeEventListener("seeking", handleSeeking);
       video.removeEventListener("seeked", handleSeeked);
+      video.removeEventListener("ended", handleEnded);
     };
-  }, [onTimeUpdate, searchParams, movieName, movieSlug, episodeSlug, updateProgress]);
+  }, [onTimeUpdate, searchParams, movieName, movieSlug, episodeSlug, updateProgress, isAutoplayEnabled, nextEpisodeUrl, router]);
 
   // Fullscreen change listener
   useEffect(() => {
@@ -2043,6 +2057,30 @@ export function NetflixPlayer({
             </div>
 
             <div className="flex items-center gap-1 sm:gap-1.5">
+              {/* Autoplay Button */}
+              <div className="flex flex-col items-center">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleAutoplay();
+                  }}
+                  className={`flex items-center justify-center rounded-md transition-all ${
+                    isAutoplayEnabled 
+                      ? 'bg-[#F6C453]/20 hover:bg-[#F6C453]/30 border border-[#F6C453]/50' 
+                      : 'hover:bg-white/10 border border-transparent'
+                  } active:scale-90 ${isMobile ? 'w-9 h-9' : 'w-10 h-10'}`}
+                  aria-label={isAutoplayEnabled ? "Tắt chuyển tập" : "Bật chuyển tập"}
+                  title={isAutoplayEnabled ? "Chuyển tập: BẬT" : "Chuyển tập: TẮT"}
+                >
+                  <FastForward className={`${
+                    isAutoplayEnabled 
+                      ? 'text-[#F6C453]' 
+                      : 'text-white'
+                  } ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} fill={isAutoplayEnabled ? '#F6C453' : 'none'} strokeWidth={2} />
+                </button>
+                <span className="text-[7px] sm:text-[9px] text-white/60 mt-0.5 text-center whitespace-nowrap">Chuyển tập</span>
+              </div>
+
               {/* Settings */}
               <div className="relative z-50">
                 <button
