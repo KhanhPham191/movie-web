@@ -388,8 +388,8 @@ async function VideoPlayer({
           </div>
         </div>
 
-        {/* Các bản phim - Layout riêng ở dưới player */}
-        {filteredEpisodes.length > 0 && currentServer && (
+        {/* Các bản phim - Layout riêng ở dưới player - chỉ hiển thị cho phim bộ */}
+        {filteredEpisodes.length > 0 && currentServer && !isPhimLe && (
           <div className="relative z-50">
             <MovieVersionsSelector
               servers={filteredEpisodes}
@@ -402,8 +402,8 @@ async function VideoPlayer({
           </div>
         )}
 
-        {/* Movie Info Panel - Gộp chung với tập phim */}
-        {currentServer && allEpisodes.length > 0 && filteredEpisodes.length > 0 && (
+        {/* Movie Info Panel - Gộp chung với tập phim - chỉ hiển thị cho phim bộ */}
+        {currentServer && allEpisodes.length > 0 && filteredEpisodes.length > 0 && !isPhimLe && (
           <div className="relative z-50">
             <MovieInfoPanel
               movie={movie}
