@@ -101,6 +101,7 @@ export function NetflixPlayer({
     seconds: number;
   } | null>(null);
   const [showNextEpisode, setShowNextEpisode] = useState(false);
+  const [autoplayCountdown, setAutoplayCountdown] = useState<number | null>(null);
   const accumulatedSkipSecondsRef = useRef<number>(0);
   const lastSkipDirectionRef = useRef<'forward' | 'backward' | null>(null);
   const lastSkipTimeRef = useRef<number>(0);
@@ -394,7 +395,29 @@ export function NetflixPlayer({
     const handleEnded = () => {
       // Auto-navigate to next episode if autoplay is enabled
       if (isAutoplayEnabled && nextEpisodeUrl) {
-        router.push(nextEpisodeUrl);
+        // Show controls when video ends
+        setShowControls(true);
+        lastControlsShowTimeRef.current = Date.now();
+        
+        // Start countdown before navigating
+        let countdown = 5;
+        setAutoplayCountdown(countdown);
+        
+        const countdownInterval = setInterval(() => {
+          countdown--;
+          if (countdown > 0) {
+            setAutoplayCountdown(countdown);
+          } else {
+            clearInterval(countdownInterval);
+            // Navigate to next episode after countdown
+            setTimeout(() => {
+              router.push(nextEpisodeUrl);
+            }, 100);
+          }
+        }, 1000);
+        
+        // Store interval for cleanup if needed
+        autoplayCountdownIntervalRef.current = countdownInterval;
       }
     };
 
@@ -489,6 +512,7 @@ export function NetflixPlayer({
     setDuration(0);
     setBuffered(0);
     setShowNextEpisode(false);
+    setAutoplayCountdown(null);
     setIsPlaying(false);
     hasSeekedRef.current = false;
     isSeekingRef.current = false;
@@ -517,6 +541,10 @@ export function NetflixPlayer({
       if (hls) {
         hls.destroy();
       }
+      if (autoplayCountdownIntervalRef.current) {
+        clearInterval(autoplayCountdownIntervalRef.current);
+      }
+      setAutoplayCountdown(null);
     };
   }, [src]);
 
@@ -566,6 +594,9 @@ export function NetflixPlayer({
       }
       if (seekDebounceRef.current) {
         clearTimeout(seekDebounceRef.current);
+      }
+      if (autoplayCountdownIntervalRef.current) {
+        clearInterval(autoplayCountdownIntervalRef.current);
       }
     };
   }, []);
@@ -1306,7 +1337,7 @@ export function NetflixPlayer({
               height: '100vh',
               maxWidth: '100vw',
               maxHeight: '100vh',
-              zIndex: 2147483647,
+              zIndex: 40,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -2243,6 +2274,67 @@ export function NetflixPlayer({
             }
           }}
         />
+      )}
+
+      {/* Autoplay Countdown - shows when video ended and autoplay is enabled */}
+      {autoplayCountdown !== null && (
+        <div 
+          className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-[95]"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            animation: 'autoplayCountdownFadeIn 0.3s ease-out',
+          }}
+        >
+          <div className="text-center space-y-4">
+            {/* Large countdown number */}
+            <div className="text-7xl sm:text-8xl font-bold text-[#F6C453] tracking-tight">
+              {autoplayCountdown}
+            </div>
+            
+            {/* Message */}
+            <div className="text-white/90 text-base sm:text-lg font-medium">
+              Chuyển tập tiếp theo
+            </div>
+            
+            {/* Progress bar */}
+            <div className="w-32 sm:w-40 h-1.5 bg-white/20 rounded-full overflow-hidden mx-auto">
+              <div
+                className="h-full bg-gradient-to-r from-[#F6C453] to-[#D3A13A]"
+                style={{
+                  width: `${((5 - autoplayCountdown) / 5) * 100}%`,
+                  transition: 'width 0.1s linear',
+                }}
+              />
+            </div>
+
+            {/* Cancel button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (autoplayCountdownIntervalRef.current) {
+                  clearInterval(autoplayCountdownIntervalRef.current);
+                  autoplayCountdownIntervalRef.current = null;
+                }
+                setAutoplayCountdown(null);
+              }}
+              className="mt-6 px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors font-medium text-sm pointer-events-auto"
+            >
+              Hủy
+            </button>
+          </div>
+
+          {/* CSS animation for countdown fade in */}
+          <style jsx>{`
+            @keyframes autoplayCountdownFadeIn {
+              from {
+                opacity: 0;
+              }
+              to {
+                opacity: 1;
+              }
+            }
+          `}</style>
+        </div>
       )}
 
     </div>

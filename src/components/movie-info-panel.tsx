@@ -70,7 +70,7 @@ export function MovieInfoPanel({
   const episodeInfo = parseEpisode(movie.current_episode);
 
   return (
-    <div className="rounded-xl bg-white/[0.03] ring-1 ring-white/[0.06] p-3 sm:p-4">
+    <div className="rounded-xl bg-white/[0.03] ring-1 ring-white/[0.06] p-3 sm:p-4 relative">
       <div className="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-3 sm:gap-5 items-start">
         {/* Cột trái: Thông tin phim */}
         <div className="space-y-2.5 min-w-0">

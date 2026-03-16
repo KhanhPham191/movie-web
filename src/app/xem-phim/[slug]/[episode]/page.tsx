@@ -390,28 +390,32 @@ async function VideoPlayer({
 
         {/* Các bản phim - Layout riêng ở dưới player */}
         {filteredEpisodes.length > 0 && currentServer && (
-          <MovieVersionsSelector
-            servers={filteredEpisodes}
-            movieSlug={slug}
-            currentEpisodeSlug={episodeSlug}
-            currentServerName={currentServer.server_name}
-            movieName={movie.name}
-            posterUrl={movie.thumb_url || movie.poster_url}
-          />
+          <div className="relative z-50">
+            <MovieVersionsSelector
+              servers={filteredEpisodes}
+              movieSlug={slug}
+              currentEpisodeSlug={episodeSlug}
+              currentServerName={currentServer.server_name}
+              movieName={movie.name}
+              posterUrl={movie.thumb_url || movie.poster_url}
+            />
+          </div>
         )}
 
         {/* Movie Info Panel - Gộp chung với tập phim */}
         {currentServer && allEpisodes.length > 0 && filteredEpisodes.length > 0 && (
-          <MovieInfoPanel
-            movie={movie}
-            categories={categories}
-            allEpisodes={allEpisodes}
-            currentEpisodeIndex={episodeIndex}
-            servers={filteredEpisodes}
-            movieSlug={slug}
-            currentEpisodeSlug={episodeSlug}
-            currentServerName={currentServer.server_name}
-          />
+          <div className="relative z-50">
+            <MovieInfoPanel
+              movie={movie}
+              categories={categories}
+              allEpisodes={allEpisodes}
+              currentEpisodeIndex={episodeIndex}
+              servers={filteredEpisodes}
+              movieSlug={slug}
+              currentEpisodeSlug={episodeSlug}
+              currentServerName={currentServer.server_name}
+            />
+          </div>
         )}
 
         {/* Premium Related Parts Section */}
