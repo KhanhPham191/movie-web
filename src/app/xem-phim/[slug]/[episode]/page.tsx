@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { Footer } from "@/components/footer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Home } from "lucide-react";
-import { getFilmDetail, getImageUrl, searchFilmsMerged, type FilmItem } from "@/lib/api";
+import { getFilmDetail, getImageUrl, type FilmItem } from "@/lib/api";
 import { isValidTime } from "@/lib/utils";
 import { generateVideoStructuredData, generateBreadcrumbStructuredData } from "@/lib/structured-data";
 import { NetflixPlayer } from "@/components/player/netflix-player";
@@ -16,6 +16,7 @@ import { WatchFilmTracker } from "@/components/watch-film-tracker";
 import { WatchFilmEpisodeNav } from "@/components/watch-film-episode-nav";
 import { WatchFilmButtons } from "@/components/watch-film-buttons";
 import { RelatedPartLink } from "@/components/related-part-link";
+import { RelatedPartsSection } from "@/components/related-parts-section";
 import { VideoProgressProvider } from "@/contexts/video-progress-context";
 
 export const revalidate = 300;
@@ -82,32 +83,9 @@ async function VideoPlayer({
     };
 
     const baseName = getBaseName(movie.name);
-    let relatedParts: FilmItem[] = [];
-    
-    // Chỉ tìm nếu base name khác với tên gốc (có nghĩa là có phần số)
-    if (baseName !== movie.name && baseName.length > 3) {
-      try {
-        const searchResults = await searchFilmsMerged(baseName);
-        
-        // Lọc các phim có cùng base name và loại bỏ phim hiện tại
-        // Sử dụng fuzzy matching để tìm các phim có base name tương tự
-        relatedParts = searchResults
-          .filter((m) => {
-            const mBaseName = getBaseName(m.name);
-            // So sánh không phân biệt hoa thường và loại bỏ khoảng trắng thừa
-            const normalizedBase = baseName.toLowerCase().trim();
-            const normalizedMBase = mBaseName.toLowerCase().trim();
-            const matches = normalizedMBase === normalizedBase && m.slug !== movie.slug;
-            return matches;
-          })
-          .slice(0, 10); // Giới hạn 10 phần
-        
-        // Sắp xếp theo tên để dễ tìm
-        relatedParts.sort((a, b) => a.name.localeCompare(b.name, "vi"));
-      } catch (error) {
-        // Error fetching related parts
-      }
-    }
+    // Skip relatedParts search in initial render - fetch it separately with Suspense
+    // This dramatically improves initial video loading time
+    const relatedParts: FilmItem[] = [];
 
     // Lọc giữ lại 3 server: Vietsub, Thuyết minh và Lồng tiếng
     let filteredEpisodes = Array.isArray(movie.episodes) ? movie.episodes : [];
@@ -391,8 +369,8 @@ async function VideoPlayer({
           </div>
         </div>
 
-        {/* Các bản phim - Layout riêng ở dưới player - chỉ hiển thị cho phim bộ */}
-        {filteredEpisodes.length > 0 && currentServer && !isPhimLe && (
+        {/* Các bản phim - Layout riêng ở dưới player - hiển thị cho cả phim lẻ và phim bộ */}
+        {filteredEpisodes.length > 0 && currentServer && (
           <div className="relative z-50">
             <MovieVersionsSelector
               servers={filteredEpisodes}
@@ -405,8 +383,8 @@ async function VideoPlayer({
           </div>
         )}
 
-        {/* Movie Info Panel - Gộp chung với tập phim - chỉ hiển thị cho phim bộ */}
-        {currentServer && allEpisodes.length > 0 && filteredEpisodes.length > 0 && !isPhimLe && (
+        {/* Movie Info Panel - Gộp chung với tập phim - hiển thị cho cả phim lẻ và phim bộ */}
+        {currentServer && filteredEpisodes.length > 0 && (
           <div className="relative z-50">
             <MovieInfoPanel
               movie={movie}
@@ -421,33 +399,14 @@ async function VideoPlayer({
           </div>
         )}
 
-        {/* Premium Related Parts Section */}
-        {relatedParts.length > 0 && (
-          <div className="space-y-3 sm:space-y-4 animate-slide-up">
-            {/* Premium Header */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-1 h-6 sm:h-7 bg-gradient-to-b from-[#F6C453] to-[#D3A13A] rounded-full" />
-              <h2 className="text-base sm:text-lg md:text-xl font-bold text-white tracking-tight">
-                Các phần khác
-              </h2>
-              <span className="px-2 py-0.5 bg-[#F6C453]/10 border border-[#F6C453]/20 rounded-full text-[10px] text-[#F6C453] font-semibold">
-                {relatedParts.length}
-              </span>
-            </div>
-            
-            {/* Grid responsive cho mobile, tablet và desktop */}
-            <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
-              {relatedParts.map((part) => (
-                <RelatedPartLink
-                  key={part.slug}
-                  part={part}
-                  movieName={movie.name}
-                  movieSlug={movie.slug}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Premium Related Parts Section - Loaded in background with Suspense */}
+        <Suspense fallback={null}>
+          <RelatedPartsSection
+            movieSlug={movie.slug}
+            movieName={movie.name}
+            baseMovieName={baseName}
+          />
+        </Suspense>
         </div>
       </VideoProgressProvider>
     );

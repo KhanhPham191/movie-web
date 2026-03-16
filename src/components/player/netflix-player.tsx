@@ -525,11 +525,21 @@ export function NetflixPlayer({
     if (Hls.isSupported()) {
       hls = new Hls({
         enableWorker: true,
-        backBufferLength: isIOS ? 120 : 90,
-        maxBufferHole: isIOS ? 0.5 : 0.3,
-        maxMaxBufferLength: isIOS ? 200 : 150,
+        // Mobile/iOS optimized for FAST initial playback
+        // Reduce wait time before video starts
+        backBufferLength: isIOS || isMobile ? 15 : 30,
+        maxBufferHole: isIOS || isMobile ? 0.8 : 0.5,
+        maxMaxBufferLength: isIOS || isMobile ? 40 : 60,
+        maxBufferLength: isIOS || isMobile ? 25 : 45,
+        // Better handling for low bandwidth
+        maxLoadingDelay: 4000,
+        minAutoBitrate: 0,
+        startLevel: -1, // Auto-select best quality
+        // Faster manifest loading
+        manifestLoadingTimeOut: 8000,
+        manifestLoadingMaxRetry: 3,
         nudgeMaxRetry: 5,
-        nudgeOffset: 0.2,
+        nudgeOffset: isMobile ? 0.1 : 0.15,
         maxFragLookUpTolerance: 0.25,
       });
 
