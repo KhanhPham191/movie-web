@@ -34,6 +34,7 @@ interface NetflixPlayerProps {
   episodeSlug?: string;
   nextEpisodeUrl?: string;
   nextEpisodeName?: string;
+  shouldRequestFullscreen?: boolean;
 }
 
 export function NetflixPlayer({
@@ -48,6 +49,7 @@ export function NetflixPlayer({
   episodeSlug,
   nextEpisodeUrl,
   nextEpisodeName,
+  shouldRequestFullscreen = false,
 }: NetflixPlayerProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -547,6 +549,43 @@ export function NetflixPlayer({
       setAutoplayCountdown(null);
     };
   }, [src]);
+
+  // Request fullscreen when shouldRequestFullscreen is true and video is ready
+  useEffect(() => {
+    if (!shouldRequestFullscreen || !containerRef.current) return;
+    
+    const container = containerRef.current;
+    const handleCanPlay = () => {
+      // Use a small timeout to ensure fullscreen request works
+      setTimeout(() => {
+        if (container.requestFullscreen) {
+          container.requestFullscreen().catch((err) => {
+            console.warn("Fullscreen request failed:", err);
+          });
+        } else if ((container as any).webkitRequestFullscreen) {
+          (container as any).webkitRequestFullscreen();
+        } else if ((container as any).mozRequestFullScreen) {
+          (container as any).mozRequestFullScreen();
+        } else if ((container as any).msRequestFullscreen) {
+          (container as any).msRequestFullscreen();
+        }
+      }, 100);
+    };
+    
+    const video = videoRef.current;
+    if (video) {
+      if (video.readyState >= 2) {
+        // Video is already ready
+        handleCanPlay();
+      } else {
+        // Wait for video to be ready
+        video.addEventListener("canplay", handleCanPlay, { once: true });
+        return () => {
+          video.removeEventListener("canplay", handleCanPlay);
+        };
+      }
+    }
+  }, [shouldRequestFullscreen]);
 
   // Update playback rate
   useEffect(() => {

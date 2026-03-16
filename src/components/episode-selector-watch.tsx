@@ -25,6 +25,7 @@ interface EpisodeSelectorWatchProps {
   currentEpisodeIndex: number;
   movieName?: string;
   posterUrl?: string;
+  isFullscreen?: boolean;
 }
 
 export function EpisodeSelectorWatch({
@@ -35,6 +36,7 @@ export function EpisodeSelectorWatch({
   currentEpisodeIndex,
   movieName,
   posterUrl,
+  isFullscreen = false,
 }: EpisodeSelectorWatchProps) {
   // Lọc giữ lại 3 server: Vietsub, Thuyết minh và Lồng tiếng
   const filteredServers = useMemo(() => {
@@ -152,8 +154,8 @@ export function EpisodeSelectorWatch({
           const serverParam = getServerParam(currentServer.server_name);
 
           const href = serverParam
-            ? `/xem-phim/${movieSlug}/${ep.slug}?server=${serverParam}`
-            : `/xem-phim/${movieSlug}/${ep.slug}`;
+            ? `/xem-phim/${movieSlug}/${ep.slug}?server=${serverParam}${isFullscreen ? '&fs=1' : ''}`
+            : `/xem-phim/${movieSlug}/${ep.slug}${isFullscreen ? '?fs=1' : ''}`;
 
           const isActive = currentServer.server_name === currentServerName && ep.slug === currentEpisodeSlug;
 

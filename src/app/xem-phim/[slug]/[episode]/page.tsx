@@ -22,17 +22,19 @@ export const revalidate = 300;
 
 interface WatchPageProps {
   params: Promise<{ slug: string; episode: string }>;
-  searchParams: Promise<{ server?: string }>;
+  searchParams: Promise<{ server?: string; fs?: string }>;
 }
 
 async function VideoPlayer({
   slug,
   episodeSlug,
   serverParam,
+  shouldRequestFullscreen = false,
 }: {
   slug: string;
   episodeSlug: string;
   serverParam?: string;
+  shouldRequestFullscreen?: boolean;
 }) {
   // Helper function để map server_name sang tên hiển thị (giống EpisodeSelector)
   const getServerDisplayName = (serverName: string) => {
@@ -331,6 +333,7 @@ async function VideoPlayer({
                   episodeSlug={currentEpisode.slug}
                   nextEpisodeUrl={nextEpisode ? `/xem-phim/${slug}/${nextEpisode.slug}${serverParam ? `?server=${serverParam}` : ''}` : undefined}
                   nextEpisodeName={nextEpisode ? nextEpisode.name : undefined}
+                  shouldRequestFullscreen={shouldRequestFullscreen}
                 />
               ) : (
                 <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-black via-gray-900/95 to-black text-white p-8">
@@ -479,7 +482,8 @@ function VideoPlayerSkeleton() {
 
 export default async function WatchPage({ params, searchParams }: WatchPageProps) {
   const { slug, episode } = await params;
-  const { server } = await searchParams;
+  const { server, fs } = await searchParams;
+  const shouldRequestFullscreen = fs === '1';
 
   return (
     <main className="min-h-screen bg-[#0c0d14]">
@@ -506,7 +510,7 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
           {/* Main content area */}
           <Suspense fallback={<VideoPlayerSkeleton />}>
             <div className="animate-slide-up">
-              <VideoPlayer slug={slug} episodeSlug={episode} serverParam={server} />
+              <VideoPlayer slug={slug} episodeSlug={episode} serverParam={server} shouldRequestFullscreen={shouldRequestFullscreen} />
             </div>
           </Suspense>
 
