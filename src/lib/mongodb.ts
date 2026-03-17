@@ -1,11 +1,5 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI!;
-
-if (!MONGODB_URI) {
-  throw new Error("Vui lòng thêm MONGODB_URI vào file .env.local");
-}
-
 // Cache connection để tránh tạo connection mới mỗi lần hot-reload (Next.js dev)
 declare global {
   // eslint-disable-next-line no-var
@@ -22,6 +16,11 @@ if (!cached) {
 }
 
 export async function connectDB(): Promise<typeof mongoose> {
+  const MONGODB_URI = process.env.MONGODB_URI;
+  if (!MONGODB_URI) {
+    throw new Error("Vui lòng thêm MONGODB_URI vào biến môi trường (Render) hoặc file .env.local");
+  }
+
   if (cached.conn) {
     return cached.conn;
   }
