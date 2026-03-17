@@ -24,7 +24,7 @@ interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
   signIn: (username: string, password: string) => Promise<{ error: any | null }>;
-  signUp: (username: string, password: string, name?: string) => Promise<{ error: any | null }>;
+  signUp: (username: string, password: string, name?: string) => Promise<{ error: any | null; requiresVerification?: boolean }>;
   signInWithGoogle: () => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
   updateProfile: (data: { name?: string; avatar_url?: string }) => Promise<{ error: any | null }>;
@@ -114,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       setUser(toAuthUser(data.user));
-      return { error: null };
+      return { error: null, requiresVerification: false };
     } catch {
       return { error: { message: "Lỗi kết nối. Vui lòng thử lại." } };
     }
