@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Noto_Sans, Noto_Sans_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
+import { FavoritesProvider } from "@/contexts/favorites-context";
 import { URLCleaner } from "@/components/url-cleaner";
 import { PageTransition } from "@/components/page-transition";
 import { Header } from "@/components/header";
@@ -194,12 +195,14 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <Suspense fallback={null}>
-              <URLCleaner />
-            </Suspense>
-            {/* Header outside PageTransition to avoid transform stacking context issues */}
-            <Header />
-            <PageTransition>{children}</PageTransition>
+            <FavoritesProvider>
+              <Suspense fallback={null}>
+                <URLCleaner />
+              </Suspense>
+              {/* Header outside PageTransition to avoid transform stacking context issues */}
+              <Header />
+              <PageTransition>{children}</PageTransition>
+            </FavoritesProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

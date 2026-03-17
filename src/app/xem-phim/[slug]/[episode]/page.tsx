@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { Footer } from "@/components/footer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Home } from "lucide-react";
-import { getFilmDetail, getImageUrl, type FilmItem } from "@/lib/api";
+import { getFilmDetail, getImageUrl, searchFilmsMerged, type FilmItem } from "@/lib/api";
 import { isValidTime } from "@/lib/utils";
 import { generateVideoStructuredData, generateBreadcrumbStructuredData } from "@/lib/structured-data";
 import { NetflixPlayer } from "@/components/player/netflix-player";
@@ -17,9 +17,36 @@ import { WatchFilmEpisodeNav } from "@/components/watch-film-episode-nav";
 import { WatchFilmButtons } from "@/components/watch-film-buttons";
 import { RelatedPartLink } from "@/components/related-part-link";
 import { RelatedPartsSection } from "@/components/related-parts-section";
+import { MovieSection } from "@/components/movie-section";
 import { VideoProgressProvider } from "@/contexts/video-progress-context";
 
 export const revalidate = 300;
+
+// Lấy số "phần" của series từ slug/tên phim (phan-1, (Phần 1), Season 1, ...)
+function getSeriesPartNumber(item: { slug: string; name: string; original_name: string }): number | null {
+  // Ưu tiên đọc từ slug: tai-xe-an-danh-phan-3
+  const slugMatch = item.slug.match(/-phan-(\d+)$/i);
+  if (slugMatch) {
+    const n = parseInt(slugMatch[1], 10);
+    if (!Number.isNaN(n)) return n;
+  }
+
+  // Thử đọc từ tên hiển thị: Tài Xế Ẩn Danh (Phần 3)
+  const nameMatch = item.name.match(/\(Phần\s*(\d+)\)/i);
+  if (nameMatch) {
+    const n = parseInt(nameMatch[1], 10);
+    if (!Number.isNaN(n)) return n;
+  }
+
+  // Thử đọc từ original_name: Taxi Driver Season 3
+  const originalMatch = item.original_name?.match(/Season\s*(\d+)/i);
+  if (originalMatch) {
+    const n = parseInt(originalMatch[1], 10);
+    if (!Number.isNaN(n)) return n;
+  }
+
+  return null;
+}
 
 interface WatchPageProps {
   params: Promise<{ slug: string; episode: string }>;
@@ -58,31 +85,43 @@ async function VideoPlayer({
       notFound();
     }
 
-    // Tìm các phần khác của cùng series
+    // Tìm các phần khác của cùng series - sử dụng cách trích xuất đơn giản hơn
     const getBaseName = (name: string): string => {
-      // Bỏ các pattern như "phần 2", "phần 3", "phần 5", "part 5", "tap 5", "tập 5", "5", "II", "III", etc.
-      let baseName = name
-        // Xử lý "Phần 2", "phần 3", "Part 5", etc. (có thể ở đầu, giữa hoặc cuối)
-        // Pattern: "phần" + số (1-99)
-        .replace(/\s*(phần|part|tap|tập|episode|ep)\s*\d+/gi, "")
-        .replace(/\s*-\s*(phần|part|tap|tập|episode|ep)\s*\d+/gi, "")
-        .replace(/\s*:\s*(phần|part|tap|tập|episode|ep)\s*\d+/gi, "")
-        // Xử lý số ở cuối (1-99)
-        .replace(/\s*\d+\s*$/, "")
-        .replace(/\s*-\s*\d+\s*$/, "")
-        .replace(/\s*:\s*\d+\s*$/, "")
-        // Xử lý số La Mã và số thường ở cuối
-        .replace(/\s*(II|III|IV|V|VI|VII|VIII|IX|X|2|3|4|5|6|7|8|9|10)+$/, "")
-        .replace(/\s*-\s*(II|III|IV|V|VI|VII|VIII|IX|X|2|3|4|5|6|7|8|9|10)+$/, "")
-        .trim();
-      
-      // Loại bỏ các ký tự đặc biệt ở cuối
-      baseName = baseName.replace(/[:\-–—]\s*$/, "").trim();
-      
+      // Chỉ bỏ pattern "(Phần 2)", "(Phần 3)" ở cuối - không bỏ quá nhiều
+      let baseName = name.replace(/\s*\(Phần\s*\d+\)\s*$/i, "").trim();
       return baseName;
     };
 
     const baseName = getBaseName(movie.name);
+    
+    // Nếu baseName quá ngắn hoặc rỗng, sử dụng tên phim gốc làm fallback
+    const searchName = baseName && baseName.length >= 2 ? baseName : movie.name;
+
+    // Tìm các phần khác của series - tương tự phim/[slug] page
+    const baseSlug = movie.slug.replace(/-phan-\d+$/i, "");
+    const baseOriginalName = movie.original_name
+      ? movie.original_name.replace(/\s*\(Season\s*\d+\)\s*$/i, "")
+      : "";
+    const seriesSearchKeyword = baseOriginalName || searchName || movie.name;
+
+    // Fetch series parts
+    let seriesParts: FilmItem[] = [];
+    if (seriesSearchKeyword) {
+      try {
+        const searchResults = await searchFilmsMerged(seriesSearchKeyword);
+        const filtered = searchResults.filter((item) => {
+          const itemBaseSlug = item.slug.replace(/-phan-\d+$/i, "");
+          return item.slug !== movie.slug && itemBaseSlug === baseSlug;
+        });
+        const withPart = filtered
+          .map((item) => ({ item, part: getSeriesPartNumber(item) }))
+          .filter((x) => x.part !== null) as { item: FilmItem; part: number }[];
+        withPart.sort((a, b) => a.part - b.part);
+        seriesParts = withPart.map((x) => x.item);
+      } catch (error) {
+        // Silently fail, seriesParts stays empty
+      }
+    }
     // Skip relatedParts search in initial render - fetch it separately with Suspense
     // This dramatically improves initial video loading time
     const relatedParts: FilmItem[] = [];
@@ -399,12 +438,23 @@ async function VideoPlayer({
           </div>
         )}
 
+        {/* Series Parts Section - Các phần khác trong series */}
+        {Array.isArray(seriesParts) && seriesParts.length > 0 && (
+          <div className="mx-3 sm:mx-4 md:mx-12">
+            <MovieSection
+              title="Các phần khác trong series"
+              movies={seriesParts}
+              variant="series"
+            />
+          </div>
+        )}
+
         {/* Premium Related Parts Section - Loaded in background with Suspense */}
         <Suspense fallback={null}>
           <RelatedPartsSection
             movieSlug={movie.slug}
             movieName={movie.name}
-            baseMovieName={baseName}
+            baseMovieName={searchName}
           />
         </Suspense>
         </div>

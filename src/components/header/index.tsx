@@ -13,7 +13,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LoginModal } from "@/components/login-modal";
 import { SignupModal } from "@/components/signup-modal";
 import { useScrolled } from "@/hooks/use-scrolled";
 import { HeaderSearch } from "@/components/header/header-search";
@@ -29,7 +28,6 @@ const mainNav = [
 export function Header() {
   const isScrolled = useScrolled();
   const [isMounted, setIsMounted] = useState(false);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isMobileHamburgerOpen, setIsMobileHamburgerOpen] = useState(false);
@@ -49,8 +47,8 @@ export function Header() {
   }, []);
 
   const handleOpenLogin = useCallback(() => {
-    setIsLoginModalOpen(true);
-  }, []);
+    router.push("/dang-nhap");
+  }, [router]);
 
   const shouldDisableTransform = isMobileHamburgerOpen || isMobileSearchOpen;
 
@@ -220,7 +218,7 @@ export function Header() {
                 <Button
                   variant="outline"
                   className="hidden lg:flex items-center gap-2 bg-white/5 border-white/20 text-white hover:bg-white/10"
-                  onClick={() => setIsLoginModalOpen(true)}
+                  onClick={() => router.push("/dang-nhap")}
                 >
                   <LogIn className="w-4 h-4" />
                   Đăng nhập
@@ -231,21 +229,12 @@ export function Header() {
         </div>
       </div>
 
-      {/* Login Modal */}
-      {!AUTH_DISABLED && (
-        <LoginModal
-          open={isLoginModalOpen}
-          onOpenChange={setIsLoginModalOpen}
-          onSwitchToSignup={() => setIsSignupModalOpen(true)}
-        />
-      )}
-
       {/* Signup Modal */}
       {!AUTH_DISABLED && (
         <SignupModal
           open={isSignupModalOpen}
           onOpenChange={setIsSignupModalOpen}
-          onSwitchToLogin={() => setIsLoginModalOpen(true)}
+          onSwitchToLogin={() => router.push("/dang-nhap")}
         />
       )}
     </header>

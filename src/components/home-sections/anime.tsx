@@ -6,7 +6,7 @@ import { getFilmsByCategory, type FilmItem } from "@/lib/api";
 export async function AnimeSection() {
   try {
     // DÙNG DUY NHẤT API:
-    // https://phimapi.com/v1/api/danh-sach/hoat-hinh?page=1&sort_field=_id&sort_type=desc&category=hanh-dong&year=2025&limit=10
+    // https://phimapi.com/v1/movpey/danh-sach/hoat-hinh?page=1&sort_field=_id&sort_type=desc&category=hanh-dong&year=2025&limit=10
     const res = await getFilmsByCategory("hoat-hinh", 1, {
       sort_field: "_id",
       sort_type: "desc",

@@ -39,7 +39,7 @@ function getReleaseYear(movie: FilmItem): number | null {
 
 export async function Top10PhimLe() {
   try {
-    // Gọi trực tiếp API /v1/api/danh-sach/phim-le với các filter
+    // Gọi trực tiếp API /v1/movpey/danh-sach/phim-le với các filter
     // Chỉ lấy phim từ năm 2025 trở lên
     // Lấy nhiều phim hơn để có đủ sau khi filter theo năm
     const phimLeRaw = await getFilmsByCategoryMultiple(

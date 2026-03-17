@@ -20,11 +20,11 @@ const movieCategories = [
 ];
 
 interface MobileHamburgerMenuProps {
-  onOpenLogin: () => void;
+  onOpenLogin?: () => void;
   onOpenChange?: (open: boolean) => void;
 }
 
-export function MobileHamburgerMenu({ onOpenLogin, onOpenChange }: MobileHamburgerMenuProps) {
+export function MobileHamburgerMenu({ onOpenChange }: MobileHamburgerMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const { user, signOut, isAuthenticated } = useAuth();
@@ -121,16 +121,14 @@ export function MobileHamburgerMenu({ onOpenLogin, onOpenChange }: MobileHamburg
                         </button>
                       </>
                     ) : (
-                      <button
-                        onClick={() => {
-                          setIsOpen(false);
-                          onOpenLogin();
-                        }}
+                      <Link
+                        href="/dang-nhap"
+                        onClick={() => setIsOpen(false)}
                         className="w-full px-4 py-3 rounded-lg bg-[#F6C453] hover:bg-[#F6C453]/90 text-black font-semibold transition-colors flex items-center justify-center gap-2"
                       >
                         <LogIn className="w-5 h-5" />
                         Đăng nhập
-                      </button>
+                      </Link>
                     )}
                   </div>
                 )}

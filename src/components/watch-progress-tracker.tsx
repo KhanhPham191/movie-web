@@ -1,185 +1,105 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
-import { addToCurrentlyWatching, updateCurrentlyWatching } from "@/lib/supabase/movies";
 import { useAuth } from "@/contexts/auth-context";
-import { useVideoProgress } from "@/contexts/video-progress-context";
+import { useVideoProgressOptional } from "@/contexts/video-progress-context";
 import type { FilmItem } from "@/lib/api";
 
 interface WatchProgressTrackerProps {
   movie: FilmItem;
   episodeSlug?: string;
   episodeName?: string;
+  serverName?: string;
 }
+
+const SAVE_INTERVAL_MS = 5_000; // lưu mỗi 5 giây
+const MIN_WATCH_TIME = 3;       // bỏ qua nếu xem dưới 3 giây
 
 export function WatchProgressTracker({
   movie,
   episodeSlug,
   episodeName,
+  serverName,
 }: WatchProgressTrackerProps) {
   const { isAuthenticated } = useAuth();
-  const { currentTime, duration } = useVideoProgress();
-  const searchParams = useSearchParams();
-
-  // Dùng refs để lưu giá trị mới nhất, tránh dependency array chạy lại liên tục
-  const currentTimeRef = useRef<number>(0);
-  const durationRef = useRef<number>(0);
-  const watchTimeRef = useRef<number>(0);
-  const startTimeRef = useRef<number>(Date.now());
-  const hasInitializedRef = useRef(false);
+  const videoProgress = useVideoProgressOptional();
+  const lastSavedTimeRef = useRef<number>(-1);
   const isSavingRef = useRef(false);
 
-  // Luôn cập nhật refs khi context thay đổi (KHÔNG tạo effect mới)
-  currentTimeRef.current = currentTime;
-  durationRef.current = duration;
+  const buildPayload = useCallback(
+    (watchTime: number, totalDuration: number) => ({
+      movie_slug: movie.slug,
+      movie_name: movie.name,
+      movie_thumb: movie.thumb_url || movie.poster_url,
+      movie_year: movie.year ? Number(movie.year) : undefined,
+      episode_slug: episodeSlug || "full",
+      episode_name: episodeName || "Full",
+      server_name: serverName || "Default",
+      watch_time: Math.floor(watchTime),
+      total_duration: Math.floor(totalDuration),
+    }),
+    [movie, episodeSlug, episodeName, serverName]
+  );
 
-  // Lấy timestamp từ URL nếu có (ví dụ: ?t=120) - chỉ lấy một lần khi mount
-  useEffect(() => {
-    const tParam = searchParams.get("t");
-    if (tParam) {
-      const timestamp = parseInt(tParam, 10);
-      if (!isNaN(timestamp) && timestamp > 0) {
-        watchTimeRef.current = timestamp;
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Chỉ chạy một lần khi mount
+  const saveProgress = useCallback(
+    async (watchTime: number, totalDuration: number) => {
+      if (!isAuthenticated) return;
+      if (watchTime < MIN_WATCH_TIME) return;
+      // Bỏ qua nếu đúng vị trí đã lưu rồi (tránh lưu lặp cùng 1 giá trị)
+      if (watchTime === lastSavedTimeRef.current) return;
+      if (isSavingRef.current) return;
 
-  // Hàm lưu tiến độ - dùng ref values thay vì state
-  const saveProgress = useCallback(async () => {
-    if (isSavingRef.current) return;
-
-    try {
       isSavingRef.current = true;
-      const ct = Math.floor(currentTimeRef.current);
-      const dur = Math.floor(durationRef.current || 0);
+      lastSavedTimeRef.current = watchTime;
 
-      // Nếu đã xem xong, xóa khỏi currently_watching
-      if (dur > 0 && ct >= dur) {
-        const { removeFromCurrentlyWatching } = await import("@/lib/supabase/movies");
-        await removeFromCurrentlyWatching(movie.slug);
-        return;
-      }
-
-      // Chỉ lưu nếu currentTime > 0 và có thay đổi (ít nhất 1 giây)
-      if (ct > 0 && Math.abs(ct - watchTimeRef.current) >= 1) {
-        const { error } = await updateCurrentlyWatching(
-          movie.slug,
-          ct,
-          dur,
-          episodeSlug
-        );
-
-        if (!error) {
-          watchTimeRef.current = ct;
-          startTimeRef.current = Date.now();
-        }
-      }
-    } catch {
-      // Error saving progress
-    } finally {
-      isSavingRef.current = false;
-    }
-  }, [movie.slug, episodeSlug]);
-
-  // Khởi tạo và lưu vào currently_watching khi vào trang
-  useEffect(() => {
-    if (!isAuthenticated || hasInitializedRef.current) return;
-
-    const initializeWatch = async () => {
       try {
-        const { error } = await addToCurrentlyWatching(
-          movie,
-          episodeSlug,
-          episodeName,
-          watchTimeRef.current,
-          durationRef.current || 0
-        );
-
-        if (!error) {
-          hasInitializedRef.current = true;
-          startTimeRef.current = Date.now();
-        }
+        await fetch("/movpey/watch-history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(buildPayload(watchTime, totalDuration)),
+        });
       } catch {
-        // Error initializing watch
+        // Silent fail — không làm gián đoạn trải nghiệm xem phim
+      } finally {
+        isSavingRef.current = false;
       }
-    };
+    },
+    [isAuthenticated, buildPayload]
+  );
 
-    initializeWatch();
-  }, [isAuthenticated, movie, episodeSlug, episodeName]);
-
-  // Cập nhật tiến độ mỗi 5 giây - dùng một interval duy nhất, đọc từ refs
+  // Lưu định kỳ mỗi 5 giây
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !videoProgress) return;
 
-    const intervalId = setInterval(() => {
-      if (!hasInitializedRef.current) return;
-      saveProgress();
-    }, 5000);
+    const interval = setInterval(() => {
+      const { currentTime, duration } = videoProgress;
+      saveProgress(currentTime, duration);
+    }, SAVE_INTERVAL_MS);
 
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [isAuthenticated, saveProgress]);
+    return () => clearInterval(interval);
+  }, [isAuthenticated, videoProgress, saveProgress]);
 
-  // Lưu tiến độ khi rời trang (beforeunload, visibilitychange)
+  // Lưu khi user thoát trang / đóng tab
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !videoProgress) return;
 
     const handleBeforeUnload = () => {
-      if (!hasInitializedRef.current) return;
-      const ct = Math.floor(currentTimeRef.current) || watchTimeRef.current;
-      const dur = Math.floor(durationRef.current || 0);
-      if (ct > 0) {
-        updateCurrentlyWatching(movie.slug, ct, dur, episodeSlug).catch(() => {});
-      }
-    };
+      const { currentTime, duration } = videoProgress;
+      if (currentTime < MIN_WATCH_TIME) return;
 
-    const handleVisibilityChange = () => {
-      if (!hasInitializedRef.current) return;
-      if (document.hidden) {
-        saveProgress();
-      } else {
-        startTimeRef.current = Date.now();
-      }
+      // Dùng sendBeacon để đảm bảo request gửi được khi thoát trang
+      navigator.sendBeacon(
+        "/movpey/watch-history",
+        new Blob(
+          [JSON.stringify(buildPayload(currentTime, duration))],
+          { type: "application/json" }
+        )
+      );
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isAuthenticated, videoProgress, buildPayload]);
 
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      // Lưu lần cuối khi component unmount
-      if (hasInitializedRef.current) {
-        const ct = Math.floor(currentTimeRef.current) || watchTimeRef.current;
-        const dur = Math.floor(durationRef.current || 0);
-        if (ct > 0) {
-          updateCurrentlyWatching(movie.slug, ct, dur, episodeSlug).catch(() => {});
-        }
-      }
-    };
-  }, [isAuthenticated, movie.slug, episodeSlug, saveProgress]);
-
-  // Cập nhật duration vào database khi nó thay đổi lần đầu (chỉ khi khác biệt lớn)
-  const lastSavedDurationRef = useRef<number>(0);
-  useEffect(() => {
-    if (!isAuthenticated || !hasInitializedRef.current) return;
-    if (duration <= 0 || isNaN(duration)) return;
-
-    const durationFloor = Math.floor(duration);
-    // Chỉ cập nhật nếu duration thay đổi đáng kể (> 2 giây)
-    if (Math.abs(durationFloor - lastSavedDurationRef.current) < 2) return;
-    lastSavedDurationRef.current = durationFloor;
-
-    updateCurrentlyWatching(
-      movie.slug,
-      watchTimeRef.current,
-      durationFloor,
-      episodeSlug
-    ).catch(() => {});
-  }, [isAuthenticated, movie.slug, episodeSlug, duration]);
-
-  return null; // Component này không render gì
+  return null;
 }

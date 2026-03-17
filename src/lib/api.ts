@@ -219,7 +219,7 @@ async function fetchPhimAPI<T>(endpoint: string): Promise<T> {
   const isBrowser = typeof window !== "undefined";
   // Khi chạy trên client (đặc biệt mobile), đi qua proxy để tránh CORS/chặn UA
   const url = isBrowser
-    ? `/api/phimapi?endpoint=${encodeURIComponent(endpoint)}`
+    ? `/movpey/phimapi?endpoint=${encodeURIComponent(endpoint)}`
     : `${PHIMAPI_BASE}${endpoint}`;
   const cacheKey = url;
   
@@ -904,7 +904,7 @@ export async function getAvailableGenres(): Promise<{ name: string; slug: string
   try {
     const isBrowser = typeof window !== "undefined";
     const url = isBrowser
-      ? "/api/phimapi?endpoint=" + encodeURIComponent("/the-loai")
+      ? "/movpey/phimapi?endpoint=" + encodeURIComponent("/the-loai")
       : "https://phimapi.com/the-loai";
 
     const res = await fetch(url, {

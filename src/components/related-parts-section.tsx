@@ -8,8 +8,8 @@ interface RelatedPartsSectionProps {
 }
 
 async function getRelatedParts(baseMovieName: string, movieSlug: string): Promise<FilmItem[]> {
-  // Only search if base name is meaningful
-  if (!baseMovieName || baseMovieName.length < 3) {
+  // Only search if base name is meaningful - reduced from 3 to 2 chars
+  if (!baseMovieName || baseMovieName.length < 2) {
     return [];
   }
 

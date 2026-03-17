@@ -105,7 +105,7 @@ function getReleaseYearFromCategory(detail: any): number | null {
   return null;
 }
 
-// Kiểm tra 1 movie detail từ /api/film/{slug}:
+// Kiểm tra 1 movie detail từ /movpey/film/{slug}:
 // - group "Quốc gia" có "Trung Quốc"
 // - group "Thể loại" KHÔNG chứa "Hoạt Hình"
 function isChinaNonAnimationDetail(detail: any): boolean {
@@ -164,7 +164,7 @@ function isNonAnimationDetailForCountries(
 }
 
 // Lọc danh sách FilmItem theo tiêu chí:
-// - Trong detail /api/film/{slug} là phim Trung Quốc
+// - Trong detail /movpey/film/{slug} là phim Trung Quốc
 // - Không có thể loại "Hoạt Hình"
 export async function filterChinaNonAnimation(
   movies: FilmItem[]

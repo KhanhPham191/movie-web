@@ -13,6 +13,8 @@ import type { FilmItem } from "@/lib/api";
 import { getImageUrl } from "@/lib/api";
 import { isValidTime } from "@/lib/utils";
 import { analytics } from "@/lib/analytics";
+import { useFavorites } from "@/contexts/favorites-context";
+import { useAuth } from "@/contexts/auth-context";
 
 // Module-level cache: slug -> first episode slug (avoids re-fetching getFilmDetail)
 const episodeSlugCache = new Map<string, string | null>();
@@ -118,6 +120,10 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
   const router = useRouter();
   const isHome = pathname === '/';
   const isFilmDetail = pathname?.startsWith('/phim/') || false;
+  const { isFavorited, toggleFavorite, pendingSlugs } = useFavorites();
+  const { isAuthenticated } = useAuth();
+  const favorited = isFavorited(movie.slug);
+  const favPending = pendingSlugs.has(movie.slug);
   const [isHovered, setIsHovered] = useState(false);
   const [isPortraitImage, setIsPortraitImage] = useState(false);
   const cardRef = useRef<HTMLAnchorElement>(null);
@@ -496,19 +502,33 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               <button
                 type="button"
                 data-popup-button
-                className="pointer-events-auto bg-[#1a1a1a] hover:bg-[#252525] text-white border border-white/20 font-semibold text-base px-5 py-3.5 rounded-md flex items-center justify-center gap-2 transition-colors whitespace-nowrap shrink-0"
+                disabled={favPending}
+                className={`pointer-events-auto font-semibold text-base px-5 py-3.5 rounded-md flex items-center justify-center gap-2 transition-all whitespace-nowrap shrink-0 ${
+                  favorited
+                    ? "bg-[#F6C453]/15 hover:bg-[#F6C453]/25 text-[#F6C453] border border-[#F6C453]/40"
+                    : "bg-[#1a1a1a] hover:bg-[#252525] text-white border border-white/20"
+                } ${favPending ? "opacity-60 cursor-not-allowed" : ""}`}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  if (isHome) {
-                    analytics.trackHomePopupLike(movie.name, movie.slug);
-                  } else if (isFilmDetail) {
-                    analytics.trackFilmDetailPopupLike(movie.name, movie.slug);
+                  if (!isAuthenticated) {
+                    window.location.href = "/dang-nhap";
+                    return;
                   }
+                  if (isHome) analytics.trackHomePopupLike(movie.name, movie.slug);
+                  else if (isFilmDetail) analytics.trackFilmDetailPopupLike(movie.name, movie.slug);
+                  toggleFavorite({
+                    movie_slug: movie.slug,
+                    movie_name: movie.name,
+                    movie_thumb: movie.thumb_url || movie.poster_url || "",
+                    movie_poster: movie.poster_url || undefined,
+                    movie_year: movie.year ? Number(movie.year) : undefined,
+                    movie_quality: movie.quality || undefined,
+                  });
                 }}
               >
-                <Heart className="w-5 h-5 shrink-0" />
-                <span>Thích</span>
+                <Heart className={`w-5 h-5 shrink-0 transition-all ${favorited ? "fill-[#F6C453] text-[#F6C453]" : ""}`} />
+                <span>{favorited ? "Đã thích" : "Thích"}</span>
               </button>
               <Link
                 href={`/phim/${movie.slug}`}
@@ -533,7 +553,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
         </div>
       </div>
     );
-  }, [isHovered, popupPosition, shouldShowPopup, popupBackdropUrl, movie.name, movie.original_name, movie.current_episode, movie.category, year]);
+  }, [isHovered, popupPosition, shouldShowPopup, popupBackdropUrl, movie.name, movie.original_name, movie.current_episode, movie.category, year, favorited, favPending, isAuthenticated, toggleFavorite]);
 
   // Top 10 variant - Netflix style with badge
   if (variant === "top10" && rank) {

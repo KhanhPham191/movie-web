@@ -25,6 +25,7 @@ export interface GAEvent {
  * Track a custom event in Google Analytics
  */
 export function trackEvent(eventName: string, params?: Record<string, any>) {
+  if (process.env.NODE_ENV !== 'production') return;
   if (typeof window !== 'undefined' && window.gtag) {
     // GA4 already tracks device/browser/OS natively in built-in dimensions
     // No need to send custom device info — it wastes event parameter quota
@@ -42,6 +43,7 @@ export function trackEvent(eventName: string, params?: Record<string, any>) {
  * reinitializing the tag and losing client_id
  */
 export function trackPageView(url: string) {
+  if (process.env.NODE_ENV !== 'production') return;
   if (typeof window !== 'undefined' && window.gtag) {
     // Send page_view event (NOT gtag config — that would reinitialize and lose client_id)
     window.gtag('event', 'page_view', {

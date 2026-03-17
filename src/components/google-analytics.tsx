@@ -3,6 +3,8 @@
 import Script from 'next/script';
 
 export function GoogleAnalytics({ gaId }: { gaId: string }) {
+  if (process.env.NODE_ENV !== 'production') return null;
+
   return (
     <>
       <Script

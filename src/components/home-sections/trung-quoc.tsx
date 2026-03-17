@@ -11,7 +11,7 @@ function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
 
 export async function TrungQuocSection() {
   try {
-    // Sử dụng API /v1/api/danh-sach với filter country=trung-quoc
+    // Sử dụng API /v1/movpey/danh-sach với filter country=trung-quoc
     // Lấy tất cả type_list (phim-bo, phim-le, tv-shows) nhưng filter country=trung-quoc
     // Và loại bỏ phim có category hoạt hình
     
