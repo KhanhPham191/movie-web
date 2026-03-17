@@ -86,10 +86,13 @@ UserSchema.index({ reset_token: 1 });
 // Không trả về password_hash khi convert sang JSON
 UserSchema.set("toJSON", {
   transform: (_doc, ret) => {
-    delete ret.password_hash;
-    delete ret.reset_token;
-    delete ret.reset_token_expires;
-    return ret;
+    const {
+      password_hash: _password_hash,
+      reset_token: _reset_token,
+      reset_token_expires: _reset_token_expires,
+      ...safe
+    } = ret;
+    return safe;
   },
 });
 
