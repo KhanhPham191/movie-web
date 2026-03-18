@@ -22,17 +22,36 @@ export async function connectDB(): Promise<typeof mongoose> {
   }
 
   if (cached.conn) {
+    console.log("[MongoDB] Using cached connection");
     return cached.conn;
   }
 
   if (!cached.promise) {
+    console.log("[MongoDB] Creating new connection...");
     cached.promise = mongoose.connect(MONGODB_URI, {
       bufferCommands: false,
+      maxPoolSize: 10,
+      minPoolSize: 2,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+    
+    cached.promise.catch((err) => {
+      console.error("[MongoDB] Connection error:", err.message);
+      cached.promise = null;
+      throw err;
     });
   }
 
-  cached.conn = await cached.promise;
-  return cached.conn;
+  try {
+    cached.conn = await cached.promise;
+    console.log("[MongoDB] Connected successfully!");
+    return cached.conn;
+  } catch (error: any) {
+    console.error("[MongoDB] Failed to connect:", error.message);
+    cached.promise = null;
+    throw error;
+  }
 }
 
 export default connectDB;

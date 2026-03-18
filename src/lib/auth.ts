@@ -1,9 +1,8 @@
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 
-const JWT_SECRET = process.env.JWT_SECRET!;
 const COOKIE_NAME = "movpey_token";
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 ngày (giây)
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365 * 2; // 2 năm (giây)
 
 export interface JwtPayload {
   userId: string;
@@ -11,13 +10,21 @@ export interface JwtPayload {
   role: "user" | "admin";
 }
 
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("Thiếu JWT_SECRET trong biến môi trường");
+  }
+  return secret;
+}
+
 export function signToken(payload: JwtPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: "730d" });
 }
 
 export function verifyToken(token: string): JwtPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as JwtPayload;
+    return jwt.verify(token, getJwtSecret()) as JwtPayload;
   } catch {
     return null;
   }

@@ -334,31 +334,12 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
       });
     };
 
-    // Ngăn scroll khi hover vào popup
-    const preventWheel = (e: WheelEvent) => {
-      if (popupRef.current && popupRef.current.contains(e.target as Node)) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
-    
-    const preventTouch = (e: TouchEvent) => {
-      if (popupRef.current && popupRef.current.contains(e.target as Node)) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
-    
     window.addEventListener("scroll", handleScrollOrResize, true);
     window.addEventListener("resize", handleScrollOrResize);
-    document.addEventListener("wheel", preventWheel, { passive: false });
-    document.addEventListener("touchmove", preventTouch, { passive: false });
     
     return () => {
       window.removeEventListener("scroll", handleScrollOrResize, true);
       window.removeEventListener("resize", handleScrollOrResize);
-      document.removeEventListener("wheel", preventWheel);
-      document.removeEventListener("touchmove", preventTouch);
       if (positionFrameRef.current) {
         cancelAnimationFrame(positionFrameRef.current);
         positionFrameRef.current = null;
