@@ -1,69 +1,50 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Heart } from "lucide-react";
 import { useAuth, AUTH_DISABLED } from "@/contexts/auth-context";
+import { useFavorites } from "@/contexts/favorites-context";
 
 interface LikeButtonProps {
   movieSlug: string;
   movieName?: string;
 }
 
-export function LikeButton({ movieSlug, movieName }: LikeButtonProps) {
+export function LikeButton({ movieSlug, movieName = "" }: LikeButtonProps) {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
-  const [isLiked, setIsLiked] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const { isFavorited, toggleFavorite, pendingSlugs } = useFavorites();
+  
+  const isLiked = isFavorited(movieSlug);
+  const isPending = pendingSlugs.has(movieSlug);
 
-  // Load từ localStorage khi component mount
-  useEffect(() => {
-    setIsMounted(true);
-    if (isAuthenticated) {
-      const likedMovies = JSON.parse(localStorage.getItem("likedMovies") || "[]");
-      setIsLiked(likedMovies.includes(movieSlug));
-    }
-  }, [movieSlug, isAuthenticated]);
-
-  const handleLike = () => {
+  const handleLike = async () => {
     // Kiểm tra auth
     if (AUTH_DISABLED || !isAuthenticated) {
       router.push("/dang-nhap");
       return;
     }
 
-    const likedMovies = JSON.parse(localStorage.getItem("likedMovies") || "[]");
-    
-    if (isLiked) {
-      // Bỏ like
-      const updated = likedMovies.filter((slug: string) => slug !== movieSlug);
-      localStorage.setItem("likedMovies", JSON.stringify(updated));
-      setIsLiked(false);
-    } else {
-      // Thêm like
-      if (!likedMovies.includes(movieSlug)) {
-        likedMovies.push(movieSlug);
-      }
-      localStorage.setItem("likedMovies", JSON.stringify(likedMovies));
-      setIsLiked(true);
-    }
+    if (isPending) return;
+
+    await toggleFavorite({
+      movie_slug: movieSlug,
+      movie_name: movieName,
+      movie_thumb: "",
+    });
   };
 
-  if (!isMounted) return null;
+  if (!isAuthenticated) return null;
 
   return (
     <button
       onClick={handleLike}
-      className={`inline-flex items-center justify-center rounded-full transition-all duration-300 ${
+      disabled={isPending}
+      className={`inline-flex items-center justify-center rounded-full transition-all duration-300 border font-semibold text-base px-5 py-3.5 ${
         isLiked
-          ? "bg-red-500/20 text-red-500 hover:bg-red-500/30"
-          : "bg-white/5 text-white hover:bg-white/10"
-      }`}
-      style={{
-        width: "44px",
-        height: "44px",
-        padding: "8px"
-      }}
+          ? "bg-[#F6C453]/15 hover:bg-[#F6C453]/25 text-[#F6C453] border-[#F6C453]/40"
+          : "bg-[#1a1a1a] hover:bg-[#252525] text-white border-white/20"
+      } ${isPending ? "opacity-60 cursor-not-allowed" : ""}`}
       title={
         AUTH_DISABLED || !isAuthenticated
           ? "Đăng nhập để yêu thích"
@@ -80,10 +61,11 @@ export function LikeButton({ movieSlug, movieName }: LikeButtonProps) {
       }
     >
       <Heart
-        className="w-6 h-6 transition-all duration-300"
+        className="w-5 h-5 shrink-0 transition-all duration-300"
         fill={isLiked ? "currentColor" : "none"}
         strokeWidth={2}
       />
+      <span>{isLiked ? "Đã thích" : "Thích"}</span>
     </button>
   );
 }
