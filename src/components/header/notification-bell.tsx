@@ -70,7 +70,7 @@ export function NotificationBell() {
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <button
-          className="hidden md:block p-2 hover:text-gray-300 transition-colors relative outline-none outline-offset-0 ring-0 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:ring-offset-0 focus-visible:ring-offset-0 data-[state=open]:outline-none data-[state=open]:ring-0 data-[state=open]:ring-offset-0 data-[state=open]:border-transparent"
+          className="hidden lg:block p-2 hover:text-gray-300 transition-colors relative outline-none outline-offset-0 ring-0 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:ring-offset-0 focus-visible:ring-offset-0 data-[state=open]:outline-none data-[state=open]:ring-0 data-[state=open]:ring-offset-0 data-[state=open]:border-transparent"
           style={{ outline: "none", boxShadow: "none" }}
         >
           <Bell className="w-5 h-5" />

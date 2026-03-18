@@ -13,7 +13,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SignupModal } from "@/components/signup-modal";
 import { useScrolled } from "@/hooks/use-scrolled";
 import { HeaderSearch } from "@/components/header/header-search";
 import { NotificationBell } from "@/components/header/notification-bell";
@@ -28,7 +27,6 @@ const mainNav = [
 export function Header() {
   const isScrolled = useScrolled();
   const [isMounted, setIsMounted] = useState(false);
-  const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isMobileHamburgerOpen, setIsMobileHamburgerOpen] = useState(false);
   const router = useRouter();
@@ -178,7 +176,7 @@ export function Header() {
                             .toUpperCase()}
                         </span>
                       </div>
-                      <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-white group-hover:rotate-180 transition-transform hidden md:block" />
+                      <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-white group-hover:rotate-180 transition-transform hidden lg:block" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
@@ -228,15 +226,6 @@ export function Header() {
           )}
         </div>
       </div>
-
-      {/* Signup Modal */}
-      {!AUTH_DISABLED && (
-        <SignupModal
-          open={isSignupModalOpen}
-          onOpenChange={setIsSignupModalOpen}
-          onSwitchToLogin={() => router.push("/dang-nhap")}
-        />
-      )}
     </header>
   );
 }

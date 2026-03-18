@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Footer } from "@/components/footer";
 import { MovieCard } from "@/components/movie-card";
@@ -55,26 +55,62 @@ const calculateRelevanceScore = (movieName: string, query: string): number => {
   return 0;
 };
 
+function rankMovies(items: FilmItem[], query: string): FilmItem[] {
+  type FilmWithScore = FilmItem & { score: number };
+
+  return items
+    .map((movie: FilmItem): FilmWithScore => ({
+      ...movie,
+      score: calculateRelevanceScore(movie.name || "", query),
+    }))
+    .sort((a: FilmWithScore, b: FilmWithScore) => b.score - a.score)
+    .map(({ score, ...rest }: FilmWithScore) => rest as FilmItem);
+}
+
+function dedupeMovies(items: FilmItem[]): FilmItem[] {
+  const seen = new Set<string>();
+  const result: FilmItem[] = [];
+
+  for (const movie of items) {
+    const key = movie.slug || movie.id;
+    if (!key || seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    result.push(movie);
+  }
+
+  return result;
+}
+
 export default function SearchPage() {
   const searchParams = useSearchParams();
-  const query = (searchParams.get("q") || "").trim();
+  const query = useMemo(() => (searchParams.get("q") || "").trim(), [searchParams]);
 
   const [movies, setMovies] = useState<FilmItem[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryToken, setRetryToken] = useState(0);
+  const activeRequestRef = useRef(0);
 
   useEffect(() => {
+    const requestId = ++activeRequestRef.current;
+
     if (!query) {
       setMovies(null);
       setError(null);
       setLoading(false);
+      setIsLoadingMore(false);
       return;
     }
 
     let cancelled = false;
     setLoading(true);
+    setIsLoadingMore(false);
     setError(null);
+    setMovies(null);
 
     async function fetchSearch() {
       try {
@@ -87,9 +123,10 @@ export default function SearchPage() {
 
         // Nếu API trả về lỗi hoặc không có items, xem như không có kết quả (không phải lỗi)
         if (firstRes.status === "error" || !Array.isArray(firstRes.items)) {
-          if (!cancelled) {
+          if (!cancelled && activeRequestRef.current === requestId) {
             setMovies([]);
             setError(null);
+            setLoading(false);
           }
           return;
         }
@@ -98,9 +135,10 @@ export default function SearchPage() {
         
         // Nếu không có items, hiển thị không có kết quả
         if (items.length === 0) {
-          if (!cancelled) {
+          if (!cancelled && activeRequestRef.current === requestId) {
             setMovies([]);
             setError(null);
+            setLoading(false);
           }
           return;
         }
@@ -113,22 +151,16 @@ export default function SearchPage() {
         // Giới hạn tối đa 5 trang để tránh quá nặng
         const pagesToFetch = Math.min(totalPages, 5);
 
-        // Nếu chỉ có 1 trang thì dùng luôn
-        if (pagesToFetch === 1) {
-          if (!cancelled) {
-            // Sắp xếp theo relevance score
-            type FilmWithScore = FilmItem & { score: number };
-            const sorted = items
-              .map((movie: FilmItem): FilmWithScore => ({
-                ...movie,
-                score: calculateRelevanceScore(movie.name || "", query),
-              }))
-              .sort((a: FilmWithScore, b: FilmWithScore) => b.score - a.score)
-              .map(({ score, ...rest }: FilmWithScore) => rest as FilmItem); // Bỏ score khỏi kết quả cuối
-            setMovies(sorted);
-            setError(null);
-          }
-        } else {
+        // Hiển thị nhanh trang đầu trước để UI phản hồi mượt.
+        if (!cancelled && activeRequestRef.current === requestId) {
+          setMovies(rankMovies(dedupeMovies(items), query));
+          setError(null);
+          setLoading(false);
+        }
+
+        if (pagesToFetch > 1) {
+          setIsLoadingMore(true);
+
           // Gọi song song các trang còn lại
           const promises: Promise<Awaited<ReturnType<typeof searchFilms>>>[] = [];
           for (let page = 2; page <= pagesToFetch; page++) {
@@ -154,35 +186,23 @@ export default function SearchPage() {
             }
           }
 
-          if (!cancelled) {
-            const combined = [
-              ...items,
-              ...otherItems,
-            ];
-            
-            // Sắp xếp theo relevance score
-            type FilmWithScore = FilmItem & { score: number };
-            const sorted = combined
-              .map((movie: FilmItem): FilmWithScore => ({
-                ...movie,
-                score: calculateRelevanceScore(movie.name || "", query),
-              }))
-              .sort((a: FilmWithScore, b: FilmWithScore) => b.score - a.score)
-              .map(({ score, ...rest }: FilmWithScore) => rest as FilmItem); // Bỏ score khỏi kết quả cuối
-            
-            setMovies(sorted);
+          if (!cancelled && activeRequestRef.current === requestId) {
+            const combined = dedupeMovies([...items, ...otherItems]);
+            setMovies(rankMovies(combined, query));
             setError(null);
           }
         }
       } catch (err) {
         // Chỉ hiển thị lỗi khi thực sự có lỗi network hoặc exception
-        if (!cancelled) {
+        if (!cancelled && activeRequestRef.current === requestId) {
           setError("Đã xảy ra lỗi kết nối. Vui lòng thử lại sau.");
           setMovies([]);
+          setLoading(false);
         }
       } finally {
-        if (!cancelled) {
+        if (!cancelled && activeRequestRef.current === requestId) {
           setLoading(false);
+          setIsLoadingMore(false);
         }
       }
     }
@@ -274,9 +294,14 @@ export default function SearchPage() {
           {/* Có kết quả */}
           {query && !loading && !error && movies && movies.length > 0 && (
             <>
-              <p className="text-muted-foreground mb-6">
+              <p className="text-muted-foreground mb-2">
                 Tìm thấy {movies.length} kết quả cho &ldquo;{query}&rdquo;
               </p>
+              {isLoadingMore && (
+                <p className="text-xs text-muted-foreground mb-6">
+                  Đang tải thêm kết quả để sắp xếp chính xác hơn...
+                </p>
+              )}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-6">
                 {movies.map((movie, index) => (
                   <MovieCard

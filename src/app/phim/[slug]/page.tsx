@@ -4,9 +4,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Footer } from "@/components/footer";
 import { EpisodeSelector } from "@/components/episode-selector";
-import { MovieActionsWrapper } from "@/components/movie-actions-wrapper";
 import { FilmDetailTracker } from "@/components/film-detail-tracker";
 import { FilmDetailPlayButton } from "@/components/film-detail-play-button";
+import { LikeButton } from "@/components/like-button";
 import { FilmDetailCategoryLink } from "@/components/film-detail-category-link";
 import { FilmDetailCountryLink } from "@/components/film-detail-country-link";
 import { Badge } from "@/components/ui/badge";
@@ -263,13 +263,16 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                 </div>
 
                 {defaultServer?.items?.[0] && (
-                  <div className="mt-6 md:hidden">
+                  <div className="mt-6 lg:hidden space-y-3">
                     <FilmDetailPlayButton
                       href={`/xem-phim/${movie.slug}/${defaultServer.items[0].slug}`}
                       movieName={movie.name}
                       movieSlug={movie.slug}
                       episodeSlug={defaultServer.items[0].slug}
                     />
+                    <div className="flex items-center gap-2">
+                      <LikeButton movieSlug={movie.slug} movieName={movie.name} />
+                    </div>
                   </div>
                 )}
               </div>
@@ -434,16 +437,14 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                 {/* Nút hành động phụ / danh sách yêu thích giống thanh action bên phải */}
                 {/* Chỉ hiển thị hàng ngang Play + yêu thích/đánh giá trên desktop */}
                 {defaultServer?.items?.[0] && (
-                  <div className="hidden md:flex flex-wrap items-center gap-3">
+                  <div className="hidden lg:flex flex-wrap items-center gap-3">
                     <FilmDetailPlayButton
                       href={`/xem-phim/${movie.slug}/${defaultServer.items[0].slug}`}
                       movieName={movie.name}
                       movieSlug={movie.slug}
                       episodeSlug={defaultServer.items[0].slug}
                     />
-                    <Suspense fallback={null}>
-                      <MovieActionsWrapper movie={movie} />
-                    </Suspense>
+                    <LikeButton movieSlug={movie.slug} movieName={movie.name} />
                   </div>
                 )}
               </div>

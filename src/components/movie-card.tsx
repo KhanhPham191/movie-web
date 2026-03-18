@@ -393,7 +393,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
     return (
       <div
         ref={popupRef}
-        className="pointer-events-auto fixed z-[9999] w-[min(480px,82vw)] hidden md:block transition-all duration-320 ease-[cubic-bezier(0.22,0.61,0.36,1)]"
+        className="pointer-events-auto fixed z-[9999] w-[min(480px,82vw)] hidden lg:block transition-all duration-320 ease-[cubic-bezier(0.22,0.61,0.36,1)]"
         style={{
           left: `${popupPosition.left}px`,
           top: `${popupPosition.top}px`,
