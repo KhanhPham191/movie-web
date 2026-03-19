@@ -38,7 +38,7 @@ function formatTimeDisplay(watchTime: number, totalDuration: number): string {
 
 export function CurrentlyWatchingCard({ item, index = 0 }: CurrentlyWatchingCardProps) {
   const imageUrl = getImageUrl(item.movie_poster || item.movie_thumb || "");
-  const progress = item.total_duration > 0
+  const progress = item.total_duration > 0  
     ? Math.min((item.watch_time / item.total_duration) * 100, 100)
     : 0;
   const [isDeleting, setIsDeleting] = useState(false);

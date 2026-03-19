@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
       movie_slug,
       movie_name,
       movie_thumb,
+      movie_poster,
       movie_year,
       episode_slug,
       episode_name,
@@ -44,6 +45,7 @@ export async function POST(req: NextRequest) {
         $set: {
           movie_name,
           movie_thumb,
+          movie_poster: movie_poster || null,
           movie_year: movie_year || null,
           episode_name,
           server_name,
@@ -99,6 +101,7 @@ export async function GET(req: NextRequest) {
         movie_slug: item.movie_slug,
         movie_name: item.movie_name,
         movie_thumb: item.movie_thumb,
+        movie_poster: item.movie_poster,
         movie_year: item.movie_year,
         episode_slug: item.episode_slug,
         episode_name: item.episode_name,

@@ -25,12 +25,14 @@ export function WatchProgressTracker({
   const videoProgress = useVideoProgressOptional();
   const lastSavedTimeRef = useRef<number>(-1);
   const isSavingRef = useRef(false);
+  const currentStateRef = useRef({ currentTime: 0, duration: 0 });
 
   const buildPayload = useCallback(
     (watchTime: number, totalDuration: number) => ({
       movie_slug: movie.slug,
       movie_name: movie.name,
       movie_thumb: movie.thumb_url || movie.poster_url,
+      movie_poster: movie.poster_url || movie.thumb_url,
       movie_year: movie.year ? Number(movie.year) : undefined,
       episode_slug: episodeSlug || "full",
       episode_name: episodeName || "Full",
@@ -73,6 +75,8 @@ export function WatchProgressTracker({
 
     const interval = setInterval(() => {
       const { currentTime, duration } = videoProgress;
+      // Cập nhật ref để dùng trong cleanup
+      currentStateRef.current = { currentTime, duration };
       saveProgress(currentTime, duration);
     }, SAVE_INTERVAL_MS);
 
@@ -97,8 +101,26 @@ export function WatchProgressTracker({
       );
     };
 
+    const handleUnload = () => {
+      // Lưu lần cuối khi component unmount (e.g. navigation)
+      const { currentTime, duration } = currentStateRef.current;
+      if (currentTime >= MIN_WATCH_TIME) {
+        navigator.sendBeacon(
+          "/movpey/watch-history",
+          new Blob(
+            [JSON.stringify(buildPayload(currentTime, duration))],
+            { type: "application/json" }
+          )
+        );
+      }
+    };
+
     window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      // Lưu cuối cùng khi unmount
+      handleUnload();
+    };
   }, [isAuthenticated, videoProgress, buildPayload]);
 
   return null;

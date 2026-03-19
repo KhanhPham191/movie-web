@@ -710,13 +710,13 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
           >
             {/* Poster - Sử dụng clip-path polygon để tạo hình dạng nghiêng như tramphim */}
             <div
-            className="relative aspect-[2/3] w-full bg-muted transition-all duration-200 sm:duration-500 ease-in-out sm:group-hover:shadow-2xl flex-shrink-0 border border-transparent sm:group-hover:border-[rgba(246,196,83,0.3)]"
+            className="relative aspect-[2/3] w-full bg-muted transition-all duration-200 sm:duration-500 ease-in-out sm:group-hover:shadow-2xl flex-shrink-0"
             style={{
               clipPath: clipPathPolygon,
               transform: `scale(${isHovered ? 1.01 : 1}) ${isTiltLeft ? 'scaleX(-1)' : ''}`,
               transformStyle: "preserve-3d",
               transformOrigin: "center center",
-              boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3)",
+              boxShadow: `0 8px 24px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(246,196,83,0.3)`,
             }}
           >
             {/* Inner container với overflow-hidden - đảo ngược lại nội dung cho card nghiêng trái */}
@@ -747,7 +747,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
               )}
               
               {/* Play Button - Center on Hover */}
-              <div className="absolute inset-0 flex items-center justify-center z-20 opacity-0 sm:group-hover:opacity-100 transition-all duration-200 sm:duration-500 ease-in-out">
+              <div className="absolute inset-0 flex items-center justify-center z-30 opacity-0 sm:group-hover:opacity-100 transition-all duration-200 sm:duration-500 ease-in-out">
                 <div className="relative transform scale-0 sm:group-hover:scale-100 transition-transform duration-200 sm:duration-500 ease-in-out">
                   <div className="absolute inset-0 bg-[#F6C453] rounded-full blur-lg opacity-50 sm:group-hover:opacity-70 transition-opacity duration-200 sm:duration-500 ease-in-out" />
                   <button

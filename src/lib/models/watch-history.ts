@@ -5,6 +5,7 @@ export interface IWatchHistory extends Document {
   movie_slug: string;
   movie_name: string;
   movie_thumb: string;
+  movie_poster?: string;
   movie_year?: number;
   episode_slug: string;
   episode_name: string;
@@ -27,6 +28,7 @@ const WatchHistorySchema = new Schema<IWatchHistory>(
     movie_slug: { type: String, required: true },
     movie_name: { type: String, required: true },
     movie_thumb: { type: String, required: true },
+    movie_poster: { type: String, default: null },
     movie_year: { type: Number, default: null },
 
     episode_slug: { type: String, required: true },
