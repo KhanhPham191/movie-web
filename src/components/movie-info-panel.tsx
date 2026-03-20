@@ -43,7 +43,7 @@ export function MovieInfoPanel({
   currentServerName,
 }: MovieInfoPanelProps) {
   // Dùng poster_url cho poster nhỏ trong info panel (ảnh dọc 2:3)
-  const posterUrl = getImageUrl(movie.poster_url || movie.thumb_url);
+  const posterUrl = getImageUrl(movie.thumb_url || movie.poster_url);
   const cleanDescription = movie.description?.replace(/<[^>]*>/g, "") || "";
   
   // Tính số tập cao nhất từ tất cả servers (cố định, không thay đổi)

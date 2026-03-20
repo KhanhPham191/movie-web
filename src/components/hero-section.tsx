@@ -203,7 +203,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
               }}
             >
               <Image
-                src={getImageUrl(m.thumb_url)}
+                src={getImageUrl(m.poster_url || m.thumb_url)}
                 alt={m.name}
                 fill
                 className={`object-cover object-[center_20%] ${
@@ -372,7 +372,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
                 aria-label={m.name}
               >
                 <Image
-                  src={getImageUrl(m.poster_url || m.thumb_url)}
+                  src={getImageUrl(m.thumb_url || m.poster_url)}
                   alt={m.name}
                   fill
                   className="object-cover"

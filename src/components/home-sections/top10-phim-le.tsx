@@ -37,6 +37,13 @@ function getReleaseYear(movie: FilmItem): number | null {
   return null;
 }
 
+// Helper: kiểm tra xem phim có đang ở trạng thái trailer hay không
+function isTrailerStatus(movie: FilmItem): boolean {
+  if (!movie.current_episode) return false;
+  const episode = movie.current_episode.toLowerCase().trim();
+  return episode.includes("trailer") || episode.includes("sắp chiếu");
+}
+
 export async function Top10PhimLe() {
   try {
     // Gọi trực tiếp API /v1/movpey/danh-sach/phim-le với các filter
@@ -61,11 +68,12 @@ export async function Top10PhimLe() {
       return null;
     }
 
-    // Filter chỉ lấy phim có năm >= 2025
+    // Filter chỉ lấy phim có năm >= 2025 và loại trừ phim đang trailer
     const phimLeFiltered = phimLeRaw.filter((movie) => {
       const year = getReleaseYear(movie);
       const isYearValid = year !== null && year >= 2025;
-      return isYearValid;
+      const isNotTrailer = !isTrailerStatus(movie);
+      return isYearValid && isNotTrailer;
     });
 
     // Sắp xếp theo modified time (mới nhất trước) để hiển thị phim mới cập nhật nhất

@@ -161,7 +161,7 @@ export function HeaderSearch({ isScrolled, onMobileSearchOpenChange }: HeaderSea
       try {
         const items = await searchFilmsMerged(query);
         const mapped = items.map((m) => {
-          const imageUrl = m?.poster_url || m?.thumb_url || "";
+          const imageUrl = m?.thumb_url || m?.poster_url || "";
           const thumb = imageUrl ? getImageUrl(imageUrl) : "";
           const finalThumb = thumb && thumb !== "/logo.svg" ? thumb : "";
           return {

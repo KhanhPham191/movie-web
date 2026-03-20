@@ -133,9 +133,9 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
   const hoverDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isNavigatingRef = useRef(false);
-  // Use poster_url for movie cards (portrait posters)
-  const imageUrl = getImageUrl(movie.poster_url || movie.thumb_url);
-  const popupBackdropUrl = useMemo(() => getImageUrl(movie.thumb_url || movie.poster_url), [movie.thumb_url, movie.poster_url]);
+  // Use thumb_url for movie cards as primary image
+  const imageUrl = getImageUrl(movie.thumb_url || movie.poster_url);
+  const popupBackdropUrl = useMemo(() => getImageUrl(movie.poster_url), [movie.thumb_url, movie.poster_url]);
   const shortDescription = useMemo(() => getShortDescription(movie.description, 140), [movie.description]);
   const year = useMemo(() => {
     const parsed = movie.created ? new Date(movie.created).getFullYear() : undefined;
@@ -688,7 +688,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
     // Xác định hướng nghiêng xen kẽ: số lẻ nghiêng trái, số chẵn nghiêng phải
     const order = rank ?? index + 1;
     const isTiltLeft = order % 2 === 1; // Card lẻ (1, 3, 5...) nghiêng trái
-    // Use poster_url for main card image, thumb_url for hover popup
+    // Use thumb_url for main card image and hover popup
     const thumbUrl = getImageUrl(movie.thumb_url || movie.poster_url);
     
     // Clip-path polygon từ tramphim - tạo hình dạng nghiêng với góc bo tròn
@@ -793,7 +793,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
 
   // Series variant - poster + info, không popup chi tiết khi hover
   if (variant === "series") {
-    // Use poster_url for main card, thumb_url for popup backdrop (hover)
+    // Use thumb_url for main card and popup
     const thumbUrl = getImageUrl(movie.thumb_url || movie.poster_url);
 
     return (
@@ -878,7 +878,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
     // Cinema variant:
     // - backdrop dùng poster_url (wide image)
     // - poster nhỏ bên dưới dùng thumb_url (portrait thumbnail)
-    const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
+    const backdropUrl = getImageUrl(movie.thumb_url || movie.poster_url);
     const thumbUrl = getImageUrl(movie.thumb_url || movie.poster_url);
     const shortDescription = getShortDescription(movie.description, 110);
     const qualityLabel = movie.quality ? movie.quality.toUpperCase() : "";

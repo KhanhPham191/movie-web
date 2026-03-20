@@ -370,7 +370,7 @@ export function MovieSection({ title, movies, href, variant = "default", priorit
 
 // Cinema card UI theo thiết kế mới
 function CinemaCard({ movie }: { movie: FilmItem }) {
-  const primaryImage = getImageUrl(movie.poster_url || movie.thumb_url);
+  const primaryImage = getImageUrl(movie.thumb_url || movie.poster_url);
   const posterImage = getImageUrl(movie.thumb_url || movie.poster_url);
   const year =
     movie.created && !Number.isNaN(new Date(movie.created).getFullYear())

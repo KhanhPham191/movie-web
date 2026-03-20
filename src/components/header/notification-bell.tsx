@@ -115,9 +115,9 @@ export function NotificationBell() {
                   }}
                 >
                   <div className="relative w-12 h-16 sm:w-14 sm:h-20 rounded-md overflow-hidden bg-white/5 shrink-0">
-                    {getImageUrl(n.poster_url || n.thumb_url) && (
-                      <Image
-                        src={getImageUrl(n.poster_url || n.thumb_url)}
+                    {getImageUrl(n.thumb_url || n.poster_url) && (
+                        <Image
+                            src={getImageUrl(n.thumb_url || n.poster_url)}
                         alt={n.name || "Poster"}
                         fill
                         sizes="56px"
