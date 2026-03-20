@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Footer } from "@/components/footer";
 import { MovieCard } from "@/components/movie-card";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
+import { SearchFilters } from "@/components/search-filters";
 import { Search, SearchX, ArrowRight, AlertCircle } from "lucide-react";
 import { searchFilms, type FilmItem } from "@/lib/api";
 
@@ -86,7 +87,11 @@ function dedupeMovies(items: FilmItem[]): FilmItem[] {
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const query = useMemo(() => (searchParams.get("q") || "").trim(), [searchParams]);
+  const [sort, setSort] = useState("newest");
+  const [genre, setGenre] = useState("");
+  const [country, setCountry] = useState("");
 
   const [movies, setMovies] = useState<FilmItem[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -94,6 +99,22 @@ export default function SearchPage() {
   const [error, setError] = useState<string | null>(null);
   const [retryToken, setRetryToken] = useState(0);
   const activeRequestRef = useRef(0);
+
+  // Mapping sort values to API parameters
+  const getSortParams = (
+    sortValue: string
+  ): { sort_field: string; sort_type: string } => {
+    switch (sortValue) {
+      case "newest":
+        return { sort_field: "modified.time", sort_type: "desc" };
+      case "name-asc":
+        return { sort_field: "name", sort_type: "asc" };
+      case "name-desc":
+        return { sort_field: "name", sort_type: "desc" };
+      default:
+        return { sort_field: "modified.time", sort_type: "desc" };
+    }
+  };
 
   useEffect(() => {
     const requestId = ++activeRequestRef.current;
@@ -114,10 +135,14 @@ export default function SearchPage() {
 
     async function fetchSearch() {
       try {
+        const sortParams = getSortParams(sort);
+
         // Gọi trang 1 để lấy tổng số trang
         const firstRes = await searchFilms(query, 1, {
-          sort_field: "modified.time",
-          sort_type: "desc",
+          sort_field: sortParams.sort_field,
+          sort_type: sortParams.sort_type,
+          category: genre || undefined,
+          country: country || undefined,
           limit: 20,
         });
 
@@ -132,7 +157,7 @@ export default function SearchPage() {
         }
 
         const items = firstRes.items || [];
-        
+
         // Nếu không có items, hiển thị không có kết quả
         if (items.length === 0) {
           if (!cancelled && activeRequestRef.current === requestId) {
@@ -166,8 +191,10 @@ export default function SearchPage() {
           for (let page = 2; page <= pagesToFetch; page++) {
             promises.push(
               searchFilms(query, page, {
-                sort_field: "modified.time",
-                sort_type: "desc",
+                sort_field: sortParams.sort_field,
+                sort_type: sortParams.sort_type,
+                category: genre || undefined,
+                country: country || undefined,
                 limit: 20,
               })
             );
@@ -212,7 +239,7 @@ export default function SearchPage() {
     return () => {
       cancelled = true;
     };
-  }, [query, retryToken]);
+  }, [query, sort, genre, country, retryToken]);
 
   return (
     <main className="min-h-screen">
@@ -228,6 +255,18 @@ export default function SearchPage() {
               "Tìm kiếm phim"
             )}
           </h1>
+
+          {/* Search Filters */}
+          {query && (
+            <SearchFilters
+              selectedSort={sort}
+              selectedGenre={genre}
+              selectedCountry={country}
+              onSortChange={setSort}
+              onGenreChange={setGenre}
+              onCountryChange={setCountry}
+            />
+          )}
 
           {/* Chưa nhập query */}
           {!query && (

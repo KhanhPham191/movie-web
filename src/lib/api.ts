@@ -1,4 +1,4 @@
-// API Types based on PhimAPI.com
+// API Types based on OPhim (https://ophim.live/)
 
 export interface FilmCategory {
   id: string;
@@ -72,11 +72,11 @@ export interface FilmDetailResponse {
 
 // OPhim API base URL
 // Primary: ophim1.com, Fallback: ophim17.cc, ophim18.cc
-export const PHIMAPI_BASE = "https://ophim1.com";
-const PHIMAPI_CDN = "https://img.ophim.live/uploads/movies";
+export const OPHIM_BASE = "https://ophim1.com";
+const OPHIM_CDN = "https://img.ophim.live/uploads/movies";
 
 // Fallback bases for resilience
-const PHIMAPI_FALLBACKS = [
+const OPHIM_FALLBACKS = [
   "https://ophim17.cc",
   "https://ophim18.cc",
 ];
@@ -169,9 +169,9 @@ function normalizeOPhimImageUrl(url: string, useWebP: boolean = true): string {
   if (url.startsWith("http://") || url.startsWith("https://")) {
     normalizedUrl = url;
   } else if (url.startsWith("/")) {
-    normalizedUrl = `${PHIMAPI_CDN}${url}`;
+    normalizedUrl = `${OPHIM_CDN}${url}`;
   } else {
-    normalizedUrl = `${PHIMAPI_CDN}/${url}`;
+    normalizedUrl = `${OPHIM_CDN}/${url}`;
   }
 
   // Chuyển đổi sang WebP nếu useWebP = true
@@ -249,7 +249,7 @@ function convertOPhimItemToFilmItem(item: OPhimItem): FilmItem {
 // Fetch from OPhim API (with fallback support)
 async function fetchOPhimAPI<T>(endpoint: string, baseOverride?: string): Promise<T> {
   const isBrowser = typeof window !== "undefined";
-  const base = baseOverride || PHIMAPI_BASE;
+  const base = baseOverride || OPHIM_BASE;
   
   // Determine the full endpoint URL based on OPhim patterns
   let fullUrl = endpoint;
@@ -259,7 +259,7 @@ async function fetchOPhimAPI<T>(endpoint: string, baseOverride?: string): Promis
   
   // When on client, always use proxy to avoid CORS & User-Agent blocking
   const url = isBrowser
-    ? `/movpey/phimapi?endpoint=${encodeURIComponent(fullUrl)}`
+    ? `/movpey/ophim?endpoint=${encodeURIComponent(fullUrl)}`
     : fullUrl;
   
   const cacheKey = url;
@@ -285,8 +285,8 @@ async function fetchOPhimAPI<T>(endpoint: string, baseOverride?: string): Promis
 
       if (!res.ok) {
         // Try fallback endpoint if available
-        if (!baseOverride && PHIMAPI_FALLBACKS.length > 0) {
-          return fetchOPhimAPI<T>(endpoint, PHIMAPI_FALLBACKS[0]);
+        if (!baseOverride && OPHIM_FALLBACKS.length > 0) {
+          return fetchOPhimAPI<T>(endpoint, OPHIM_FALLBACKS[0]);
         }
         throw new Error(`HTTP ${res.status}`);
       }
@@ -295,8 +295,8 @@ async function fetchOPhimAPI<T>(endpoint: string, baseOverride?: string): Promis
       return data;
     } catch (error) {
       // Try fallback endpoint on error
-      if (!baseOverride && PHIMAPI_FALLBACKS.length > 0) {
-        return fetchOPhimAPI<T>(endpoint, PHIMAPI_FALLBACKS[0]).catch(() => {
+      if (!baseOverride && OPHIM_FALLBACKS.length > 0) {
+        return fetchOPhimAPI<T>(endpoint, OPHIM_FALLBACKS[0]).catch(() => {
           throw error;
         });
       }
@@ -356,7 +356,7 @@ function createTimeoutPromise(timeoutMs: number): Promise<never> {
   });
 }
 
-// All NguonC API functions have been removed - only PhimAPI.com is used
+// OPhim API is the primary data source for all film data
 
 // Get films by genre - using OPhim API
 export async function getFilmsByGenre(
@@ -1074,6 +1074,26 @@ export async function getAvailableGenres(): Promise<{ name: string; slug: string
   }
 }
 
+// Fetch available countries/regions dynamically from OPhim
+export async function getAvailableCountries(): Promise<{ name: string; slug: string }[]> {
+  try {
+    // Use OPhim API: /v1/api/quoc-gia
+    const response = await fetchOPhimAPI<any>(`/v1/api/quoc-gia`);
+    
+    // Handle different response formats from OPhim
+    const items = response.data?.items || response.items || [];
+    
+    if (!Array.isArray(items) || items.length === 0) {
+      return [...COUNTRIES];
+    }
+
+    return items.map((c: any) => ({ name: c.name, slug: c.slug }));
+  } catch {
+    // Fallback to hardcoded countries if API fails
+    return [...COUNTRIES];
+  }
+}
+
 // OPhim Image optimization - using img.ophim.live CDN
 // OPhim CDN automatically handles image optimization and caching
 const OPHIM_IMAGE_CDN = "https://img.ophim.live";
@@ -1090,7 +1110,7 @@ export function convertImageToWebP(imageUrl: string): string {
   }
 
   // OPhim CDN automatically handles WebP conversion for supported browsers
-  // No need for URL parameter manipulation like old PhimAPI
+  // No need for URL parameter manipulation like old APIs
   // Just return the URL as-is and let the CDN handle optimization
   return imageUrl;
 }
@@ -1111,24 +1131,21 @@ export function getImageUrl(path: unknown, useWebP: boolean = true): string {
   if (path.startsWith("http://") || path.startsWith("https://")) {
     fullUrl = path;
   } else {
-    // For PhimAPI relative paths (like "upload/vod/..."), add CDN domain
+    // For OPhim relative paths (like "upload/vod/..."), add CDN domain
     if (path.includes("upload/") || path.includes("vod/")) {
-      fullUrl = `${PHIMAPI_CDN}/${path}`;
+      fullUrl = `${OPHIM_CDN}/${path}`;
     } else {
       // Default: return as is
       return path;
     }
   }
 
-  // Nếu useWebP = true, chuyển TẤT CẢ URL ảnh từ PhimAPI sang WebP
-  // API image.php của KKPhim có thể xử lý bất kỳ URL ảnh nào từ KKPhim
+  // Nếu useWebP = true, chuyển TẤT CẢ URL ảnh từ OPhim sang WebP
   if (useWebP) {
-    // Chuyển đổi nếu URL là ảnh (có extension ảnh hoặc từ domain PhimAPI/KKPhim)
-    // Luôn chuyển đổi nếu URL từ PhimAPI domain (phimimg.com, phimapi.com, img.ophim.live)
-    // hoặc có path upload/vod (đây là pattern của PhimAPI)
-    const isPhimAPIUrl = 
-      fullUrl.includes("phimimg.com") ||
-      fullUrl.includes("phimapi.com") ||
+    // Chuyển đổi nếu URL là ảnh (có extension ảnh hoặc từ domain OPhim)
+    // Luôn chuyển đổi nếu URL từ OPhim domain (img.ophim.live)
+    // hoặc có path upload/vod (đây là pattern của OPhim)
+    const isOPhimUrl = 
       fullUrl.includes("img.ophim.live") ||
       fullUrl.includes("upload/") ||
       fullUrl.includes("vod/");
@@ -1136,7 +1153,7 @@ export function getImageUrl(path: unknown, useWebP: boolean = true): string {
     // Hoặc có extension ảnh
     const hasImageExtension = fullUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?|$)/i);
     
-    if (isPhimAPIUrl || hasImageExtension) {
+    if (isOPhimUrl || hasImageExtension) {
       return convertImageToWebP(fullUrl);
     }
   }

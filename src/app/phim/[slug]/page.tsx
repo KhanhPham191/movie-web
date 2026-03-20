@@ -150,10 +150,10 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
       return String(first?.slug || "").trim();
     })();
     
-    // backdropUrl: dùng thumb_url (landscape/backdrop) cho hero section
+    // backdropUrl: dùng poster_url cho hero section background
     // posterUrl: dùng thumb_url cho episode selector
-    const backdropUrl = getImageUrl(movie.thumb_url || movie.poster_url);
-    const posterUrl = getImageUrl(movie.poster_url);
+    const backdropUrl = getImageUrl(movie.poster_url || movie.thumb_url);
+    const posterUrl = getImageUrl(movie.thumb_url || movie.poster_url);
 
     // Chọn server mặc định: ưu tiên Vietsub, sau đó Lồng tiếng, sau đó Thuyết minh, cuối cùng là server đầu tiên
     const defaultServer = Array.isArray(movie.episodes)
@@ -692,7 +692,7 @@ export async function generateMetadata({ params }: MoviePageProps) {
     
     const title = `${movie.name}${movie.year ? ` (${movie.year})` : ''} - Thông tin, nội dung phim | MovPey`;
     const movieUrl = `${siteUrl}/phim/${slug}`;
-    const imageUrl = getImageUrl(movie.poster_url || movie.thumb_url, true);
+    const imageUrl = getImageUrl(movie.thumb_url || movie.poster_url, true);
 
     return {
       title,

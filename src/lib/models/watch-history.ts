@@ -24,7 +24,7 @@ const WatchHistorySchema = new Schema<IWatchHistory>(
       ref: "User",
       required: true,
     },
-    // Denormalized từ PhimAPI (lưu lại để hiển thị nhanh, không cần gọi lại API)
+    // Denormalized từ OPhim API (lưu lại để hiển thị nhanh, không cần gọi lại API)
     movie_slug: { type: String, required: true },
     movie_name: { type: String, required: true },
     movie_thumb: { type: String, required: true },
