@@ -26,6 +26,7 @@ interface EpisodeSelectorProps {
   defaultServer?: string;
   movieName?: string;
   posterUrl?: string;
+  thumbUrl?: string;
 }
 
 export function EpisodeSelector({
@@ -34,30 +35,40 @@ export function EpisodeSelector({
   defaultServer,
   movieName,
   posterUrl,
+  thumbUrl,
 }: EpisodeSelectorProps) {
+  // Helper function để clean server name trước khi lọc
+  const cleanServerName = (serverName: string) => {
+    return serverName.replace(/\s*#\d+\s*/g, "").trim().toLowerCase();
+  };
+
   // Lọc giữ lại 3 server: Vietsub, Thuyết minh và Lồng tiếng
+  // Nếu không tìm thấy server phù hợp, hiển thị tất cả servers
   const filteredServers = useMemo(() => {
-    return servers.filter((server) => {
-      const serverName = (server?.server_name || "").toLowerCase();
+    const knownPattern = servers.filter((server) => {
+      const cleanedName = cleanServerName(server?.server_name || "");
       return (
-        /vietsub/i.test(serverName) ||
-        /thuyết\s*minh|thuyet\s*minh/i.test(serverName) ||
-        /lồng\s*tiếng|long\s*tieng/i.test(serverName)
+        /vietsub/i.test(cleanedName) ||
+        /thuyết\s*minh|thuyet\s*minh/i.test(cleanedName) ||
+        /lồng\s*tiếng|long\s*tieng/i.test(cleanedName)
       );
     });
+    
+    // Fallback: nếu không có server phù hợp, hiển thị tất cả servers
+    return knownPattern.length > 0 ? knownPattern : servers;
   }, [servers]);
 
   // Xác định server mặc định
   const getDefaultServerIndex = () => {
     if (defaultServer) {
       const index = filteredServers.findIndex((s) => {
-        const serverName = (s?.server_name || "").toLowerCase();
+        const cleanedName = cleanServerName(s?.server_name || "");
         const normalizedDefault = defaultServer.toLowerCase();
         return (
-          (serverName.includes("vietsub") && normalizedDefault.includes("vietsub")) ||
-          ((serverName.includes("thuyết") || serverName.includes("thuyet")) &&
+          (cleanedName.includes("vietsub") && normalizedDefault.includes("vietsub")) ||
+          ((cleanedName.includes("thuyết") || cleanedName.includes("thuyet")) &&
             (normalizedDefault.includes("thuyet") || normalizedDefault.includes("thuyết"))) ||
-          ((serverName.includes("lồng") || serverName.includes("long")) &&
+          ((cleanedName.includes("lồng") || cleanedName.includes("long")) &&
             (normalizedDefault.includes("long") || normalizedDefault.includes("lồng")))
         );
       });
@@ -65,19 +76,22 @@ export function EpisodeSelector({
     }
     
     // Fallback: ưu tiên Vietsub, sau đó Lồng tiếng, cuối cùng Thuyết minh
-    const vietsubIndex = filteredServers.findIndex((s) =>
-      /vietsub/i.test(s.server_name)
-    );
+    const vietsubIndex = filteredServers.findIndex((s) => {
+      const cleanedName = cleanServerName(s.server_name || "");
+      return /vietsub/i.test(cleanedName);
+    });
     if (vietsubIndex !== -1) return vietsubIndex;
     
-    const longTiengIndex = filteredServers.findIndex((s) =>
-      /lồng\s*tiếng|long\s*tieng/i.test(s.server_name)
-    );
+    const longTiengIndex = filteredServers.findIndex((s) => {
+      const cleanedName = cleanServerName(s.server_name || "");
+      return /lồng\s*tiếng|long\s*tieng/i.test(cleanedName);
+    });
     if (longTiengIndex !== -1) return longTiengIndex;
     
-    const thuyetMinhIndex = filteredServers.findIndex((s) =>
-      /thuyết\s*minh|thuyet\s*minh/i.test(s.server_name)
-    );
+    const thuyetMinhIndex = filteredServers.findIndex((s) => {
+      const cleanedName = cleanServerName(s.server_name || "");
+      return /thuyết\s*minh|thuyet\s*minh/i.test(cleanedName);
+    });
     if (thuyetMinhIndex !== -1) return thuyetMinhIndex;
     
     return 0;
@@ -93,7 +107,7 @@ export function EpisodeSelector({
 
   // Tạo tham số server từ server_name
   const getServerParam = (serverName: string) => {
-    const name = serverName.toLowerCase();
+    const name = cleanServerName(serverName);
     if (name.includes("vietsub")) return "vietsub";
     if (name.includes("lồng") || name.includes("long")) return "long-tieng";
     if (name.includes("thuyết") || name.includes("thuyet")) return "thuyet-minh";
@@ -102,20 +116,18 @@ export function EpisodeSelector({
 
   // Map server_name sang tên hiển thị (bỏ #1, #2, etc.)
   const getServerDisplayName = (serverName: string) => {
-    // Bỏ các pattern như "#1", "#2", " #1", " #2", etc. trước khi xử lý
-    const cleanName = serverName.replace(/\s*#\d+\s*/g, "").trim();
-    const name = cleanName.toLowerCase();
+    const name = cleanServerName(serverName);
     
     // Kiểm tra loại server sau khi đã clean
     if (name.includes("vietsub")) return "Vietsub";
     if (name.includes("lồng") || name.includes("long")) return "Lồng tiếng";
     if (name.includes("thuyết") || name.includes("thuyet")) return "Thuyết minh";
-    return cleanName;
+    return name;
   };
 
   // Helper function để lấy label và icon cho từng loại server
   const getServerLabel = (serverName: string) => {
-    const name = serverName.toLowerCase();
+    const name = cleanServerName(serverName);
     if (name.includes("vietsub")) return { label: "Phụ đề", iconColor: "bg-purple-400" };
     if (name.includes("lồng") || name.includes("long")) return { label: "Lồng tiếng", iconColor: "bg-blue-400" };
     if (name.includes("thuyết") || name.includes("thuyet")) return { label: "Thuyết minh", iconColor: "bg-green-400" };
@@ -124,7 +136,7 @@ export function EpisodeSelector({
 
   // Helper function để lấy gradient overlay theo màu indication
   const getServerGradient = (serverName: string) => {
-    const name = serverName.toLowerCase();
+    const name = cleanServerName(serverName);
     if (name.includes("vietsub")) {
       // Purple gradient cho Phụ đề - trộn indicator với đen, giảm độ chói
       return "bg-gradient-to-r from-black/85 via-black/80 via-purple-900/40 via-purple-800/30 via-black/70 to-transparent";
@@ -151,9 +163,9 @@ export function EpisodeSelector({
   }
 
   // UI đặc biệt cho phim lẻ (FULL) - dùng card giống trang xem phim
-  // Nếu có phim lẻ và có movieName + posterUrl, hiển thị card(s)
-  if (phimLeServers.length > 0 && movieName && posterUrl) {
-    const imageUrl = getImageUrl(posterUrl);
+  // Nếu có phim lẻ và có movieName + thumbUrl, hiển thị card(s)
+  if (phimLeServers.length > 0 && movieName && thumbUrl) {
+    const imageUrl = getImageUrl(thumbUrl);
 
     // Nếu có nhiều server phim lẻ, hiển thị grid các card
     if (phimLeServers.length > 1) {
@@ -183,8 +195,8 @@ export function EpisodeSelector({
                     analytics.trackFilmDetailPlayNow(movieName, movieSlug, firstEpisode.slug);
                   }
                 }}
-              >
-                <div className="relative w-full h-[157px] sm:h-[144px] md:h-[192px] lg:h-[216px] rounded-xl overflow-hidden border border-[#F6C453]/50 shadow-lg hover:shadow-[#F6C453]/30 transition-all hover:scale-[1.01] group cursor-pointer">
+              >relative w-full h-[157px] sm:h-[144px] md:h-[192px] lg:h-[216px] rounded-xl overflow-hidden border border-[#F6C453]/50 shadow-lg hover:shadow-[#F6C453]/30 transition-all hover:scale-[1.01] group cursor-pointer
+                <div className="">
                   {/* Background Image */}
                   <div className="absolute inset-0">
                     <Image

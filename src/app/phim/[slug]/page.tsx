@@ -502,7 +502,8 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                   movieSlug={movie.slug}
                   defaultServer={serverParam}
                   movieName={movie.name}
-                  posterUrl={movie.thumb_url || movie.poster_url}
+                  thumbUrl={movie.thumb_url}
+                  posterUrl={movie.poster_url}
                 />
               </div>
             )}
