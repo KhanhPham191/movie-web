@@ -70,74 +70,99 @@ export interface FilmDetailResponse {
   movie?: FilmDetail; // Optional movie for error cases
 }
 
-// PhimAPI.com base URL
-export const PHIMAPI_BASE = "https://phimapi.com/v1/api";
-const PHIMAPI_CDN = "https://phimimg.com";
+// OPhim API base URL
+// Primary: ophim1.com, Fallback: ophim17.cc, ophim18.cc
+export const PHIMAPI_BASE = "https://ophim1.com";
+const PHIMAPI_CDN = "https://img.ophim.live/uploads/movies";
 
-// PhimAPI.com response interfaces
-interface PhimAPIItem {
+// Fallback bases for resilience
+const PHIMAPI_FALLBACKS = [
+  "https://ophim17.cc",
+  "https://ophim18.cc",
+];
+
+// OPhim API response interfaces
+interface OPhimItem {
   _id: string;
   name: string;
   slug: string;
   origin_name: string;
   thumb_url: string;
   poster_url: string;
-  created: { time: string };
-  modified: { time: string };
+  created?: { time: string };
+  modified?: { time: string };
+  content?: string;
   description?: string;
   episode_current?: string;
+  episode_total?: number;
+  total_episodes?: number; // Alternative name for episode_total
+  episodes?: Array<{
+    server_name: string;
+    server_data: Array<{
+      name: string;
+      slug: string;
+      filename?: string;
+      link_embed?: string;
+      link_m3u8?: string;
+    }>;
+  }>;
   time?: string;
   quality?: string;
   lang?: string;
+  language?: string;
   year?: number;
-  imdb?: number | string;
-  tmdb?: number | string;
-  category?: Array<{ id: string; name: string; slug: string }>;
-  country?: Array<{ id: string; name: string; slug: string }>;
-  director?: string;
+  imdb?: { id?: string } | string | number;
+  tmdb?: { id?: string; vote_average?: number } | string | number;
+  vote_average?: number;
+  category?: Array<{ _id?: string; id?: string; name: string; slug: string }>;
+  country?: Array<{ _id?: string; id?: string; name: string; slug: string }>;
+  director?: string | string[];
+  actor?: string[];
   casts?: string;
-  total_episodes?: number;
-  chieurap?: boolean | number; // API có thể trả về boolean hoặc number (1/0)
+  type?: string;
+  status?: string;
+  view?: number;
+  chieurap?: boolean | number;
 }
 
-interface PhimAPIResponse {
+// OPhim list response (wrapped format)
+interface OPhimListResponse {
   status: boolean;
+  message?: string;
   msg?: string;
-  data: {
-    items: PhimAPIItem[];
-    params: {
-      pagination: {
-        totalItems: number;
-        totalItemsPerPage: number;
-        currentPage: number;
-        totalPages: number;
-      };
+  data?: {
+    items: OPhimItem[];
+    params?: any;
+    pagination?: {
+      totalItems: number;
+      totalItemsPerPage: number;
+      currentPage: number;
+      totalPages: number;
     };
   };
-}
-
-interface PhimAPIDetailResponse {
-  status: boolean;
-  msg?: string;
-  data: {
-    item: PhimAPIItem & {
-      content?: string;
-      episodes?: Array<{
-        server_name: string;
-        server_data: Array<{
-          name: string;
-          slug: string;
-          filename?: string;
-          link_embed?: string;
-          link_m3u8?: string;
-        }>;
-      }>;
-    };
+  items?: OPhimItem[];
+  pagination?: {
+    totalItems: number;
+    totalItemsPerPage: number;
+    currentPage: number;
+    totalPages: number;
   };
+  pathImage?: string;
 }
 
-// Helper to normalize image URL from PhimAPI
-function normalizePhimAPIImageUrl(url: string, useWebP: boolean = true): string {
+// OPhim detail response
+interface OPhimDetailResponse {
+  status: boolean;
+  message?: string;
+  msg?: string;
+  data?: {
+    item?: OPhimItem;
+  };
+  movie?: OPhimItem;
+}
+
+// Helper to normalize image URL from OPhim
+function normalizeOPhimImageUrl(url: string, useWebP: boolean = true): string {
   if (!url) return "";
   let normalizedUrl: string;
   
@@ -157,12 +182,12 @@ function normalizePhimAPIImageUrl(url: string, useWebP: boolean = true): string 
   return normalizedUrl;
 }
 
-// Helper to convert PhimAPI item to FilmItem
-function convertPhimAPIItemToFilmItem(item: PhimAPIItem): FilmItem {
+// Helper to convert OPhim item to FilmItem
+function convertOPhimItemToFilmItem(item: OPhimItem): FilmItem {
   const thumbUrl = item.thumb_url || item.poster_url || "";
   const posterUrl = item.poster_url || item.thumb_url || "";
 
-  // Chuẩn hoá các field rating có thể là object (tmdb/imdb: { id, vote_average, ... })
+  // Normalize rating fields (có thể là object hoặc scalar)
   const normalizeRating = (value: any): string | number => {
     if (value == null) return "";
     if (typeof value === "number" || typeof value === "string") return value;
@@ -175,38 +200,45 @@ function convertPhimAPIItemToFilmItem(item: PhimAPIItem): FilmItem {
   const imdb = normalizeRating(item.imdb);
   const tmdb = normalizeRating(item.tmdb);
   
-  // Chuẩn hóa chieurap: có thể là boolean hoặc number (1/0)
+  // Normalize chieurap (có thể là boolean hoặc number 1/0)
   const chieurap = item.chieurap !== undefined 
     ? (typeof item.chieurap === 'boolean' ? item.chieurap : item.chieurap === 1)
     : undefined;
+
+  // OPhim uses `actor[]` for casts, `episode_total` for total_episodes
+  // `lang` or `language` for language
+  const casts = Array.isArray(item.actor) ? item.actor.join(", ") : (item.casts || "");
+  const language = item.lang || item.language || "";
+  const totalEpisodes = item.episode_total || item.total_episodes || 0;
 
   return {
     id: item._id,
     name: item.name,
     slug: item.slug,
     original_name: item.origin_name || item.name,
-    thumb_url: normalizePhimAPIImageUrl(thumbUrl),
-    poster_url: normalizePhimAPIImageUrl(posterUrl),
+    thumb_url: normalizeOPhimImageUrl(thumbUrl),
+    poster_url: normalizeOPhimImageUrl(posterUrl),
     created: item.created?.time || "",
     modified: item.modified?.time || "",
     year: item.year,
-    description: item.description || "",
-    total_episodes: item.total_episodes || 0,
+    description: item.content || item.description || "",
+    total_episodes: totalEpisodes,
     current_episode: item.episode_current || "",
     time: item.time || "",
     quality: item.quality || "",
-    language: item.lang || "",
+    language: language,
     imdb,
     tmdb,
-    director: item.director || "",
-    casts: item.casts || "",
+    vote_average: item.vote_average,
+    director: Array.isArray(item.director) ? item.director.join(", ") : (item.director || ""),
+    casts: casts,
     category: (item.category || []).map((cat) => ({
-      id: cat.id,
+      id: cat._id || cat.id || cat.slug,
       name: cat.name,
       slug: cat.slug,
     })),
     country: (item.country || []).map((c) => ({
-      id: c.id,
+      id: c._id || c.id || c.slug,
       name: c.name,
       slug: c.slug,
     })),
@@ -214,13 +246,22 @@ function convertPhimAPIItemToFilmItem(item: PhimAPIItem): FilmItem {
   };
 }
 
-// Fetch from PhimAPI.com
-async function fetchPhimAPI<T>(endpoint: string): Promise<T> {
+// Fetch from OPhim API (with fallback support)
+async function fetchOPhimAPI<T>(endpoint: string, baseOverride?: string): Promise<T> {
   const isBrowser = typeof window !== "undefined";
-  // Khi chạy trên client (đặc biệt mobile), đi qua proxy để tránh CORS/chặn UA
+  const base = baseOverride || PHIMAPI_BASE;
+  
+  // Determine the full endpoint URL based on OPhim patterns
+  let fullUrl = endpoint;
+  if (!endpoint.startsWith("http")) {
+    fullUrl = `${base}${endpoint}`;
+  }
+  
+  // When on client, always use proxy to avoid CORS & User-Agent blocking
   const url = isBrowser
-    ? `/movpey/phimapi?endpoint=${encodeURIComponent(endpoint)}`
-    : `${PHIMAPI_BASE}${endpoint}`;
+    ? `/movpey/phimapi?endpoint=${encodeURIComponent(fullUrl)}`
+    : fullUrl;
+  
   const cacheKey = url;
   
   if (requestCache.has(cacheKey)) {
@@ -243,12 +284,22 @@ async function fetchPhimAPI<T>(endpoint: string): Promise<T> {
       ]) as Response;
 
       if (!res.ok) {
+        // Try fallback endpoint if available
+        if (!baseOverride && PHIMAPI_FALLBACKS.length > 0) {
+          return fetchOPhimAPI<T>(endpoint, PHIMAPI_FALLBACKS[0]);
+        }
         throw new Error(`HTTP ${res.status}`);
       }
 
       const data = await res.json();
       return data;
     } catch (error) {
+      // Try fallback endpoint on error
+      if (!baseOverride && PHIMAPI_FALLBACKS.length > 0) {
+        return fetchOPhimAPI<T>(endpoint, PHIMAPI_FALLBACKS[0]).catch(() => {
+          throw error;
+        });
+      }
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(errorMessage);
     }
@@ -262,6 +313,29 @@ async function fetchPhimAPI<T>(endpoint: string): Promise<T> {
   
   requestCache.set(cacheKey, fetchPromise);
   return fetchPromise;
+}
+
+// Helper to extract items and pagination from OPhim response (handles both wrapped and direct formats)
+function normalizeOPhimListResponse(response: any): { items: OPhimItem[]; pagination: any } {
+  // OPhim API returns different structures:
+  // Format 1 (wrapped): { status, data: { items, pagination } }
+  // Format 2 (direct): { status, items, pagination, pathImage }
+  
+  if (response.data?.items) {
+    return {
+      items: response.data.items || [],
+      pagination: response.data.pagination || response.data.params?.pagination || {},
+    };
+  }
+  
+  if (response.items) {
+    return {
+      items: response.items || [],
+      pagination: response.pagination || {},
+    };
+  }
+  
+  return { items: [], pagination: {} };
 }
 
 export const DEFAULT_FETCH_HEADERS: HeadersInit = {
@@ -284,7 +358,7 @@ function createTimeoutPromise(timeoutMs: number): Promise<never> {
 
 // All NguonC API functions have been removed - only PhimAPI.com is used
 
-// Get films by genre - using PhimAPI.com only
+// Get films by genre - using OPhim API
 export async function getFilmsByGenre(
   slug: string,
   page: number = 1,
@@ -298,9 +372,10 @@ export async function getFilmsByGenre(
   }
 ): Promise<FilmListResponse> {
   try {
-    // Build query parameters
+    // Build query parameters for OPhim
     const params = new URLSearchParams();
     params.append('page', String(page));
+    params.append('limit', String(options?.limit || 24));
     
     if (options?.sort_field) {
       params.append('sort_field', options.sort_field);
@@ -308,28 +383,23 @@ export async function getFilmsByGenre(
     if (options?.sort_type) {
       params.append('sort_type', options.sort_type);
     }
-    if (options?.sort_lang) {
-      params.append('sort_lang', options.sort_lang);
-    }
     if (options?.country) {
       params.append('country', options.country);
     }
     if (options?.year) {
       params.append('year', String(options.year));
     }
-    if (options?.limit) {
-      params.append('limit', String(options.limit));
-    }
     
-    const response = await fetchPhimAPI<PhimAPIResponse>(
-      `/the-loai/${slug}?${params.toString()}`
+    // OPhim endpoint: /v1/api/the-loai/{slug}
+    const response = await fetchOPhimAPI<OPhimListResponse>(
+      `/v1/api/the-loai/${slug}?${params.toString()}`
     );
     
-    // Check if PhimAPI returned valid data
-    if (!response.status || !response.data || !response.data.items) {
+    // Check if request was successful
+    if (!response.status) {
       return {
         status: "error",
-        message: response.msg || "Failed to fetch films",
+        message: response.message || response.msg || "Failed to fetch films",
         items: [],
         paginate: {
           current_page: 1,
@@ -340,18 +410,34 @@ export async function getFilmsByGenre(
       };
     }
     
-    // Convert PhimAPI response to FilmListResponse format
-    const items = response.data.items.map(convertPhimAPIItemToFilmItem);
-    const pagination = response.data.params.pagination;
+    // Normalize response (handles different OPhim response formats)
+    const { items, pagination } = normalizeOPhimListResponse(response);
+    
+    if (!items || items.length === 0) {
+      return {
+        status: "error",
+        message: "No films found",
+        items: [],
+        paginate: {
+          current_page: pagination?.currentPage || 1,
+          total_page: pagination?.totalPages || 1,
+          total_items: pagination?.totalItems || 0,
+          items_per_page: pagination?.totalItemsPerPage || 24,
+        },
+      };
+    }
+    
+    // Convert OPhim items to FilmItem format
+    const convertedItems = items.map(convertOPhimItemToFilmItem);
     
     return {
       status: "success",
-      items: items,
+      items: convertedItems,
       paginate: {
-        current_page: pagination.currentPage,
-        total_page: pagination.totalPages,
-        total_items: pagination.totalItems,
-        items_per_page: pagination.totalItemsPerPage,
+        current_page: pagination?.currentPage || page,
+        total_page: pagination?.totalPages || 1,
+        total_items: pagination?.totalItems || items.length,
+        items_per_page: pagination?.totalItemsPerPage || 24,
       },
     };
   } catch (error) {
@@ -370,7 +456,7 @@ export async function getFilmsByGenre(
   }
 }
 
-// Get films by category - using PhimAPI.com
+// Get films by category - using OPhim API
 export async function getFilmsByCategory(
   slug: string,
   page: number = 1,
@@ -387,18 +473,16 @@ export async function getFilmsByCategory(
   }
 ): Promise<FilmListResponse> {
   try {
-    // Build query parameters
+    // Build query parameters for OPhim
     const params = new URLSearchParams();
     params.append('page', String(page));
+    params.append('limit', String(options?.limit || 24));
     
     if (options?.sort_field) {
       params.append('sort_field', options.sort_field);
     }
     if (options?.sort_type) {
       params.append('sort_type', options.sort_type);
-    }
-    if (options?.sort_lang) {
-      params.append('sort_lang', options.sort_lang);
     }
     if (options?.category) {
       params.append('category', options.category);
@@ -409,23 +493,21 @@ export async function getFilmsByCategory(
     if (options?.year) {
       params.append('year', String(options.year));
     }
-    if (options?.limit) {
-      params.append('limit', String(options.limit));
-    }
-    // Map biến chieurap sang query param (1/0) cho API
+    // Map chieurap to query param (1/0) for API
     if (typeof options?.chieurap === "boolean") {
       params.append("chieurap", options.chieurap ? "1" : "0");
     }
     
-    const response = await fetchPhimAPI<PhimAPIResponse>(
-      `/danh-sach/${slug}?${params.toString()}`
+    // OPhim endpoint: /v1/api/danh-sach/{type}
+    const response = await fetchOPhimAPI<OPhimListResponse>(
+      `/v1/api/danh-sach/${slug}?${params.toString()}`
     );
     
-    // Check if PhimAPI returned valid data
-    if (!response.status || !response.data || !response.data.items) {
+    // Check if request was successful
+    if (!response.status) {
       return {
         status: "error",
-        message: response.msg || "Failed to fetch films",
+        message: response.message || response.msg || "Failed to fetch films",
         items: [],
         paginate: {
           current_page: 1,
@@ -436,18 +518,34 @@ export async function getFilmsByCategory(
       };
     }
     
-    // Convert PhimAPI response to FilmListResponse format
-    const items = response.data.items.map(convertPhimAPIItemToFilmItem);
-    const pagination = response.data.params.pagination;
+    // Normalize response
+    const { items, pagination } = normalizeOPhimListResponse(response);
+    
+    if (!items || items.length === 0) {
+      return {
+        status: "error",
+        message: "No films found",
+        items: [],
+        paginate: {
+          current_page: pagination?.currentPage || 1,
+          total_page: pagination?.totalPages || 1,
+          total_items: pagination?.totalItems || 0,
+          items_per_page: pagination?.totalItemsPerPage || 24,
+        },
+      };
+    }
+    
+    // Convert OPhim items to FilmItem format
+    const convertedItems = items.map(convertOPhimItemToFilmItem);
     
     return {
       status: "success",
-      items: items,
+      items: convertedItems,
       paginate: {
-        current_page: pagination.currentPage,
-        total_page: pagination.totalPages,
-        total_items: pagination.totalItems,
-        items_per_page: pagination.totalItemsPerPage,
+        current_page: pagination?.currentPage || page,
+        total_page: pagination?.totalPages || 1,
+        total_items: pagination?.totalItems || items.length,
+        items_per_page: pagination?.totalItemsPerPage || 24,
       },
     };
   } catch (error) {
@@ -484,7 +582,7 @@ export async function getFilmsByCategoryMultiple(
   return getMultiplePages((page) => getFilmsByCategory(slug, page, options), pages);
 }
 
-// Get films by country - using PhimAPI.com
+// Get films by country - using OPhim API
 export async function getFilmsByCountry(
   slug: string,
   page: number = 1,
@@ -498,9 +596,10 @@ export async function getFilmsByCountry(
   }
 ): Promise<FilmListResponse> {
   try {
-    // Build query parameters
+    // Build query parameters for OPhim
     const params = new URLSearchParams();
     params.append('page', String(page));
+    params.append('limit', String(options?.limit || 24));
     
     if (options?.sort_field) {
       params.append('sort_field', options.sort_field);
@@ -508,28 +607,23 @@ export async function getFilmsByCountry(
     if (options?.sort_type) {
       params.append('sort_type', options.sort_type);
     }
-    if (options?.sort_lang) {
-      params.append('sort_lang', options.sort_lang);
-    }
     if (options?.category) {
       params.append('category', options.category);
     }
     if (options?.year) {
       params.append('year', String(options.year));
     }
-    if (options?.limit) {
-      params.append('limit', String(options.limit));
-    }
     
-    const response = await fetchPhimAPI<PhimAPIResponse>(
-      `/quoc-gia/${slug}?${params.toString()}`
+    // OPhim endpoint: /v1/api/quoc-gia/{slug}
+    const response = await fetchOPhimAPI<OPhimListResponse>(
+      `/v1/api/quoc-gia/${slug}?${params.toString()}`
     );
     
-    // Check if PhimAPI returned valid data
-    if (!response.status || !response.data || !response.data.items) {
+    // Check if request was successful
+    if (!response.status) {
       return {
         status: "error",
-        message: response.msg || "Failed to fetch films",
+        message: response.message || response.msg || "Failed to fetch films",
         items: [],
         paginate: {
           current_page: 1,
@@ -540,18 +634,34 @@ export async function getFilmsByCountry(
       };
     }
     
-    // Convert PhimAPI response to FilmListResponse format
-    const items = response.data.items.map(convertPhimAPIItemToFilmItem);
-    const pagination = response.data.params.pagination;
+    // Normalize response
+    const { items, pagination } = normalizeOPhimListResponse(response);
+    
+    if (!items || items.length === 0) {
+      return {
+        status: "error",
+        message: "No films found",
+        items: [],
+        paginate: {
+          current_page: pagination?.currentPage || 1,
+          total_page: pagination?.totalPages || 1,
+          total_items: pagination?.totalItems || 0,
+          items_per_page: pagination?.totalItemsPerPage || 24,
+        },
+      };
+    }
+    
+    // Convert OPhim items to FilmItem format
+    const convertedItems = items.map(convertOPhimItemToFilmItem);
     
     return {
       status: "success",
-      items: items,
+      items: convertedItems,
       paginate: {
-        current_page: pagination.currentPage,
-        total_page: pagination.totalPages,
-        total_items: pagination.totalItems,
-        items_per_page: pagination.totalItemsPerPage,
+        current_page: pagination?.currentPage || page,
+        total_page: pagination?.totalPages || 1,
+        total_items: pagination?.totalItems || items.length,
+        items_per_page: pagination?.totalItemsPerPage || 24,
       },
     };
   } catch (error) {
@@ -651,25 +761,35 @@ export async function getFilmsByCountryAll(
   }
 }
 
-// Get film detail by slug - using PhimAPI.com
+// Get film detail by slug - using OPhim API
 export async function getFilmDetail(slug: string): Promise<FilmDetailResponse> {
   try {
-    const response = await fetchPhimAPI<PhimAPIDetailResponse>(`/phim/${slug}`);
+    const response = await fetchOPhimAPI<OPhimDetailResponse>(`/v1/api/phim/${slug}`);
     
-    if (!response.status || !response.data || !response.data.item) {
+    // Check if request was successful
+    if (!response.status) {
       return {
         status: "error",
-        message: response.msg || "Failed to fetch film detail",
+        message: response.message || response.msg || "Failed to fetch film detail",
       };
     }
     
-    const item = response.data.item;
-    const filmItem = convertPhimAPIItemToFilmItem(item);
+    // OPhim wraps detail response in data.item
+    const item = response.data?.item || (response as any).item;
+    if (!item) {
+      return {
+        status: "error",
+        message: "Film not found",
+      };
+    }
+    
+    // Convert OPhim item to FilmItem
+    const filmItem = convertOPhimItemToFilmItem(item);
     
     // Convert episodes if available
-    const episodes: Episode[] = (item.episodes || []).map((ep) => ({
+    const episodes: Episode[] = (item.episodes || []).map((ep: any) => ({
       server_name: ep.server_name,
-      items: ep.server_data.map((item) => ({
+      items: ep.server_data.map((item: any) => ({
         name: item.name,
         slug: item.slug,
         embed: item.link_embed || "",
@@ -694,7 +814,8 @@ export async function getFilmDetail(slug: string): Promise<FilmDetailResponse> {
   }
 }
 
-// Search films - using PhimAPI.com
+// Search films - using OPhim API
+// OPhim endpoint: /v1/api/tim-kiem/{keyword}
 export async function searchFilms(
   keyword: string,
   page: number = 1,
@@ -709,18 +830,16 @@ export async function searchFilms(
   }
 ): Promise<FilmListResponse> {
   try {
+    // Build query parameters for OPhim
     const params = new URLSearchParams();
-    params.append('keyword', keyword);
     params.append('page', String(page));
+    params.append('limit', String(options?.limit || 24));
     
     if (options?.sort_field) {
       params.append('sort_field', options.sort_field);
     }
     if (options?.sort_type) {
       params.append('sort_type', options.sort_type);
-    }
-    if (options?.sort_lang) {
-      params.append('sort_lang', options.sort_lang);
     }
     if (options?.category) {
       params.append('category', options.category);
@@ -731,18 +850,18 @@ export async function searchFilms(
     if (options?.year) {
       params.append('year', String(options.year));
     }
-    if (options?.limit) {
-      params.append('limit', String(options.limit));
-    }
     
-    const response = await fetchPhimAPI<PhimAPIResponse>(
-      `/tim-kiem?${params.toString()}`
+    // OPhim endpoint: /v1/api/tim-kiem/{keyword}
+    const encodedKeyword = encodeURIComponent(keyword);
+    const response = await fetchOPhimAPI<OPhimListResponse>(
+      `/v1/api/tim-kiem/${encodedKeyword}?${params.toString()}`
     );
     
-    if (!response.status || !response.data || !response.data.items) {
+    // Check if request was successful
+    if (!response.status) {
       return {
         status: "error",
-        message: response.msg || "Failed to search films",
+        message: response.message || response.msg || "Failed to search films",
         items: [],
         paginate: {
           current_page: 1,
@@ -753,17 +872,34 @@ export async function searchFilms(
       };
     }
     
-    const items = response.data.items.map(convertPhimAPIItemToFilmItem);
-    const pagination = response.data.params.pagination;
+    // Normalize response
+    const { items, pagination } = normalizeOPhimListResponse(response);
+    
+    if (!items || items.length === 0) {
+      return {
+        status: "error",
+        message: "No films found",
+        items: [],
+        paginate: {
+          current_page: pagination?.currentPage || 1,
+          total_page: pagination?.totalPages || 1,
+          total_items: pagination?.totalItems || 0,
+          items_per_page: pagination?.totalItemsPerPage || 24,
+        },
+      };
+    }
+    
+    // Convert OPhim items to FilmItem format
+    const convertedItems = items.map(convertOPhimItemToFilmItem);
     
     return {
       status: "success",
-      items: items,
+      items: convertedItems,
       paginate: {
-        current_page: pagination.currentPage,
-        total_page: pagination.totalPages,
-        total_items: pagination.totalItems,
-        items_per_page: pagination.totalItemsPerPage,
+        current_page: pagination?.currentPage || page,
+        total_page: pagination?.totalPages || 1,
+        total_items: pagination?.totalItems || items.length,
+        items_per_page: pagination?.totalItemsPerPage || 24,
       },
     };
   } catch (error) {
@@ -792,23 +928,25 @@ export async function searchFilmsMerged(keyword: string): Promise<FilmItem[]> {
   }
 }
 
-// Get newly updated films - using PhimAPI.com
+// Get newly updated films - using OPhim API
+// OPhim provides danh-sach/phim-moi-cap-nhat endpoint with newest movies
 export async function getNewlyUpdatedFilms(page: number = 1): Promise<FilmListResponse> {
-  // Use danh-sach/phim-bo with sort by modified time
   try {
+    // Build query parameters for OPhim newest endpoint
     const params = new URLSearchParams();
     params.append('page', String(page));
-    params.append('sort_field', 'modified.time');
-    params.append('sort_type', 'desc');
+    params.append('limit', '24');
     
-    const response = await fetchPhimAPI<PhimAPIResponse>(
-      `/danh-sach/phim-bo?${params.toString()}`
+    // OPhim endpoint: /danh-sach/phim-moi-cap-nhat (returns newest movies directly)
+    const response = await fetchOPhimAPI<OPhimListResponse>(
+      `/danh-sach/phim-moi-cap-nhat?${params.toString()}`
     );
     
-    if (!response.status || !response.data || !response.data.items) {
+    // Check if request was successful
+    if (!response.status) {
       return {
         status: "error",
-        message: response.msg || "Failed to fetch newly updated films",
+        message: response.message || response.msg || "Failed to fetch newly updated films",
         items: [],
         paginate: {
           current_page: 1,
@@ -819,17 +957,34 @@ export async function getNewlyUpdatedFilms(page: number = 1): Promise<FilmListRe
       };
     }
     
-    const items = response.data.items.map(convertPhimAPIItemToFilmItem);
-    const pagination = response.data.params.pagination;
+    // Normalize response (direct format for newest endpoint)
+    const { items, pagination } = normalizeOPhimListResponse(response);
+    
+    if (!items || items.length === 0) {
+      return {
+        status: "error",
+        message: "No films found",
+        items: [],
+        paginate: {
+          current_page: pagination?.currentPage || 1,
+          total_page: pagination?.totalPages || 1,
+          total_items: pagination?.totalItems || 0,
+          items_per_page: pagination?.totalItemsPerPage || 24,
+        },
+      };
+    }
+    
+    // Convert OPhim items to FilmItem format
+    const convertedItems = items.map(convertOPhimItemToFilmItem);
     
     return {
       status: "success",
-      items: items,
+      items: convertedItems,
       paginate: {
-        current_page: pagination.currentPage,
-        total_page: pagination.totalPages,
-        total_items: pagination.totalItems,
-        items_per_page: pagination.totalItemsPerPage,
+        current_page: pagination?.currentPage || page,
+        total_page: pagination?.totalPages || 1,
+        total_items: pagination?.totalItems || items.length,
+        items_per_page: pagination?.totalItemsPerPage || 24,
       },
     };
   } catch (error) {
@@ -899,67 +1054,45 @@ export const COUNTRIES = [
   { name: "Ấn Độ", slug: "an-do" },
 ] as const;
 
-// Fetch available genres dynamically from PhimAPI
+// Fetch available genres dynamically from OPhim
 export async function getAvailableGenres(): Promise<{ name: string; slug: string }[]> {
   try {
-    const isBrowser = typeof window !== "undefined";
-    const url = isBrowser
-      ? "/movpey/phimapi?endpoint=" + encodeURIComponent("/the-loai")
-      : "https://phimapi.com/the-loai";
-
-    const res = await fetch(url, {
-      ...(isBrowser ? {} : { next: { revalidate: 86400 } }), // Cache 24h on server
-      headers: isBrowser
-        ? { Accept: "application/json" }
-        : { Accept: "application/json", "User-Agent": "Mozilla/5.0" },
-    });
-
-    if (!res.ok) {
+    // Use OPhim API: /v1/api/the-loai
+    const response = await fetchOPhimAPI<any>(`/v1/api/the-loai`);
+    
+    // Handle different response formats from OPhim
+    const items = response.data?.items || response.items || [];
+    
+    if (!Array.isArray(items) || items.length === 0) {
       return [...GENRES];
     }
 
-    const data: Array<{ _id: string; name: string; slug: string }> = await res.json();
-
-    if (!Array.isArray(data) || data.length === 0) {
-      return [...GENRES];
-    }
-
-    return data.map((g) => ({ name: g.name, slug: g.slug }));
+    return items.map((g: any) => ({ name: g.name, slug: g.slug }));
   } catch {
     // Fallback to hardcoded genres if API fails
     return [...GENRES];
   }
 }
 
-// PhimAPI Image Converter API - chuyển đổi ảnh sang WebP format
-const PHIMAPI_IMAGE_CONVERTER = "https://phimapi.com/image.php";
+// OPhim Image optimization - using img.ophim.live CDN
+// OPhim CDN automatically handles image optimization and caching
+const OPHIM_IMAGE_CDN = "https://img.ophim.live";
 
 /**
- * Chuyển đổi URL ảnh từ KKPhim sang định dạng WebP để tối ưu tốc độ tải và SEO
- * @param imageUrl - URL ảnh mặc định mà KKPhim trả về
- * @returns URL ảnh đã được chuyển đổi sang WebP format
+ * Chuyển đổi URL ảnh sang định dạng WebP để tối ưu tốc độ tải
+ * OPhim CDN (img.ophim.live) tự động hỗ trợ WebP format
+ * @param imageUrl - URL ảnh 
+ * @returns URL ảnh (unchanged since OPhim CDN handles WebP automatically)
  */
 export function convertImageToWebP(imageUrl: string): string {
   if (!imageUrl || typeof imageUrl !== "string") {
     return "";
   }
 
-  // Nếu URL đã là từ image converter API, trả về nguyên bản
-  if (imageUrl.includes("phimapi.com/image.php")) {
-    return imageUrl;
-  }
-
-  // Nếu là relative path hoặc local path, không chuyển đổi
-  if (imageUrl.startsWith("/") || !imageUrl.startsWith("http")) {
-    return imageUrl;
-  }
-
-  // Chuyển đổi TẤT CẢ URL ảnh từ KKPhim/PhimAPI sang WebP
-  // API image.php của KKPhim sẽ tự động trả về WebP khi browser gửi Accept: image/webp header
-  // Encode URL để truyền vào query parameter
-  const encodedUrl = encodeURIComponent(imageUrl);
-  // Thêm timestamp để tránh cache (optional, có thể bỏ nếu không cần)
-  return `${PHIMAPI_IMAGE_CONVERTER}?url=${encodedUrl}`;
+  // OPhim CDN automatically handles WebP conversion for supported browsers
+  // No need for URL parameter manipulation like old PhimAPI
+  // Just return the URL as-is and let the CDN handle optimization
+  return imageUrl;
 }
 
 // Helper to get full image URL (defensive against non-string values)

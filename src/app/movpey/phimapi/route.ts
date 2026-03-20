@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DEFAULT_FETCH_HEADERS, PHIMAPI_BASE } from "@/lib/api";
+import { DEFAULT_FETCH_HEADERS } from "@/lib/api";
 
-const ALLOWED_HOST = new URL(PHIMAPI_BASE).host;
+// OPhim API whitelist for CORS proxy
+const ALLOWED_HOSTS = [
+  "ophim1.com",
+  "ophim17.cc",
+  "ophim18.cc",
+  "img.ophim.live",
+];
 
 export async function GET(request: NextRequest) {
   const endpoint = request.nextUrl.searchParams.get("endpoint");
@@ -13,22 +19,33 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Chỉ cho phép proxy tới phimapi.com để tránh SSRF
-  const sanitizedEndpoint = endpoint.startsWith("/")
-    ? endpoint
-    : `/${endpoint}`;
-  const targetUrl = `${PHIMAPI_BASE}${sanitizedEndpoint}`;
-  const targetHost = (() => {
-    try {
-      return new URL(targetUrl).host;
-    } catch {
-      return "";
+  // Validate endpoint is a proper URL
+  let targetUrl: string;
+  try {
+    // If endpoint is a full URL, use it directly
+    if (endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
+      targetUrl = endpoint;
+    } else {
+      // Otherwise, assume it's for OPhim (add protocol)
+      targetUrl = endpoint.startsWith("//") ? `https:${endpoint}` : endpoint;
     }
-  })();
-
-  if (targetHost !== ALLOWED_HOST) {
+    
+    const urlObj = new URL(targetUrl);
+    
+    // Validate host is in whitelist
+    const isAllowed = ALLOWED_HOSTS.some(host => 
+      urlObj.hostname.includes(host) || urlObj.hostname === host
+    );
+    
+    if (!isAllowed) {
+      return NextResponse.json(
+        { status: false, msg: "Invalid host: not in whitelist" },
+        { status: 400 }
+      );
+    }
+  } catch (error) {
     return NextResponse.json(
-      { status: false, msg: "Invalid host" },
+      { status: false, msg: "Invalid endpoint URL" },
       { status: 400 }
     );
   }
