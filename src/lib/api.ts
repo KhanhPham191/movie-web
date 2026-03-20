@@ -815,7 +815,7 @@ export async function getFilmDetail(slug: string): Promise<FilmDetailResponse> {
 }
 
 // Search films - using OPhim API
-// OPhim endpoint: /v1/api/tim-kiem/{keyword}
+// OPhim endpoint: /v1/api/tim-kiem?keyword=[keyword]
 export async function searchFilms(
   keyword: string,
   page: number = 1,
@@ -851,10 +851,11 @@ export async function searchFilms(
       params.append('year', String(options.year));
     }
     
-    // OPhim endpoint: /v1/api/tim-kiem/{keyword}
+    // OPhim endpoint: /v1/api/tim-kiem?keyword={keyword}
     const encodedKeyword = encodeURIComponent(keyword);
+    params.set('keyword', encodedKeyword);
     const response = await fetchOPhimAPI<OPhimListResponse>(
-      `/v1/api/tim-kiem/${encodedKeyword}?${params.toString()}`
+      `/v1/api/tim-kiem?${params.toString()}`
     );
     
     // Check if request was successful
