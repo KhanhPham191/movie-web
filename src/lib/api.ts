@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 // API Types based on OPhim (https://ophim.live/)
 
 export interface FilmCategory {
@@ -247,7 +249,7 @@ function convertOPhimItemToFilmItem(item: OPhimItem): FilmItem {
 }
 
 // Fetch from OPhim API (with fallback support)
-async function fetchOPhimAPI<T>(endpoint: string, baseOverride?: string): Promise<T> {
+async function fetchOPhimAPI<T>(endpoint: string, baseOverride?: string, cacheSeconds?: number): Promise<T> {
   const isBrowser = typeof window !== "undefined";
   const base = baseOverride || OPHIM_BASE;
   
@@ -275,9 +277,12 @@ async function fetchOPhimAPI<T>(endpoint: string, baseOverride?: string): Promis
         ? { Accept: "application/json", "Accept-Language": "vi,en;q=0.9" }
         : DEFAULT_FETCH_HEADERS;
 
+      // Use provided cache seconds or default to 2 hours, but detail pages get 3 hours
+      const revalidateSeconds = cacheSeconds || (endpoint.includes("/phim/") ? 10800 : 7200);
+
       const res = await Promise.race([
         fetch(url, {
-          ...(isBrowser ? {} : { next: { revalidate: 7200 } }),
+          ...(isBrowser ? {} : { next: { revalidate: revalidateSeconds } }),
           headers,
         }),
         createTimeoutPromise(timeoutMs),
@@ -761,10 +766,11 @@ export async function getFilmsByCountryAll(
   }
 }
 
-// Get film detail by slug - using OPhim API
-export async function getFilmDetail(slug: string): Promise<FilmDetailResponse> {
+// Get film detail by slug - internal implementation
+async function _getFilmDetail(slug: string): Promise<FilmDetailResponse> {
   try {
-    const response = await fetchOPhimAPI<OPhimDetailResponse>(`/v1/api/phim/${slug}`);
+    // Detail pages get 3 hour cache (10800 seconds) for better performance
+    const response = await fetchOPhimAPI<OPhimDetailResponse>(`/v1/api/phim/${slug}`, undefined, 10800);
     
     // Check if request was successful
     if (!response.status) {
@@ -846,6 +852,9 @@ export async function getFilmDetail(slug: string): Promise<FilmDetailResponse> {
     };
   }
 }
+
+// Export cached version - React.cache() deduplicates requests within same request cycle
+export const getFilmDetail = cache(_getFilmDetail);
 
 // Search films - using OPhim API
 // OPhim endpoint: /v1/api/tim-kiem?keyword=[keyword]

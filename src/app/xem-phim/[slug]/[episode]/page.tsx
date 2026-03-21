@@ -20,7 +20,7 @@ import { RelatedPartsSection } from "@/components/related-parts-section";
 import { MovieSection } from "@/components/movie-section";
 import { VideoProgressProvider } from "@/contexts/video-progress-context";
 
-export const revalidate = 60; // 1 minute ISR - faster fresh data
+export const revalidate = 3600; // 1 hour ISR - balance between freshness and cache hit rate
 export const dynamicParams = true;
 
 // Lấy số "phần" của series từ slug/tên phim (phan-1, (Phần 1), Season 1, ...)

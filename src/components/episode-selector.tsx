@@ -211,6 +211,7 @@ export function EpisodeSelector({
               <Link
                 key={server.server_name}
                 href={href}
+                prefetch={true}
                 className="block w-[280px] sm:w-[360px] md:w-[480px] lg:w-[540px] flex-shrink-0"
                 onClick={() => {
                   if (movieName) {
@@ -276,6 +277,7 @@ export function EpisodeSelector({
     return (
       <Link 
         href={href} 
+        prefetch={true}
         className="block w-[280px] sm:w-[360px] md:w-[480px] lg:w-[540px]"
         onClick={() => {
           if (movieName) {
@@ -424,6 +426,7 @@ export function EpisodeSelector({
                 <Link 
                   key={`${currentServer.server_name}-${episode.slug}`} 
                   href={href}
+                  prefetch={true}
                   onClick={() => {
                     if (movieName) {
                       const episodeName = currentEpisodes.length === 1 ? 'FULL' : `Tập ${index + 1}`;
