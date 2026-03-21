@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Play } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 
@@ -58,6 +58,9 @@ export function EpisodeSelectorWatch({
     return index !== -1 ? index : 0;
   };
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
   const [selectedServerIndex, setSelectedServerIndex] = useState(
     getCurrentServerIndex()
   );
@@ -124,16 +127,35 @@ export function EpisodeSelectorWatch({
             {filteredServers.map((server, index) => {
               const isActive = index === selectedServerIndex;
               const displayName = getServerDisplayName(server.server_name);
+              const serverParam = getServerParam(server.server_name);
+
+              const handleServerChange = () => {
+                setSelectedServerIndex(index);
+                
+                if (movieName) {
+                  analytics.trackWatchFilmServerChange(movieName, movieSlug, server.server_name, currentEpisodeSlug);
+                }
+                
+                // Update URL parameter mà không reload trang
+                const params = new URLSearchParams(searchParams.toString());
+                if (serverParam) {
+                  params.set('server', serverParam);
+                } else {
+                  params.delete('server');
+                }
+                if (isFullscreen) {
+                  params.set('fs', '1');
+                }
+                
+                const queryString = params.toString();
+                const newUrl = `/xem-phim/${movieSlug}/${currentEpisodeSlug}${queryString ? `?${queryString}` : ''}`;
+                router.push(newUrl, { scroll: false });
+              };
 
               return (
                 <button
                   key={server.server_name}
-                  onClick={() => {
-                    setSelectedServerIndex(index);
-                    if (movieName) {
-                      analytics.trackWatchFilmServerChange(movieName, movieSlug, server.server_name, currentEpisodeSlug);
-                    }
-                  }}
+                  onClick={handleServerChange}
                   className={`flex items-center justify-center gap-1 px-2 sm:px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-medium transition-all duration-150 whitespace-nowrap cursor-pointer ${
                     isActive
                       ? "bg-[#F6C453]/15 text-[#F6C453] ring-1 ring-[#F6C453]/30"
@@ -152,23 +174,35 @@ export function EpisodeSelectorWatch({
       <div className="grid grid-cols-[repeat(auto-fit,minmax(78px,1fr))] sm:grid-cols-[repeat(auto-fit,minmax(88px,1fr))] md:grid-cols-[repeat(auto-fit,minmax(96px,1fr))] gap-1.5 sm:gap-2 pb-1">
         {currentEpisodes.map((ep, index) => {
           const serverParam = getServerParam(currentServer.server_name);
-
-          const href = serverParam
-            ? `/xem-phim/${movieSlug}/${ep.slug}?server=${serverParam}${isFullscreen ? '&fs=1' : ''}`
-            : `/xem-phim/${movieSlug}/${ep.slug}${isFullscreen ? '?fs=1' : ''}`;
-
+          
           const isActive = currentServer.server_name === currentServerName && ep.slug === currentEpisodeSlug;
 
+          const handleEpisodeClick = () => {
+            if (movieName) {
+              const episodeName = currentEpisodes.length === 1 ? 'FULL' : `Tập ${index + 1}`;
+              analytics.trackWatchFilmEpisodeClick(movieName, movieSlug, episodeName, ep.slug, currentServer.server_name);
+            }
+            
+            // Tạo URL parameters mới
+            const params = new URLSearchParams(searchParams.toString());
+            if (serverParam) {
+              params.set('server', serverParam);
+            }
+            if (isFullscreen) {
+              params.set('fs', '1');
+            }
+            
+            const queryString = params.toString();
+            const newUrl = `/xem-phim/${movieSlug}/${ep.slug}${queryString ? `?${queryString}` : ''}`;
+            
+            // Dùng router.push để update URL mà không reload trang
+            router.push(newUrl, { scroll: false });
+          };
+
           return (
-            <Link
+            <button
               key={ep.slug}
-              href={href}
-              onClick={() => {
-                if (movieName) {
-                  const episodeName = currentEpisodes.length === 1 ? 'FULL' : `Tập ${index + 1}`;
-                  analytics.trackWatchFilmEpisodeClick(movieName, movieSlug, episodeName, ep.slug, currentServer.server_name);
-                }
-              }}
+              onClick={handleEpisodeClick}
               className={`flex items-center justify-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all hover:-translate-y-0.5 min-w-0 cursor-pointer ${
                 isActive
                   ? "bg-[#F6C453] text-black font-semibold shadow-[0_0_16px_rgba(246,196,83,0.3)]"
@@ -177,7 +211,7 @@ export function EpisodeSelectorWatch({
             >
               <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
               <span className="whitespace-nowrap">{currentEpisodes.length === 1 ? "FULL" : `Tập ${index + 1}`}</span>
-            </Link>
+            </button>
           );
         })}
       </div>

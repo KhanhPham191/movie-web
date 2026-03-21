@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Play } from "lucide-react";
 import { getImageUrl } from "@/lib/api";
@@ -36,6 +36,7 @@ export function MovieVersionsSelector({
   movieName,
   posterUrl,
 }: MovieVersionsSelectorProps) {
+  const router = useRouter();
   // Lọc giữ lại 3 server: Vietsub, Thuyết minh và Lồng tiếng
   const filteredServers = useMemo(() => {
     return servers.filter((server) => {
@@ -109,24 +110,27 @@ export function MovieVersionsSelector({
       <div className="flex flex-wrap gap-2.5 sm:gap-3">
         {phimLeServers.map((server) => {
           const firstEpisode = server.items[0];
-          const serverParam = getServerParam(server.server_name);
-          const href = serverParam
-            ? `/xem-phim/${movieSlug}/${firstEpisode.slug}?server=${serverParam}`
-            : `/xem-phim/${movieSlug}/${firstEpisode.slug}`;
           const { label, iconColor } = getServerLabel(server.server_name);
           const gradientClass = getServerGradient(server.server_name);
           const isActive = server.server_name === currentServerName && firstEpisode.slug === currentEpisodeSlug;
 
+          const handleVersionClick = () => {
+            if (movieName) {
+              analytics.trackWatchFilmEpisodeClick(movieName, movieSlug, firstEpisode.name, firstEpisode.slug, server.server_name);
+            }
+            
+            const href = serverParam
+              ? `/xem-phim/${movieSlug}/${firstEpisode.slug}?server=${serverParam}`
+              : `/xem-phim/${movieSlug}/${firstEpisode.slug}`;
+            
+            router.push(href, { scroll: false });
+          };
+
           return (
-            <Link
+            <button
               key={server.server_name}
-              href={href}
-              className="block flex-1 min-w-[260px] sm:min-w-[300px] max-w-full"
-              onClick={() => {
-                if (movieName) {
-                  analytics.trackWatchFilmEpisodeClick(movieName, movieSlug, firstEpisode.name, firstEpisode.slug, server.server_name);
-                }
-              }}
+              onClick={handleVersionClick}
+              className="block flex-1 min-w-[260px] sm:min-w-[300px] max-w-full text-left"
             >
               <div className={`relative w-full aspect-[16/9] sm:aspect-[2.5/1] rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:scale-[1.005] group cursor-pointer ring-1 ${
                 isActive ? "ring-[#F6C453] ring-2" : "ring-white/[0.08] hover:ring-[#F6C453]/40"
@@ -167,7 +171,7 @@ export function MovieVersionsSelector({
                   </div>
                 </div>
               </div>
-            </Link>
+            </button>
           );
         })}
       </div>

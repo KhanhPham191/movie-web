@@ -20,7 +20,8 @@ import { RelatedPartsSection } from "@/components/related-parts-section";
 import { MovieSection } from "@/components/movie-section";
 import { VideoProgressProvider } from "@/contexts/video-progress-context";
 
-export const revalidate = 300;
+export const revalidate = 60; // 1 minute ISR - faster fresh data
+export const dynamicParams = true;
 
 // Lấy số "phần" của series từ slug/tên phim (phan-1, (Phần 1), Season 1, ...)
 function getSeriesPartNumber(item: { slug: string; name: string; original_name: string }): number | null {
@@ -140,106 +141,85 @@ async function VideoPlayer({
       }
     }
 
+    // Optimized episode lookup - single pass
     let currentEpisode = null as null | { name: string; slug: string; embed: string; m3u8: string };
     let currentServer: (typeof filteredEpisodes)[number] | null = null;
     let episodeIndex = -1;
     let allEpisodes: { name: string; slug: string; embed: string; m3u8: string }[] = [];
 
+    // Helper to check server match
+    const serverMatches = (server: (typeof filteredEpisodes)[number], param?: string) => {
+      if (!param) return false;
+      const serverName = (server?.server_name || "").toLowerCase();
+      const normalizedParam = param.toLowerCase().replace(/\s+/g, "-");
+      return (
+        (serverName.includes("vietsub") && normalizedParam.includes("vietsub")) ||
+        ((serverName.includes("lồng") || serverName.includes("long")) &&
+         (normalizedParam.includes("long") || normalizedParam.includes("lồng"))) ||
+        ((serverName.includes("thuyết") || serverName.includes("thuyet")) && 
+         (normalizedParam.includes("thuyet") || normalizedParam.includes("thuyết")))
+      );
+    };
+
+    // Helper to get default server
+    const getDefaultServer = () =>
+      filteredEpisodes.find((s) => /vietsub/i.test(s.server_name)) ||
+      filteredEpisodes.find((s) => /lồng\s*tiếng|long\s*tieng/i.test(s.server_name)) ||
+      filteredEpisodes.find((s) => /thuyết\s*minh|thuyet\s*minh/i.test(s.server_name)) ||
+      filteredEpisodes[0];
+
     if (filteredEpisodes.length > 0) {
-      // Tìm đúng server dựa vào serverParam từ URL (ưu tiên server_name)
-      // Nếu có serverParam, chọn server đó. Nếu không, tìm episode theo slug trong tất cả server
-      
-      let selectedServer: (typeof filteredEpisodes)[number] | null = null;
-      let selectedEpisode: { name: string; slug: string; embed: string; m3u8: string } | null = null;
-      let selectedIndex = -1;
-      
-      // Nếu có serverParam từ URL, chọn server đó
-      if (serverParam) {
-        const normalizedServerParam = serverParam.toLowerCase().replace(/\s+/g, "-");
-        selectedServer = filteredEpisodes.find((server) => {
-          const serverName = (server?.server_name || "").toLowerCase();
-          return (
-            serverName.includes("vietsub") && normalizedServerParam.includes("vietsub") ||
-            ((serverName.includes("lồng") || serverName.includes("long")) &&
-             (normalizedServerParam.includes("long") || normalizedServerParam.includes("lồng"))) ||
-            ((serverName.includes("thuyết") || serverName.includes("thuyet")) && 
-             (normalizedServerParam.includes("thuyet") || normalizedServerParam.includes("thuyết")))
-          );
-        }) || null;
-        
-      }
-      
-      // Nếu đã chọn server từ serverParam, tìm episode trong server đó
-      if (selectedServer) {
-        const items = Array.isArray(selectedServer.items) ? selectedServer.items : [];
+      // Single-pass episode lookup
+      for (const server of filteredEpisodes) {
+        // Skip if we need specific server and this isn't it
+        if (serverParam && !serverMatches(server, serverParam)) continue;
+
+        const items = Array.isArray(server.items) ? server.items : [];
         const idx = items.findIndex((ep) => ep.slug === episodeSlug);
+        
         if (idx !== -1) {
-          selectedEpisode = items[idx];
-          selectedIndex = idx;
-          currentServer = selectedServer;
-          currentEpisode = selectedEpisode;
-          episodeIndex = selectedIndex;
+          currentEpisode = items[idx];
+          currentServer = server;
+          episodeIndex = idx;
           allEpisodes = items;
-          
+          break;
         }
       }
-      
-      // Nếu chưa tìm thấy, tìm episode theo slug trong tất cả server
-      if (!selectedEpisode) {
-        const serversWithEpisode: Array<{
-          server: (typeof filteredEpisodes)[number];
-          index: number;
-          episode: { name: string; slug: string; embed: string; m3u8: string };
-        }> = [];
-        
+
+      // If not found with serverParam, search all servers
+      if (!currentEpisode && serverParam) {
         for (const server of filteredEpisodes) {
           const items = Array.isArray(server.items) ? server.items : [];
           const idx = items.findIndex((ep) => ep.slug === episodeSlug);
+          
           if (idx !== -1) {
-            serversWithEpisode.push({
-              server,
-              index: idx,
-              episode: items[idx],
-            });
+            currentEpisode = items[idx];
+            currentServer = server;
+            episodeIndex = idx;
+            allEpisodes = items;
+            break;
           }
         }
-        
-        // Nếu tìm thấy ở nhiều server, chọn server đầu tiên (fallback)
-        if (serversWithEpisode.length > 0) {
-          const selected = serversWithEpisode[0];
-          currentEpisode = selected.episode;
-          currentServer = selected.server;
-          episodeIndex = selected.index;
-          allEpisodes = Array.isArray(selected.server.items) ? selected.server.items : [];
-          
+      }
+
+      // Fallback to default server
+      if (!currentEpisode) {
+        const defaultServer = getDefaultServer();
+        if (defaultServer?.items?.[0]) {
+          currentEpisode = defaultServer.items[0];
+          currentServer = defaultServer;
+          episodeIndex = 0;
+          allEpisodes = defaultServer.items;
         }
       }
     }
 
     if (!currentEpisode) {
-      // Fallback: chọn server mặc định (ưu tiên Vietsub, sau đó Lồng tiếng, cuối cùng Thuyết minh)
-      const defaultServer = filteredEpisodes.length > 0
-        ? filteredEpisodes.find((s) => /vietsub/i.test(s.server_name)) ||
-          filteredEpisodes.find((s) => /lồng\s*tiếng|long\s*tieng/i.test(s.server_name)) ||
-          filteredEpisodes.find((s) =>
-            /thuyết\s*minh|thuyet\s*minh/i.test(s.server_name)
-          ) ||
-          filteredEpisodes[0]
-        : undefined;
-
-
-      if (defaultServer?.items?.[0]) {
-        currentEpisode = defaultServer.items[0];
-        currentServer = defaultServer;
-        episodeIndex = 0;
-        allEpisodes = defaultServer.items;
-      } else {
-        return (
-          <div className="text-center py-20">
-            <p className="text-muted-foreground">Không tìm thấy tập phim</p>
-          </div>
-        );
-      }
+      return (
+        <div className="text-center py-20">
+          <p className="text-muted-foreground">Không tìm thấy tập phim</p>
+        </div>
+      );
     }
 
     const prevEpisode = episodeIndex > 0 ? allEpisodes[episodeIndex - 1] : null;
@@ -294,20 +274,25 @@ async function VideoPlayer({
         />
         <div className="space-y-6 sm:space-y-8">
           {/* Watch Film Tracker - Track page view */}
-          <WatchFilmTracker
-            movieName={movie.name}
-            movieSlug={movie.slug}
-            episodeName={currentEpisode.name}
-            episodeSlug={currentEpisode.slug}
-          />
-          {/* Watch Progress Tracker - Lưu tiến độ xem */}
-          <div className="animate-fade-in">
-            <WatchProgressTracker
-              movie={movie}
-              episodeSlug={currentEpisode.slug}
+          <Suspense fallback={null}>
+            <WatchFilmTracker
+              movieName={movie.name}
+              movieSlug={movie.slug}
               episodeName={currentEpisode.name}
+              episodeSlug={currentEpisode.slug}
             />
-          </div>
+          </Suspense>
+          
+          {/* Watch Progress Tracker - Lưu tiến độ xem */}
+          <Suspense fallback={null}>
+            <div className="animate-fade-in">
+              <WatchProgressTracker
+                movie={movie}
+                episodeSlug={currentEpisode.slug}
+                episodeName={currentEpisode.name}
+              />
+            </div>
+          </Suspense>
 
           {/* Player Section - Cinema Layout */}
           <div className="space-y-0 max-w-full text-white">
@@ -389,32 +374,36 @@ async function VideoPlayer({
 
         {/* Các bản phim - Layout riêng ở dưới player - hiển thị cho cả phim lẻ và phim bộ */}
         {filteredEpisodes.length > 0 && currentServer && (
-          <div className="relative z-50">
-            <MovieVersionsSelector
-              servers={filteredEpisodes}
-              movieSlug={slug}
-              currentEpisodeSlug={episodeSlug}
-              currentServerName={currentServer.server_name}
-              movieName={movie.name}
-              posterUrl={movie.thumb_url || movie.poster_url}
-            />
-          </div>
+          <Suspense fallback={null}>
+            <div className="relative z-50">
+              <MovieVersionsSelector
+                servers={filteredEpisodes}
+                movieSlug={slug}
+                currentEpisodeSlug={episodeSlug}
+                currentServerName={currentServer.server_name}
+                movieName={movie.name}
+                posterUrl={movie.thumb_url || movie.poster_url}
+              />
+            </div>
+          </Suspense>
         )}
 
         {/* Movie Info Panel - Gộp chung với tập phim - hiển thị cho cả phim lẻ và phim bộ */}
         {currentServer && filteredEpisodes.length > 0 && (
-          <div className="relative z-50">
-            <MovieInfoPanel
-              movie={movie}
-              categories={categories}
-              allEpisodes={allEpisodes}
-              currentEpisodeIndex={episodeIndex}
-              servers={filteredEpisodes}
-              movieSlug={slug}
-              currentEpisodeSlug={episodeSlug}
-              currentServerName={currentServer.server_name}
-            />
-          </div>
+          <Suspense fallback={null}>
+            <div className="relative z-50">
+              <MovieInfoPanel
+                movie={movie}
+                categories={categories}
+                allEpisodes={allEpisodes}
+                currentEpisodeIndex={episodeIndex}
+                servers={filteredEpisodes}
+                movieSlug={slug}
+                currentEpisodeSlug={episodeSlug}
+                currentServerName={currentServer.server_name}
+              />
+            </div>
+          </Suspense>
         )}
 
         {/* Series Parts Section - Các phần khác trong series */}
