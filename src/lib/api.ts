@@ -787,15 +787,48 @@ export async function getFilmDetail(slug: string): Promise<FilmDetailResponse> {
     const filmItem = convertOPhimItemToFilmItem(item);
     
     // Convert episodes if available
-    const episodes: Episode[] = (item.episodes || []).map((ep: any) => ({
-      server_name: ep.server_name,
-      items: ep.server_data.map((item: any) => ({
-        name: item.name,
-        slug: item.slug,
-        embed: item.link_embed || "",
-        m3u8: item.link_m3u8 || "",
-      })),
-    }));
+    const episodes: Episode[] = (item.episodes || []).map((ep: any) => {
+      // Map server_name: fallback to lang if server_name is generic (like "Subteam #1")
+      let mappedServerName = ep.server_name || "";
+      const isGenericServerName = 
+        mappedServerName.toLowerCase().includes("subteam") ||
+        mappedServerName.toLowerCase().includes("server");
+      
+      // If server name is generic, use lang information to create a better name
+      if (isGenericServerName && item.lang) {
+        const langName = String(item.lang).toLowerCase().trim();
+        if (langName.includes("vietsub") || langName.includes("subtitle")) {
+          mappedServerName = `Vietsub - ${ep.server_name}`;
+        } else if (langName.includes("thuyết") || langName.includes("thuyet") || 
+                   langName.includes("voice") || langName.includes("vo")) {
+          mappedServerName = `Thuyết minh - ${ep.server_name}`;
+        } else if (langName.includes("lồng") || langName.includes("long") || langName.includes("dubbing")) {
+          mappedServerName = `Lồng tiếng - ${ep.server_name}`;
+        }
+      }
+      
+      return {
+        server_name: mappedServerName,
+        items: (ep.server_data || []).map((episodeItem: any, index: number) => {
+          // Generate proper slug if API returns just a number
+          let episodeSlug = episodeItem.slug;
+          if (typeof episodeSlug === 'number' || /^\d+$/.test(String(episodeSlug))) {
+            episodeSlug = `tap-${episodeSlug}`;
+          }
+          // If slug is still invalid (empty or whitespace), generate from index
+          if (!episodeSlug || typeof episodeSlug !== 'string' || episodeSlug.trim() === '') {
+            episodeSlug = `tap-${index + 1}`;
+          }
+          
+          return {
+            name: episodeItem.name,
+            slug: episodeSlug,
+            embed: episodeItem.link_embed || "",
+            m3u8: episodeItem.link_m3u8 || "",
+          };
+        }),
+      };
+    });
     
     return {
       status: "success",

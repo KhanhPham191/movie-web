@@ -25,7 +25,8 @@ import { getFilmDetail, getImageUrl, searchFilmsMerged, getFilmsByGenre } from "
 import type { FilmItem } from "@/lib/api";
 import { MovieSection } from "@/components/movie-section";
 
-export const revalidate = 300;
+// 1 hour revalidation - balance between freshness and performance
+export const revalidate = 3600;
 import { MovieSectionWithNav } from "@/components/movie-section-with-nav";
 import { isValidTime } from "@/lib/utils";
 import {

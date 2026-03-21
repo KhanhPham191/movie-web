@@ -97,31 +97,10 @@ async function VideoPlayer({
     // Nếu baseName quá ngắn hoặc rỗng, sử dụng tên phim gốc làm fallback
     const searchName = baseName && baseName.length >= 2 ? baseName : movie.name;
 
-    // Tìm các phần khác của series - tương tự phim/[slug] page
-    const baseSlug = movie.slug.replace(/-phan-\d+$/i, "");
-    const baseOriginalName = movie.original_name
-      ? movie.original_name.replace(/\s*\(Season\s*\d+\)\s*$/i, "")
-      : "";
-    const seriesSearchKeyword = baseOriginalName || searchName || movie.name;
-
-    // Fetch series parts
+    // Skip series parts search in initial render - fetch it separately with Suspense
+    // This dramatically improves initial video loading time
     let seriesParts: FilmItem[] = [];
-    if (seriesSearchKeyword) {
-      try {
-        const searchResults = await searchFilmsMerged(seriesSearchKeyword);
-        const filtered = searchResults.filter((item) => {
-          const itemBaseSlug = item.slug.replace(/-phan-\d+$/i, "");
-          return item.slug !== movie.slug && itemBaseSlug === baseSlug;
-        });
-        const withPart = filtered
-          .map((item) => ({ item, part: getSeriesPartNumber(item) }))
-          .filter((x) => x.part !== null) as { item: FilmItem; part: number }[];
-        withPart.sort((a, b) => a.part - b.part);
-        seriesParts = withPart.map((x) => x.item);
-      } catch (error) {
-        // Silently fail, seriesParts stays empty
-      }
-    }
+    
     // Skip relatedParts search in initial render - fetch it separately with Suspense
     // This dramatically improves initial video loading time
     const relatedParts: FilmItem[] = [];
@@ -439,15 +418,9 @@ async function VideoPlayer({
         )}
 
         {/* Series Parts Section - Các phần khác trong series */}
-        {Array.isArray(seriesParts) && seriesParts.length > 0 && (
-          <div className="mx-3 sm:mx-4 md:mx-12">
-            <MovieSection
-              title="Các phần khác trong series"
-              movies={seriesParts}
-              variant="series"
-            />
-          </div>
-        )}
+        <Suspense fallback={null}>
+          <SeriesPartsLoader slug={slug} movieName={movie.name} />
+        </Suspense>
 
         {/* Premium Related Parts Section - Loaded in background with Suspense */}
         <Suspense fallback={null}>
@@ -468,6 +441,64 @@ async function VideoPlayer({
     );
   }
 }
+
+// Async component to load series parts without blocking initial render
+async function SeriesPartsLoader({
+  slug,
+  movieName,
+}: {
+  slug: string;
+  movieName: string;
+}) {
+  try {
+    const response = await getFilmDetail(slug);
+    if (!response.movie) return null;
+
+    const movie = response.movie;
+    const baseSlug = movie.slug.replace(/-phan-\d+$/i, "");
+    const baseOriginalName = movie.original_name
+      ? movie.original_name.replace(/\s*\(Season\s*\d+\)\s*$/i, "")
+      : "";
+    const searchKeyword = baseOriginalName || movie.name;
+
+    if (!searchKeyword) return null;
+
+    try {
+      const searchResults = await searchFilmsMerged(searchKeyword);
+      const filtered = searchResults.filter((item) => {
+        const itemBaseSlug = item.slug.replace(/-phan-\d+$/i, "");
+        return item.slug !== movie.slug && itemBaseSlug === baseSlug;
+      });
+
+      const withPart = filtered
+        .map((item) => ({ item, part: getSeriesPartNumber(item) }))
+        .filter((x) => x.part !== null) as {
+        item: FilmItem;
+        part: number;
+      }[];
+      
+      withPart.sort((a, b) => a.part - b.part);
+      const seriesParts = withPart.map((x) => x.item);
+
+      if (!seriesParts.length) return null;
+
+      return (
+        <div className="mx-3 sm:mx-4 md:mx-12">
+          <MovieSection
+            title="Các phần khác trong series"
+            movies={seriesParts}
+            variant="series"
+          />
+        </div>
+      );
+    } catch {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+}
+
 function VideoPlayerSkeleton() {
   return (
     <div className="space-y-5">

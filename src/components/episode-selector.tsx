@@ -39,7 +39,15 @@ export function EpisodeSelector({
 }: EpisodeSelectorProps) {
   // Helper function để clean server name trước khi lọc
   const cleanServerName = (serverName: string) => {
-    return serverName.replace(/\s*#\d+\s*/g, "").trim().toLowerCase();
+    if (!serverName) return "";
+    return serverName
+      .toLowerCase()
+      .trim()
+      .replace(/\s*#\d+\s*/g, "") // Remove #1, #2, etc.
+      .replace(/\s*-\s*\d+\s*/g, "") // Remove - 1, - 2, etc.
+      .replace(/\s*-\s*(hd|fhd|1080p|720p|480p|4k|uhd)\s*/gi, "") // Remove quality markers
+      .replace(/\s+/g, " ") // Normalize whitespace
+      .trim();
   };
 
   // Lọc giữ lại 3 server: Vietsub, Thuyết minh và Lồng tiếng
@@ -105,12 +113,26 @@ export function EpisodeSelector({
   // Kiểm tra xem có phải phim lẻ không (chỉ có 1 episode ở server hiện tại)
   const isPhimLe = currentEpisodes.length === 1;
 
-  // Tạo tham số server từ server_name
+  // Tạo tham số server từ server_name - robust pattern matching
   const getServerParam = (serverName: string) => {
-    const name = cleanServerName(serverName);
-    if (name.includes("vietsub")) return "vietsub";
-    if (name.includes("lồng") || name.includes("long")) return "long-tieng";
-    if (name.includes("thuyết") || name.includes("thuyet")) return "thuyet-minh";
+    if (!serverName) return "";
+    const name = cleanServerName(serverName).toLowerCase();
+    
+    // Check for Vietsub (with variations)
+    if (/vietsub|phụ\s*đề|subtitle|sub|vietnamese/i.test(name)) {
+      return "vietsub";
+    }
+    
+    // Check for Lồng tiếng (with variations)
+    if (/lồng\s*tiếng|long\s*tieng|dubbing|tiếng\s*việt|voice/i.test(name)) {
+      return "long-tieng";
+    }
+    
+    // Check for Thuyết minh (with variations)
+    if (/thuyết\s*minh|thuyet\s*minh|voice\s*over|vo/i.test(name)) {
+      return "thuyet-minh";
+    }
+    
     return "";
   };
 
@@ -163,9 +185,9 @@ export function EpisodeSelector({
   }
 
   // UI đặc biệt cho phim lẻ (FULL) - dùng card giống trang xem phim
-  // Nếu có phim lẻ và có movieName + thumbUrl, hiển thị card(s)
-  if (phimLeServers.length > 0 && movieName && thumbUrl) {
-    const imageUrl = getImageUrl(thumbUrl);
+  // Nếu có phim lẻ và có movieName + posterUrl, hiển thị card(s)
+  if (phimLeServers.length > 0 && movieName && posterUrl) {
+    const imageUrl = getImageUrl(posterUrl);
 
     // Nếu có nhiều server phim lẻ, hiển thị grid các card
     if (phimLeServers.length > 1) {
