@@ -295,10 +295,9 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                   {isValidTime(movie.time) && (
                     <span>{movie.time}</span>
                   )}
-                  {/* Badge rating IMDb/TMDB đưa lên cùng hàng meta */}
+                  {/* Badge rating IMDb đưa lên cùng hàng meta */}
                   {(() => {
                     const imdbNumber = Number(movie.imdb);
-                    const tmdbNumber = Number(movie.tmdb);
 
                     const hasValidImdb =
                       movie.imdb != null &&
@@ -306,13 +305,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                       !Number.isNaN(imdbNumber) &&
                       imdbNumber > 0;
 
-                    const hasValidTmdb =
-                      movie.tmdb != null &&
-                      String(movie.tmdb).trim() !== "" &&
-                      !Number.isNaN(tmdbNumber) &&
-                      tmdbNumber > 0;
-
-                    if (!hasValidImdb && !hasValidTmdb) return null;
+                    if (!hasValidImdb) return null;
 
                     const formatScore = (score: number | string) => {
                       const num = Number(score);
@@ -325,11 +318,6 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
                         {hasValidImdb && (
                           <Badge className="bg-yellow-500 text-black font-semibold text-[11px] px-2.5 py-0.5 rounded-full">
                             IMDb {formatScore(movie.imdb as any)}
-                          </Badge>
-                        )}
-                        {hasValidTmdb && (
-                          <Badge className="bg-blue-500 text-white font-semibold text-[11px] px-2.5 py-0.5 rounded-full">
-                            TMDB {formatScore(movie.tmdb as any)}
                           </Badge>
                         )}
                       </>

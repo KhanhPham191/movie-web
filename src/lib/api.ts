@@ -894,8 +894,9 @@ export async function searchFilms(
     }
     
     // OPhim endpoint: /v1/api/tim-kiem?keyword={keyword}
-    const encodedKeyword = encodeURIComponent(keyword);
-    params.set('keyword', encodedKeyword);
+    // URLSearchParams encodes values; pre-encoding with encodeURIComponent double-encodes
+    // (% → %25) and breaks Vietnamese/Unicode keywords for the upstream API.
+    params.set("keyword", keyword);
     const response = await fetchOPhimAPI<OPhimListResponse>(
       `/v1/api/tim-kiem?${params.toString()}`
     );

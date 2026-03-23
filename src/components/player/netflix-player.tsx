@@ -148,6 +148,7 @@ export function NetflixPlayer({
   // Long-press cleanup is already handled inside the gesture handlers and resetLongPress itself.
 
   // Auto-hide controls - hide with delay when playing, but not when interacting
+  // (Không chặn theo hover trong vùng video: chỉ cần không có chuyển động chuột trong ~2s là ẩn)
   const hideControls = useCallback(() => {
     // Clear any existing timeout
     if (controlsTimeoutRef.current) {
@@ -158,20 +159,15 @@ export function NetflixPlayer({
     const video = videoRef.current;
     const isVideoPlaying = video && !video.paused;
     
-    // Only hide if playing and not interacting
-    // Lưu ý: trên mobile và fullscreen không có hover thực sự, nên bỏ qua isHoveringRef khi auto-hide
-    const isHoveringBlock = !isMobile && !isFullscreen && isHoveringRef.current;
-    if (isVideoPlaying && !isHoveringBlock && !isDraggingRef.current && !showSettingsRef.current) {
+    if (isVideoPlaying && !isDraggingRef.current && !showSettingsRef.current) {
       controlsTimeoutRef.current = setTimeout(() => {
-        // Double check before hiding
         const video = videoRef.current;
-        const isStillHovering = !isMobile && !isFullscreen && isHoveringRef.current;
-        if (video && !video.paused && !isStillHovering && !isDraggingRef.current && !showSettingsRef.current) {
+        if (video && !video.paused && !isDraggingRef.current && !showSettingsRef.current) {
           setShowControls(false);
         }
       }, 2000); // 2 second delay
     }
-  }, [isMobile, isFullscreen]);
+  }, []);
 
   const showControlsWithTimeout = useCallback(() => {
     // Don't show controls during active long press (1.75x speed)
@@ -191,17 +187,15 @@ export function NetflixPlayer({
     const isVideoPlaying = video && !video.paused;
     
     // Set timeout to hide after 2 seconds if playing and not interacting
-    // Lưu ý: trên mobile và fullscreen không có hover thực sự, nên bỏ qua isHoveringRef khi auto-hide
     if (isVideoPlaying) {
       controlsTimeoutRef.current = setTimeout(() => {
         const video = videoRef.current;
-        const isHoveringBlock = !isMobile && !isFullscreen && isHoveringRef.current;
-        if (video && !video.paused && !isHoveringBlock && !isDraggingRef.current && !showSettingsRef.current) {
+        if (video && !video.paused && !isDraggingRef.current && !showSettingsRef.current) {
           setShowControls(false);
         }
       }, 2000);
     }
-  }, [isMobile, isFullscreen]);
+  }, []);
 
   // Store callbacks in refs for stable references
   useEffect(() => {
@@ -241,12 +235,9 @@ export function NetflixPlayer({
       if (isMobile) return;
       setIsHovering(true);
       isHoveringRef.current = true;
-      // Show immediately when entering
-      setShowControls(true);
-      lastControlsShowTimeRef.current = Date.now();
-      // Clear timeout when entering
-      if (controlsTimeoutRef.current) {
-        clearTimeout(controlsTimeoutRef.current);
+      // Hiện controls và lên lịch auto-hide (giống mousemove)
+      if (showControlsWithTimeoutRef.current) {
+        showControlsWithTimeoutRef.current();
       }
     };
 
@@ -276,9 +267,7 @@ export function NetflixPlayer({
       // Always try to hide controls when video starts playing (unless interacting)
       // Use a small delay to ensure video state is updated
       setTimeout(() => {
-        // Lưu ý: trên mobile và fullscreen không có hover thực sự, nên bỏ qua isHoveringRef khi auto-hide
-        const isHoveringBlock = !isMobile && !isFullscreen && isHoveringRef.current;
-        if (!isHoveringBlock && !isDraggingRef.current && !showSettingsRef.current) {
+        if (!isDraggingRef.current && !showSettingsRef.current) {
           if (hideControlsRef.current) {
             hideControlsRef.current();
           }
@@ -293,9 +282,7 @@ export function NetflixPlayer({
         const video = videoRef.current;
         if (video && !video.paused && showControlsRef.current) {
           const timeSinceLastShow = Date.now() - lastControlsShowTimeRef.current;
-          // Lưu ý: trên mobile và fullscreen không có hover thực sự, nên bỏ qua isHoveringRef khi auto-hide
-          const isHoveringBlock = !isMobile && !isFullscreen && isHoveringRef.current;
-          if (timeSinceLastShow >= 2000 && !isHoveringBlock && !isDraggingRef.current && !showSettingsRef.current) {
+          if (timeSinceLastShow >= 2000 && !isDraggingRef.current && !showSettingsRef.current) {
             // Clear any existing timeout
             if (controlsTimeoutRef.current) {
               clearTimeout(controlsTimeoutRef.current);
@@ -1365,6 +1352,9 @@ export function NetflixPlayer({
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const bufferedPercent = duration > 0 ? (buffered / duration) * 100 : 0;
+  /** Ẩn con trỏ khi đang phát và UI đã auto-hide (desktop) */
+  const hideChromeCursor =
+    !isMobile && isPlaying && !showControls && !isDragging && !showSettings;
 
   return (
     <div
@@ -1395,7 +1385,8 @@ export function NetflixPlayer({
             }
           : {
               aspectRatio: '16/9',
-            })
+            }),
+        ...(hideChromeCursor ? { cursor: 'none' as const } : {}),
       }}
       onMouseMove={() => { if (!isMobile) showControlsWithTimeout(); }}
       onTouchStart={(e) => {
@@ -1497,12 +1488,13 @@ export function NetflixPlayer({
       >
         <video
           ref={videoRef}
-          className={`cursor-pointer select-none ${isFullscreen ? 'object-contain' : 'h-full w-full object-contain'}`}
+          className={`select-none ${isFullscreen ? 'object-contain' : 'h-full w-full object-contain'}`}
         style={{ 
           userSelect: 'none', 
           WebkitUserSelect: 'none', 
           pointerEvents: 'auto', 
           touchAction: isFullscreen ? 'none' : 'auto',
+          cursor: hideChromeCursor ? 'none' : 'pointer',
           ...(isFullscreen
             ? {
                 width: '100%',
@@ -1513,7 +1505,7 @@ export function NetflixPlayer({
               }
             : {})
         }}
-        title={title}
+        aria-label={title}
         playsInline
         autoPlay={autoPlay}
         muted={muted}

@@ -55,6 +55,26 @@ function getShortDescription(description?: string, maxLength: number = 120) {
   return `${clean.slice(0, Math.max(0, maxLength - 3))}...`;
 }
 
+function getImdbScore(movie: FilmItem): string | null {
+  // Prefer explicit IMDb numeric value; fallback to vote_average (0-10 scale).
+  const parseScore = (value: unknown): number | null => {
+    if (value == null) return null;
+    const asString = String(value).trim();
+    if (!asString) return null;
+    const n = Number(asString);
+    if (!Number.isFinite(n) || n <= 0 || n > 10) return null;
+    return n;
+  };
+
+  const imdbScore = parseScore(movie.imdb);
+  if (imdbScore != null) return imdbScore.toFixed(1);
+
+  const voteAverageScore = parseScore(movie.vote_average);
+  if (voteAverageScore != null) return voteAverageScore.toFixed(1);
+
+  return null;
+}
+
 // Rút gọn nhãn ngôn ngữ giống "VS-LT"
 function getLanguageBadge(language?: string) {
   if (!language) return "";
@@ -144,6 +164,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
   const episodeLabel = formatEpisodeLabel(movie.current_episode);
   const qualityLabel = movie.quality ? movie.quality.toUpperCase() : "";
   const shouldShowPopup = variant !== "portrait";
+  const imdbScore = useMemo(() => getImdbScore(movie), [movie]);
 
   const selectFirstEpisodeSlug = (detail?: FilmDetail | null) => {
     const eps = detail?.episodes || [];
@@ -436,6 +457,11 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              {imdbScore && (
+                <span className="inline-flex items-center rounded-sm bg-[#F5C518] px-2.5 py-1.5 text-[12px] font-bold text-black">
+                  IMDb {imdbScore}
+                </span>
+              )}
               <span className="inline-flex items-center rounded-sm bg-black/80 px-2.5 py-1.5 text-[12px] font-semibold text-white border border-white/20">
                 T16
               </span>
@@ -534,7 +560,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
         </div>
       </div>
     );
-  }, [isHovered, popupPosition, shouldShowPopup, popupBackdropUrl, movie.name, movie.original_name, movie.current_episode, movie.category, year, favorited, favPending, isAuthenticated, toggleFavorite]);
+  }, [isHovered, popupPosition, shouldShowPopup, popupBackdropUrl, movie.name, movie.original_name, movie.current_episode, movie.category, year, imdbScore, favorited, favPending, isAuthenticated, toggleFavorite]);
 
   // Top 10 variant - Netflix style with badge
   if (variant === "top10" && rank) {

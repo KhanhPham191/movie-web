@@ -116,20 +116,6 @@ export function MovieInfoPanel({
                     </Badge>
                   ) : null;
                 })()}
-                {(() => {
-                  const tmdbNumber = Number(movie.tmdb);
-                  const hasValidTmdb =
-                    movie.tmdb != null &&
-                    String(movie.tmdb).trim() !== "" &&
-                    !Number.isNaN(tmdbNumber) &&
-                    tmdbNumber > 0;
-
-                  return hasValidTmdb ? (
-                    <Badge className="bg-blue-500/90 text-white font-semibold text-[10px] px-1.5 py-0.5">
-                      TMDB {movie.tmdb}
-                    </Badge>
-                  ) : null;
-                })()}
                 {year && (
                   <Badge className="bg-white/10 text-white/70 font-medium text-[10px] px-1.5 py-0.5">
                     {year}
