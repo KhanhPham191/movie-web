@@ -571,7 +571,7 @@ function MovieCardWithPopup({
           <div className="flex flex-col h-full rounded-xl overflow-hidden bg-[#1a1a1a] hover:bg-[#1f1f1f] border border-white/10 hover:border-[#F6C453]/60 shadow-[0_4px_18px_rgba(0,0,0,0.6)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.8)] transition-all duration-500 ease-in-out hover:scale-[1.01]">
           <div className="relative aspect-video w-full overflow-hidden rounded-t-xl">
             <Image
-              src={thumbUrl}
+              src={posterUrl}
               alt={movie.name}
               fill
               className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-[1.03]"
@@ -608,7 +608,7 @@ function MovieCardWithPopup({
             {posterUrl && (
               <div className="relative shrink-0 w-16 h-20 sm:w-20 sm:h-28 md:w-24 md:h-32 rounded-md overflow-hidden">
                 <Image
-                  src={posterUrl}
+                  src={thumbUrl}
                   alt={movie.name}
                   fill
                   className="object-cover"

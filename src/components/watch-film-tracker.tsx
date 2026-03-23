@@ -15,10 +15,8 @@ export function WatchFilmTracker({ movieName, movieSlug, episodeName, episodeSlu
   const pathname = usePathname();
   
   useEffect(() => {
-    // Track page view for watch film page
-    if (pathname?.startsWith('/xem-phim/')) {
-      analytics.trackWatchFilmPageView(movieName, movieSlug, episodeName, episodeSlug);
-    }
+    if (!pathname?.startsWith('/xem-phim/')) return;
+    analytics.trackWatchFilmPageView(pathname, movieName, movieSlug, episodeName, episodeSlug);
   }, [pathname, movieName, movieSlug, episodeName, episodeSlug]);
 
   return null;

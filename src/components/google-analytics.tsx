@@ -67,12 +67,14 @@ export function GoogleAnalytics({ gaId }: { gaId: string }) {
               user_type: isReturning ? 'returning' : 'new',
             });
 
-            // Send initial page_view manually
-            gtag('event', 'page_view', {
-              page_path: window.location.pathname,
-              page_title: document.title,
-              user_type: isReturning ? 'returning' : 'new',
-            });
+            // Trang xem phim: page_view do WatchFilmTracker gửi (kèp tham số phim/tập), tránh đếm đôi
+            if (!window.location.pathname.startsWith('/xem-phim/')) {
+              gtag('event', 'page_view', {
+                page_path: window.location.pathname,
+                page_title: document.title,
+                user_type: isReturning ? 'returning' : 'new',
+              });
+            }
           `,
         }}
       />

@@ -325,14 +325,38 @@ export const analytics = {
     });
   },
 
-  // Watch Film page specific events (wflim_ prefix)
-  trackWatchFilmPageView: (movieName: string, movieSlug: string, episodeName: string, episodeSlug: string) => {
-    trackEvent('wflim_page_view', {
-      event_category: 'page',
-      event_label: movieName,
+  /**
+   * Trang xem phim: gửi **một** `page_view` (không tách event `wflim_page_view`) để GA4 Realtime
+   * không đếm đôi với page_view toàn site. Tham số phim/tập gắn vào cùng sự kiện page_view.
+   * Dedupe ngắn để giảm nhân đôi khi React Strict Mode (dev).
+   */
+  trackWatchFilmPageView: (
+    pathname: string,
+    movieName: string,
+    movieSlug: string,
+    episodeName: string,
+    episodeSlug: string
+  ) => {
+    if (process.env.NODE_ENV !== 'production') return;
+    if (typeof window === 'undefined' || !window.gtag) return;
+
+    const dedupeKey = `${pathname}\0${episodeSlug}`;
+    const now = Date.now();
+    const w = window as Window & {
+      __gaWatchPv?: { key: string; t: number };
+    };
+    const prev = w.__gaWatchPv;
+    if (prev && prev.key === dedupeKey && now - prev.t < 500) return;
+    w.__gaWatchPv = { key: dedupeKey, t: now };
+
+    window.gtag('event', 'page_view', {
+      page_path: pathname,
+      page_title: document.title,
       movie_slug: movieSlug,
+      movie_name: movieName,
       episode_name: episodeName,
       episode_slug: episodeSlug,
+      page_type: 'watch_film',
     });
   },
 

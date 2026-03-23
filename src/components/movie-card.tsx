@@ -715,7 +715,7 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
     const order = rank ?? index + 1;
     const isTiltLeft = order % 2 === 1; // Card lẻ (1, 3, 5...) nghiêng trái
     // Use thumb_url for main card image and hover popup
-    const thumbUrl = getImageUrl(movie.thumb_url || movie.poster_url);
+    const thumbUrl = getImageUrl(movie.thumb_url);
     
     // Clip-path polygon từ tramphim - tạo hình dạng nghiêng với góc bo tròn
     // Clip-path gốc nghiêng về bên phải, đảo ngược bằng scaleX(-1) để nghiêng trái

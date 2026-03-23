@@ -15,6 +15,16 @@ export function PageViewTracker() {
   useEffect(() => {
     if (!pathname) return;
 
+    // Trang xem phim: page_view (kèm movie/episode) do WatchFilmTracker gửi — tránh 2 page_view.
+    if (pathname.startsWith('/xem-phim/')) {
+      if (lastTrackedPathRef.current === null) {
+        lastTrackedPathRef.current = pathname;
+      } else if (lastTrackedPathRef.current !== pathname) {
+        lastTrackedPathRef.current = pathname;
+      }
+      return;
+    }
+
     // Initial page_view is already sent in GoogleAnalytics script.
     // This tracker should only handle SPA route changes to avoid duplicates.
     if (lastTrackedPathRef.current === null) {
