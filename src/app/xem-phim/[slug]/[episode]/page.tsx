@@ -5,17 +5,9 @@ import { Footer } from "@/components/footer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Home } from "lucide-react";
 import { getFilmDetail, getImageUrl, searchFilmsMerged, type FilmItem } from "@/lib/api";
-import { isValidTime } from "@/lib/utils";
 import { generateVideoStructuredData, generateBreadcrumbStructuredData } from "@/lib/structured-data";
-import { NetflixPlayer } from "@/components/player/netflix-player";
-import { EpisodeSelectorWatch } from "@/components/episode-selector-watch";
-import { MovieInfoPanel } from "@/components/movie-info-panel";
-import { MovieVersionsSelector } from "@/components/movie-versions-selector";
-import { WatchProgressTracker } from "@/components/watch-progress-tracker";
-import { WatchFilmTracker } from "@/components/watch-film-tracker";
-import { WatchFilmEpisodeNav } from "@/components/watch-film-episode-nav";
-import { WatchFilmButtons } from "@/components/watch-film-buttons";
-import { RelatedPartLink } from "@/components/related-part-link";
+import { WatchEpisodeExperience } from "@/components/watch-episode-experience";
+import { resolveWatchEpisode } from "@/lib/watch-episode-resolve";
 import { RelatedPartsSection } from "@/components/related-parts-section";
 import { MovieSection } from "@/components/movie-section";
 import { VideoProgressProvider } from "@/contexts/video-progress-context";
@@ -65,18 +57,6 @@ async function VideoPlayer({
   serverParam?: string;
   shouldRequestFullscreen?: boolean;
 }) {
-  // Helper function để map server_name sang tên hiển thị (giống EpisodeSelector)
-  const getServerDisplayName = (serverName: string) => {
-    const name = serverName.toLowerCase();
-    // Bỏ các pattern như "#1", "#2", " #1", " #2", etc.
-    let cleanName = serverName.replace(/\s*#\d+\s*/g, "").trim();
-    
-    if (name.includes("vietsub")) return "Vietsub";
-    if (name.includes("lồng") || name.includes("long")) return "Lồng tiếng";
-    if (name.includes("thuyết") || name.includes("thuyet")) return "Thuyết minh";
-    return cleanName;
-  };
-
   try {
     const response = await getFilmDetail(slug);
     const movie = response.movie;
@@ -86,25 +66,13 @@ async function VideoPlayer({
       notFound();
     }
 
-    // Tìm các phần khác của cùng series - sử dụng cách trích xuất đơn giản hơn
     const getBaseName = (name: string): string => {
-      // Chỉ bỏ pattern "(Phần 2)", "(Phần 3)" ở cuối - không bỏ quá nhiều
       let baseName = name.replace(/\s*\(Phần\s*\d+\)\s*$/i, "").trim();
       return baseName;
     };
 
     const baseName = getBaseName(movie.name);
-    
-    // Nếu baseName quá ngắn hoặc rỗng, sử dụng tên phim gốc làm fallback
     const searchName = baseName && baseName.length >= 2 ? baseName : movie.name;
-
-    // Skip series parts search in initial render - fetch it separately with Suspense
-    // This dramatically improves initial video loading time
-    let seriesParts: FilmItem[] = [];
-    
-    // Skip relatedParts search in initial render - fetch it separately with Suspense
-    // This dramatically improves initial video loading time
-    const relatedParts: FilmItem[] = [];
 
     // Lọc giữ lại 3 server: Vietsub, Thuyết minh và Lồng tiếng
     let filteredEpisodes = Array.isArray(movie.episodes) ? movie.episodes : [];
@@ -141,80 +109,10 @@ async function VideoPlayer({
       }
     }
 
-    // Optimized episode lookup - single pass
-    let currentEpisode = null as null | { name: string; slug: string; embed: string; m3u8: string };
-    let currentServer: (typeof filteredEpisodes)[number] | null = null;
-    let episodeIndex = -1;
-    let allEpisodes: { name: string; slug: string; embed: string; m3u8: string }[] = [];
+    const resolved = resolveWatchEpisode(filteredEpisodes, episodeSlug, { serverParam });
+    const { currentEpisode, currentServer } = resolved;
 
-    // Helper to check server match
-    const serverMatches = (server: (typeof filteredEpisodes)[number], param?: string) => {
-      if (!param) return false;
-      const serverName = (server?.server_name || "").toLowerCase();
-      const normalizedParam = param.toLowerCase().replace(/\s+/g, "-");
-      return (
-        (serverName.includes("vietsub") && normalizedParam.includes("vietsub")) ||
-        ((serverName.includes("lồng") || serverName.includes("long")) &&
-         (normalizedParam.includes("long") || normalizedParam.includes("lồng"))) ||
-        ((serverName.includes("thuyết") || serverName.includes("thuyet")) && 
-         (normalizedParam.includes("thuyet") || normalizedParam.includes("thuyết")))
-      );
-    };
-
-    // Helper to get default server
-    const getDefaultServer = () =>
-      filteredEpisodes.find((s) => /vietsub/i.test(s.server_name)) ||
-      filteredEpisodes.find((s) => /lồng\s*tiếng|long\s*tieng/i.test(s.server_name)) ||
-      filteredEpisodes.find((s) => /thuyết\s*minh|thuyet\s*minh/i.test(s.server_name)) ||
-      filteredEpisodes[0];
-
-    if (filteredEpisodes.length > 0) {
-      // Single-pass episode lookup
-      for (const server of filteredEpisodes) {
-        // Skip if we need specific server and this isn't it
-        if (serverParam && !serverMatches(server, serverParam)) continue;
-
-        const items = Array.isArray(server.items) ? server.items : [];
-        const idx = items.findIndex((ep) => ep.slug === episodeSlug);
-        
-        if (idx !== -1) {
-          currentEpisode = items[idx];
-          currentServer = server;
-          episodeIndex = idx;
-          allEpisodes = items;
-          break;
-        }
-      }
-
-      // If not found with serverParam, search all servers
-      if (!currentEpisode && serverParam) {
-        for (const server of filteredEpisodes) {
-          const items = Array.isArray(server.items) ? server.items : [];
-          const idx = items.findIndex((ep) => ep.slug === episodeSlug);
-          
-          if (idx !== -1) {
-            currentEpisode = items[idx];
-            currentServer = server;
-            episodeIndex = idx;
-            allEpisodes = items;
-            break;
-          }
-        }
-      }
-
-      // Fallback to default server
-      if (!currentEpisode) {
-        const defaultServer = getDefaultServer();
-        if (defaultServer?.items?.[0]) {
-          currentEpisode = defaultServer.items[0];
-          currentServer = defaultServer;
-          episodeIndex = 0;
-          allEpisodes = defaultServer.items;
-        }
-      }
-    }
-
-    if (!currentEpisode) {
+    if (!currentEpisode || !currentServer) {
       return (
         <div className="text-center py-20">
           <p className="text-muted-foreground">Không tìm thấy tập phim</p>
@@ -222,30 +120,11 @@ async function VideoPlayer({
       );
     }
 
-    const prevEpisode = episodeIndex > 0 ? allEpisodes[episodeIndex - 1] : null;
-    const nextEpisode =
-      episodeIndex < allEpisodes.length - 1
-        ? allEpisodes[episodeIndex + 1]
-        : null;
-
-    // Dùng thumb_url cho trang xem phim
-    const thumbUrl = (movie as any).thumb?.url || movie.thumb_url;
-    const background = getImageUrl(thumbUrl || movie.poster_url);
-    const cleanDescription = movie.description?.replace(/<[^>]*>/g, "");
     const categories = Array.isArray(movie.category)
       ? movie.category
       : movie.category
         ? [movie.category]
         : [];
-    const countries = Array.isArray(movie.country)
-      ? movie.country
-      : movie.country
-        ? [movie.country]
-        : [];
-    const formatLabel = (value: any) =>
-      typeof value === "object" && value !== null
-        ? value.name || value.slug || value.id || ""
-        : String(value || "");
 
     const siteUrl =
       process.env.NEXT_PUBLIC_SITE_URL ||
@@ -253,13 +132,13 @@ async function VideoPlayer({
     const videoStructuredData = generateVideoStructuredData(
       movie,
       currentEpisode,
-      `${siteUrl}/xem-phim/${slug}/${episodeSlug}`
+      `${siteUrl}/xem-phim/${slug}/${currentEpisode.slug}`
     );
 
     const breadcrumbStructuredData = generateBreadcrumbStructuredData([
       { name: "Trang chủ", url: siteUrl },
       { name: movie.name, url: `${siteUrl}/phim/${slug}` },
-      { name: `${movie.name} - ${currentEpisode.name}`, url: `${siteUrl}/xem-phim/${slug}/${episodeSlug}` },
+      { name: `${movie.name} - ${currentEpisode.name}`, url: `${siteUrl}/xem-phim/${slug}/${currentEpisode.slug}` },
     ]);
 
     return (
@@ -272,154 +151,30 @@ async function VideoPlayer({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }}
         />
-        <div className="space-y-6 sm:space-y-8">
-          {/* Watch Film Tracker - Track page view */}
-          <Suspense fallback={null}>
-            <WatchFilmTracker
-              movieName={movie.name}
-              movieSlug={movie.slug}
-              episodeName={currentEpisode.name}
-              episodeSlug={currentEpisode.slug}
-            />
-          </Suspense>
-          
-          {/* Watch Progress Tracker - Lưu tiến độ xem */}
-          <Suspense fallback={null}>
-            <div className="animate-fade-in">
-              <WatchProgressTracker
-                movie={movie}
-                episodeSlug={currentEpisode.slug}
-                episodeName={currentEpisode.name}
-              />
-            </div>
-          </Suspense>
-
-          {/* Player Section - Cinema Layout */}
-          <div className="space-y-0 max-w-full text-white">
-
-          {/* Video Player - Full Width Cinema */}
-          <div className="relative w-full rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.5),0_24px_80px_rgba(0,0,0,0.6)] bg-black ring-1 ring-white/10 before:absolute before:inset-0 before:rounded-xl sm:before:rounded-2xl before:ring-1 before:ring-inset before:ring-white/[0.06] before:pointer-events-none before:z-10">
-            {/* Aspect ratio: 16:9 */}
-            <div className="relative aspect-video bg-black w-full">
-              {currentEpisode.m3u8 ? (
-                <NetflixPlayer
-                  key={`${currentEpisode.slug}-${currentServer?.server_name || ''}`}
-                  src={currentEpisode.m3u8}
-                  title={`${movie.name} - ${currentEpisode.name}`}
-                  className="h-full w-full"
-                  autoPlay={true}
-                  muted={false}
-                  movieName={movie.name}
-                  movieSlug={movie.slug}
-                  episodeSlug={currentEpisode.slug}
-                  nextEpisodeUrl={nextEpisode ? `/xem-phim/${slug}/${nextEpisode.slug}${serverParam ? `?server=${serverParam}` : ''}` : undefined}
-                  nextEpisodeName={nextEpisode ? nextEpisode.name : undefined}
-                  shouldRequestFullscreen={shouldRequestFullscreen}
-                />
-              ) : (
-                <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-black via-gray-900/95 to-black text-white p-8">
-                  <div className="text-center space-y-5">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto border-[3px] border-white/10 border-t-[#F6C453] rounded-full animate-spin" />
-                    <p className="text-xs sm:text-sm text-white/50 font-medium tracking-wide">Đang tải video...</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Below Player Bar - Meta + Nav + Actions in one integrated strip */}
-          <div className="mt-4 sm:mt-5 space-y-3 sm:space-y-4">
-            {/* Title & Meta Row */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
-              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                <h1 className="text-base sm:text-lg md:text-xl font-bold text-white truncate leading-tight">{movie.name}</h1>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  {movie.quality && (
-                    <span className="px-2 py-0.5 bg-[#F6C453]/12 text-[#F6C453] text-[10px] sm:text-xs font-semibold rounded-md border border-[#F6C453]/15">
-                      {movie.quality}
-                    </span>
-                  )}
-                  {movie.current_episode && (
-                    <span className="text-[10px] sm:text-xs text-white/45 font-medium">{movie.current_episode}</span>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-[10px] sm:text-xs text-white/40 font-medium">
-                {isValidTime(movie.time) && <span>{movie.time}</span>}
-                {isValidTime(movie.time) && countries[0] && <span className="text-white/15">•</span>}
-                {countries[0] && <span>{formatLabel(countries[0])}</span>}
-              </div>
-            </div>
-
-            {/* Episode Nav + Actions Row */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-4">
-              {/* Episode Navigation */}
-              <WatchFilmEpisodeNav
-                movieName={movie.name}
+        <WatchEpisodeExperience
+          slug={slug}
+          movie={movie}
+          filteredEpisodes={filteredEpisodes}
+          initialEpisodeSlug={currentEpisode.slug}
+          initialServerName={currentServer.server_name}
+          serverParam={serverParam}
+          shouldRequestFullscreen={shouldRequestFullscreen}
+          categories={categories}
+          seriesPartsSlot={
+            <Suspense fallback={null}>
+              <SeriesPartsLoader slug={slug} movieName={movie.name} />
+            </Suspense>
+          }
+          relatedPartsSlot={
+            <Suspense fallback={null}>
+              <RelatedPartsSection
                 movieSlug={movie.slug}
-                currentEpisodeSlug={currentEpisode.slug}
-                prevEpisode={prevEpisode ? { slug: prevEpisode.slug, name: prevEpisode.name } : null}
-                nextEpisode={nextEpisode ? { slug: nextEpisode.slug, name: nextEpisode.name } : null}
-              />
-
-              {/* Action Buttons */}
-              <WatchFilmButtons
                 movieName={movie.name}
-                movieSlug={movie.slug}
-                episodeSlug={currentEpisode.slug}
+                baseMovieName={searchName}
               />
-            </div>
-          </div>
-        </div>
-
-        {/* Các bản phim - Layout riêng ở dưới player - hiển thị cho cả phim lẻ và phim bộ */}
-        {filteredEpisodes.length > 0 && currentServer && (
-          <Suspense fallback={null}>
-            <div className="relative z-50">
-              <MovieVersionsSelector
-                servers={filteredEpisodes}
-                movieSlug={slug}
-                currentEpisodeSlug={episodeSlug}
-                currentServerName={currentServer.server_name}
-                movieName={movie.name}
-                posterUrl={movie.thumb_url || movie.poster_url}
-              />
-            </div>
-          </Suspense>
-        )}
-
-        {/* Movie Info Panel - Gộp chung với tập phim - hiển thị cho cả phim lẻ và phim bộ */}
-        {currentServer && filteredEpisodes.length > 0 && (
-          <Suspense fallback={null}>
-            <div className="relative z-50">
-              <MovieInfoPanel
-                movie={movie}
-                categories={categories}
-                allEpisodes={allEpisodes}
-                currentEpisodeIndex={episodeIndex}
-                servers={filteredEpisodes}
-                movieSlug={slug}
-                currentEpisodeSlug={episodeSlug}
-                currentServerName={currentServer.server_name}
-              />
-            </div>
-          </Suspense>
-        )}
-
-        {/* Series Parts Section - Các phần khác trong series */}
-        <Suspense fallback={null}>
-          <SeriesPartsLoader slug={slug} movieName={movie.name} />
-        </Suspense>
-
-        {/* Premium Related Parts Section - Loaded in background with Suspense */}
-        <Suspense fallback={null}>
-          <RelatedPartsSection
-            movieSlug={movie.slug}
-            movieName={movie.name}
-            baseMovieName={searchName}
-          />
-        </Suspense>
-        </div>
+            </Suspense>
+          }
+        />
       </VideoProgressProvider>
     );
   } catch {

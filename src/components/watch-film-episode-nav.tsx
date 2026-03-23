@@ -11,9 +11,11 @@ interface WatchFilmEpisodeNavProps {
   currentEpisodeSlug: string;
   prevEpisode?: { slug: string; name: string } | null;
   nextEpisode?: { slug: string; name: string } | null;
+  /** Chỉ đổi video, không đổi URL */
+  onNavigateEpisode?: (episodeSlug: string) => void;
 }
 
-export function WatchFilmEpisodeNav({ movieName, movieSlug, currentEpisodeSlug, prevEpisode, nextEpisode }: WatchFilmEpisodeNavProps) {
+export function WatchFilmEpisodeNav({ movieName, movieSlug, currentEpisodeSlug, prevEpisode, nextEpisode, onNavigateEpisode }: WatchFilmEpisodeNavProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const serverParam = searchParams?.get('server');
@@ -29,7 +31,11 @@ export function WatchFilmEpisodeNav({ movieName, movieSlug, currentEpisodeSlug, 
     const nextEp = direction === 'prev' ? prevEpisode : nextEpisode;
     if (nextEp) {
       analytics.trackWatchFilmEpisodeNav(movieName, movieSlug, currentEpisodeSlug, episodeSlug, direction);
-      router.push(buildHref(episodeSlug), { scroll: false });
+      if (onNavigateEpisode) {
+        onNavigateEpisode(episodeSlug);
+      } else {
+        router.push(buildHref(episodeSlug), { scroll: false });
+      }
     }
   };
 

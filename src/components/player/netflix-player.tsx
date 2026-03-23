@@ -32,6 +32,8 @@ interface NetflixPlayerProps {
   movieSlug?: string;
   episodeSlug?: string;
   nextEpisodeUrl?: string;
+  /** Khi có, ưu tiên gọi thay vì chuyển trang (chỉ đổi video, giữ URL) */
+  onNextEpisode?: () => void;
   nextEpisodeName?: string;
   shouldRequestFullscreen?: boolean;
 }
@@ -47,6 +49,7 @@ export function NetflixPlayer({
   movieSlug,
   episodeSlug,
   nextEpisodeUrl,
+  onNextEpisode,
   nextEpisodeName,
   shouldRequestFullscreen = false,
 }: NetflixPlayerProps) {
@@ -322,7 +325,7 @@ export function NetflixPlayer({
       onTimeUpdate?.(time, video.duration);
       
       // Show next episode button when near end (remaining <= 90s or 15% of duration)
-      if (nextEpisodeUrl && video.duration > 0) {
+      if ((nextEpisodeUrl || onNextEpisode) && video.duration > 0) {
         const remaining = video.duration - time;
         const threshold = Math.min(90, video.duration * 0.15); // 90s or 15% of duration
         setShowNextEpisode(remaining <= threshold && remaining > 0);
@@ -382,7 +385,7 @@ export function NetflixPlayer({
 
     const handleEnded = () => {
       // Auto-navigate to next episode if autoplay is enabled
-      if (isAutoplayEnabled && nextEpisodeUrl) {
+      if (isAutoplayEnabled && (nextEpisodeUrl || onNextEpisode)) {
         // Show controls when video ends
         setShowControls(true);
         lastControlsShowTimeRef.current = Date.now();
@@ -399,7 +402,11 @@ export function NetflixPlayer({
             clearInterval(countdownInterval);
             // Navigate to next episode after countdown
             setTimeout(() => {
-              router.push(nextEpisodeUrl);
+              if (onNextEpisode) {
+                onNextEpisode();
+              } else if (nextEpisodeUrl) {
+                router.push(nextEpisodeUrl);
+              }
             }, 100);
           }
         }, 1000);
@@ -432,7 +439,7 @@ export function NetflixPlayer({
       video.removeEventListener("seeked", handleSeeked);
       video.removeEventListener("ended", handleEnded);
     };
-  }, [onTimeUpdate, searchParams, movieName, movieSlug, episodeSlug, updateProgress, isAutoplayEnabled, nextEpisodeUrl, router]);
+  }, [onTimeUpdate, searchParams, movieName, movieSlug, episodeSlug, updateProgress, isAutoplayEnabled, nextEpisodeUrl, onNextEpisode, router]);
 
   // Fullscreen change listener
   useEffect(() => {
@@ -2277,7 +2284,7 @@ export function NetflixPlayer({
 
 
       {/* Next Episode Button - shows when near end of video for series */}
-      {showNextEpisode && nextEpisodeUrl && (
+      {showNextEpisode && (nextEpisodeUrl || onNextEpisode) && (
         <div 
           className="absolute bottom-20 sm:bottom-24 right-4 sm:right-6 z-[90] pointer-events-auto animate-fade-in"
           style={{
@@ -2286,7 +2293,11 @@ export function NetflixPlayer({
         >
           <button
             onClick={() => {
-              router.push(nextEpisodeUrl, { scroll: false });
+              if (onNextEpisode) {
+                onNextEpisode();
+              } else if (nextEpisodeUrl) {
+                router.push(nextEpisodeUrl, { scroll: false });
+              }
             }}
             className="group flex items-center gap-2 sm:gap-2.5 px-4 sm:px-5 py-2.5 sm:py-3 bg-white/95 hover:bg-white text-black rounded-lg sm:rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.4)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-300 hover:scale-[1.03] active:scale-95 backdrop-blur-sm cursor-pointer"
           >

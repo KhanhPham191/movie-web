@@ -30,6 +30,8 @@ interface MovieInfoPanelProps {
   movieSlug: string;
   currentEpisodeSlug: string;
   currentServerName: string;
+  onEpisodeSelect?: (episodeSlug: string) => void;
+  onServerSelect?: (serverName: string) => void;
 }
 
 export function MovieInfoPanel({
@@ -41,6 +43,8 @@ export function MovieInfoPanel({
   movieSlug,
   currentEpisodeSlug,
   currentServerName,
+  onEpisodeSelect,
+  onServerSelect,
 }: MovieInfoPanelProps) {
   // Dùng poster_url cho poster nhỏ trong info panel (ảnh dọc 2:3)
   const posterUrl = getImageUrl(movie.thumb_url || movie.poster_url);
@@ -165,6 +169,8 @@ export function MovieInfoPanel({
               currentEpisodeIndex={currentEpisodeIndex}
               movieName={movie.name}
               posterUrl={movie.thumb_url || movie.poster_url}
+              onEpisodeSelect={onEpisodeSelect}
+              onServerSelect={onServerSelect}
             />
           </div>
         )}

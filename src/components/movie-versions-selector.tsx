@@ -26,6 +26,7 @@ interface MovieVersionsSelectorProps {
   currentServerName: string;
   movieName?: string;
   posterUrl?: string;
+  onVersionSelect?: (serverName: string, episodeSlug: string) => void;
 }
 
 export function MovieVersionsSelector({
@@ -35,6 +36,7 @@ export function MovieVersionsSelector({
   currentServerName,
   movieName,
   posterUrl,
+  onVersionSelect,
 }: MovieVersionsSelectorProps) {
   const router = useRouter();
   // Lọc giữ lại 3 server: Vietsub, Thuyết minh và Lồng tiếng
@@ -118,11 +120,17 @@ export function MovieVersionsSelector({
             if (movieName) {
               analytics.trackWatchFilmEpisodeClick(movieName, movieSlug, firstEpisode.name, firstEpisode.slug, server.server_name);
             }
-            
-            const href = serverParam
-              ? `/xem-phim/${movieSlug}/${firstEpisode.slug}?server=${serverParam}`
+
+            if (onVersionSelect) {
+              onVersionSelect(server.server_name, firstEpisode.slug);
+              return;
+            }
+
+            const sp = getServerParam(server.server_name);
+            const href = sp
+              ? `/xem-phim/${movieSlug}/${firstEpisode.slug}?server=${encodeURIComponent(sp)}`
               : `/xem-phim/${movieSlug}/${firstEpisode.slug}`;
-            
+
             router.push(href, { scroll: false });
           };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Play } from "lucide-react";
 import { analytics } from "@/lib/analytics";
@@ -26,6 +26,9 @@ interface EpisodeSelectorWatchProps {
   movieName?: string;
   posterUrl?: string;
   isFullscreen?: boolean;
+  /** Chỉ đổi video, không đổi URL */
+  onEpisodeSelect?: (episodeSlug: string) => void;
+  onServerSelect?: (serverName: string) => void;
 }
 
 export function EpisodeSelectorWatch({
@@ -37,7 +40,10 @@ export function EpisodeSelectorWatch({
   movieName,
   posterUrl,
   isFullscreen = false,
+  onEpisodeSelect,
+  onServerSelect,
 }: EpisodeSelectorWatchProps) {
+  const clientPlayback = Boolean(onEpisodeSelect);
   // Lọc giữ lại 3 server: Vietsub, Thuyết minh và Lồng tiếng
   const filteredServers = useMemo(() => {
     return servers.filter((server) => {
@@ -64,6 +70,13 @@ export function EpisodeSelectorWatch({
   const [selectedServerIndex, setSelectedServerIndex] = useState(
     getCurrentServerIndex()
   );
+
+  useEffect(() => {
+    const idx = filteredServers.findIndex(
+      (s) => s.server_name === currentServerName
+    );
+    if (idx !== -1) setSelectedServerIndex(idx);
+  }, [currentServerName, filteredServers]);
 
   const currentServer = filteredServers[selectedServerIndex];
   const currentEpisodes = currentServer?.items || [];
@@ -135,6 +148,11 @@ export function EpisodeSelectorWatch({
                 if (movieName) {
                   analytics.trackWatchFilmServerChange(movieName, movieSlug, server.server_name, currentEpisodeSlug);
                 }
+
+                if (clientPlayback && onServerSelect) {
+                  onServerSelect(server.server_name);
+                  return;
+                }
                 
                 // Update URL parameter mà không reload trang
                 const params = new URLSearchParams(searchParams.toString());
@@ -181,6 +199,11 @@ export function EpisodeSelectorWatch({
             if (movieName) {
               const episodeName = currentEpisodes.length === 1 ? 'FULL' : `Tập ${index + 1}`;
               analytics.trackWatchFilmEpisodeClick(movieName, movieSlug, episodeName, ep.slug, currentServer.server_name);
+            }
+
+            if (clientPlayback && onEpisodeSelect) {
+              onEpisodeSelect(ep.slug);
+              return;
             }
             
             // Tạo URL parameters mới
