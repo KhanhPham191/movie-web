@@ -63,12 +63,8 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
   return (
     <div className="space-y-5 sm:space-y-7">
       {/* ── Genre Section ─────────────────────────────────── */}
-      <div className="relative rounded-2xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] p-4 sm:p-6 overflow-hidden">
-        {/* Subtle glow accent */}
-        <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#F6C453]/[0.04] rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-[#D3A13A]/[0.03] rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative">
+      <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-4 sm:p-6">
+        <div>
           <div className="flex items-center justify-between mb-4 sm:mb-5">
             <div className="flex items-center gap-2.5">
               <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#F6C453]/10 border border-[#F6C453]/20">
@@ -80,10 +76,10 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
             </div>
             <Link
               href="/the-loai/hanh-dong"
-              className="text-xs sm:text-sm text-white/30 hover:text-[#F6C453] transition-colors flex items-center gap-1 group"
+              className="text-xs sm:text-sm text-white/30 sm:hover:text-[#F6C453] transition-colors flex items-center gap-1 group"
             >
               <span>Tất cả</span>
-              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight className="w-3.5 h-3.5 sm:group-hover:translate-x-0.5 transition-transform" />
             </Link>
           </div>
 
@@ -97,13 +93,15 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
                   onClick={() =>
                     analytics.trackGenreClick(genre.name, genre.slug, isHome)
                   }
-                  className={`group relative px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-full ${color.bg} backdrop-blur-sm border ${color.border} hover:brightness-125 transition-all duration-300 hover:shadow-lg ${color.shadow} active:scale-[0.97] ${
+                  className={`group inline-flex px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-full ${color.bg} border ${color.border} sm:hover:brightness-125 transition-colors duration-200 ${
                     !showAllGenres && index >= mobileVisibleCount
                       ? "hidden sm:inline-flex"
-                      : "inline-flex"
+                      : ""
                   }`}
                 >
-                  <span className={`text-xs sm:text-sm font-semibold ${color.text} group-hover:brightness-125 transition-colors whitespace-nowrap`}>
+                  <span
+                    className={`text-xs sm:text-sm font-semibold ${color.text} sm:group-hover:brightness-125 transition-colors whitespace-nowrap`}
+                  >
                     {genre.name}
                   </span>
                 </Link>
@@ -116,7 +114,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
             {!showAllGenres && GENRES.length > mobileVisibleCount && (
               <button
                 onClick={() => setShowAllGenres(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F6C453]/10 text-[#F6C453] text-xs font-semibold hover:bg-[#F6C453]/15 transition-colors cursor-pointer active:scale-95"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F6C453]/10 text-[#F6C453] text-xs font-semibold sm:hover:bg-[#F6C453]/15 transition-colors cursor-pointer"
               >
                 <span>Xem thêm</span>
                 <ChevronDown className="w-3 h-3" />
@@ -125,7 +123,7 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
             {showAllGenres && (
               <button
                 onClick={() => setShowAllGenres(false)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F6C453]/10 text-[#F6C453] text-xs font-semibold hover:bg-[#F6C453]/15 transition-colors cursor-pointer active:scale-95"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F6C453]/10 text-[#F6C453] text-xs font-semibold sm:hover:bg-[#F6C453]/15 transition-colors cursor-pointer"
               >
                 <span>Thu gọn</span>
                 <ChevronUp className="w-3 h-3" />
@@ -136,11 +134,8 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
       </div>
 
       {/* ── Country Section ───────────────────────────────── */}
-      <div className="relative rounded-2xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] p-4 sm:p-6 overflow-hidden">
-        {/* Subtle glow */}
-        <div className="absolute -top-16 right-1/3 w-32 h-32 bg-[#F6C453]/[0.03] rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative">
+      <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-4 sm:p-6">
+        <div>
           <div className="flex items-center gap-2.5 mb-4 sm:mb-5">
             <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#F6C453]/10 border border-[#F6C453]/20">
               <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#F6C453]" />
@@ -162,12 +157,12 @@ export function CategoryPills({ activeCategory = "" }: CategoryPillsProps) {
                     isHome
                   )
                 }
-                className="group flex flex-col items-center gap-1.5 sm:gap-2 py-3 sm:py-4 px-2 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:border-[#F6C453]/40 hover:bg-[#F6C453]/[0.06] transition-all duration-300 hover:shadow-[0_0_20px_rgba(246,196,83,0.06)] active:scale-[0.97]"
+                className="group flex flex-col items-center gap-1.5 sm:gap-2 py-3 sm:py-4 px-2 rounded-xl bg-white/[0.03] border border-white/[0.05] sm:hover:border-[#F6C453]/40 sm:hover:bg-[#F6C453]/[0.06] transition-colors duration-200"
               >
                 <span className="text-2xl sm:text-3xl leading-none">
                   {countryFlags[country.slug] || "🏴"}
                 </span>
-                <span className="text-[10px] sm:text-xs font-medium text-white/50 group-hover:text-white whitespace-nowrap transition-colors">
+                <span className="text-[10px] sm:text-xs font-medium text-white/50 sm:group-hover:text-white whitespace-nowrap transition-colors">
                   {country.name}
                 </span>
               </Link>
