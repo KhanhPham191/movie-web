@@ -446,7 +446,7 @@ function MovieCardWithPopup({
           {thumbUrl && (
             <div className="relative aspect-video w-full overflow-hidden bg-[#0a0a0a]">
               <Image
-                src={thumbUrl}
+                src={posterUrl}
                 alt={movie.name}
                 fill
                 className="object-cover"
