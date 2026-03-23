@@ -4,6 +4,7 @@ import {
   CATEGORIES,
   type FilmItem,
 } from "@/lib/api";
+import { isTrailerEpisode } from "@/lib/trailer";
 
 function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
   return [...(movies || [])].sort((a, b) => {
@@ -104,6 +105,11 @@ export async function HeroSectionWrapper() {
     // Loại bỏ phim Việt Nam
     phimLeFiltered = phimLeFiltered.filter(
       (movie) => !(movie.country || []).some((c) => c.slug === "viet-nam")
+    );
+
+    // Loại bỏ phim đang trạng thái trailer/sắp chiếu
+    phimLeFiltered = phimLeFiltered.filter(
+      (movie) => !isTrailerEpisode(movie.current_episode)
     );
 
     // Sắp xếp theo modified time (mới nhất trước) để hiển thị phim mới cập nhật nhất

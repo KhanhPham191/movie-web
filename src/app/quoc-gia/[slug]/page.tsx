@@ -13,6 +13,7 @@ import {
   COUNTRIES,
   getAvailableGenres,
 } from "@/lib/api";
+import { isTrailerEpisode } from "@/lib/trailer";
 
 // ISR: Revalidate every 5 minutes for country pages
 export const revalidate = 300;
@@ -58,6 +59,8 @@ async function CountryContent({ slug, page }: { slug: string; page: number }) {
     );
 
     const filteredMovies = uniqueMovies.filter((movie) => {
+      if (isTrailerEpisode(movie.current_episode)) return false;
+
       if (!movie.category || !Array.isArray(movie.category)) return true;
       return !movie.category.some((cat: any) => {
         const slugVal = (cat?.slug || "").toString().toLowerCase();

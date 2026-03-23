@@ -1,5 +1,6 @@
 import { MovieSectionWithNav } from "@/components/movie-section-with-nav";
 import { getFilmsByCountryMultiple } from "@/lib/api";
+import { isTrailerEpisode } from "@/lib/trailer";
 
 export async function ThaiLanSection() {
   try {
@@ -10,12 +11,16 @@ export async function ThaiLanSection() {
       limit: 20,
     });
 
-    if (thaiLan.length === 0) return <></>;
+    const thaiLanFiltered = thaiLan.filter(
+      (movie) => !isTrailerEpisode(movie.current_episode)
+    );
+
+    if (thaiLanFiltered.length === 0) return <></>;
 
     return (
       <MovieSectionWithNav
         title="Phim Thái Lan"
-        movies={thaiLan}
+        movies={thaiLanFiltered}
         href="/quoc-gia/thai-lan"
         variant="series"
         disableTilt={true}

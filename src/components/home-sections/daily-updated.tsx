@@ -1,5 +1,6 @@
 import { MovieSection } from "@/components/movie-section";
 import { getDailyUpdatedFilms, type FilmItem } from "@/lib/api";
+import { isTrailerEpisode } from "@/lib/trailer";
 
 export async function DailyUpdated() {
   try {
@@ -14,7 +15,9 @@ export async function DailyUpdated() {
       return null; // Return null thay vì <></>
     }
 
-    const dailyUpdated = dailyUpdatedRes.items || [];
+    const dailyUpdated = (dailyUpdatedRes.items || []).filter(
+      (movie: FilmItem) => !isTrailerEpisode(movie.current_episode)
+    );
 
 
     if (dailyUpdated.length === 0) {

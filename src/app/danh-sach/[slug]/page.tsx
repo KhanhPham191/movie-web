@@ -8,6 +8,7 @@ import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getFilmsByCategory, getNewlyUpdatedFilms, getDailyUpdatedFilms, getAvailableGenres } from "@/lib/api";
+import { isTrailerEpisode } from "@/lib/trailer";
 
 // ISR: Revalidate every 30 seconds for real-time updates
 export const revalidate = 30;
@@ -77,6 +78,9 @@ async function CategoryContent({
       movies = response.items || [];
       totalPages = response.paginate?.total_page || 1;
     }
+
+    // Loại bỏ phim đang ở trạng thái trailer/sắp chiếu khỏi danh mục
+    movies = (movies || []).filter((movie) => !isTrailerEpisode(movie?.current_episode));
 
     if (movies.length === 0) {
       return (

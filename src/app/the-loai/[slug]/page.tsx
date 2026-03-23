@@ -8,6 +8,7 @@ import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Film } from "lucide-react";
 import { getFilmsByGenre, getFilmsByGenreAll, GENRES, getAvailableGenres } from "@/lib/api";
+import { isTrailerEpisode } from "@/lib/trailer";
 
 export const revalidate = 600;
 
@@ -24,7 +25,9 @@ async function GenreContent({ slug, page }: { slug: string; page: number }) {
       sort_type: "desc",
     });
     
-    const movies = response.items || [];
+    const movies = (response.items || []).filter(
+      (movie) => !isTrailerEpisode(movie.current_episode)
+    );
     const totalPages = response.paginate?.total_page || 1;
     const totalItems = response.paginate?.total_items || 0;
 

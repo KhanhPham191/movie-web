@@ -1,5 +1,6 @@
 import { MovieSectionWithNav } from "@/components/movie-section-with-nav";
 import { getFilmsByCountryMultiple } from "@/lib/api";
+import { isTrailerEpisode } from "@/lib/trailer";
 
 export async function HongKongSection() {
   try {
@@ -10,12 +11,16 @@ export async function HongKongSection() {
       limit: 20,
     });
 
-    if (hongKong.length === 0) return <></>;
+    const hongKongFiltered = hongKong.filter(
+      (movie) => !isTrailerEpisode(movie.current_episode)
+    );
+
+    if (hongKongFiltered.length === 0) return <></>;
 
     return (
       <MovieSectionWithNav
         title="Phim Hồng Kông"
-        movies={hongKong}
+        movies={hongKongFiltered}
         href="/quoc-gia/hong-kong"
         variant="series"
         disableTilt={true}

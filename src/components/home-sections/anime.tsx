@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { AnimeCarousel } from "@/components/home-sections/anime-carousel";
 import { getFilmsByCategory, type FilmItem } from "@/lib/api";
+import { isTrailerEpisode } from "@/lib/trailer";
 
 export async function AnimeSection() {
   try {
@@ -24,7 +25,9 @@ export async function AnimeSection() {
       },
     }));
 
-    const animeMovies = res.items || [];
+    const animeMovies = (res.items || []).filter(
+      (movie) => !isTrailerEpisode(movie.current_episode)
+    );
 
     if (animeMovies.length === 0) return <></>;
 

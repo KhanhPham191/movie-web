@@ -1,5 +1,6 @@
 import { MovieSectionWithNav } from "@/components/movie-section-with-nav";
 import { getFilmsByCategoryMultiple, CATEGORIES, type FilmItem } from "@/lib/api";
+import { isTrailerEpisode } from "@/lib/trailer";
 
 function sortByModifiedDesc(movies: FilmItem[]): FilmItem[] {
   return [...(movies || [])].sort((a, b) => {
@@ -45,6 +46,9 @@ export async function TrungQuocSection() {
 
     // Filter loại bỏ phim có category hoạt hình
     const trungQuocFiltered = uniqueMovies.filter((movie) => {
+      const isNotTrailer = !isTrailerEpisode(movie.current_episode);
+      if (!isNotTrailer) return false;
+
       if (!movie.category || !Array.isArray(movie.category)) return true;
       // Loại bỏ nếu có category "Hoạt Hình" hoặc "hoat-hinh"
       return !movie.category.some(

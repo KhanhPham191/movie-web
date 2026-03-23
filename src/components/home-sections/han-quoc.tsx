@@ -1,5 +1,6 @@
 import { MovieSectionWithNav } from "@/components/movie-section-with-nav";
 import { getFilmsByCountryMultiple } from "@/lib/api";
+import { isTrailerEpisode } from "@/lib/trailer";
 
 export async function HanQuocSection() {
   try {
@@ -10,12 +11,16 @@ export async function HanQuocSection() {
       limit: 20,
     });
 
-    if (hanQuoc.length === 0) return <></>;
+    const hanQuocFiltered = hanQuoc.filter(
+      (movie) => !isTrailerEpisode(movie.current_episode)
+    );
+
+    if (hanQuocFiltered.length === 0) return <></>;
 
     return (
       <MovieSectionWithNav
         title="Phim Hàn Quốc"
-        movies={hanQuoc}
+        movies={hanQuocFiltered}
         href="/quoc-gia/han-quoc"
         variant="series"
         disableTilt={true}
