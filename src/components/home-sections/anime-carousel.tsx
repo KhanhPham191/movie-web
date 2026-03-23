@@ -568,85 +568,98 @@ function MovieCardWithPopup({
           }
         }}
       >
-          <div className="flex flex-col h-full rounded-xl overflow-hidden bg-[#1a1a1a] hover:bg-[#1f1f1f] border border-white/10 hover:border-[#F6C453]/60 shadow-[0_4px_18px_rgba(0,0,0,0.6)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.8)] transition-all duration-500 ease-in-out hover:scale-[1.01]">
-          <div className="relative aspect-video w-full overflow-hidden rounded-t-xl">
-            <Image
-              src={posterUrl}
-              alt={movie.name}
-              fill
-              className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-[1.03]"
-              sizes="(max-width: 640px) 280px, (max-width: 768px) 320px, 360px"
-            />
-            {/* Language Badges - Bottom Left Corner */}
-            <LanguageBadges language={movie.language} />
-            {/* Episode Badge - Bottom Right Corner */}
-            {episodeLabel && (
-              <Badge className="absolute bottom-2 right-2 bg-gradient-to-r from-red-600 via-orange-500 to-orange-400 text-white border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg z-20">
-                {episodeLabel}
-              </Badge>
-            )}
-            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out" />
-            <div className="absolute inset-0 flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-all duration-500 ease-in-out">
-              <div className="relative transform scale-0 group-hover:scale-100 transition-transform duration-500 ease-in-out">
-                <div className="absolute inset-0 bg-[#F6C453] rounded-full blur-lg opacity-50 group-hover:opacity-70 transition-opacity duration-500 ease-in-out" />
-                <button
-                  type="button"
-                  className="relative w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full bg-[#F6C453] flex items-center justify-center shadow-xl cursor-pointer"
-                  aria-label="Phát phim"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    router.push(`/phim/${movie.slug}`);
-                  }}
-                >
-                  <Play className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white fill-white ml-0.5" />
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="flex-1 flex gap-3 p-3 sm:p-4 bg-[#1a1a1a] rounded-b-xl">
-            {posterUrl && (
-              <div className="relative shrink-0 w-16 h-20 sm:w-20 sm:h-28 md:w-24 md:h-32 rounded-md overflow-hidden">
-                <Image
-                  src={thumbUrl}
-                  alt={movie.name}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, 96px"
-                />
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <h3 className="text-white font-bold text-sm sm:text-base mb-1.5 line-clamp-2 group-hover:text-[#F6C453] transition-colors duration-500 ease-in-out">
-                {movie.name}
-              </h3>
-              {movie.original_name && movie.original_name !== movie.name && (
-                <p className="text-gray-400 text-xs sm:text-sm mb-2 line-clamp-1">
-                  {movie.original_name}
-                </p>
+          <div className="group relative w-full max-w-full h-full">
+            {/* Outer glow frame */}
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#F6C453]/20 via-transparent to-[#DB2777]/15 blur-xl opacity-0 group-hover:opacity-100 transition duration-500" />
+
+            {/* Cinema-style wide poster */}
+            <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-[#0a0a0a] transition-all duration-200 sm:duration-300 sm:group-hover:scale-[1.02] sm:group-hover:shadow-2xl flex-shrink-0 border border-white/5 sm:group-hover:border-[rgba(246,196,83,0.35)]">
+              {/* Hover glow tint */}
+              <div className="absolute inset-0 bg-[rgba(246,196,83,0.12)] opacity-0 group-hover:opacity-100 transition-opacity duration-200 sm:duration-300 pointer-events-none z-10" />
+
+              <Image
+                src={posterUrl}
+                alt={movie.name}
+                fill
+                className="object-cover object-center transition-transform duration-200 sm:duration-300 ease-in-out sm:group-hover:scale-[1.03]"
+                sizes="(max-width: 640px) 280px, (max-width: 768px) 320px, 360px"
+                loading="lazy"
+              />
+
+              {/* Badges */}
+              <LanguageBadges language={movie.language} />
+              {episodeLabel && (
+                <Badge className="absolute bottom-2 right-2 bg-gradient-to-r from-red-600 via-orange-500 to-orange-400 text-white border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg z-20">
+                  {episodeLabel}
+                </Badge>
               )}
-              <div className="flex flex-wrap items-center gap-1.5 text-gray-400 text-[13px] sm:text-sm">
-                {year && (
-                  <>
-                    <span>{year}</span>
-                    {duration && <span>•</span>}
-                  </>
-                )}
-                {duration && (
-                  <>
-                    <span className="font-semibold text-white">
-                      {duration}
-                    </span>
-                    {episodeLabel && <span>•</span>}
-                  </>
-                )}
-                {episodeLabel && (
-                  <span className="text-gray-400">{episodeLabel}</span>
-                )}
+
+              {/* Dark gradient bar at bottom */}
+              <div className="absolute inset-x-0 bottom-0 h-[96px] sm:h-[108px] bg-gradient-to-t from-[#050505] via-[#050505e6] to-transparent" />
+
+              {/* Thumb + text overlay on bottom bar */}
+              <div className="absolute left-3 right-3 bottom-3 flex items-end gap-2 sm:gap-3 z-20">
+                <div className="relative aspect-[2/3] w-12 xs:w-14 sm:w-20 rounded-md overflow-hidden shadow-2xl shadow-black/80 border border-white/10 bg-black/60 flex-shrink-0">
+                  <Image
+                    src={thumbUrl}
+                    alt={movie.name}
+                    fill
+                    className="object-cover object-center"
+                    sizes="56px"
+                    loading="lazy"
+                  />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-xs xs:text-sm sm:text-base font-semibold text-white line-clamp-1">
+                    {movie.name}
+                  </h3>
+                  {movie.original_name && movie.original_name !== movie.name && (
+                    <p className="text-xs xs:text-sm text-gray-100 font-medium leading-snug line-clamp-1">
+                      {movie.original_name}
+                    </p>
+                  )}
+
+                  {cleanDescription && (
+                    <p className="mt-0.5 text-[10px] xs:text-xs text-gray-300 line-clamp-2">
+                      {cleanDescription}
+                    </p>
+                  )}
+
+                  {(year || duration || episodeLabel) && (
+                    <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-200 flex flex-wrap items-center gap-x-1.5 sm:gap-x-2 gap-y-0.5">
+                      {year && <span>{year}</span>}
+                      {duration && <span className="font-semibold text-white">{duration}</span>}
+                      {episodeLabel && (
+                        <span className="px-1 py-0.5 rounded bg-white/10 border border-white/10 text-[9px] xs:text-[10px]">
+                          {episodeLabel}
+                        </span>
+                      )}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Play button - center on hover */}
+              <div className="absolute inset-0 flex items-center justify-center z-30 opacity-0 group-hover:opacity-100 transition-all duration-500 ease-in-out">
+                <div className="relative transform scale-0 group-hover:scale-100 transition-transform duration-500 ease-in-out">
+                  <div className="absolute inset-0 bg-[#F6C453] rounded-full blur-lg opacity-50 group-hover:opacity-70 transition-opacity duration-500 ease-in-out" />
+                  <button
+                    type="button"
+                    className="relative w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full bg-[#F6C453] flex items-center justify-center shadow-xl cursor-pointer"
+                    aria-label="Phát phim"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      router.push(`/phim/${movie.slug}`);
+                    }}
+                  >
+                    <Play className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white fill-white ml-0.5" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
       </Link>
     </>
   );
