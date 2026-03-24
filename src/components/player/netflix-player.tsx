@@ -347,7 +347,6 @@ const ControlsRow = memo(function ControlsRow({
 
 type ProgressBarProps = {
   isMobile: boolean;
-  isIOS: boolean;
   isDragging: boolean;
   isHoveringProgress: boolean;
   hoverTime: number | null;
@@ -373,7 +372,6 @@ type ProgressBarProps = {
 
 const ProgressBar = memo(function ProgressBar({
   isMobile,
-  isIOS,
   isDragging,
   isHoveringProgress,
   hoverTime,
@@ -1273,19 +1271,22 @@ export function NetflixPlayer({
     togglePlayRef.current = handleTogglePlay;
   }, [isPlaying]);
 
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const video = videoRef.current;
-    if (!video) return;
-    const value = parseFloat(e.target.value);
-    video.currentTime = value;
-    setCurrentTime(value);
-  };
-
   const handleDesktopRangeChange = useCallback((value: number) => {
     const video = videoRef.current;
     if (!video) return;
     video.currentTime = value;
     setCurrentTime(value);
+  }, []);
+
+  const handleToggleSettings = useCallback((next: boolean) => {
+    setShowSettings(next);
+    showSettingsRef.current = next;
+  }, []);
+
+  const handleSelectPlaybackRate = useCallback((rate: number) => {
+    setPlaybackRate(rate);
+    setShowSettings(false);
+    showSettingsRef.current = false;
   }, []);
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2263,7 +2264,6 @@ export function NetflixPlayer({
         >
           <ProgressBar
             isMobile={isMobile}
-            isIOS={isIOS}
             isDragging={isDragging}
             isHoveringProgress={isHoveringProgress}
             hoverTime={hoverTime}
@@ -2304,15 +2304,8 @@ export function NetflixPlayer({
             onVolumeButtonClick={handleVolumeButtonClick}
             onVolumeChange={handleVolumeChange}
             onToggleAutoplay={toggleAutoplay}
-            onToggleSettings={(next) => {
-              setShowSettings(next);
-              showSettingsRef.current = next;
-            }}
-            onSelectPlaybackRate={(rate) => {
-              setPlaybackRate(rate);
-              setShowSettings(false);
-              showSettingsRef.current = false;
-            }}
+            onToggleSettings={handleToggleSettings}
+            onSelectPlaybackRate={handleSelectPlaybackRate}
             onToggleFullscreen={handleToggleFullscreen}
           />
         </div>
