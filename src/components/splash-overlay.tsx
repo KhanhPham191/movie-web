@@ -15,8 +15,11 @@ export function SplashOverlay() {
   // Khởi tạo true trên server (chưa biết sessionStorage), client sẽ sửa ngay trong useEffect
   const [isVisible, setIsVisible] = useState(true);
   const [shouldRender, setShouldRender] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    setIsMobile(window.matchMedia("(max-width: 768px)").matches);
+
     // Check sessionStorage ngay lập tức trên client
     // Nếu đã hiển thị splash trước đó → ẩn ngay, không delay
     if (hasShownSplash()) {
@@ -99,9 +102,12 @@ export function SplashOverlay() {
           className="text-6xl sm:text-7xl md:text-8xl font-extrabold text-[#F6C453] tracking-tight break-words"
           style={{
             animation: isVisible 
-              ? 'textFadeInScale 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)' 
-              : 'textFadeOutScale 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-            textShadow: '0 0 20px rgba(246, 196, 83, 0.5), 0 0 40px rgba(246, 196, 83, 0.3)',
+              ? `textFadeInScale ${isMobile ? "0.45s" : "0.8s"} cubic-bezier(0.34, 1.56, 0.64, 1)` 
+              : `textFadeOutScale ${isMobile ? "0.3s" : "0.5s"} cubic-bezier(0.4, 0, 0.2, 1)`,
+            // Mobile: bỏ glow nặng để giảm overdraw/GPU cost
+            textShadow: isMobile
+              ? "none"
+              : "0 0 20px rgba(246, 196, 83, 0.5), 0 0 40px rgba(246, 196, 83, 0.3)",
           }}
         >
           MovPey
@@ -110,8 +116,8 @@ export function SplashOverlay() {
           className="text-xl sm:text-2xl md:text-3xl font-medium text-gray-300 tracking-wide break-words"
           style={{
             animation: isVisible 
-              ? 'textFadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both' 
-              : 'textFadeOutUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both',
+              ? `textFadeInUp ${isMobile ? "0.45s" : "0.8s"} cubic-bezier(0.34, 1.56, 0.64, 1) ${isMobile ? "0.08s" : "0.2s"} both` 
+              : `textFadeOutUp ${isMobile ? "0.3s" : "0.5s"} cubic-bezier(0.4, 0, 0.2, 1) 0.1s both`,
           }}
         >
           Phim xịn mỗi ngày

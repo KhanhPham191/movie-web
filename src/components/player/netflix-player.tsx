@@ -887,10 +887,6 @@ export function NetflixPlayer({
             }
           } catch {}
         }).catch(() => {});
-        // Track fullscreen event
-        if (movieName && movieSlug && episodeSlug) {
-          analytics.trackWatchFilmFullscreen(movieName, movieSlug, episodeSlug, true);
-        }
       }
     } else {
       // Unlock orientation before exiting fullscreen
@@ -908,10 +904,6 @@ export function NetflixPlayer({
       
       if (exitFullscreen) {
         exitFullscreen.call(document).catch(() => {});
-        // Track fullscreen event
-        if (movieName && movieSlug && episodeSlug) {
-          analytics.trackWatchFilmFullscreen(movieName, movieSlug, episodeSlug, false);
-        }
       }
     }
     showControlsWithTimeout();

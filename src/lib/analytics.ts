@@ -21,6 +21,22 @@ export interface GAEvent {
   [key: string]: any;
 }
 
+const videoEventThrottleStore = new Map<string, number>();
+
+function shouldThrottleVideoEvent(
+  eventName: string,
+  throttleMs: number,
+  keyParts: Array<string | number | boolean | undefined>
+) {
+  if (throttleMs <= 0) return false;
+  const key = `${eventName}:${keyParts.map((p) => String(p ?? "")).join("|")}`;
+  const now = Date.now();
+  const previous = videoEventThrottleStore.get(key);
+  if (previous && now - previous < throttleMs) return true;
+  videoEventThrottleStore.set(key, now);
+  return false;
+}
+
 /**
  * Track a custom event in Google Analytics
  */
@@ -388,17 +404,36 @@ export const analytics = {
   },
 
   trackWatchFilmVolumeChange: (movieName: string, movieSlug: string, episodeSlug: string, volume: number, isMuted: boolean) => {
+    const volumeStep = Math.round(volume * 100);
+    if (
+      shouldThrottleVideoEvent(
+        "wflim_volume_change",
+        1500,
+        [movieSlug, episodeSlug, volumeStep, isMuted]
+      )
+    ) {
+      return;
+    }
     trackEvent('wflim_volume_change', {
       event_category: 'video',
       event_label: movieName,
       movie_slug: movieSlug,
       episode_slug: episodeSlug,
-      volume: volume,
+      volume: volumeStep / 100,
       is_muted: isMuted,
     });
   },
 
   trackWatchFilmFullscreen: (movieName: string, movieSlug: string, episodeSlug: string, isFullscreen: boolean) => {
+    if (
+      shouldThrottleVideoEvent(
+        "wflim_fullscreen",
+        2000,
+        [movieSlug, episodeSlug, isFullscreen]
+      )
+    ) {
+      return;
+    }
     trackEvent('wflim_fullscreen', {
       event_category: 'video',
       event_label: movieName,

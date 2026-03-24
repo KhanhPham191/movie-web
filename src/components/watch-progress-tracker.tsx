@@ -12,8 +12,9 @@ interface WatchProgressTrackerProps {
   serverName?: string;
 }
 
-const SAVE_INTERVAL_MS = 5_000; // lưu mỗi 5 giây
+const SAVE_INTERVAL_MS = 12_000; // lưu mỗi 12 giây để giảm network wake-up trên mobile
 const MIN_WATCH_TIME = 3;       // bỏ qua nếu xem dưới 3 giây
+const MIN_SAVE_DELTA_SECONDS = 10; // chỉ lưu khi tiến thêm ít nhất 10s
 
 export function WatchProgressTracker({
   movie,
@@ -49,6 +50,13 @@ export function WatchProgressTracker({
       if (watchTime < MIN_WATCH_TIME) return;
       // Bỏ qua nếu đúng vị trí đã lưu rồi (tránh lưu lặp cùng 1 giá trị)
       if (watchTime === lastSavedTimeRef.current) return;
+      // Bỏ qua nếu vị trí thay đổi quá ít (tránh spam request)
+      if (
+        lastSavedTimeRef.current >= 0 &&
+        Math.abs(watchTime - lastSavedTimeRef.current) < MIN_SAVE_DELTA_SECONDS
+      ) {
+        return;
+      }
       if (isSavingRef.current) return;
 
       isSavingRef.current = true;
@@ -115,9 +123,40 @@ export function WatchProgressTracker({
       }
     };
 
+    const handleVisibilityChange = () => {
+      // Mobile thường đưa tab/app về background mà không chạy beforeunload
+      if (document.visibilityState !== "hidden") return;
+      const { currentTime, duration } = currentStateRef.current;
+      if (currentTime < MIN_WATCH_TIME) return;
+      navigator.sendBeacon(
+        "/movpey/watch-history",
+        new Blob(
+          [JSON.stringify(buildPayload(currentTime, duration))],
+          { type: "application/json" }
+        )
+      );
+    };
+
+    const handlePageHide = () => {
+      // iOS Safari ưu tiên pagehide hơn beforeunload
+      const { currentTime, duration } = currentStateRef.current;
+      if (currentTime < MIN_WATCH_TIME) return;
+      navigator.sendBeacon(
+        "/movpey/watch-history",
+        new Blob(
+          [JSON.stringify(buildPayload(currentTime, duration))],
+          { type: "application/json" }
+        )
+      );
+    };
+
     window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("pagehide", handlePageHide);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("pagehide", handlePageHide);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       // Lưu cuối cùng khi unmount
       handleUnload();
     };

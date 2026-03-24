@@ -27,6 +27,12 @@ export function VideoGesturesPlayer({ src, poster }: VideoGesturesPlayerProps) {
   const gestureRef = useRef<GestureState | null>(null);
   const seekDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const pendingSeekTimeRef = useRef<number | null>(null);
+  const rafMoveRef = useRef<number | null>(null);
+  const latestMoveEventRef = useRef<React.PointerEvent<HTMLDivElement> | null>(null);
+  const hudTimerRef = useRef<number | null>(null);
+  const lastHudRef = useRef<string | null>(null);
+  const lastBrightnessStepRef = useRef<number>(100);
+  const lastVolumeStepRef = useRef<number>(100);
   const [isIOS, setIsIOS] = useState(false);
 
   const [brightness, setBrightness] = useState(1);
@@ -39,9 +45,15 @@ export function VideoGesturesPlayer({ src, poster }: VideoGesturesPlayerProps) {
   }, []);
 
   const showHud = (text: string) => {
+    if (lastHudRef.current === text) return;
+    lastHudRef.current = text;
     setHud(text);
-    window.clearTimeout((showHud as any)._t);
-    (showHud as any)._t = window.setTimeout(() => setHud(null), 700);
+    if (hudTimerRef.current) window.clearTimeout(hudTimerRef.current);
+    hudTimerRef.current = window.setTimeout(() => {
+      setHud(null);
+      lastHudRef.current = null;
+      hudTimerRef.current = null;
+    }, 700);
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -67,7 +79,7 @@ export function VideoGesturesPlayer({ src, poster }: VideoGesturesPlayerProps) {
     container.setPointerCapture(e.pointerId);
   };
 
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+  const processPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const video = videoRef.current;
     const container = containerRef.current;
     const gesture = gestureRef.current;
@@ -114,17 +126,33 @@ export function VideoGesturesPlayer({ src, poster }: VideoGesturesPlayerProps) {
     if (gesture.mode === "vertical-right") {
       const delta = -dy / 200; // 200px ~ 1.0 volume
       const newVolume = clamp(gesture.initialVolume + delta, 0, 1);
+      const volumeStep = Math.round(newVolume * 100);
+      if (volumeStep === lastVolumeStepRef.current) return;
+      lastVolumeStepRef.current = volumeStep;
       video.volume = newVolume;
-      showHud(`Âm lượng: ${Math.round(newVolume * 100)}%`);
+      showHud(`Âm lượng: ${volumeStep}%`);
       return;
     }
 
     if (gesture.mode === "vertical-left") {
       const delta = -dy / 300; // 300px ~ 0.5 brightness
       const newBrightness = clamp(gesture.initialBrightness + delta, 0.4, 1.5);
+      const brightnessStep = Math.round(newBrightness * 100);
+      if (brightnessStep === lastBrightnessStepRef.current) return;
+      lastBrightnessStepRef.current = brightnessStep;
       setBrightness(newBrightness);
-      showHud(`Độ sáng: ${Math.round(newBrightness * 100)}%`);
+      showHud(`Độ sáng: ${brightnessStep}%`);
     }
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    latestMoveEventRef.current = e;
+    if (rafMoveRef.current !== null) return;
+    rafMoveRef.current = window.requestAnimationFrame(() => {
+      rafMoveRef.current = null;
+      const evt = latestMoveEventRef.current;
+      if (evt) processPointerMove(evt);
+    });
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -147,8 +175,20 @@ export function VideoGesturesPlayer({ src, poster }: VideoGesturesPlayerProps) {
         // ignore
       }
     }
+    if (rafMoveRef.current !== null) {
+      window.cancelAnimationFrame(rafMoveRef.current);
+      rafMoveRef.current = null;
+    }
     gestureRef.current = null;
   };
+
+  useEffect(() => {
+    return () => {
+      if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
+      if (rafMoveRef.current !== null) window.cancelAnimationFrame(rafMoveRef.current);
+      if (hudTimerRef.current) window.clearTimeout(hudTimerRef.current);
+    };
+  }, []);
 
   return (
     <div
