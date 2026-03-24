@@ -140,6 +140,211 @@ const TopBar = memo(function TopBar({ showControls, title }: TopBarProps) {
   );
 });
 
+type ControlsRowProps = {
+  isMobile: boolean;
+  isPlaying: boolean;
+  isMuted: boolean;
+  volume: number;
+  duration: number;
+  currentTime: number;
+  isFullscreen: boolean;
+  showSettings: boolean;
+  playbackRate: number;
+  isAutoplayEnabled: boolean;
+  formatTime: (time: number) => string;
+  onTogglePlay: () => void;
+  onSkip: (seconds: number, showIndicator?: boolean) => void;
+  onVolumeButtonClick: (e: React.MouseEvent) => void;
+  onVolumeChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onToggleAutoplay: () => void;
+  onToggleSettings: (next: boolean) => void;
+  onSelectPlaybackRate: (rate: number) => void;
+  onToggleFullscreen: () => void;
+};
+
+const ControlsRow = memo(function ControlsRow({
+  isMobile,
+  isPlaying,
+  isMuted,
+  volume,
+  duration,
+  currentTime,
+  isFullscreen,
+  showSettings,
+  playbackRate,
+  isAutoplayEnabled,
+  formatTime,
+  onTogglePlay,
+  onSkip,
+  onVolumeButtonClick,
+  onVolumeChange,
+  onToggleAutoplay,
+  onToggleSettings,
+  onSelectPlaybackRate,
+  onToggleFullscreen,
+}: ControlsRowProps) {
+  return (
+    <div className="flex items-center justify-between gap-3 pointer-events-auto">
+      <div className="flex items-center gap-1 sm:gap-1.5">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onTogglePlay();
+          }}
+          className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? "w-9 h-9" : "w-10 h-10"}`}
+          aria-label={isPlaying ? "Tạm dừng" : "Phát"}
+        >
+          {isPlaying ? (
+            <Pause className={`text-white ${isMobile ? "w-5 h-5" : "w-5 h-5"}`} fill="white" strokeWidth={0} />
+          ) : (
+            <Play className={`text-white ml-0.5 ${isMobile ? "w-5 h-5" : "w-5 h-5"}`} fill="white" strokeWidth={0} />
+          )}
+        </button>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onSkip(-10, true);
+          }}
+          className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? "w-9 h-9" : "w-10 h-10"}`}
+          aria-label="Lùi 10 giây"
+        >
+          <SkipBack className={`text-white ${isMobile ? "w-[18px] h-[18px]" : "w-[18px] h-[18px]"}`} />
+        </button>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onSkip(10, true);
+          }}
+          className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? "w-9 h-9" : "w-10 h-10"}`}
+          aria-label="Tới 10 giây"
+        >
+          <SkipForward className={`text-white ${isMobile ? "w-[18px] h-[18px]" : "w-[18px] h-[18px]"}`} />
+        </button>
+
+        <div className="relative flex items-center gap-1.5">
+          <button
+            onClick={onVolumeButtonClick}
+            className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? "w-9 h-9" : "w-10 h-10"}`}
+            aria-label="Âm lượng"
+          >
+            {isMuted || volume === 0 ? (
+              <VolumeX className={`text-white ${isMobile ? "w-5 h-5" : "w-5 h-5"}`} />
+            ) : (
+              <Volume2 className={`text-white ${isMobile ? "w-5 h-5" : "w-5 h-5"}`} />
+            )}
+          </button>
+          {!isMobile && (
+            <div className="relative w-20 h-6 flex items-center group/vol">
+              <div className="absolute inset-x-0 h-[3px] rounded-full bg-white/20" />
+              <div className="absolute inset-x-0 left-0 h-[3px] rounded-full bg-white transition-all" style={{ width: `${volume * 100}%` }} />
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={volume}
+                onChange={(e) => {
+                  onVolumeChange(e);
+                  e.stopPropagation();
+                }}
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                onMouseUp={(e) => e.stopPropagation()}
+                className="relative z-10 w-full h-[3px] appearance-none cursor-pointer bg-transparent [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:hover:scale-125 [&::-webkit-slider-thumb]:active:scale-125 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:hover:scale-125 [&::-moz-range-thumb]:active:scale-125"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className={`text-white/70 font-medium tabular-nums ${isMobile ? "text-[11px] ml-1" : "text-[13px] ml-2"}`}>
+          {formatTime(currentTime)} <span className="text-white/30">/</span> {formatTime(duration)}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-1 sm:gap-1.5">
+        <div className="flex flex-col items-center">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleAutoplay();
+            }}
+            className={`flex items-center justify-center rounded-md transition-all ${isAutoplayEnabled ? "bg-[#F6C453]/20 hover:bg-[#F6C453]/30 border border-[#F6C453]/50" : "hover:bg-white/10 border border-transparent"} active:scale-90 ${isMobile ? "w-9 h-9" : "w-10 h-10"}`}
+            aria-label={isAutoplayEnabled ? "Tắt chuyển tập" : "Bật chuyển tập"}
+            title={isAutoplayEnabled ? "Chuyển tập: BẬT" : "Chuyển tập: TẮT"}
+          >
+            <FastForward className={`${isAutoplayEnabled ? "text-[#F6C453]" : "text-white"} ${isMobile ? "w-5 h-5" : "w-5 h-5"}`} fill={isAutoplayEnabled ? "#F6C453" : "none"} strokeWidth={2} />
+          </button>
+          <span className="text-[7px] sm:text-[9px] text-white/60 mt-0.5 text-center whitespace-nowrap">Chuyển tập</span>
+        </div>
+
+        <div className="relative z-50">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSettings(!showSettings);
+            }}
+            className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? "w-9 h-9" : "w-10 h-10"}`}
+            aria-label="Cài đặt"
+          >
+            <Settings className={`text-white ${isMobile ? "w-5 h-5" : "w-5 h-5"} transition-transform duration-300 ${showSettings ? "rotate-45" : ""}`} />
+          </button>
+          {showSettings && (
+            <div
+              data-settings-menu
+              className="absolute bottom-full right-0 mb-2 min-w-[150px] w-auto bg-black/95 backdrop-blur-xl rounded-lg p-1.5 space-y-0.5 ring-1 ring-white/10 shadow-2xl z-[110] pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+              onTouchStart={(e) => {
+                const target = e.target as HTMLElement;
+                if (target.tagName !== "BUTTON") {
+                  e.stopPropagation();
+                }
+              }}
+            >
+              <div className="text-white/40 text-[10px] px-2.5 py-1.5 font-semibold whitespace-nowrap pointer-events-none uppercase tracking-widest">Tốc độ</div>
+              {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
+                <button
+                  key={rate}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    onSelectPlaybackRate(rate);
+                  }}
+                  onTouchEnd={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    onSelectPlaybackRate(rate);
+                  }}
+                  className={`w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-white/10 active:bg-white/15 transition-all whitespace-nowrap ${playbackRate === rate ? "text-[#F6C453] font-medium bg-[#F6C453]/10" : "text-white/80"}`}
+                  style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
+                >
+                  {rate}x
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFullscreen();
+          }}
+          className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? "w-9 h-9" : "w-10 h-10"}`}
+          aria-label="Toàn màn hình"
+        >
+          {isFullscreen ? (
+            <Minimize2 className={`text-white ${isMobile ? "w-5 h-5" : "w-5 h-5"}`} />
+          ) : (
+            <Maximize2 className={`text-white ${isMobile ? "w-5 h-5" : "w-5 h-5"}`} />
+          )}
+        </button>
+      </div>
+    </div>
+  );
+});
+
 export function NetflixPlayer({
   src,
   title = "Player",
@@ -2012,217 +2217,34 @@ export function NetflixPlayer({
             </div>
           </div>
 
-          {/* Controls Row */}
-          <div className="flex items-center justify-between gap-3 pointer-events-auto">
-            <div className="flex items-center gap-1 sm:gap-1.5">
-              {/* Play/Pause */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleTogglePlay();
-                }}
-                className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? 'w-9 h-9' : 'w-10 h-10'}`}
-                aria-label={isPlaying ? "Tạm dừng" : "Phát"}
-              >
-                {isPlaying ? (
-                  <Pause className={`text-white ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} fill="white" strokeWidth={0} />
-                ) : (
-                  <Play className={`text-white ml-0.5 ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} fill="white" strokeWidth={0} />
-                )}
-              </button>
-
-              {/* Skip Backward */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSkip(-10, true);
-                }}
-                className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? 'w-9 h-9' : 'w-10 h-10'}`}
-                aria-label="Lùi 10 giây"
-              >
-                <SkipBack className={`text-white ${isMobile ? 'w-[18px] h-[18px]' : 'w-[18px] h-[18px]'}`} />
-              </button>
-
-              {/* Skip Forward */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSkip(10, true);
-                }}
-                className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? 'w-9 h-9' : 'w-10 h-10'}`}
-                aria-label="Tới 10 giây"
-              >
-                <SkipForward className={`text-white ${isMobile ? 'w-[18px] h-[18px]' : 'w-[18px] h-[18px]'}`} />
-              </button>
-
-              {/* Volume - Inline slider for desktop */}
-              <div className="relative flex items-center gap-1.5">
-                <button
-                  onClick={handleVolumeButtonClick}
-                  className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? 'w-9 h-9' : 'w-10 h-10'}`}
-                  aria-label="Âm lượng"
-                >
-                  {isMuted || volume === 0 ? (
-                    <VolumeX className={`text-white ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} />
-                  ) : (
-                    <Volume2 className={`text-white ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} />
-                  )}
-                </button>
-                {/* Inline volume slider - desktop only */}
-                {!isMobile && (
-                  <div className="relative w-20 h-6 flex items-center group/vol">
-                    {/* Background track */}
-                    <div className="absolute inset-x-0 h-[3px] rounded-full bg-white/20" />
-                    {/* Progress fill */}
-                    <div
-                      className="absolute inset-x-0 left-0 h-[3px] rounded-full bg-white transition-all"
-                      style={{ width: `${volume * 100}%` }}
-                    />
-                    {/* Slider input */}
-                    <input
-                      type="range"
-                      min={0}
-                      max={1}
-                      step={0.01}
-                      value={volume}
-                      onChange={(e) => {
-                        handleVolumeChange(e);
-                        e.stopPropagation();
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onMouseUp={(e) => e.stopPropagation()}
-                      className="relative z-10 w-full h-[3px] appearance-none cursor-pointer bg-transparent
-                        [&::-webkit-slider-thumb]:appearance-none
-                        [&::-webkit-slider-thumb]:w-3
-                        [&::-webkit-slider-thumb]:h-3
-                        [&::-webkit-slider-thumb]:rounded-full
-                        [&::-webkit-slider-thumb]:bg-white
-                        [&::-webkit-slider-thumb]:hover:scale-125
-                        [&::-webkit-slider-thumb]:active:scale-125
-                        [&::-webkit-slider-thumb]:transition-transform
-                        [&::-moz-range-thumb]:w-3
-                        [&::-moz-range-thumb]:h-3
-                        [&::-moz-range-thumb]:rounded-full
-                        [&::-moz-range-thumb]:bg-white
-                        [&::-moz-range-thumb]:border-0
-                        [&::-moz-range-thumb]:hover:scale-125
-                        [&::-moz-range-thumb]:active:scale-125"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Time Display */}
-              <div className={`text-white/70 font-medium tabular-nums ${isMobile ? 'text-[11px] ml-1' : 'text-[13px] ml-2'}`}>
-                {formatTime(currentTime)} <span className="text-white/30">/</span> {formatTime(duration)}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1 sm:gap-1.5">
-              {/* Autoplay Button */}
-              <div className="flex flex-col items-center">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleAutoplay();
-                  }}
-                  className={`flex items-center justify-center rounded-md transition-all ${
-                    isAutoplayEnabled 
-                      ? 'bg-[#F6C453]/20 hover:bg-[#F6C453]/30 border border-[#F6C453]/50' 
-                      : 'hover:bg-white/10 border border-transparent'
-                  } active:scale-90 ${isMobile ? 'w-9 h-9' : 'w-10 h-10'}`}
-                  aria-label={isAutoplayEnabled ? "Tắt chuyển tập" : "Bật chuyển tập"}
-                  title={isAutoplayEnabled ? "Chuyển tập: BẬT" : "Chuyển tập: TẮT"}
-                >
-                  <FastForward className={`${
-                    isAutoplayEnabled 
-                      ? 'text-[#F6C453]' 
-                      : 'text-white'
-                  } ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} fill={isAutoplayEnabled ? '#F6C453' : 'none'} strokeWidth={2} />
-                </button>
-                <span className="text-[7px] sm:text-[9px] text-white/60 mt-0.5 text-center whitespace-nowrap">Chuyển tập</span>
-              </div>
-
-              {/* Settings */}
-              <div className="relative z-50">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const newValue = !showSettings;
-                    setShowSettings(newValue);
-                    showSettingsRef.current = newValue;
-                  }}
-                  className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? 'w-9 h-9' : 'w-10 h-10'}`}
-                  aria-label="Cài đặt"
-                >
-                  <Settings className={`text-white ${isMobile ? 'w-5 h-5' : 'w-5 h-5'} transition-transform duration-300 ${showSettings ? 'rotate-45' : ''}`} />
-                </button>
-                {showSettings && (
-                  // Dropdown menu - dùng chung cho cả mobile và desktop
-                  <div 
-                    data-settings-menu
-                    className="absolute bottom-full right-0 mb-2 min-w-[150px] w-auto bg-black/95 backdrop-blur-xl rounded-lg p-1.5 space-y-0.5 ring-1 ring-white/10 shadow-2xl z-[110] pointer-events-auto"
-                    onClick={(e) => e.stopPropagation()}
-                    onTouchStart={(e) => {
-                      const target = e.target as HTMLElement;
-                      if (target.tagName !== 'BUTTON') {
-                        e.stopPropagation();
-                      }
-                    }}
-                  >
-                    <div className="text-white/40 text-[10px] px-2.5 py-1.5 font-semibold whitespace-nowrap pointer-events-none uppercase tracking-widest">Tốc độ</div>
-                    {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
-                      <button
-                        key={rate}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          setPlaybackRate(rate);
-                          setShowSettings(false);
-                          showSettingsRef.current = false;
-                        }}
-                        onTouchEnd={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          setPlaybackRate(rate);
-                          setShowSettings(false);
-                          showSettingsRef.current = false;
-                        }}
-                        className={`w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-white/10 active:bg-white/15 transition-all whitespace-nowrap ${
-                          playbackRate === rate
-                            ? "text-[#F6C453] font-medium bg-[#F6C453]/10"
-                            : "text-white/80"
-                        }`}
-                        style={{ 
-                          WebkitTapHighlightColor: 'transparent',
-                          touchAction: 'manipulation'
-                        }}
-                      >
-                        {rate}x
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Fullscreen */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleToggleFullscreen();
-                }}
-                className={`flex items-center justify-center rounded-md hover:bg-white/10 active:scale-90 transition-all ${isMobile ? 'w-9 h-9' : 'w-10 h-10'}`}
-                aria-label="Toàn màn hình"
-              >
-                {isFullscreen ? (
-                  <Minimize2 className={`text-white ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} />
-                ) : (
-                  <Maximize2 className={`text-white ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} />
-                )}
-              </button>
-            </div>
-          </div>
+          <ControlsRow
+            isMobile={isMobile}
+            isPlaying={isPlaying}
+            isMuted={isMuted}
+            volume={volume}
+            duration={duration}
+            currentTime={currentTime}
+            isFullscreen={isFullscreen}
+            showSettings={showSettings}
+            playbackRate={playbackRate}
+            isAutoplayEnabled={isAutoplayEnabled}
+            formatTime={formatTime}
+            onTogglePlay={handleTogglePlay}
+            onSkip={handleSkip}
+            onVolumeButtonClick={handleVolumeButtonClick}
+            onVolumeChange={handleVolumeChange}
+            onToggleAutoplay={toggleAutoplay}
+            onToggleSettings={(next) => {
+              setShowSettings(next);
+              showSettingsRef.current = next;
+            }}
+            onSelectPlaybackRate={(rate) => {
+              setPlaybackRate(rate);
+              setShowSettings(false);
+              showSettingsRef.current = false;
+            }}
+            onToggleFullscreen={handleToggleFullscreen}
+          />
         </div>
       </div>
 
