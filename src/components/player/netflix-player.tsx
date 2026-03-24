@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { memo, useEffect, useRef, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Hls from "hls.js";
 import {
@@ -37,6 +37,108 @@ interface NetflixPlayerProps {
   nextEpisodeName?: string;
   shouldRequestFullscreen?: boolean;
 }
+
+type CenterControlsProps = {
+  showControls: boolean;
+  isMobile: boolean;
+  isPlaying: boolean;
+  onTogglePlay: () => void;
+  onSkip: (seconds: number, showIndicator?: boolean) => void;
+};
+
+const CenterControls = memo(function CenterControls({
+  showControls,
+  isMobile,
+  isPlaying,
+  onTogglePlay,
+  onSkip,
+}: CenterControlsProps) {
+  return (
+    <div
+      className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
+      style={{
+        opacity: showControls ? 1 : 0,
+        transition: "opacity 0.3s ease-in-out",
+      }}
+    >
+      <div className="flex items-center gap-8 sm:gap-12">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onSkip(-10, true);
+          }}
+          className={`pointer-events-auto hover:scale-110 active:scale-90 transition-all duration-200 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/10 hover:bg-white/20 ${isMobile ? "w-11 h-11" : "w-12 h-12"}`}
+          style={{
+            animation: showControls
+              ? "skipButtonSlideInLeft 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both"
+              : "none",
+          }}
+          aria-label="Lùi 10 giây"
+        >
+          <SkipBack className={`text-white/90 ${isMobile ? "w-5 h-5" : "w-5 h-5"}`} strokeWidth={2} />
+        </button>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onTogglePlay();
+          }}
+          className={`pointer-events-auto hover:scale-105 active:scale-90 transition-all duration-200 flex items-center justify-center rounded-full bg-white/95 hover:bg-white shadow-[0_0_40px_rgba(255,255,255,0.15)] ${isMobile ? "w-14 h-14" : "w-16 h-16"}`}
+          style={{
+            animation: showControls
+              ? "playButtonScaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)"
+              : "none",
+          }}
+          aria-label={isPlaying ? "Tạm dừng" : "Phát"}
+        >
+          {isPlaying ? (
+            <Pause className={`text-black ${isMobile ? "w-6 h-6" : "w-7 h-7"}`} fill="black" strokeWidth={0} />
+          ) : (
+            <Play className={`text-black ml-0.5 ${isMobile ? "w-6 h-6" : "w-7 h-7"}`} fill="black" strokeWidth={0} />
+          )}
+        </button>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onSkip(10, true);
+          }}
+          className={`pointer-events-auto hover:scale-110 active:scale-90 transition-all duration-200 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/10 hover:bg-white/20 ${isMobile ? "w-11 h-11" : "w-12 h-12"}`}
+          style={{
+            animation: showControls
+              ? "skipButtonSlideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both"
+              : "none",
+          }}
+          aria-label="Tới 10 giây"
+        >
+          <SkipForward className={`text-white/90 ${isMobile ? "w-5 h-5" : "w-5 h-5"}`} strokeWidth={2} />
+        </button>
+      </div>
+    </div>
+  );
+});
+
+type TopBarProps = {
+  showControls: boolean;
+  title: string;
+};
+
+const TopBar = memo(function TopBar({ showControls, title }: TopBarProps) {
+  return (
+    <div
+      className="absolute top-0 left-0 right-0 z-30 pointer-events-none"
+      style={{
+        opacity: showControls ? 1 : 0,
+        transition: "opacity 0.3s ease-in-out, transform 0.3s ease-in-out",
+        transform: showControls ? "translateY(0)" : "translateY(-8px)",
+      }}
+    >
+      <div className="bg-gradient-to-b from-black/80 via-black/40 to-transparent px-4 sm:px-6 pt-3 pb-8 sm:pt-4 sm:pb-10">
+        <h3 className="text-white/90 text-xs sm:text-sm font-medium truncate tracking-wide">{title}</h3>
+      </div>
+    </div>
+  );
+});
 
 export function NetflixPlayer({
   src,
@@ -1693,81 +1795,15 @@ export function NetflixPlayer({
       )}
       </div>
 
-      {/* Center Controls - Play button and Skip buttons grouped together */}
-      <div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
-        style={{
-          opacity: showControls ? 1 : 0,
-          transition: "opacity 0.3s ease-in-out",
-        }}
-      >
-        <div className="flex items-center gap-8 sm:gap-12">
-          {/* Skip Backward Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleSkip(-10, true);
-            }}
-            className={`pointer-events-auto hover:scale-110 active:scale-90 transition-all duration-200 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/10 hover:bg-white/20 ${isMobile ? 'w-11 h-11' : 'w-12 h-12'}`}
-            style={{
-              animation: showControls ? 'skipButtonSlideInLeft 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both' : 'none',
-            }}
-            aria-label="Lùi 10 giây"
-          >
-            <SkipBack className={`text-white/90 ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} strokeWidth={2} />
-          </button>
+      <CenterControls
+        showControls={showControls}
+        isMobile={isMobile}
+        isPlaying={isPlaying}
+        onTogglePlay={handleTogglePlay}
+        onSkip={handleSkip}
+      />
 
-          {/* Play/Pause Button - Center */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleTogglePlay();
-            }}
-            className={`pointer-events-auto hover:scale-105 active:scale-90 transition-all duration-200 flex items-center justify-center rounded-full bg-white/95 hover:bg-white shadow-[0_0_40px_rgba(255,255,255,0.15)] ${isMobile ? 'w-14 h-14' : 'w-16 h-16'}`}
-            style={{
-              animation: showControls ? 'playButtonScaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'none',
-            }}
-            aria-label={isPlaying ? "Tạm dừng" : "Phát"}
-          >
-            {isPlaying ? (
-              <Pause className={`text-black ${isMobile ? 'w-6 h-6' : 'w-7 h-7'}`} fill="black" strokeWidth={0} />
-            ) : (
-              <Play className={`text-black ml-0.5 ${isMobile ? 'w-6 h-6' : 'w-7 h-7'}`} fill="black" strokeWidth={0} />
-            )}
-          </button>
-
-          {/* Skip Forward Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleSkip(10, true);
-            }}
-            className={`pointer-events-auto hover:scale-110 active:scale-90 transition-all duration-200 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/10 hover:bg-white/20 ${isMobile ? 'w-11 h-11' : 'w-12 h-12'}`}
-            style={{
-              animation: showControls ? 'skipButtonSlideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both' : 'none',
-            }}
-            aria-label="Tới 10 giây"
-          >
-            <SkipForward className={`text-white/90 ${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} strokeWidth={2} />
-          </button>
-        </div>
-      </div>
-
-      {/* Top Bar */}
-      <div
-        className="absolute top-0 left-0 right-0 z-30 pointer-events-none"
-        style={{
-          opacity: showControls ? 1 : 0,
-          transition: "opacity 0.3s ease-in-out, transform 0.3s ease-in-out",
-          transform: showControls ? 'translateY(0)' : 'translateY(-8px)',
-        }}
-      >
-        <div 
-          className="bg-gradient-to-b from-black/80 via-black/40 to-transparent px-4 sm:px-6 pt-3 pb-8 sm:pt-4 sm:pb-10"
-        >
-          <h3 className="text-white/90 text-xs sm:text-sm font-medium truncate tracking-wide">{title}</h3>
-        </div>
-      </div>
+      <TopBar showControls={showControls} title={title} />
 
       {/* Bottom Controls Bar */}
       <div
