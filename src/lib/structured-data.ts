@@ -3,7 +3,33 @@ import { getImageUrl } from "./api";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
+  "https://www.movpey.xyz";
+
+function parseRatingValue(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number.parseFloat(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return null;
+}
+
+function parseRatingCount(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return Math.floor(value);
+  }
+  if (typeof value === "string") {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return null;
+}
 
 /**
  * Generate Movie structured data (JSON-LD) for SEO
@@ -51,18 +77,17 @@ export function generateMovieStructuredData(movie: FilmDetail | FilmItem, curren
     structuredData.genre = movie.category.map((cat) => cat.name).join(", ");
   }
 
-  // Add rating if available
-  if (movie.imdb || movie.tmdb || movie.vote_average) {
-    const rating = movie.vote_average || movie.imdb || movie.tmdb;
-    if (rating) {
-      structuredData.aggregateRating = {
-        "@type": "AggregateRating",
-        ratingValue: String(rating),
-        bestRating: "10",
-        worstRating: "1",
-        ratingCount: "1",
-      };
-    }
+  // Add rating only when value is valid; avoid fake ratingCount
+  const movieRating = parseRatingValue(movie.vote_average ?? movie.imdb ?? movie.tmdb);
+  const movieRatingCount = parseRatingCount(movie.vote_count);
+  if (movieRating !== null && movieRating > 0 && movieRatingCount !== null) {
+    structuredData.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: String(movieRating),
+      bestRating: "10",
+      worstRating: "1",
+      ratingCount: String(movieRatingCount),
+    };
   }
 
   // Add director
@@ -171,17 +196,17 @@ export function generateVideoStructuredData(
     structuredData.genre = movie.category.map((cat) => cat.name).join(", ");
   }
 
-  // Add rating if available
-  if (movie.imdb || movie.tmdb || movie.vote_average) {
-    const rating = movie.vote_average || movie.imdb || movie.tmdb;
-    if (rating) {
-      structuredData.aggregateRating = {
-        "@type": "AggregateRating",
-        ratingValue: String(rating),
-        bestRating: "10",
-        worstRating: "1",
-      };
-    }
+  // Add rating only when value is valid
+  const videoRating = parseRatingValue(movie.vote_average ?? movie.imdb ?? movie.tmdb);
+  const videoRatingCount = parseRatingCount(movie.vote_count);
+  if (videoRating !== null && videoRating > 0 && videoRatingCount !== null) {
+    structuredData.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: String(videoRating),
+      bestRating: "10",
+      worstRating: "1",
+      ratingCount: String(videoRatingCount),
+    };
   }
 
   return structuredData;

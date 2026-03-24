@@ -20,7 +20,7 @@ export const revalidate = 300;
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
+  "https://www.movpey.xyz";
 
 export const metadata: Metadata = {
   title: "MovPey - Phim xịn mỗi ngày | Xem phim online HD Vietsub miễn phí",

@@ -29,6 +29,7 @@ export interface FilmItem {
   imdb?: number | string;
   tmdb?: number | string;
   vote_average?: number;
+  vote_count?: number;
   director: string;
   casts: string;
   category: FilmCategory[];
@@ -114,8 +115,9 @@ interface OPhimItem {
   language?: string;
   year?: number;
   imdb?: { id?: string } | string | number;
-  tmdb?: { id?: string; vote_average?: number } | string | number;
+  tmdb?: { id?: string; vote_average?: number; vote_count?: number } | string | number;
   vote_average?: number;
+  vote_count?: number;
   category?: Array<{ _id?: string; id?: string; name: string; slug: string }>;
   country?: Array<{ _id?: string; id?: string; name: string; slug: string }>;
   director?: string | string[];
@@ -201,6 +203,11 @@ function convertOPhimItemToFilmItem(item: OPhimItem): FilmItem {
   };
   const imdb = normalizeRating(item.imdb);
   const tmdb = normalizeRating(item.tmdb);
+  const tmdbVoteCount =
+    typeof item.tmdb === "object" && item.tmdb !== null && typeof item.tmdb.vote_count === "number"
+      ? item.tmdb.vote_count
+      : undefined;
+  const voteCount = typeof item.vote_count === "number" ? item.vote_count : tmdbVoteCount;
   
   // Normalize chieurap (có thể là boolean hoặc number 1/0)
   const chieurap = item.chieurap !== undefined 
@@ -232,6 +239,7 @@ function convertOPhimItemToFilmItem(item: OPhimItem): FilmItem {
     imdb,
     tmdb,
     vote_average: item.vote_average,
+    vote_count: voteCount,
     director: Array.isArray(item.director) ? item.director.join(", ") : (item.director || ""),
     casts: casts,
     category: (item.category || []).map((cat) => ({

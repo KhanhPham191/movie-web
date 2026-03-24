@@ -128,7 +128,7 @@ async function VideoPlayer({
 
     const siteUrl =
       process.env.NEXT_PUBLIC_SITE_URL ||
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
+      "https://www.movpey.xyz";
     const videoStructuredData = generateVideoStructuredData(
       movie,
       currentEpisode,
@@ -312,7 +312,7 @@ export async function generateMetadata({ params }: WatchPageProps) {
   const { slug, episode } = await params;
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
+    "https://www.movpey.xyz";
   
   try {
     const response = await getFilmDetail(slug);

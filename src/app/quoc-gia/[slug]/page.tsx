@@ -216,9 +216,7 @@ export async function generateMetadata({ params }: CountryPageProps) {
   const countryName = country?.name || slug;
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "https://movpey.example.com");
+    "https://www.movpey.xyz";
   const countryUrl = `${siteUrl}/quoc-gia/${slug}`;
 
   return {

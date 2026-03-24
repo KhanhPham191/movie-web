@@ -1,5 +1,12 @@
 import type { MetadataRoute } from "next";
-import { CATEGORIES, GENRES, COUNTRIES, getNewlyUpdatedFilms, type FilmItem } from "@/lib/api";
+import {
+  GENRES,
+  COUNTRIES,
+  getNewlyUpdatedFilms,
+  getFilmDetail,
+  type FilmItem,
+  type EpisodeItem,
+} from "@/lib/api";
 
 // Cache sitemap trong 24 giờ để tránh timeout
 export const revalidate = 86400; // 24 hours
@@ -41,6 +48,9 @@ const siteUrl = getSiteUrl();
 // Tăng lên 1000 để index nhiều phim hơn (Google hỗ trợ tối đa 50,000 URLs/sitemap)
 // Nhưng giữ ở 1000 để tránh timeout và đảm bảo performance
 const MAX_MOVIES_IN_SITEMAP = 1000;
+const MAX_MOVIES_FOR_WATCH_SITEMAP = 120;
+const MAX_EPISODES_PER_MOVIE_IN_SITEMAP = 10;
+const MAX_WATCH_URLS_IN_SITEMAP = 1500;
 
 async function getMoviesForSitemap(): Promise<FilmItem[]> {
   try {
@@ -82,6 +92,62 @@ async function getMoviesForSitemap(): Promise<FilmItem[]> {
       console.error("[Sitemap] Error fetching movies:", error);
     }
     // Trả về mảng rỗng thay vì throw error để sitemap vẫn hoạt động
+    return [];
+  }
+}
+
+async function getWatchRoutesForSitemap(
+  movies: FilmItem[],
+  now: Date
+): Promise<MetadataRoute.Sitemap> {
+  try {
+    const selectedMovies = movies.slice(0, MAX_MOVIES_FOR_WATCH_SITEMAP);
+    const watchRoutes: MetadataRoute.Sitemap = [];
+
+    // Batch requests to avoid overloading upstream API and timeout
+    const BATCH_SIZE = 8;
+    for (let i = 0; i < selectedMovies.length; i += BATCH_SIZE) {
+      const batch = selectedMovies.slice(i, i + BATCH_SIZE);
+      const details = await Promise.allSettled(
+        batch.map(async (movie) => {
+          const detail = await getFilmDetail(movie.slug);
+          return { movie, detail };
+        })
+      );
+
+      for (const result of details) {
+        if (result.status !== "fulfilled") continue;
+        const { movie, detail } = result.value;
+        const episodeGroups = detail.movie?.episodes || [];
+        if (episodeGroups.length === 0) continue;
+
+        const episodeSlugs = new Set<string>();
+        for (const group of episodeGroups) {
+          const items = (group.items || []) as EpisodeItem[];
+          for (const item of items) {
+            if (item.slug) episodeSlugs.add(item.slug);
+          }
+        }
+
+        const slugs = Array.from(episodeSlugs).slice(0, MAX_EPISODES_PER_MOVIE_IN_SITEMAP);
+        for (const episodeSlug of slugs) {
+          watchRoutes.push({
+            url: `${siteUrl}/xem-phim/${movie.slug}/${episodeSlug}`,
+            lastModified: movie.modified ? new Date(movie.modified) : now,
+            changeFrequency: "weekly",
+            priority: 0.6,
+          });
+        }
+
+        if (watchRoutes.length >= MAX_WATCH_URLS_IN_SITEMAP) {
+          return watchRoutes.slice(0, MAX_WATCH_URLS_IN_SITEMAP);
+        }
+      }
+    }
+
+    return watchRoutes;
+  } catch (error) {
+    console.error("[Sitemap] Error fetching watch routes:", error);
     return [];
   }
 }
@@ -180,6 +246,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Thêm dynamic movie routes với error handling
     let movieRoutes: MetadataRoute.Sitemap = [];
+    let watchRoutes: MetadataRoute.Sitemap = [];
     try {
       const movies = await getMoviesForSitemap();
       movieRoutes = movies.map((movie) => ({
@@ -188,12 +255,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: "weekly" as const,
         priority: 0.8,
       }));
+
+      // Add watch episode routes for better long-tail indexing
+      watchRoutes = await getWatchRoutesForSitemap(movies, now);
     } catch (error) {
       // Nếu không lấy được phim, vẫn trả về các routes khác
       console.error("[Sitemap] Error fetching movies:", error);
     }
 
-    return [...staticRoutes, ...genreRoutes, ...countryRoutes, ...movieRoutes];
+    return [...staticRoutes, ...genreRoutes, ...countryRoutes, ...movieRoutes, ...watchRoutes];
   } catch (error) {
     // Đảm bảo luôn trả về sitemap hợp lệ ngay cả khi có lỗi
     console.error("[Sitemap] Critical error:", error);

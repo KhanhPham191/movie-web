@@ -1,0 +1,26 @@
+{
+  "name": "MovPey - Phim xịn mỗi ngày",
+  "short_name": "MovPey",
+  "description": "Xem phim online HD Vietsub, cập nhật liên tục với nhiều thể loại phim hấp dẫn.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#191b24",
+  "theme_color": "#191b24",
+  "lang": "vi",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

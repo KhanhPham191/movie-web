@@ -16,7 +16,7 @@ import "./globals.css";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
+  "https://www.movpey.xyz";
 
 const notoSans = Noto_Sans({
   variable: "--font-geist-sans",

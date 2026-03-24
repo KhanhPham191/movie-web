@@ -166,7 +166,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
 
     const siteUrl =
       process.env.NEXT_PUBLIC_SITE_URL ||
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
+      "https://www.movpey.xyz";
 
     const movieStructuredData = generateMovieStructuredData(movie, `${siteUrl}/phim/${movie.slug}`);
     const breadcrumbStructuredData = generateBreadcrumbStructuredData([
@@ -660,7 +660,7 @@ export async function generateMetadata({ params }: MoviePageProps) {
   const { slug } = await params;
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
+    "https://www.movpey.xyz";
   
   try {
     const response = await getFilmDetail(slug);

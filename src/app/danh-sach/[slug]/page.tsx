@@ -258,7 +258,7 @@ export async function generateMetadata({ params }: CategoryPageProps) {
   const categoryName = CATEGORY_NAMES[slug] || "Danh sách phim";
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
+    "https://www.movpey.xyz";
   const categoryUrl = `${siteUrl}/danh-sach/${slug}`;
   
   return {
