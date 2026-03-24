@@ -345,6 +345,238 @@ const ControlsRow = memo(function ControlsRow({
   );
 });
 
+type ProgressBarProps = {
+  isMobile: boolean;
+  isIOS: boolean;
+  isDragging: boolean;
+  isHoveringProgress: boolean;
+  hoverTime: number | null;
+  duration: number;
+  currentTime: number;
+  bufferedPercent: number;
+  progressPercent: number;
+  progressBarRef: { current: HTMLDivElement | null };
+  formatTime: (time: number) => string;
+  setIsHoveringProgress: (value: boolean) => void;
+  setHoverTime: (value: number | null) => void;
+  setIsDragging: (value: boolean) => void;
+  setCurrentTime: (value: number) => void;
+  onProgressMouseMove: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onProgressClick: (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => void;
+  onDesktopRangeChange: (value: number) => void;
+  startMobileDragSeek: (clientX: number) => void;
+  moveMobileDragSeek: (clientX: number) => void;
+  endMobileDragSeek: () => void;
+  cancelMobileDragSeek: () => void;
+  isDraggingRef: { current: boolean };
+};
+
+const ProgressBar = memo(function ProgressBar({
+  isMobile,
+  isIOS,
+  isDragging,
+  isHoveringProgress,
+  hoverTime,
+  duration,
+  currentTime,
+  bufferedPercent,
+  progressPercent,
+  progressBarRef,
+  formatTime,
+  setIsHoveringProgress,
+  setHoverTime,
+  setIsDragging,
+  setCurrentTime,
+  onProgressMouseMove,
+  onProgressClick,
+  onDesktopRangeChange,
+  startMobileDragSeek,
+  moveMobileDragSeek,
+  endMobileDragSeek,
+  cancelMobileDragSeek,
+  isDraggingRef,
+}: ProgressBarProps) {
+  return (
+    <div className="relative cursor-pointer pointer-events-auto" onClick={(e) => e.stopPropagation()}>
+      {isMobile && (
+        <div
+          className="absolute inset-x-0 z-20 touch-none"
+          style={{
+            top: isDragging ? "-200px" : "-20px",
+            bottom: isDragging ? "-200px" : "-12px",
+          }}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.touches[0]) {
+              startMobileDragSeek(e.touches[0].clientX);
+            }
+          }}
+          onTouchMove={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.touches[0]) {
+              moveMobileDragSeek(e.touches[0].clientX);
+            }
+          }}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            endMobileDragSeek();
+          }}
+          onTouchCancel={(e) => {
+            e.stopPropagation();
+            cancelMobileDragSeek();
+          }}
+        />
+      )}
+      {isMobile && isDragging && (
+        <div
+          className="fixed inset-0 z-[200] touch-none"
+          style={{ background: "transparent" }}
+          onTouchMove={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.touches[0]) {
+              moveMobileDragSeek(e.touches[0].clientX);
+            }
+          }}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            endMobileDragSeek();
+          }}
+          onTouchCancel={(e) => {
+            e.stopPropagation();
+            cancelMobileDragSeek();
+          }}
+        />
+      )}
+      <div
+        ref={progressBarRef}
+        className={`relative bg-white/15 rounded-full cursor-pointer group/progress touch-none transition-all duration-200 ${
+          isMobile ? (isDragging ? "h-[10px]" : "h-[5px]") : isHoveringProgress || isDragging ? "h-[5px]" : "h-[3px]"
+        }`}
+        onMouseEnter={() => {
+          setIsHoveringProgress(true);
+        }}
+        onMouseLeave={() => {
+          setIsHoveringProgress(false);
+          setHoverTime(null);
+          setIsDragging(false);
+          isDraggingRef.current = false;
+        }}
+        onMouseMove={onProgressMouseMove}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+          setIsDragging(true);
+          isDraggingRef.current = true;
+          onProgressClick(e);
+        }}
+        onMouseUp={() => {
+          setIsDragging(false);
+          isDraggingRef.current = false;
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!isDragging) {
+            onProgressClick(e);
+          }
+        }}
+      >
+        <div
+          className={`absolute inset-y-0 left-0 rounded-full bg-white/25 transition-all ${
+            isMobile ? (isDragging ? "h-[10px]" : "h-[5px]") : isHoveringProgress || isDragging ? "h-[5px]" : "h-[3px]"
+          }`}
+          style={{ width: `${bufferedPercent}%` }}
+        />
+        <div
+          className={`absolute inset-y-0 left-0 rounded-full bg-[#F6C453] transition-all ${
+            isMobile ? (isDragging ? "h-[10px]" : "h-[5px]") : isHoveringProgress || isDragging ? "h-[5px]" : "h-[3px]"
+          }`}
+          style={{ width: `${progressPercent}%` }}
+        />
+        <div
+          className={`absolute top-1/2 -translate-y-1/2 rounded-full bg-[#F6C453] transition-all pointer-events-none ${
+            isMobile
+              ? isDragging
+                ? "w-6 h-6 opacity-100 shadow-[0_0_12px_rgba(246,196,83,0.8)]"
+                : "w-[18px] h-[18px] opacity-100 shadow-[0_0_8px_rgba(246,196,83,0.6)]"
+              : isHoveringProgress || isDragging
+                ? "w-4 h-4 opacity-100 shadow-[0_0_8px_rgba(246,196,83,0.6)]"
+                : "w-3 h-3 opacity-0 group-hover/progress:opacity-100"
+          }`}
+          style={{
+            left: `calc(${progressPercent}% - ${
+              isMobile ? (isDragging ? "12px" : "9px") : isHoveringProgress || isDragging ? "8px" : "6px"
+            })`,
+          }}
+        />
+        {hoverTime !== null && (
+          <div
+            className="absolute bottom-full left-1/2 -translate-x-1/2 pointer-events-none z-50"
+            style={{
+              left: `${(hoverTime / duration) * 100}%`,
+              transform: "translateX(-50%)",
+              marginBottom: isMobile ? (isDragging ? "16px" : "8px") : "8px",
+            }}
+          >
+            <div
+              className={`bg-black/95 backdrop-blur-md rounded-md text-white font-medium tabular-nums whitespace-nowrap shadow-xl ${
+                isMobile && isDragging ? "px-4 py-2 text-base" : "px-2.5 py-1 text-xs"
+              }`}
+            >
+              {formatTime(hoverTime)}
+              {isMobile && isDragging && duration > 0 && (
+                <span className="text-white/50 ml-1.5">/ {formatTime(duration)}</span>
+              )}
+            </div>
+          </div>
+        )}
+        {!isMobile && (
+          <input
+            type="range"
+            min={0}
+            max={duration || 0}
+            step={0.1}
+            value={currentTime}
+            onChange={(e) => {
+              const value = parseFloat(e.target.value);
+              onDesktopRangeChange(value);
+              e.stopPropagation();
+            }}
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              setIsDragging(true);
+              isDraggingRef.current = true;
+            }}
+            onMouseUp={() => {
+              setIsDragging(false);
+              isDraggingRef.current = false;
+            }}
+            className={`absolute inset-0 w-full cursor-pointer z-10 appearance-none bg-transparent
+              ${isHoveringProgress || isDragging ? "h-8" : "h-6"}
+              [&::-webkit-slider-thumb]:appearance-none
+              [&::-webkit-slider-thumb]:w-6
+              [&::-webkit-slider-thumb]:h-6
+              [&::-webkit-slider-thumb]:rounded-full
+              [&::-webkit-slider-thumb]:bg-transparent
+              [&::-webkit-slider-thumb]:cursor-pointer
+              [&::-moz-range-thumb]:appearance-none
+              [&::-moz-range-thumb]:w-6
+              [&::-moz-range-thumb]:h-6
+              [&::-moz-range-thumb]:rounded-full
+              [&::-moz-range-thumb]:bg-transparent
+              [&::-moz-range-thumb]:border-0
+              [&::-moz-range-thumb]:cursor-pointer`}
+          />
+        )}
+      </div>
+    </div>
+  );
+});
+
 export function NetflixPlayer({
   src,
   title = "Player",
@@ -1048,6 +1280,13 @@ export function NetflixPlayer({
     video.currentTime = value;
     setCurrentTime(value);
   };
+
+  const handleDesktopRangeChange = useCallback((value: number) => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.currentTime = value;
+    setCurrentTime(value);
+  }, []);
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const video = videoRef.current;
@@ -2022,200 +2261,31 @@ export function NetflixPlayer({
         <div 
           className="bg-gradient-to-t from-black/90 via-black/60 to-transparent px-4 sm:px-6 pt-10 pb-3 sm:pt-12 sm:pb-4 space-y-2.5"
         >
-          {/* Progress Bar */}
-          <div className="relative cursor-pointer pointer-events-auto" onClick={(e) => e.stopPropagation()}>
-            {/* Invisible expanded touch target for mobile - 44px tall (Apple minimum) */}
-            {isMobile && (
-              <div
-                className="absolute inset-x-0 z-20 touch-none"
-                style={{
-                  top: isDragging ? '-200px' : '-20px',
-                  bottom: isDragging ? '-200px' : '-12px',
-                }}
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (e.touches[0]) {
-                    startMobileDragSeek(e.touches[0].clientX);
-                  }
-                }}
-                onTouchMove={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (e.touches[0]) {
-                    moveMobileDragSeek(e.touches[0].clientX);
-                  }
-                }}
-                onTouchEnd={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  endMobileDragSeek();
-                }}
-                onTouchCancel={(e) => {
-                  e.stopPropagation();
-                  cancelMobileDragSeek();
-                }}
-              />
-            )}
-            {/* Full-screen drag overlay when actively dragging on mobile - captures all touch even if finger wanders */}
-            {isMobile && isDragging && (
-              <div
-                className="fixed inset-0 z-[200] touch-none"
-                style={{ background: 'transparent' }}
-                onTouchMove={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (e.touches[0]) {
-                    moveMobileDragSeek(e.touches[0].clientX);
-                  }
-                }}
-                onTouchEnd={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  endMobileDragSeek();
-                }}
-                onTouchCancel={(e) => {
-                  e.stopPropagation();
-                  cancelMobileDragSeek();
-                }}
-              />
-            )}
-            <div
-              ref={progressBarRef}
-              className={`relative bg-white/15 rounded-full cursor-pointer group/progress touch-none transition-all duration-200 ${
-                isMobile
-                  ? (isDragging ? 'h-[10px]' : 'h-[5px]')
-                  : (isHoveringProgress || isDragging ? 'h-[5px]' : 'h-[3px]')
-              }`}
-              onMouseEnter={() => {
-                setIsHoveringProgress(true);
-              }}
-              onMouseLeave={() => {
-                setIsHoveringProgress(false);
-                setHoverTime(null);
-                setIsDragging(false);
-                isDraggingRef.current = false;
-              }}
-              onMouseMove={handleProgressMouseMove}
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                setIsDragging(true);
-                isDraggingRef.current = true;
-                handleProgressClick(e);
-              }}
-              onMouseUp={() => {
-                setIsDragging(false);
-                isDraggingRef.current = false;
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!isDragging) {
-                  handleProgressClick(e);
-                }
-              }}
-            >
-              {/* Buffered progress */}
-              <div
-                className={`absolute inset-y-0 left-0 rounded-full bg-white/25 transition-all ${
-                  isMobile
-                    ? (isDragging ? 'h-[10px]' : 'h-[5px]')
-                    : (isHoveringProgress || isDragging ? 'h-[5px]' : 'h-[3px]')
-                }`}
-                style={{ width: `${bufferedPercent}%` }}
-              />
-              {/* Current progress */}
-              <div
-                className={`absolute inset-y-0 left-0 rounded-full bg-[#F6C453] transition-all ${
-                  isMobile
-                    ? (isDragging ? 'h-[10px]' : 'h-[5px]')
-                    : (isHoveringProgress || isDragging ? 'h-[5px]' : 'h-[3px]')
-                }`}
-                style={{ width: `${progressPercent}%` }}
-              />
-              {/* Progress thumb */}
-              <div
-                className={`absolute top-1/2 -translate-y-1/2 rounded-full bg-[#F6C453] transition-all pointer-events-none ${
-                  isMobile
-                    ? (isDragging
-                        ? 'w-6 h-6 opacity-100 shadow-[0_0_12px_rgba(246,196,83,0.8)]'
-                        : 'w-[18px] h-[18px] opacity-100 shadow-[0_0_8px_rgba(246,196,83,0.6)]')
-                    : (isHoveringProgress || isDragging
-                        ? 'w-4 h-4 opacity-100 shadow-[0_0_8px_rgba(246,196,83,0.6)]'
-                        : 'w-3 h-3 opacity-0 group-hover/progress:opacity-100')
-                }`}
-                style={{ left: `calc(${progressPercent}% - ${
-                  isMobile
-                    ? (isDragging ? '12px' : '9px')
-                    : (isHoveringProgress || isDragging ? '8px' : '6px')
-                })` }}
-              />
-              {/* Timeline tooltip - show on both mobile and desktop */}
-              {hoverTime !== null && (
-                <div
-                  className="absolute bottom-full left-1/2 -translate-x-1/2 pointer-events-none z-50"
-                  style={{
-                    left: `${((hoverTime / duration) * 100)}%`,
-                    transform: 'translateX(-50%)',
-                    marginBottom: isMobile ? (isDragging ? '16px' : '8px') : '8px',
-                  }}
-                >
-                  <div className={`bg-black/95 backdrop-blur-md rounded-md text-white font-medium tabular-nums whitespace-nowrap shadow-xl ${
-                    isMobile && isDragging
-                      ? 'px-4 py-2 text-base'
-                      : 'px-2.5 py-1 text-xs'
-                  }`}>
-                    {formatTime(hoverTime)}
-                    {isMobile && isDragging && duration > 0 && (
-                      <span className="text-white/50 ml-1.5">/ {formatTime(duration)}</span>
-                    )}
-                  </div>
-                </div>
-              )}
-              {/* Range input for better drag support - desktop only */}
-              {!isMobile && (
-                <input
-                  type="range"
-                  min={0}
-                  max={duration || 0}
-                  step={0.1}
-                  value={currentTime}
-                  onChange={(e) => {
-                    const video = videoRef.current;
-                    if (!video) return;
-                    const value = parseFloat(e.target.value);
-                    video.currentTime = value;
-                    setCurrentTime(value);
-                    e.stopPropagation();
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
-                    setIsDragging(true);
-                    isDraggingRef.current = true;
-                  }}
-                  onMouseUp={() => {
-                    setIsDragging(false);
-                    isDraggingRef.current = false;
-                  }}
-                  className={`absolute inset-0 w-full cursor-pointer z-10 appearance-none bg-transparent
-                    ${isHoveringProgress || isDragging ? 'h-8' : 'h-6'}
-                    [&::-webkit-slider-thumb]:appearance-none
-                    [&::-webkit-slider-thumb]:w-6
-                    [&::-webkit-slider-thumb]:h-6
-                    [&::-webkit-slider-thumb]:rounded-full
-                    [&::-webkit-slider-thumb]:bg-transparent
-                    [&::-webkit-slider-thumb]:cursor-pointer
-                    [&::-moz-range-thumb]:appearance-none
-                    [&::-moz-range-thumb]:w-6
-                    [&::-moz-range-thumb]:h-6
-                    [&::-moz-range-thumb]:rounded-full
-                    [&::-moz-range-thumb]:bg-transparent
-                    [&::-moz-range-thumb]:border-0
-                    [&::-moz-range-thumb]:cursor-pointer`}
-                />
-              )}
-            </div>
-          </div>
+          <ProgressBar
+            isMobile={isMobile}
+            isIOS={isIOS}
+            isDragging={isDragging}
+            isHoveringProgress={isHoveringProgress}
+            hoverTime={hoverTime}
+            duration={duration}
+            currentTime={currentTime}
+            bufferedPercent={bufferedPercent}
+            progressPercent={progressPercent}
+            progressBarRef={progressBarRef}
+            formatTime={formatTime}
+            setIsHoveringProgress={setIsHoveringProgress}
+            setHoverTime={setHoverTime}
+            setIsDragging={setIsDragging}
+            setCurrentTime={setCurrentTime}
+            onProgressMouseMove={handleProgressMouseMove}
+            onProgressClick={handleProgressClick}
+            onDesktopRangeChange={handleDesktopRangeChange}
+            startMobileDragSeek={startMobileDragSeek}
+            moveMobileDragSeek={moveMobileDragSeek}
+            endMobileDragSeek={endMobileDragSeek}
+            cancelMobileDragSeek={cancelMobileDragSeek}
+            isDraggingRef={isDraggingRef}
+          />
 
           <ControlsRow
             isMobile={isMobile}
