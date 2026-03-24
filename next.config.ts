@@ -20,12 +20,6 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "img.ophim.live",
-        port: "",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
         hostname: "**.googleusercontent.com",
         port: "",
         pathname: "/**",

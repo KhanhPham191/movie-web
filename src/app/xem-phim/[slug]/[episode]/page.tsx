@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { Footer } from "@/components/footer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Home } from "lucide-react";
-import { getFilmDetail, getImageUrl, searchFilmsMerged, type FilmItem } from "@/lib/api";
+import { getFilmDetail, getImageUrl, searchFilmsMerged, type FilmDetail, type FilmItem } from "@/lib/api";
 import { generateVideoStructuredData, generateBreadcrumbStructuredData } from "@/lib/structured-data";
 import { WatchEpisodeExperience } from "@/components/watch-episode-experience";
 import { resolveWatchEpisode } from "@/lib/watch-episode-resolve";
@@ -162,7 +162,7 @@ async function VideoPlayer({
           categories={categories}
           seriesPartsSlot={
             <Suspense fallback={null}>
-              <SeriesPartsLoader slug={slug} movieName={movie.name} />
+              <SeriesPartsLoader movie={movie} />
             </Suspense>
           }
           relatedPartsSlot={
@@ -188,17 +188,11 @@ async function VideoPlayer({
 
 // Async component to load series parts without blocking initial render
 async function SeriesPartsLoader({
-  slug,
-  movieName,
+  movie,
 }: {
-  slug: string;
-  movieName: string;
+  movie: FilmDetail;
 }) {
   try {
-    const response = await getFilmDetail(slug);
-    if (!response.movie) return null;
-
-    const movie = response.movie;
     const baseSlug = movie.slug.replace(/-phan-\d+$/i, "");
     const baseOriginalName = movie.original_name
       ? movie.original_name.replace(/\s*\(Season\s*\d+\)\s*$/i, "")

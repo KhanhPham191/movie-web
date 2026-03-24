@@ -73,6 +73,11 @@ export function NetflixPlayer({
   const skipSeekDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const pendingSeekTimeRef = useRef<number | null>(null);
   const pendingSkipTimeRef = useRef<number | null>(null);
+  const lastTimeUpdateSyncRef = useRef<number>(0);
+  const lastBufferedEndRef = useRef<number>(0);
+  const hoverRafRef = useRef<number | null>(null);
+  const hoverClientXRef = useRef<number | null>(null);
+  const showNextEpisodeRef = useRef<boolean>(false);
   
   // Get video progress context to share with WatchProgressTracker (optional)
   const videoProgressContext = useVideoProgressOptional();
@@ -314,11 +319,18 @@ export function NetflixPlayer({
     const handleTimeUpdate = () => {
       // Skip timeupdate during active seeking to prevent progress bar jitter
       if (isSeekingRef.current) return;
+      // Throttle UI sync to reduce re-render pressure
+      const now = performance.now();
+      if (now - lastTimeUpdateSyncRef.current < 200) return;
+      lastTimeUpdateSyncRef.current = now;
       const time = video.currentTime;
       setCurrentTime(time);
       if (video.buffered.length > 0 && video.duration > 0) {
         const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-        setBuffered(bufferedEnd);
+        if (Math.abs(bufferedEnd - lastBufferedEndRef.current) >= 0.25) {
+          lastBufferedEndRef.current = bufferedEnd;
+          setBuffered(bufferedEnd);
+        }
       }
       // Update context for WatchProgressTracker
       updateProgress?.(time, video.duration);
@@ -328,7 +340,11 @@ export function NetflixPlayer({
       if ((nextEpisodeUrl || onNextEpisode) && video.duration > 0) {
         const remaining = video.duration - time;
         const threshold = Math.min(90, video.duration * 0.15); // 90s or 15% of duration
-        setShowNextEpisode(remaining <= threshold && remaining > 0);
+        const shouldShow = remaining <= threshold && remaining > 0;
+        if (showNextEpisodeRef.current !== shouldShow) {
+          showNextEpisodeRef.current = shouldShow;
+          setShowNextEpisode(shouldShow);
+        }
       }
     };
     const handleSeekToTimestamp = () => {
@@ -367,6 +383,7 @@ export function NetflixPlayer({
       setCurrentTime(video.currentTime);
       if (video.buffered.length > 0 && video.duration > 0) {
         const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+        lastBufferedEndRef.current = bufferedEnd;
         setBuffered(bufferedEnd);
       }
       updateProgress?.(video.currentTime, video.duration);
@@ -375,7 +392,10 @@ export function NetflixPlayer({
     const handleProgress = () => {
       if (video.buffered.length > 0 && video.duration > 0) {
         const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-        setBuffered(bufferedEnd);
+        if (Math.abs(bufferedEnd - lastBufferedEndRef.current) >= 0.25) {
+          lastBufferedEndRef.current = bufferedEnd;
+          setBuffered(bufferedEnd);
+        }
       }
     };
     const handleVolumeChange = () => {
@@ -507,6 +527,7 @@ export function NetflixPlayer({
     setDuration(0);
     setBuffered(0);
     setShowNextEpisode(false);
+    showNextEpisodeRef.current = false;
     setAutoplayCountdown(null);
     setIsPlaying(false);
     hasSeekedRef.current = false;
@@ -518,6 +539,8 @@ export function NetflixPlayer({
     if (Hls.isSupported()) {
       hls = new Hls({
         enableWorker: true,
+        capLevelToPlayerSize: true,
+        testBandwidth: true,
         // Mobile/iOS optimized for FAST initial playback
         // Reduce wait time before video starts
         backBufferLength: isIOS || isMobile ? 15 : 30,
@@ -551,7 +574,7 @@ export function NetflixPlayer({
       }
       setAutoplayCountdown(null);
     };
-  }, [src]);
+  }, [src, isIOS, isMobile]);
 
   // Request fullscreen when shouldRequestFullscreen is true and video is ready
   useEffect(() => {
@@ -619,6 +642,10 @@ export function NetflixPlayer({
     }
   }, [showControls]);
 
+  useEffect(() => {
+    showNextEpisodeRef.current = showNextEpisode;
+  }, [showNextEpisode]);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -633,6 +660,10 @@ export function NetflixPlayer({
       }
       if (skipIndicatorTimeoutRef.current) {
         clearTimeout(skipIndicatorTimeoutRef.current);
+      }
+      if (hoverRafRef.current !== null) {
+        cancelAnimationFrame(hoverRafRef.current);
+        hoverRafRef.current = null;
       }
       if (seekDebounceRef.current) {
         clearTimeout(seekDebounceRef.current);
@@ -749,7 +780,7 @@ export function NetflixPlayer({
     handleToggleMute();
   };
 
-  const handleSkip = (seconds: number, showIndicator: boolean = false) => {
+  const handleSkip = useCallback((seconds: number, showIndicator: boolean = false) => {
     const video = videoRef.current;
     if (!video) return;
     const currentTime = video.currentTime;
@@ -820,7 +851,7 @@ export function NetflixPlayer({
       }
       setShowControls(false);
     }
-  };
+  }, [isIOS, movieName, movieSlug, episodeSlug, showControlsWithTimeout]);
 
   // Keyboard controls: ArrowLeft / ArrowRight skip 10s
   useEffect(() => {
@@ -926,15 +957,19 @@ export function NetflixPlayer({
   };
 
   const handleProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const video = videoRef.current;
-    const progressBar = progressBarRef.current;
-    if (!video || !progressBar) return;
-
-    const rect = progressBar.getBoundingClientRect();
-    const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const hoverTimeValue = percent * video.duration;
-    setHoverTime(hoverTimeValue);
-    
+    hoverClientXRef.current = e.clientX;
+    if (hoverRafRef.current !== null) return;
+    hoverRafRef.current = requestAnimationFrame(() => {
+      hoverRafRef.current = null;
+      const video = videoRef.current;
+      const progressBar = progressBarRef.current;
+      const clientX = hoverClientXRef.current;
+      if (!video || !progressBar || clientX === null) return;
+      const rect = progressBar.getBoundingClientRect();
+      const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      const hoverTimeValue = percent * video.duration;
+      setHoverTime(hoverTimeValue);
+    });
   };
 
 

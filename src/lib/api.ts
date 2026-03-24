@@ -973,10 +973,45 @@ export async function searchFilms(
 // Search films - merged (returns array of items)
 export async function searchFilmsMerged(keyword: string): Promise<FilmItem[]> {
   try {
-    const res = await searchFilms(keyword, 1);
-    return res.items || [];
+    const normalizedKeyword = keyword.trim().toLowerCase();
+    if (!normalizedKeyword) return [];
+
+    const cached = searchMergedCache.get(normalizedKeyword);
+    const now = Date.now();
+    if (cached && now - cached.timestamp < SEARCH_MERGED_CACHE_TTL_MS) {
+      return cached.items;
+    }
+
+    const res = await searchFilms(normalizedKeyword, 1);
+    const items = res.items || [];
+
+    searchMergedCache.set(normalizedKeyword, {
+      timestamp: now,
+      items,
+    });
+    pruneSearchMergedCache();
+
+    return items;
   } catch (error) {
     return [];
+  }
+}
+
+const SEARCH_MERGED_CACHE_TTL_MS = 60_000;
+const SEARCH_MERGED_CACHE_MAX_ENTRIES = 100;
+const searchMergedCache = new Map<string, { timestamp: number; items: FilmItem[] }>();
+
+function pruneSearchMergedCache() {
+  if (searchMergedCache.size <= SEARCH_MERGED_CACHE_MAX_ENTRIES) return;
+  const sortedEntries = [...searchMergedCache.entries()].sort(
+    (a, b) => a[1].timestamp - b[1].timestamp
+  );
+  const entriesToDelete = sortedEntries.slice(
+    0,
+    searchMergedCache.size - SEARCH_MERGED_CACHE_MAX_ENTRIES
+  );
+  for (const [key] of entriesToDelete) {
+    searchMergedCache.delete(key);
   }
 }
 
