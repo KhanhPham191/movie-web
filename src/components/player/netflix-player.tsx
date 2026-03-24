@@ -180,20 +180,25 @@ export function NetflixPlayer({
   const showControlsWithTimeout = useCallback(() => {
     // Don't show controls during active long press (1.75x speed)
     if (isLongPressActiveRef.current) return;
-    
-    // Show controls immediately
-    setShowControls(true);
-    lastControlsShowTimeRef.current = Date.now();
-    
+
+    const now = Date.now();
+    const alreadyVisible = showControlsRef.current;
+    lastControlsShowTimeRef.current = now;
+
+    // Avoid redundant state updates on high-frequency mouse/touch move
+    if (!alreadyVisible) {
+      setShowControls(true);
+    }
+
     // Clear any existing timeout
     if (controlsTimeoutRef.current) {
       clearTimeout(controlsTimeoutRef.current);
     }
-    
+
     // Check video state directly instead of React state
     const video = videoRef.current;
     const isVideoPlaying = video && !video.paused;
-    
+
     // Set timeout to hide after 2 seconds if playing and not interacting
     if (isVideoPlaying) {
       controlsTimeoutRef.current = setTimeout(() => {
@@ -978,6 +983,75 @@ export function NetflixPlayer({
     handleProgressClick(e);
   };
 
+  const syncMobileDragSeek = (clientX: number) => {
+    const video = videoRef.current;
+    const progressBar = progressBarRef.current;
+    if (!video || !progressBar) return;
+    const rect = progressBar.getBoundingClientRect();
+    const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const hoverTimeValue = percent * video.duration;
+    setHoverTime(hoverTimeValue);
+    setCurrentTime(hoverTimeValue);
+
+    // Debounce actual video seek to avoid overwhelming HLS
+    // iOS Safari needs longer debounce time
+    const seekDelay = isIOS ? 150 : 100;
+    pendingSeekTimeRef.current = hoverTimeValue;
+    if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
+    seekDebounceRef.current = setTimeout(() => {
+      if (pendingSeekTimeRef.current !== null && videoRef.current) {
+        videoRef.current.currentTime = pendingSeekTimeRef.current;
+        isSeekingRef.current = true;
+      }
+    }, seekDelay);
+  };
+
+  const startMobileDragSeek = (clientX: number) => {
+    setIsDragging(true);
+    isDraggingRef.current = true;
+    setIsHoveringProgress(true);
+    setShowControls(true);
+    lastControlsShowTimeRef.current = Date.now();
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    syncMobileDragSeek(clientX);
+  };
+
+  const moveMobileDragSeek = (clientX: number) => {
+    setShowControls(true);
+    lastControlsShowTimeRef.current = Date.now();
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    syncMobileDragSeek(clientX);
+  };
+
+  const endMobileDragSeek = () => {
+    if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
+    if (pendingSeekTimeRef.current !== null && videoRef.current) {
+      videoRef.current.currentTime = pendingSeekTimeRef.current;
+      isSeekingRef.current = true;
+      pendingSeekTimeRef.current = null;
+    }
+    setIsDragging(false);
+    isDraggingRef.current = false;
+    setIsHoveringProgress(false);
+    setTimeout(() => {
+      setHoverTime(null);
+    }, 800);
+    showControlsWithTimeout();
+  };
+
+  const cancelMobileDragSeek = () => {
+    if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
+    pendingSeekTimeRef.current = null;
+    setIsDragging(false);
+    isDraggingRef.current = false;
+    setIsHoveringProgress(false);
+    setHoverTime(null);
+  };
+
   // Handle long press for 1.75x speed on mobile (works in fullscreen too)
   const handleLongPressTouchStart = (e: React.TouchEvent) => {
     if (!isMobile) return;
@@ -1549,53 +1623,6 @@ export function NetflixPlayer({
           // Prevent right-click context menu
           e.preventDefault();
         }}
-        onTouchStart={(e) => {
-          if (isMobile) {
-            // In fullscreen, prevent default to ensure touch events work
-            if (isFullscreen) {
-              e.preventDefault();
-            }
-            handleLongPressTouchStart(e);
-            handleTouchStartGesture(e);
-          }
-        }}
-        onTouchMove={(e) => {
-          if (isMobile) {
-            // In fullscreen, prevent default to ensure touch events work
-            if (isFullscreen) {
-              e.preventDefault();
-            }
-            // Always try to handle gesture first to determine mode
-            handleTouchMoveGesture(e);
-            // Only handle long press if not in gesture mode
-            if (gestureModeRef.current === 'none' || gestureModeRef.current === 'horizontal') {
-              handleLongPressTouchMove(e);
-            }
-          }
-        }}
-        onTouchEnd={(e) => {
-          if (isMobile) {
-            // Kiểm tra trạng thái trước khi xử lý
-            const wasLongPressActive = isLongPressActiveRef.current;
-            const wasGestureActive = gestureModeRef.current === 'brightness' || gestureModeRef.current === 'volume';
-            
-            // Handle gesture end (sẽ preventDefault nếu đang gesture)
-            handleTouchEndGesture(e);
-            // Handle long press end
-            handleLongPressTouchEnd(e);
-            
-            // Đảm bảo controls không được hiển thị nếu đã có long press hoặc gesture
-            if (wasLongPressActive || wasGestureActive) {
-              setShowControls(false);
-            }
-          }
-        }}
-        onTouchCancel={(e) => {
-          if (isMobile) {
-            handleLongPressTouchCancel(e);
-            gestureModeRef.current = 'none';
-          }
-        }}
       />
       
       {/* Gesture indicator for brightness and volume - inside video container to avoid header in fullscreen */}
@@ -1767,90 +1794,25 @@ export function NetflixPlayer({
                 onTouchStart={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setIsDragging(true);
-                  isDraggingRef.current = true;
-                  setIsHoveringProgress(true);
-                  // Keep controls visible during drag
-                  setShowControls(true);
-                  lastControlsShowTimeRef.current = Date.now();
-                  if (controlsTimeoutRef.current) {
-                    clearTimeout(controlsTimeoutRef.current);
-                  }
-                  const video = videoRef.current;
-                  const progressBar = progressBarRef.current;
-                  if (video && progressBar && e.touches[0]) {
-                    const rect = progressBar.getBoundingClientRect();
-                    const percent = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
-                    const hoverTimeValue = percent * video.duration;
-                    setHoverTime(hoverTimeValue);
-                    setCurrentTime(hoverTimeValue);
-                    // Debounce actual video seek to avoid overwhelming HLS
-                    // iOS Safari needs longer debounce time
-                    const seekDelay = isIOS ? 150 : 100;
-                    pendingSeekTimeRef.current = hoverTimeValue;
-                    if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
-                    seekDebounceRef.current = setTimeout(() => {
-                      if (pendingSeekTimeRef.current !== null && videoRef.current) {
-                        videoRef.current.currentTime = pendingSeekTimeRef.current;
-                        isSeekingRef.current = true;
-                      }
-                    }, seekDelay);
+                  if (e.touches[0]) {
+                    startMobileDragSeek(e.touches[0].clientX);
                   }
                 }}
                 onTouchMove={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  // Keep controls visible
-                  setShowControls(true);
-                  lastControlsShowTimeRef.current = Date.now();
-                  if (controlsTimeoutRef.current) {
-                    clearTimeout(controlsTimeoutRef.current);
-                  }
-                  const video = videoRef.current;
-                  const progressBar = progressBarRef.current;
-                  if (video && progressBar && e.touches[0]) {
-                    const rect = progressBar.getBoundingClientRect();
-                    const percent = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
-                    const hoverTimeValue = percent * video.duration;
-                    setHoverTime(hoverTimeValue);
-                    setCurrentTime(hoverTimeValue);
-                    // Debounce actual video seek to avoid overwhelming HLS
-                    // iOS Safari needs longer debounce time
-                    const seekDelay = isIOS ? 150 : 100;
-                    pendingSeekTimeRef.current = hoverTimeValue;
-                    if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
-                    seekDebounceRef.current = setTimeout(() => {
-                      if (pendingSeekTimeRef.current !== null && videoRef.current) {
-                        videoRef.current.currentTime = pendingSeekTimeRef.current;
-                        isSeekingRef.current = true;
-                      }
-                    }, seekDelay);
+                  if (e.touches[0]) {
+                    moveMobileDragSeek(e.touches[0].clientX);
                   }
                 }}
                 onTouchEnd={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  // Commit final seek position immediately
-                  if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
-                  if (pendingSeekTimeRef.current !== null && videoRef.current) {
-                    videoRef.current.currentTime = pendingSeekTimeRef.current;
-                    pendingSeekTimeRef.current = null;
-                  }
-                  setIsDragging(false);
-                  isDraggingRef.current = false;
-                  setIsHoveringProgress(false);
-                  setTimeout(() => {
-                    setHoverTime(null);
-                  }, 800);
-                  // Resume auto-hide after drag
-                  showControlsWithTimeout();
+                  endMobileDragSeek();
                 }}
                 onTouchCancel={(e) => {
                   e.stopPropagation();
-                  setIsDragging(false);
-                  isDraggingRef.current = false;
-                  setIsHoveringProgress(false);
-                  setHoverTime(null);
+                  cancelMobileDragSeek();
                 }}
               />
             )}
@@ -1862,58 +1824,18 @@ export function NetflixPlayer({
                 onTouchMove={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setShowControls(true);
-                  lastControlsShowTimeRef.current = Date.now();
-                  if (controlsTimeoutRef.current) {
-                    clearTimeout(controlsTimeoutRef.current);
-                  }
-                  const video = videoRef.current;
-                  const progressBar = progressBarRef.current;
-                  if (video && progressBar && e.touches[0]) {
-                    const rect = progressBar.getBoundingClientRect();
-                    const percent = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
-                    const hoverTimeValue = percent * video.duration;
-                    setHoverTime(hoverTimeValue);
-                    setCurrentTime(hoverTimeValue);
-                    // Debounce actual video seek to avoid overwhelming HLS
-                    // iOS Safari needs longer debounce time
-                    const seekDelay = isIOS ? 150 : 100;
-                    pendingSeekTimeRef.current = hoverTimeValue;
-                    if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
-                    seekDebounceRef.current = setTimeout(() => {
-                      if (pendingSeekTimeRef.current !== null && videoRef.current) {
-                        videoRef.current.currentTime = pendingSeekTimeRef.current;
-                        isSeekingRef.current = true;
-                      }
-                    }, seekDelay);
+                  if (e.touches[0]) {
+                    moveMobileDragSeek(e.touches[0].clientX);
                   }
                 }}
                 onTouchEnd={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  // Commit final seek position immediately
-                  if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
-                  if (pendingSeekTimeRef.current !== null && videoRef.current) {
-                    videoRef.current.currentTime = pendingSeekTimeRef.current;
-                    isSeekingRef.current = true;
-                    pendingSeekTimeRef.current = null;
-                  }
-                  setIsDragging(false);
-                  isDraggingRef.current = false;
-                  setIsHoveringProgress(false);
-                  setTimeout(() => {
-                    setHoverTime(null);
-                  }, 800);
-                  showControlsWithTimeout();
+                  endMobileDragSeek();
                 }}
                 onTouchCancel={(e) => {
                   e.stopPropagation();
-                  if (seekDebounceRef.current) clearTimeout(seekDebounceRef.current);
-                  pendingSeekTimeRef.current = null;
-                  setIsDragging(false);
-                  isDraggingRef.current = false;
-                  setIsHoveringProgress(false);
-                  setHoverTime(null);
+                  cancelMobileDragSeek();
                 }}
               />
             )}
