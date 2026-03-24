@@ -17,7 +17,7 @@ interface HeroSectionProps {
 
 const SLIDE_DURATION = 8000;
 // Throttle progress re-renders: desktop 150ms, mobile 400ms (thay vì 60fps)
-const DESKTOP_PROGRESS_INTERVAL = 150;
+const DESKTOP_PROGRESS_INTERVAL = 300;
 const MOBILE_PROGRESS_INTERVAL = 400;
 
 function formatEpisodeLabel(episode?: string) {
@@ -34,11 +34,11 @@ export function HeroSection({ movies }: HeroSectionProps) {
   const [contentVisible, setContentVisible] = useState(true);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [dragStartX, setDragStartX] = useState<number | null>(null);
-  const [dragDeltaX, setDragDeltaX] = useState(0);
+  const dragStartXRef = useRef<number | null>(null);
+  const dragDeltaXRef = useRef(0);
   const progressRef = useRef<number>(0);
-  const animFrameRef = useRef<number>(0);
-  const lastTimeRef = useRef<number>(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const slideStartTimeRef = useRef<number>(0);
   const lastProgressUpdateRef = useRef<number>(0);
   const isMobile = useIsMobile();
 
@@ -60,7 +60,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
         setCurrentIndex(index);
         setProgress(0);
         progressRef.current = 0;
-        lastTimeRef.current = 0;
+        slideStartTimeRef.current = 0;
         lastProgressUpdateRef.current = 0;
 
         setTimeout(() => {
@@ -83,65 +83,68 @@ export function HeroSection({ movies }: HeroSectionProps) {
     );
   }, [currentIndex, featuredMovies.length, goToSlide]);
 
-  // Auto-rotate with progress
+  // Auto-rotate with throttled interval to avoid continuous rAF CPU usage
   useEffect(() => {
     if (featuredMovies.length <= 1 || isPaused || isTransitioning) return;
+    if (typeof document !== "undefined" && document.hidden) return;
 
-    const tick = (timestamp: number) => {
-      if (!lastTimeRef.current) lastTimeRef.current = timestamp;
-      const delta = timestamp - lastTimeRef.current;
-      lastTimeRef.current = timestamp;
-
-      progressRef.current += delta;
+    const tick = () => {
+      const now = performance.now();
+      if (!slideStartTimeRef.current) slideStartTimeRef.current = now;
+      progressRef.current = now - slideStartTimeRef.current;
 
       if (progressRef.current >= SLIDE_DURATION) {
         goNext();
         return;
       }
 
-      // Throttle re-render cả desktop lẫn mobile
       const interval = isMobile ? MOBILE_PROGRESS_INTERVAL : DESKTOP_PROGRESS_INTERVAL;
-      const timeSinceUpdate = timestamp - lastProgressUpdateRef.current;
+      const timeSinceUpdate = now - lastProgressUpdateRef.current;
       if (timeSinceUpdate >= interval) {
         const pct = Math.min((progressRef.current / SLIDE_DURATION) * 100, 100);
         setProgress(pct);
-        lastProgressUpdateRef.current = timestamp;
+        lastProgressUpdateRef.current = now;
       }
-
-      animFrameRef.current = requestAnimationFrame(tick);
     };
 
-    animFrameRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(animFrameRef.current);
-  }, [featuredMovies.length, isPaused, isTransitioning, goNext]);
+    tick();
+    const baseTickMs = isMobile ? 100 : 200;
+    intervalRef.current = setInterval(tick, baseTickMs);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [featuredMovies.length, isPaused, isTransitioning, goNext, isMobile]);
 
   // Swipe handling
   const startDrag = (clientX: number) => {
-    setDragStartX(clientX);
-    setDragDeltaX(0);
+    dragStartXRef.current = clientX;
+    dragDeltaXRef.current = 0;
     setIsPaused(true);
   };
 
   const moveDrag = (clientX: number) => {
-    if (dragStartX === null) return;
-    setDragDeltaX(clientX - dragStartX);
+    if (dragStartXRef.current === null) return;
+    dragDeltaXRef.current = clientX - dragStartXRef.current;
   };
 
   const endDrag = () => {
-    if (dragStartX === null) return;
-    if (Math.abs(dragDeltaX) > 50 && featuredMovies.length > 1) {
-      if (dragDeltaX < 0) goNext();
+    if (dragStartXRef.current === null) return;
+    if (Math.abs(dragDeltaXRef.current) > 50 && featuredMovies.length > 1) {
+      if (dragDeltaXRef.current < 0) goNext();
       else goPrev();
     }
-    setDragStartX(null);
-    setDragDeltaX(0);
+    dragStartXRef.current = null;
+    dragDeltaXRef.current = 0;
     setIsPaused(false);
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLElement>) =>
     startDrag(e.clientX);
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-    if (dragStartX === null) return;
+    if (dragStartXRef.current === null) return;
     moveDrag(e.clientX);
   };
   const handleMouseUp = () => endDrag();
@@ -149,7 +152,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
     if (e.touches.length > 0) startDrag(e.touches[0].clientX);
   };
   const handleTouchMove = (e: React.TouchEvent<HTMLElement>) => {
-    if (dragStartX === null || e.touches.length === 0) return;
+    if (dragStartXRef.current === null || e.touches.length === 0) return;
     moveDrag(e.touches[0].clientX);
   };
   const handleTouchEnd = () => endDrag();
@@ -206,9 +209,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
                 src={getImageUrl(m.poster_url || m.thumb_url)}
                 alt={m.name}
                 fill
-                className={`object-cover object-[center_20%] ${
-                  isActive && !isMobile ? "hero-ken-burns" : ""
-                }`}
+                className="object-cover object-[center_20%]"
                 priority={index === 0}
                 loading={index === 0 ? undefined : "lazy"}
                 sizes="100vw"

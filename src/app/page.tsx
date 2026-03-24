@@ -149,7 +149,7 @@ export default async function Home() {
             </div>
 
             {/* Top 10 phim bộ */}
-            <ScrollReveal variant="fade-up" duration={700}>
+            <ScrollReveal variant="fade-up" duration={700} desktopDisabled>
               <div className="-mt-1 sm:-mt-2 rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
                 <div className="relative">
                   <div className="hidden sm:block absolute -inset-4 bg-gradient-to-l from-[#D3A13A]/5 via-transparent to-[#F6C453]/5 rounded-3xl blur-2xl opacity-50" />
@@ -163,7 +163,7 @@ export default async function Home() {
             </ScrollReveal>
 
             {/* Korean Dramas */}
-            <ScrollReveal variant="fade-up" duration={700}>
+            <ScrollReveal variant="fade-up" duration={700} desktopDisabled>
               <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
                 <Suspense fallback={<MovieSectionSkeleton />}>
                   <HanQuocSection />
@@ -172,7 +172,7 @@ export default async function Home() {
             </ScrollReveal>
 
             {/* Chinese Dramas */}
-            <ScrollReveal variant="fade-up" duration={700}>
+            <ScrollReveal variant="fade-up" duration={700} desktopDisabled>
               <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
                 <Suspense fallback={<MovieSectionSkeleton />}>
                   <TrungQuocSection />
@@ -181,7 +181,7 @@ export default async function Home() {
             </ScrollReveal>
 
             {/* Anime */}
-            <ScrollReveal variant="fade-up" duration={700}>
+            <ScrollReveal variant="fade-up" duration={700} desktopDisabled>
               <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
                 <Suspense fallback={<MovieSectionSkeleton />}>
                   <AnimeSection />
@@ -190,7 +190,7 @@ export default async function Home() {
             </ScrollReveal>
 
             {/* Thai Movies */}
-            <ScrollReveal variant="fade-up" duration={700}>
+            <ScrollReveal variant="fade-up" duration={700} desktopDisabled>
               <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
                 <Suspense fallback={<MovieSectionSkeleton />}>
                   <ThaiLanSection />
@@ -199,7 +199,7 @@ export default async function Home() {
             </ScrollReveal>
 
             {/* Hong Kong Movies */}
-            <ScrollReveal variant="fade-up" duration={700}>
+            <ScrollReveal variant="fade-up" duration={700} desktopDisabled>
               <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
                 <Suspense fallback={<MovieSectionSkeleton />}>
                   <HongKongSection />
@@ -211,7 +211,7 @@ export default async function Home() {
         </div>
 
         {/* Footer */}
-        <ScrollReveal variant="fade" duration={800}>
+        <ScrollReveal variant="fade" duration={800} desktopDisabled>
           <Footer />
         </ScrollReveal>
       </div>

@@ -27,6 +27,10 @@ interface MovieCardProps {
   disableTilt?: boolean;
   /** Mark image as priority (above-fold, first 3 cards) */
   priority?: boolean;
+  /** Shared drag state from parent carousel to block hover popup after drag */
+  hasDraggedRef?: React.MutableRefObject<boolean>;
+  /** Shared drag distance from parent carousel to block hover popup after drag */
+  dragDistanceRef?: React.MutableRefObject<number>;
 }
 
 // Chuẩn hoá text số tập: "Hoàn tất (20/20)" -> "20/20"
@@ -135,7 +139,16 @@ function LanguageBadges({ language }: { language?: string }) {
   );
 }
 
-export function MovieCard({ movie, index = 0, variant = "default", rank, disableTilt = false, priority = false }: MovieCardProps) {
+export function MovieCard({
+  movie,
+  index = 0,
+  variant = "default",
+  rank,
+  disableTilt = false,
+  priority = false,
+  hasDraggedRef,
+  dragDistanceRef,
+}: MovieCardProps) {
   const pathname = usePathname();
   const router = useRouter();
   const isHome = pathname === '/';
@@ -386,6 +399,8 @@ export function MovieCard({ movie, index = 0, variant = "default", rank, disable
   }, []);
 
   const handleMouseEnterWithDelay = () => {
+    const wasDragging = hasDraggedRef?.current || (dragDistanceRef?.current || 0) > 5;
+    if (wasDragging) return;
     if (hoverDelayRef.current) clearTimeout(hoverDelayRef.current);
     hoverDelayRef.current = setTimeout(() => {
       setIsHovered(true);

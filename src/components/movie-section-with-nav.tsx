@@ -322,6 +322,8 @@ export function MovieSectionWithNav({
                 rank={variant === "top10" || variant === "newRelease" ? index + 1 : undefined}
                 disableTilt={disableTilt}
                 priority={index < priorityCount}
+                hasDraggedRef={hasDragged}
+                dragDistanceRef={dragDistance}
               />
             </div>
           ))}

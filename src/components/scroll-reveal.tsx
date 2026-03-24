@@ -26,6 +26,8 @@ interface ScrollRevealProps {
   className?: string;
   /** Use a custom tag instead of div */
   as?: keyof React.JSX.IntrinsicElements;
+  /** Disable reveal animation on desktop */
+  desktopDisabled?: boolean;
 }
 
 const variantStyles: Record<
@@ -70,11 +72,14 @@ export function ScrollReveal({
   threshold = 0.1,
   className = "",
   as: Tag = "div",
+  desktopDisabled = false,
 }: ScrollRevealProps) {
   const isMobile = useIsMobile();
+  const disableReveal = desktopDisabled && !isMobile;
   const { ref, isVisible } = useScrollReveal<HTMLDivElement>({
     threshold,
     rootMargin: "0px 0px -40px 0px",
+    disabled: disableReveal,
   });
 
   const styles = variantStyles[variant];

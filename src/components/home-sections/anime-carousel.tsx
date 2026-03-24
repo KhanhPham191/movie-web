@@ -311,9 +311,16 @@ function MovieCardWithPopup({
   const popupRef = useRef<HTMLDivElement>(null);
   const [popupPosition, setPopupPosition] = useState<{ left: number; top: number } | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [canShowHoverPopup, setCanShowHoverPopup] = useState(false);
   const positionFrameRef = useRef<number | null>(null);
   const hoverDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isNavigatingRef = useRef(false);
+  const lastPopupPositionRef = useRef<{ left: number; top: number } | null>(null);
+
+  useEffect(() => {
+    const hoverCapable = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    setCanShowHoverPopup(hoverCapable && window.innerWidth >= 1024);
+  }, []);
 
   const updatePopupPosition = useCallback(() => {
     if (!isHovered || !cardRef.current) return;
@@ -323,16 +330,27 @@ function MovieCardWithPopup({
     positionFrameRef.current = requestAnimationFrame(() => {
       if (!cardRef.current) return;
       const rect = cardRef.current.getBoundingClientRect();
-      setPopupPosition({
+      const nextPosition = {
         left: rect.left + rect.width / 2,
         top: rect.top + rect.height / 2,
-      });
+      };
+      const prevPosition = lastPopupPositionRef.current;
+      const hasMeaningfulChange =
+        !prevPosition ||
+        Math.abs(prevPosition.left - nextPosition.left) > 1 ||
+        Math.abs(prevPosition.top - nextPosition.top) > 1;
+
+      if (hasMeaningfulChange) {
+        setPopupPosition(nextPosition);
+        lastPopupPositionRef.current = nextPosition;
+      }
     });
   }, [isHovered]);
 
   useEffect(() => {
-    if (!isHovered) {
+    if (!isHovered || !canShowHoverPopup) {
       setPopupPosition(null);
+      lastPopupPositionRef.current = null;
       if (positionFrameRef.current) {
         cancelAnimationFrame(positionFrameRef.current);
         positionFrameRef.current = null;
@@ -358,7 +376,7 @@ function MovieCardWithPopup({
         positionFrameRef.current = null;
       }
     };
-  }, [isHovered, scrollRef, updatePopupPosition]);
+  }, [isHovered, canShowHoverPopup, scrollRef, updatePopupPosition]);
 
   useEffect(() => {
     return () => {
@@ -404,10 +422,11 @@ function MovieCardWithPopup({
   };
 
   const handleMouseEnterWithDelay = () => {
+    if (!canShowHoverPopup || hasDragged.current || dragDistance.current > 5) return;
     if (hoverDelayRef.current) clearTimeout(hoverDelayRef.current);
     hoverDelayRef.current = setTimeout(() => {
       setIsHovered(true);
-    }, 500);
+    }, 700);
   };
 
   const handleMouseLeaveWithCancel = (e?: React.MouseEvent) => {
@@ -423,7 +442,7 @@ function MovieCardWithPopup({
   };
 
   const popupContent =
-    isHovered && popupPosition ? (
+    canShowHoverPopup && isHovered && popupPosition ? (
       <div
         ref={popupRef}
         className="pointer-events-auto fixed z-[9999] w-[min(480px,82vw)] hidden lg:block transition-all duration-320 ease-[cubic-bezier(0.22,0.61,0.36,1)]"
@@ -553,8 +572,8 @@ function MovieCardWithPopup({
         ref={cardRef}
         href={`/phim/${movie.slug}`}
         className="group relative shrink-0 w-[clamp(280px,22vw,400px)] sm:w-[clamp(300px,23vw,420px)] md:w-[clamp(320px,24vw,450px)] lg:w-[clamp(340px,calc((100vw-192px-60px)/4),480px)] cursor-pointer"
-        onMouseEnter={handleMouseEnterWithDelay}
-        onMouseLeave={handleMouseLeaveWithCancel}
+        onMouseEnter={canShowHoverPopup ? handleMouseEnterWithDelay : undefined}
+        onMouseLeave={canShowHoverPopup ? handleMouseLeaveWithCancel : undefined}
         onClick={(e) => {
           if (hasDragged.current || dragDistance.current > 5) {
             e.preventDefault();
@@ -586,13 +605,7 @@ function MovieCardWithPopup({
                 loading="lazy"
               />
 
-              {/* Badges */}
-              <LanguageBadges language={movie.language} />
-              {episodeLabel && (
-                <Badge className="absolute bottom-2 right-2 bg-gradient-to-r from-red-600 via-orange-500 to-orange-400 text-white border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg z-20">
-                  {episodeLabel}
-                </Badge>
-              )}
+              {/* Anime cards: hide language + episode badges */}
 
               {/* Dark gradient bar at bottom */}
               <div className="absolute inset-x-0 bottom-0 h-[96px] sm:h-[108px] bg-gradient-to-t from-[#050505] via-[#050505e6] to-transparent" />
