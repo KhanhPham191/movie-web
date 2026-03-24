@@ -210,14 +210,19 @@ export default async function CountryPage({
   );
 }
 
-export async function generateMetadata({ params }: CountryPageProps) {
+export async function generateMetadata({ params, searchParams }: CountryPageProps) {
   const { slug } = await params;
+  const { page: pageParam } = await searchParams;
+  const page = Number.parseInt(pageParam || "1", 10);
+  const normalizedPage = Number.isFinite(page) && page > 1 ? page : 1;
   const country = COUNTRIES.find((c) => c.slug === slug);
   const countryName = country?.name || slug;
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
     "https://www.movpey.xyz";
-  const countryUrl = `${siteUrl}/quoc-gia/${slug}`;
+  const countryBaseUrl = `${siteUrl}/quoc-gia/${slug}`;
+  const countryUrl =
+    normalizedPage > 1 ? `${countryBaseUrl}?page=${normalizedPage}` : countryBaseUrl;
 
   return {
     title: `Phim ${countryName} - Xem phim ${countryName} Vietsub | MovPey`,

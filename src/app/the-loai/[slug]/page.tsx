@@ -227,15 +227,19 @@ export default async function GenrePage({
   );
 }
 
-export async function generateMetadata({ params }: GenrePageProps) {
+export async function generateMetadata({ params, searchParams }: GenrePageProps) {
   const { slug } = await params;
+  const { page: pageParam } = await searchParams;
+  const page = Number.parseInt(pageParam || "1", 10);
+  const normalizedPage = Number.isFinite(page) && page > 1 ? page : 1;
   const availableGenres = await getAvailableGenres();
   const genre = availableGenres.find((g) => g.slug === slug) || GENRES.find((g) => g.slug === slug);
   const genreName = genre?.name || slug;
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
     "https://www.movpey.xyz";
-  const genreUrl = `${siteUrl}/the-loai/${slug}`;
+  const genreBaseUrl = `${siteUrl}/the-loai/${slug}`;
+  const genreUrl = normalizedPage > 1 ? `${genreBaseUrl}?page=${normalizedPage}` : genreBaseUrl;
   
   return {
     title: `Phim ${genreName} - Xem phim ${genreName.toLowerCase()} Vietsub | MovPey`,

@@ -253,13 +253,18 @@ export default async function CategoryPage({
   );
 }
 
-export async function generateMetadata({ params }: CategoryPageProps) {
+export async function generateMetadata({ params, searchParams }: CategoryPageProps) {
   const { slug } = await params;
+  const { page: pageParam } = await searchParams;
+  const page = Number.parseInt(pageParam || "1", 10);
+  const normalizedPage = Number.isFinite(page) && page > 1 ? page : 1;
   const categoryName = CATEGORY_NAMES[slug] || "Danh sách phim";
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
     "https://www.movpey.xyz";
-  const categoryUrl = `${siteUrl}/danh-sach/${slug}`;
+  const categoryBaseUrl = `${siteUrl}/danh-sach/${slug}`;
+  const categoryUrl =
+    normalizedPage > 1 ? `${categoryBaseUrl}?page=${normalizedPage}` : categoryBaseUrl;
   
   return {
     title: `${categoryName} - Xem phim online Vietsub | MovPey`,
