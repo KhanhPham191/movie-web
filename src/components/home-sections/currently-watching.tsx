@@ -254,6 +254,7 @@ export function CurrentlyWatchingSection() {
 
   return (
     <section
+      id="currently-watching"
       className={`relative py-6 xs:py-7 sm:py-8 group/section px-0 ${
         isVisible ? "opacity-100" : "opacity-0"
       }`}
