@@ -120,8 +120,8 @@ export default async function Home() {
           {/* Premium Background Effects - Hidden on mobile for performance */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden hidden sm:block">
             {/* Gradient orbs */}
-            <div className="absolute right-0 top-1/3 h-96 w-96 rounded-full bg-gradient-to-l from-[#D3A13A]/15 via-[#F6C453]/10 to-transparent blur-3xl" />
-            <div className="absolute left-1/2 top-2/3 h-80 w-80 rounded-full bg-gradient-to-r from-[#F6C453]/8 to-[#D3A13A]/8 blur-3xl" />
+            <div className="home-orb home-orb-1 absolute right-0 top-1/3 h-96 w-96 rounded-full bg-gradient-to-l from-[#D3A13A]/15 via-[#F6C453]/10 to-transparent blur-3xl" />
+            <div className="home-orb home-orb-2 absolute left-1/2 top-2/3 h-80 w-80 rounded-full bg-gradient-to-r from-[#F6C453]/8 to-[#D3A13A]/8 blur-3xl" />
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#191b24]/50 to-[#191b24]" />
           </div>

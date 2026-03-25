@@ -26,7 +26,10 @@ interface ScrollRevealProps {
   className?: string;
   /** Use a custom tag instead of div */
   as?: keyof React.JSX.IntrinsicElements;
-  /** Disable reveal animation on desktop */
+  /**
+   * Use a lightweight reveal on desktop.
+   * (We still reveal; we just avoid transform-heavy transitions for performance.)
+   */
   desktopDisabled?: boolean;
 }
 
@@ -75,19 +78,22 @@ export function ScrollReveal({
   desktopDisabled = false,
 }: ScrollRevealProps) {
   const isMobile = useIsMobile();
-  const disableReveal = desktopDisabled && !isMobile;
+  const lightDesktop = desktopDisabled && !isMobile;
   const { ref, isVisible } = useScrollReveal<HTMLDivElement>({
     threshold,
     rootMargin: "0px 0px -40px 0px",
-    disabled: disableReveal,
+    disabled: false,
   });
 
-  const styles = variantStyles[variant];
+  const styles = lightDesktop
+    ? { hidden: { opacity: 0 }, visible: { opacity: 1 } }
+    : variantStyles[variant];
 
   const Component = Tag as React.ElementType;
 
   // On mobile: use simpler fade-only animation with shorter duration, no transform
   const mobileDuration = Math.min(duration, 300);
+  const desktopLightDuration = Math.min(duration, 450);
 
   return (
     <Component
@@ -101,7 +107,9 @@ export function ScrollReveal({
             : styles.hidden),
         transition: isMobile
           ? `opacity ${mobileDuration}ms ease-out`
-          : `opacity ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
+          : lightDesktop
+            ? `opacity ${desktopLightDuration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`
+            : `opacity ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
         willChange: isVisible ? "auto" : "opacity",
       }}
     >
