@@ -24,6 +24,7 @@ When the component re-renders (e.g., after changing server selection or route pa
    - `EpisodeGrid` renders only the episode links grid for the selected server.
 3. Remove `style jsx global` keyframe injection from render path and rely on a single global animation definition.
 4. Ensure server switching remounts the episode grid to reset animation/layout cleanly.
+   - Implementation detail: key the episode grid wrapper by `currentServer.server_name` (this is already present in the current code).
 
 ## Non-Goals
 1. No changes to the server/episode selection logic semantics (filtering and mapping remain equivalent).
@@ -32,7 +33,9 @@ When the component re-renders (e.g., after changing server selection or route pa
 
 ## UX Requirements
 ### Server Tabs
-- Render server pills horizontally (`flex`, `overflow-x-auto`, `whitespace-nowrap`) with consistent height and spacing.
+- Render server pills horizontally using a constrained scroll container:
+  - container: `flex items-center gap-1.5 overflow-x-auto flex-nowrap w-full`
+  - tabs: `flex-none whitespace-nowrap` (avoid `flex-1` on mobile to prevent awkward stretching/overlap)
 - Highlight the active server visually.
 - Prevent layout shift / overlap by keeping tab items non-wrapping and container overflow constrained.
 
@@ -73,9 +76,15 @@ Current behavior:
 
 Change:
 - Keep local state for `selectedServerIndex`.
-- Add a `useEffect` to re-sync `selectedServerIndex` whenever `defaultServer` (prop) changes:
+- Add a `useEffect` to re-sync `selectedServerIndex` whenever either:
+  - `defaultServer` changes, OR
+  - the computed `filteredServers` list changes (because the index space can change)
+- Sync rules:
   - If `defaultServer` matches a known filtered server: select that index
-  - Else keep the existing fallback priority (Vietsub first, then Long tieng, then Thuyet minh)
+  - Otherwise clamp to a valid index range; if out of range, fall back to the existing priority:
+    1) Vietsub
+    2) Long tieng
+    3) Thuyet minh
 
 Rationale: avoids stale state leading to mismatched tab highlighting vs episode grid.
 
@@ -85,18 +94,20 @@ Current issue candidate:
 
 Change:
 - Remove the `<style jsx global>` block from the episode grid render.
-- Ensure the `fadeInUp` keyframes referenced by episode link animations are defined once globally (already present in `src/app/globals.css`).
-- Keep animations using the global `fadeInUp` definition and existing classnames (`animate-slide-up`, etc.).
+- Animation parity note:
+  - The prior injected `@keyframes fadeInUp` used only `opacity` and `translateY` (no `scale(...)`).
+  - `src/app/globals.css` already defines a `fadeInUp` keyframes that includes `scale(...)`.
+  - To preserve the previous visual feel and avoid subtle animation/layout differences, define a dedicated keyframes name in `src/app/globals.css` (e.g., `episodeSelectorFadeInUp`) that matches the prior injected behavior exactly.
+- Update episode link animations to use the dedicated keyframes name (instead of relying on global `fadeInUp`).
 
 Remount behavior:
-- Wrap the episode grid in a keyed element:
-  - `key={currentServer.server_name}`
-- This forces React to reset the grid sub-tree when changing server tabs.
+- Ensure the episode grid wrapper is keyed by `currentServer.server_name` so React remounts the episode sub-tree when switching servers.
 
 ## Accessibility
 - Tabs should be semantic:
   - `role="tablist"` for the tabs container
   - each pill as a `button` with `aria-selected={isActive}`
+- Optional improvement: wire `aria-controls` / `id` to connect tabs to the episode grid region for screen readers.
 - Episode links remain `next/link` elements as currently.
 
 ## Error Handling
@@ -120,5 +131,8 @@ Regression checks:
 ## Implementation Notes
 Files likely to be touched:
 - `src/components/episode-selector.tsx` (refactor into child components + remove injected `<style jsx global>`)
-- Potentially `src/app/globals.css` (only if keyframes are missing; otherwise rely on existing `fadeInUp`)
+- `src/app/globals.css` (add `episodeSelectorFadeInUp` keyframes if needed to match the prior injected animation)
+
+Must preserve:
+- The "phim le" / FULL early-return UI branch inside `EpisodeSelector` must remain functionally identical (including its server-card href generation).
 
