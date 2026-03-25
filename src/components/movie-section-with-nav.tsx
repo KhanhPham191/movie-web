@@ -194,6 +194,8 @@ export function MovieSectionWithNav({
         return "w-[clamp(200px,17vw,320px)] md:w-[clamp(260px,22vw,400px)] lg:w-[clamp(280px,20vw,420px)] xl:w-[clamp(230px,14vw,360px)]";
       case "series":
         return "w-[clamp(190px,16vw,285px)] md:w-[clamp(250px,21vw,380px)] lg:w-[clamp(270px,19vw,400px)] xl:w-[clamp(220px,13vw,315px)]";
+      case "cinema":
+        return "w-[clamp(152px,15.5vw,238px)] md:w-[clamp(200px,18vw,280px)] lg:w-[clamp(220px,16vw,300px)] xl:w-[clamp(178px,12.5vw,260px)]";
       default:
         return "w-[clamp(200px,17vw,320px)] md:w-[clamp(260px,22vw,400px)] lg:w-[clamp(280px,20vw,420px)] xl:w-[clamp(230px,14vw,360px)]";
     }
@@ -299,7 +301,7 @@ export function MovieSectionWithNav({
               key={`${movie.slug}-${index}`}
               className={`shrink-0 flex flex-col ${
                 variant === "cinema"
-                  ? "w-[clamp(240px,18vw,360px)] md:w-[clamp(300px,24vw,440px)] lg:w-[calc((100%-160px)/5)] lg:max-w-[calc((100%-160px)/5)] lg:min-w-[calc((100%-160px)/5)] xl:w-[clamp(280px,14vw,420px)]"
+                  ? `${getCardWidth()} lg:w-[calc((100%-160px)/5)] lg:max-w-[calc((100%-160px)/5)] lg:min-w-[calc((100%-160px)/5)]`
                   : `${getCardWidth()} lg:w-[calc((100%-160px)/5)] lg:max-w-[calc((100%-160px)/5)] lg:min-w-[calc((100%-160px)/5)]`
               } md:basis-auto 2xl:w-[calc((100%-160px)/5)] 2xl:max-w-[calc((100%-160px)/5)] 2xl:min-w-[calc((100%-160px)/5)]`}
               onClick={(e) => {

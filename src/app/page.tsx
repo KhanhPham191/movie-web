@@ -190,20 +190,20 @@ export default async function Home() {
               </div>
             </ScrollReveal>
 
+            {/* Anime — trước Phim Trung Quốc */}
+            <ScrollReveal variant="fade-up" duration={700} desktopDisabled>
+              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
+                <Suspense fallback={<MovieSectionSkeleton />}>
+                  <AnimeSection />
+                </Suspense>
+              </div>
+            </ScrollReveal>
+
             {/* Chinese Dramas */}
             <ScrollReveal variant="fade-up" duration={700} desktopDisabled>
               <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
                 <Suspense fallback={<MovieSectionSkeleton />}>
                   <TrungQuocSection />
-                </Suspense>
-              </div>
-            </ScrollReveal>
-
-            {/* Anime */}
-            <ScrollReveal variant="fade-up" duration={700} desktopDisabled>
-              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
-                <Suspense fallback={<MovieSectionSkeleton />}>
-                  <AnimeSection />
                 </Suspense>
               </div>
             </ScrollReveal>

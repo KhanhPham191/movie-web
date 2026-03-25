@@ -168,6 +168,8 @@ export function MovieSection({ title, movies, href, variant = "default", priorit
         return "w-[clamp(180px,16vw,270px)] xl:w-[clamp(210px,13vw,300px)]";
       case "series":
         return "w-[clamp(190px,16vw,285px)] xl:w-[clamp(220px,13vw,315px)]";
+      case "cinema":
+        return "w-[clamp(152px,15.5vw,238px)] xl:w-[clamp(178px,12.5vw,260px)]";
       default:
         return "w-[clamp(200px,17vw,320px)] xl:w-[clamp(230px,14vw,360px)]";
     }
@@ -273,8 +275,7 @@ export function MovieSection({ title, movies, href, variant = "default", priorit
               key={`${movie.slug}-${index}`}
               className={`shrink-0 flex flex-col ${
                 variant === "cinema"
-                  ? // Mobile: không dùng min-width cố định 300px (dễ tràn màn ~320px); gần full width trong carousel
-                    "w-[min(92vw,32rem)] max-w-[520px] sm:max-w-none sm:w-[clamp(300px,48vw,520px)] md:w-[clamp(340px,44vw,560px)] lg:w-[clamp(380px,38vw,620px)] xl:w-[clamp(400px,34vw,680px)]"
+                  ? `${getCardWidth()} lg:basis-[calc((100%-64px)/5)] lg:max-w-[calc((100%-64px)/5)] 2xl:basis-[calc((100%-80px)/5)] 2xl:max-w-[calc((100%-80px)/5)]`
                   : `${getCardWidth()} lg:basis-[calc((100%-64px)/5)] lg:max-w-[calc((100%-64px)/5)] 2xl:basis-[calc((100%-80px)/5)] 2xl:max-w-[calc((100%-80px)/5)]`
               }`}
               onClick={(e) => {

@@ -1064,11 +1064,10 @@ export function MovieCard({
     );
   }
 
-  // Cinema / US-UK variant - wide backdrop + small poster + info; popup hover giống newRelease/series
+  // Cinema — poster 2:3 kiểu rạp: khung poster, không dải màu trên đầu; gradient chỉ ở đáy để đọc chữ
   if (variant === "cinema") {
-    const backdropUrl = getImageUrl(movie.poster_url);
-    const thumbUrl = getImageUrl(movie.thumb_url);
-    const shortDescription = getShortDescription(movie.description, 110);
+    const posterUrl = getImageUrl(movie.thumb_url || movie.poster_url);
+    const shortDescription = getShortDescription(movie.description, 88);
     const cinemaBadgeText = getCinemaCardBadgeText(movie.quality);
 
     const year =
@@ -1085,7 +1084,7 @@ export function MovieCard({
         <Link
           ref={cardRef}
           href={`/phim/${movie.slug}`}
-          className="relative block cursor-pointer"
+          className="relative block cursor-pointer h-full"
           onClick={handleMovieClick}
           title={cardTooltipSummary}
         >
@@ -1094,70 +1093,57 @@ export function MovieCard({
             onMouseEnter={handleMouseEnterWithDelay}
             onMouseLeave={handleMouseLeaveWithCancel}
           >
-            <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-[#0a0a0a] flex-shrink-0 border border-white/5 md:transition-transform md:duration-300 md:group-hover:scale-[1.02] md:group-hover:shadow-xl md:group-hover:border-[rgba(246,196,83,0.35)]">
-              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#F6C453] via-[#DB2777] to-[#6D28D9] opacity-70" />
-
-              <div className="absolute inset-0 bg-[rgba(246,196,83,0.08)] opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 md:duration-300 pointer-events-none z-10" />
+            <div
+              className="relative aspect-[2/3] w-full rounded-xl overflow-hidden bg-[#0b0b0b] flex-shrink-0 border border-white/[0.12] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04),0_12px_40px_rgba(0,0,0,0.55)] md:transition-all md:duration-300 md:group-hover:scale-[1.03] md:group-hover:shadow-[inset_0_0_0_1px_rgba(246,196,83,0.2),0_20px_56px_rgba(0,0,0,0.7)] md:group-hover:border-[rgba(246,196,83,0.35)]"
+            >
+              <div className="absolute inset-0 bg-[rgba(246,196,83,0.05)] opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-[6]" />
 
               <Image
-                src={backdropUrl}
+                src={posterUrl}
                 alt={movie.name}
                 fill
                 className="object-cover object-center"
-                sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 33vw"
-                loading="lazy"
+                sizes="(max-width: 640px) 42vw, (max-width: 1024px) 22vw, 200px"
+                {...(priority ? { priority: true } : { loading: "lazy" })}
               />
 
               {cinemaBadgeText && (
                 <div
-                  className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex items-center gap-1 z-20"
+                  className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex items-center gap-1 z-20 max-w-[calc(100%-1.25rem)]"
                   title={cardTooltipSummary}
                 >
-                  <Badge className="bg-white/15 text-white border border-white/20 text-[10px] sm:text-[11px] font-semibold px-2 py-0.5">
+                  <Badge className="bg-black/60 text-white border border-white/20 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 shadow-lg backdrop-blur-sm truncate max-w-full">
                     {cinemaBadgeText}
                   </Badge>
                 </div>
               )}
 
-              <div className="absolute inset-x-0 bottom-0 h-[104px] sm:h-[120px] md:h-[128px] bg-gradient-to-t from-[#050505] via-[#050505e6] to-transparent" />
-
-              <div className="absolute left-3 right-3 sm:left-4 sm:right-4 bottom-3 sm:bottom-4 flex items-end gap-2.5 sm:gap-3.5">
-                <div className="relative aspect-[2/3] w-14 xs:w-16 sm:w-24 md:w-28 rounded-md overflow-hidden shadow-2xl shadow-black/80 border border-white/10 bg-black/60 flex-shrink-0">
-                  <Image
-                    src={thumbUrl}
-                    alt={movie.name}
-                    fill
-                    className="object-cover object-center"
-                    sizes="(max-width: 640px) 72px, 112px"
-                    loading="lazy"
-                  />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm xs:text-base sm:text-lg font-semibold text-white line-clamp-1">
-                    {movie.name}
-                  </h3>
-                  {movie.original_name && movie.original_name !== movie.name && (
-                    <p className="text-xs sm:text-sm text-gray-100 font-medium leading-snug line-clamp-1">
-                      {movie.original_name}
-                    </p>
-                  )}
-                  {shortDescription && (
-                    <p className="mt-0.5 text-[11px] xs:text-xs sm:text-sm text-gray-300 line-clamp-2">
-                      {shortDescription}
-                    </p>
-                  )}
-                  {(year || isValidTime(movie.time)) && (
-                    <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm md:text-base text-gray-200 flex flex-wrap items-center gap-x-1.5 sm:gap-x-2 gap-y-0.5">
-                      {year && <span>{year}</span>}
-                      {isValidTime(movie.time) && (
-                        <span className="font-semibold text-white">
-                          {movie.time}
-                        </span>
-                      )}
-                    </p>
-                  )}
-                </div>
+              <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-[#030303] via-[#030303]/92 to-transparent pt-16 pb-3 px-2.5 sm:px-3 sm:pb-3.5">
+                <h3 className="text-[13px] sm:text-sm font-extrabold text-white leading-tight line-clamp-2 tracking-tight [text-shadow:0_2px_10px_rgba(0,0,0,0.95)]">
+                  {movie.name}
+                </h3>
+                {movie.original_name && movie.original_name !== movie.name && (
+                  <p className="mt-0.5 text-[10px] sm:text-[11px] text-[#F6C453]/95 font-semibold leading-snug line-clamp-1">
+                    {movie.original_name}
+                  </p>
+                )}
+                {shortDescription && (
+                  <p className="mt-1 text-[10px] sm:text-[11px] text-gray-300/95 line-clamp-2 leading-snug">
+                    {shortDescription}
+                  </p>
+                )}
+                {(year || isValidTime(movie.time)) && (
+                  <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] sm:text-[11px] text-gray-200">
+                    {year && (
+                      <span className="rounded border border-white/15 bg-white/5 px-1.5 py-0.5 font-medium">
+                        {year}
+                      </span>
+                    )}
+                    {isValidTime(movie.time) && (
+                      <span className="font-semibold text-white">{movie.time}</span>
+                    )}
+                  </p>
+                )}
               </div>
             </div>
           </div>

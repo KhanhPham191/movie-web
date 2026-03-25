@@ -243,7 +243,7 @@ export function AnimeCarousel({ movies }: AnimeCarouselProps) {
           transform: "translate3d(0, 0, 0)",
           overflowX: "auto",
         }}
-        className={`flex gap-4 sm:gap-5 pb-4 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] select-none ${
+        className={`flex items-start justify-start gap-3 sm:gap-4 overflow-x-auto scrollbar-hide px-3 sm:px-4 md:px-12 pb-12 sm:pb-16 pt-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] select-none ${
           isDragging ? "cursor-grabbing" : "cursor-grab"
         }`}
       >
@@ -571,7 +571,7 @@ function MovieCardWithPopup({
       <Link
         ref={cardRef}
         href={`/phim/${movie.slug}`}
-        className="group relative shrink-0 w-[clamp(280px,22vw,400px)] sm:w-[clamp(300px,23vw,420px)] md:w-[clamp(320px,24vw,450px)] lg:w-[clamp(340px,calc((100vw-192px-60px)/4),480px)] cursor-pointer"
+        className="group relative shrink-0 w-[min(92vw,32rem)] max-w-[520px] sm:max-w-none sm:w-[clamp(300px,48vw,520px)] md:w-[clamp(340px,44vw,560px)] lg:w-[clamp(380px,38vw,620px)] xl:w-[clamp(400px,34vw,680px)] cursor-pointer"
         onMouseEnter={canShowHoverPopup ? handleMouseEnterWithDelay : undefined}
         onMouseLeave={canShowHoverPopup ? handleMouseLeaveWithCancel : undefined}
         onClick={(e) => {
@@ -601,7 +601,7 @@ function MovieCardWithPopup({
                 alt={movie.name}
                 fill
                 className="object-cover object-center transition-transform duration-200 sm:duration-300 ease-in-out sm:group-hover:scale-[1.03]"
-                sizes="(max-width: 640px) 280px, (max-width: 768px) 320px, 360px"
+                sizes="(max-width: 640px) min(92vw,520px), (max-width: 1024px) 48vw, (max-width: 1280px) 38vw, 680px"
                 loading="lazy"
               />
 
