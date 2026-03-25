@@ -110,6 +110,12 @@ function getCinemaCardBadgeText(quality?: string): string | null {
   return s.length > 0 ? s.toUpperCase() : null;
 }
 
+// Backward-compatibility: some older MovieCard variants referenced this helper name.
+// Keep it as an alias to the current implementation.
+function getCinemaBadgeWithoutHd(quality?: string): string | null {
+  return getCinemaCardBadgeText(quality);
+}
+
 /** Chất lượng nguồn cho popup / tooltip (HD, Cam, FHD, …). */
 function getQualityStatusLabel(quality?: string): string | null {
   if (!quality?.trim()) return null;
@@ -230,6 +236,58 @@ function getPopupLanguageLine(language?: string, langKeys?: string[]): string | 
   const order = ["Vietsub", "Thuyết minh", "Lồng tiếng"] as const;
   const ordered = order.filter((x) => labels.has(x));
   return ordered.length ? ordered.join(" · ") : null;
+}
+
+function hasVietsub(language?: string): boolean {
+  if (!language) return false;
+  const lang = language.toLowerCase();
+  return lang.includes("viet") || lang.includes("vs") || lang.includes("vietsub");
+}
+
+function hasThuyetMinh(language?: string): boolean {
+  if (!language) return false;
+  const lang = language.toLowerCase();
+  return (
+    lang.includes("thuyết minh") ||
+    lang.includes("thuyet minh") ||
+    /\btm\b/.test(lang) ||
+    /^tm$/i.test(language.trim())
+  );
+}
+
+function hasLongTieng(language?: string): boolean {
+  if (!language) return false;
+  const lang = language.toLowerCase();
+  return (
+    lang.includes("lồng tiếng") ||
+    lang.includes("long tieng") ||
+    lang.includes("lồng") ||
+    /\blt\b/.test(lang) ||
+    /^lt$/i.test(language.trim()) ||
+    lang.includes("dubbing")
+  );
+}
+
+// Language badges rendered on poster (bottom-left).
+function LanguageBadges({ language }: { language?: string }) {
+  const hasVS = hasVietsub(language);
+  const hasTM = hasThuyetMinh(language);
+  const hasLT = hasLongTieng(language);
+
+  if (!hasVS && !hasTM && !hasLT) return null;
+
+  const labels: string[] = [];
+  if (hasVS) labels.push("Vietsub");
+  if (hasTM) labels.push("TM");
+  if (hasLT) labels.push("LT");
+
+  return (
+    <div className="absolute bottom-2 left-2 z-30">
+      <Badge className="bg-gradient-to-r from-[#F6C453] via-[#F6C453] to-[#FAF9F6] text-black border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg">
+        {labels.join(" + ")}
+      </Badge>
+    </div>
+  );
 }
 
 export function MovieCard({
