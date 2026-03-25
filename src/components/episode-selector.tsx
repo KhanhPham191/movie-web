@@ -175,6 +175,101 @@ export function EpisodeSelector({
     return "bg-gradient-to-r from-black/85 via-black/80 via-purple-900/40 via-purple-800/30 via-black/70 to-transparent";
   };
 
+  const PhimLeCardBackground = ({
+    imageUrl,
+    gradientClass,
+    movieName,
+  }: {
+    imageUrl: string;
+    gradientClass: string;
+    movieName: string;
+  }) => {
+    return (
+      <div className="absolute inset-0">
+        <Image
+          src={imageUrl}
+          alt={movieName}
+          fill
+          className="object-cover"
+          sizes="(max-width: 640px) 280px, (max-width: 768px) 360px, (max-width: 1024px) 480px, 540px"
+          loading="lazy"
+          quality={75}
+          unoptimized
+        />
+        {/* Gradient overlay theo màu indication */}
+        <div className={`absolute inset-0 ${gradientClass}`} />
+      </div>
+    );
+  };
+
+  const PhimLeCardInfo = ({
+    movieName,
+    label,
+    iconColor,
+  }: {
+    movieName: string;
+    label: string;
+    iconColor: string;
+  }) => {
+    return (
+      <div className="relative z-10 h-full flex flex-col justify-center p-3 sm:p-4 md:p-5 w-[180px] sm:w-[200px] md:w-[260px] lg:w-[280px]">
+        {/* Label */}
+        <div className="flex items-center gap-1.5 mb-2 sm:mb-3">
+          <div className={`w-2 h-2 rounded-full ${iconColor} shadow-sm`} />
+          <span className="text-white/90 text-xs sm:text-sm font-medium">{label}</span>
+        </div>
+
+        {/* Tên phim */}
+        <h3 className="text-white font-bold text-sm sm:text-base md:text-lg mb-2 sm:mb-4 line-clamp-3 leading-tight group-hover:text-[#F6C453] transition-colors">
+          {movieName}
+        </h3>
+
+        {/* Nút Play */}
+        <div className="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 bg-white/95 hover:bg-white text-[#1a1a2e] font-semibold text-xs sm:text-sm rounded-lg transition-all shadow-md group-hover:shadow-lg w-fit">
+          <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 fill-current" />
+          <span>Play</span>
+        </div>
+      </div>
+    );
+  };
+
+  const PhimLeServerCard = ({
+    href,
+    imageUrl,
+    gradientClass,
+    movieName,
+    label,
+    iconColor,
+    onPlay,
+  }: {
+    href: string;
+    imageUrl: string;
+    gradientClass: string;
+    movieName: string;
+    label: string;
+    iconColor: string;
+    onPlay: () => void;
+  }) => {
+    return (
+      <Link
+        href={href}
+        prefetch={true}
+        className="block w-[280px] sm:w-[360px] md:w-[480px] lg:w-[540px] flex-shrink-0"
+        onClick={() => onPlay()}
+      >
+        {/* Wrapper phải có `relative` để phần absolute (ảnh + gradient) không bị chồng */}
+        <div className="relative w-full h-[157px] sm:h-[144px] md:h-[192px] lg:h-[216px] rounded-xl overflow-hidden border border-[#F6C453]/50 shadow-lg hover:shadow-[#F6C453]/30 transition-all hover:scale-[1.01] group cursor-pointer">
+          <PhimLeCardBackground
+            imageUrl={imageUrl}
+            gradientClass={gradientClass}
+            movieName={movieName}
+          />
+          <PhimLeCardInfo movieName={movieName} label={label} iconColor={iconColor} />
+        </div>
+      </Link>
+    );
+  };
+
   // Kiểm tra tất cả các server có phim lẻ (chỉ có 1 episode)
   const phimLeServers = useMemo(() => {
     return filteredServers.filter((server) => server.items.length === 1);
@@ -208,55 +303,18 @@ export function EpisodeSelector({
             const gradientClass = getServerGradient(server.server_name);
 
             return (
-              <Link
+              <PhimLeServerCard
                 key={server.server_name}
                 href={href}
-                prefetch={true}
-                className="block w-[280px] sm:w-[360px] md:w-[480px] lg:w-[540px] flex-shrink-0"
-                onClick={() => {
-                  if (movieName) {
-                    analytics.trackFilmDetailPlayNow(movieName, movieSlug, firstEpisode.slug);
-                  }
-                }}
-              >relative w-full h-[157px] sm:h-[144px] md:h-[192px] lg:h-[216px] rounded-xl overflow-hidden border border-[#F6C453]/50 shadow-lg hover:shadow-[#F6C453]/30 transition-all hover:scale-[1.01] group cursor-pointer
-                <div className="">
-                  {/* Background Image */}
-                  <div className="absolute inset-0">
-                    <Image
-                      src={imageUrl}
-                      alt={movieName}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 280px, (max-width: 768px) 360px, (max-width: 1024px) 480px, 540px"
-                      loading="lazy"
-                      quality={75}
-                      unoptimized
-                    />
-                    {/* Gradient overlay theo màu indication */}
-                    <div className={`absolute inset-0 ${gradientClass}`} />
-                  </div>
-
-                  {/* Content bên trái - kích thước cố định theo breakpoint */}
-                    <div className="relative z-10 h-full flex flex-col justify-center p-3 sm:p-4 md:p-5 w-[180px] sm:w-[200px] md:w-[260px] lg:w-[280px]">
-                    {/* Label */}
-                    <div className="flex items-center gap-1.5 mb-2 sm:mb-3">
-                      <div className={`w-2 h-2 rounded-full ${iconColor} shadow-sm`} />
-                      <span className="text-white/90 text-xs sm:text-sm font-medium">{label}</span>
-                    </div>
-
-                    {/* Tên phim */}
-                    <h3 className="text-white font-bold text-sm sm:text-base md:text-lg mb-2 sm:mb-4 line-clamp-3 leading-tight group-hover:text-[#F6C453] transition-colors">
-                      {movieName}
-                    </h3>
-
-                    {/* Nút Play */}
-                    <div className="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 bg-white/95 hover:bg-white text-[#1a1a2e] font-semibold text-xs sm:text-sm rounded-lg transition-all shadow-md group-hover:shadow-lg w-fit">
-                      <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 fill-current" />
-                      <span>Play</span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
+                imageUrl={imageUrl}
+                gradientClass={gradientClass}
+                movieName={movieName}
+                label={label}
+                iconColor={iconColor}
+                onPlay={() =>
+                  analytics.trackFilmDetailPlayNow(movieName, movieSlug, firstEpisode.slug)
+                }
+              />
             );
           })}
           </div>
@@ -275,52 +333,17 @@ export function EpisodeSelector({
     const gradientClass = getServerGradient(server.server_name);
 
     return (
-      <Link 
-        href={href} 
-        prefetch={true}
-        className="block w-[280px] sm:w-[360px] md:w-[480px] lg:w-[540px]"
-        onClick={() => {
-          if (movieName) {
-            analytics.trackFilmDetailPlayNow(movieName, movieSlug, firstEpisode.slug);
-          }
-        }}
-      >
-        <div className="relative w-full h-[157px] sm:h-[144px] md:h-[192px] lg:h-[216px] rounded-xl overflow-hidden border border-[#F6C453]/50 shadow-lg hover:shadow-[#F6C453]/30 transition-all hover:scale-[1.01] group cursor-pointer">
-          {/* Background Image */}
-          <div className="absolute inset-0">
-            <Image
-              src={imageUrl}
-              alt={movieName}
-              fill
-              className="object-cover"
-              sizes="(max-width: 640px) 280px, (max-width: 768px) 360px, (max-width: 1024px) 480px, 540px"
-              unoptimized
-            />
-            {/* Gradient overlay theo màu indication */}
-            <div className={`absolute inset-0 ${gradientClass}`} />
-          </div>
-
-          {/* Content bên trái - kích thước cố định theo breakpoint */}
-          <div className="relative z-10 h-full flex flex-col justify-center p-3 sm:p-4 md:p-5 w-[180px] sm:w-[200px] md:w-[260px] lg:w-[280px]">
-            {/* Label */}
-            <div className="flex items-center gap-1.5 mb-2 sm:mb-3">
-              <div className={`w-2 h-2 rounded-full ${iconColor} shadow-sm`} />
-              <span className="text-white/90 text-xs sm:text-sm font-medium">{label}</span>
-            </div>
-
-            {/* Tên phim */}
-            <h3 className="text-white font-bold text-sm sm:text-base md:text-lg mb-2 sm:mb-4 line-clamp-3 leading-tight group-hover:text-[#F6C453] transition-colors">
-              {movieName}
-            </h3>
-
-            {/* Nút Play */}
-            <div className="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 bg-white/95 hover:bg-white text-[#1a1a2e] font-semibold text-xs sm:text-sm rounded-lg transition-all shadow-md group-hover:shadow-lg w-fit">
-              <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 fill-current" />
-              <span>Play</span>
-            </div>
-          </div>
-        </div>
-      </Link>
+      <PhimLeServerCard
+        href={href}
+        imageUrl={imageUrl}
+        gradientClass={gradientClass}
+        movieName={movieName}
+        label={label}
+        iconColor={iconColor}
+        onPlay={() =>
+          analytics.trackFilmDetailPlayNow(movieName, movieSlug, firstEpisode.slug)
+        }
+      />
     );
   }
 
