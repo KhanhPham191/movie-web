@@ -17,6 +17,7 @@ const CATEGORY_NAMES: Record<string, string> = {
   "phim-le": "Phim lẻ",
   "phim-bo": "Phim bộ",
   "phim-dang-chieu": "Phim đang chiếu",
+  "phim-chieu-rap": "Phim chiếu rạp",
   "tv-shows": "TV Shows",
   "phim-moi-cap-nhat": "Phim mới cập nhật",
   "phim-cap-nhat-hang-ngay": "Cập nhật hàng ngày",

@@ -69,6 +69,7 @@ export function getStaticSitemapEntries(now = new Date()): SitemapEntry[] {
     { url: `${siteUrl}/danh-sach/phim-le`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${siteUrl}/danh-sach/phim-bo`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${siteUrl}/danh-sach/phim-dang-chieu`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
+    { url: `${siteUrl}/danh-sach/phim-chieu-rap`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${siteUrl}/danh-sach/tv-shows`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
     { url: `${siteUrl}/danh-sach/phim-moi-cap-nhat`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
     { url: `${siteUrl}/danh-sach/phim-cap-nhat-hang-ngay`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },

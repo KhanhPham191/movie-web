@@ -41,6 +41,33 @@ function formatEpisodeLabel(episode?: string) {
   return episode;
 }
 
+function isPhimBoMovie(movie: FilmItem): boolean {
+  if (movie.film_type?.toLowerCase() === "series") return true;
+  return (movie.category || []).some(
+    (c) => c.slug === "phim-bo" || /phim\s*bộ/i.test(c.name || "")
+  );
+}
+
+/**
+ * Phim lẻ: OPhim `film_type === "single"` (danh sách phim-le không có genre "phim-lẻ"),
+ * hoặc category / heuristic cũ.
+ */
+function isPhimLeMovie(movie: FilmItem): boolean {
+  const ft = movie.film_type?.toLowerCase();
+  if (ft === "single") return true;
+  if (ft === "series") return false;
+  const cats = movie.category || [];
+  if (cats.some((c) => c.slug === "phim-le" || /phim\s*lẻ/i.test(c.name || ""))) return true;
+  if (isPhimBoMovie(movie)) return false;
+  return movie.total_episodes === 1;
+}
+
+/** Badge tập trên card: phim lẻ không hiện FULL / số tập (chỉ phim bộ hiện). */
+function getMovieCardEpisodeBadgeText(movie: FilmItem): string {
+  if (isPhimLeMovie(movie)) return "";
+  return formatEpisodeLabel(movie.current_episode);
+}
+
 // Parse episode info: extract "Phần X" and "Tập Y" separately
 function parseEpisodeInfo(episode?: string): { part?: string; episode?: string } {
   if (!episode) return {};
@@ -57,6 +84,41 @@ function getShortDescription(description?: string, maxLength: number = 120) {
   const clean = description.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
   if (clean.length <= maxLength) return clean;
   return `${clean.slice(0, Math.max(0, maxLength - 3))}...`;
+}
+
+/** Badge góc poster (cinema): không hiện Full HD / Vietsub — chỉ phần còn lại nếu có. */
+function getCinemaCardBadgeText(quality?: string): string | null {
+  if (!quality?.trim()) return null;
+  const s = quality
+    .replace(/\bfull\s*hd\b/gi, "")
+    .replace(/\bfhd\b/gi, "")
+    .replace(/\bhd\b/gi, "")
+    .replace(/\b720p\b/gi, "")
+    .replace(/\b1080p\b/gi, "")
+    .replace(/\b2160p\b/gi, "")
+    .replace(/\b4k\b/gi, "")
+    .replace(/\bvietsub\b/gi, "")
+    .replace(/\bvs\b/gi, "")
+    .replace(/\btm\b/gi, "")
+    .replace(/\blt\b/gi, "")
+    .replace(/\blồng\s*tiếng\b/gi, "")
+    .replace(/\bthuyết\s*minh\b/gi, "")
+    .replace(/^\s*[-–—/|]\s*/g, "")
+    .replace(/\s*[-–—/|]\s*$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return s.length > 0 ? s.toUpperCase() : null;
+}
+
+/** Chất lượng nguồn cho popup / tooltip (HD, Cam, FHD, …). */
+function getQualityStatusLabel(quality?: string): string | null {
+  if (!quality?.trim()) return null;
+  const q = quality.toLowerCase();
+  if (/\bcam\b|camrip|hdcam|ts\b|telesync|workprint/.test(q)) return "Cam";
+  if (/\b4k\b|2160p|uhd\b/.test(q)) return "4K";
+  if (/\bfhd\b|1080p|bluray|blu-ray|bd\b|full\s*hd\b/.test(q)) return "FHD";
+  if (/\bhd\b|720p/.test(q)) return "HD";
+  return quality.trim().toUpperCase();
 }
 
 function getImdbScore(movie: FilmItem): string | null {
@@ -79,64 +141,95 @@ function getImdbScore(movie: FilmItem): string | null {
   return null;
 }
 
-// Rút gọn nhãn ngôn ngữ giống "VS-LT"
-function getLanguageBadge(language?: string) {
-  if (!language) return "";
-  const lang = language.toLowerCase();
-  const hasVS = lang.includes("viet") || lang.includes("vs");
-  const hasLT = lang.includes("lồng") || lang.includes("lt");
-  const hasTM = lang.includes("thuyết minh") || lang.includes("tm");
-  const parts = [];
-  if (hasVS) parts.push("VS");
-  if (hasLT) parts.push("LT");
-  if (hasTM) parts.push("TM");
-  return parts.length ? parts.join("-") : language;
+/**
+ * Tách cụm ngôn ngữ — KHÔNG dùng \\s+ làm delimiter (sẽ cắt đôi "Thuyết Minh").
+ * OPhim hay trả: "Vietsub + Thuyết Minh", "Vietsub | LT", ...
+ */
+function splitLanguageSegments(raw: string): string[] {
+  const n = raw.normalize("NFC").trim();
+  return n
+    .split(/\s*[+|/&]\s*|(?:\s*,\s*)|(?:\s*·\s*)|(?:\s+và\s+)|(?:\s*[-–—]\s*)/g)
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
-// Kiểm tra có Vietsub không
-function hasVietsub(language?: string): boolean {
-  if (!language) return false;
-  const lang = language.toLowerCase();
-  return lang.includes("viet") || lang.includes("vs") || lang.includes("vietsub");
+function langKeyToLabel(key: string): string | null {
+  const k = key.toLowerCase().trim();
+  if (k === "vs") return "Vietsub";
+  if (k === "tm") return "Thuyết minh";
+  if (k === "lt") return "Lồng tiếng";
+  return null;
 }
 
-// Kiểm tra có Thuyết minh không
-function hasThuyetMinh(language?: string): boolean {
-  if (!language) return false;
-  const lang = language.toLowerCase();
-  return lang.includes("thuyết minh") || lang.includes("tm") || lang.includes("thuyet minh");
-}
+/** Gộp chuỗi `lang` + mảng `lang_keys` từ OPhim (ưu tiên đủ vs/tm/lt). */
+function getPopupLanguageLine(language?: string, langKeys?: string[]): string | null {
+  const labels = new Set<string>();
 
-// Kiểm tra có Lồng tiếng không
-function hasLongTieng(language?: string): boolean {
-  if (!language) return false;
-  const lang = language.toLowerCase();
-  return lang.includes("lồng") || lang.includes("lt") || lang.includes("long") || lang.includes("lồng tiếng") || lang.includes("long tieng");
-}
+  if (langKeys?.length) {
+    for (const k of langKeys) {
+      const label = langKeyToLabel(k);
+      if (label) labels.add(label);
+    }
+  }
 
-// Helper component để render language badges nhất quán
-function LanguageBadges({ language }: { language?: string }) {
-  const hasVS = hasVietsub(language);
-  const hasTM = hasThuyetMinh(language);
-  const hasLT = hasLongTieng(language);
-  
-  if (!hasVS && !hasTM && !hasLT) return null;
-  
-  // Tạo label kết hợp
-  const labels: string[] = [];
-  if (hasVS) labels.push("Vietsub");
-  if (hasTM) labels.push("TM");
-  if (hasLT) labels.push("LT");
-  
-  const badgeText = labels.join(" + ");
-  
-  return (
-    <div className="absolute bottom-2 left-2 z-30">
-      <Badge className="bg-gradient-to-r from-[#F6C453] via-[#F6C453] to-[#FAF9F6] text-black border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg">
-        {badgeText}
-      </Badge>
-    </div>
-  );
+  if (language?.trim()) {
+    const full = language.normalize("NFC").trim();
+    const lower = full.toLowerCase();
+    const segments = splitLanguageSegments(full);
+    const chunks = segments.length ? segments : [full];
+
+    const isVietsubChunk = (s: string) => {
+      const l = s.toLowerCase();
+      return (
+        l.includes("vietsub") ||
+        /\bviet\s*sub\b/i.test(s) ||
+        /\bvs\b/.test(l) ||
+        l.includes("phụ đề") ||
+        l.includes("subtitle") ||
+        l.includes("subteam")
+      );
+    };
+    const isThuyetMinhChunk = (s: string) => {
+      const l = s.toLowerCase();
+      return (
+        l.includes("thuyết minh") ||
+        l.includes("thuyet minh") ||
+        /\btm\b/.test(l) ||
+        /^tm$/i.test(s.trim())
+      );
+    };
+    const isLongTiengChunk = (s: string) => {
+      const l = s.toLowerCase();
+      return (
+        l.includes("lồng tiếng") ||
+        l.includes("long tieng") ||
+        l.includes("lồng") ||
+        /\blt\b/.test(l) ||
+        /^lt$/i.test(s.trim()) ||
+        /\bvo\b/.test(l) ||
+        l.includes("dubbing")
+      );
+    };
+
+    for (const c of chunks) {
+      if (isVietsubChunk(c)) labels.add("Vietsub");
+      if (isThuyetMinhChunk(c)) labels.add("Thuyết minh");
+      if (isLongTiengChunk(c)) labels.add("Lồng tiếng");
+    }
+    if (!labels.size) {
+      if (isVietsubChunk(full)) labels.add("Vietsub");
+      if (isThuyetMinhChunk(full)) labels.add("Thuyết minh");
+      if (isLongTiengChunk(full)) labels.add("Lồng tiếng");
+    }
+    if (/vietsub/i.test(full) && /lt|lồng|long\s*tieng/i.test(lower)) {
+      labels.add("Vietsub");
+      labels.add("Lồng tiếng");
+    }
+  }
+
+  const order = ["Vietsub", "Thuyết minh", "Lồng tiếng"] as const;
+  const ordered = order.filter((x) => labels.has(x));
+  return ordered.length ? ordered.join(" · ") : null;
 }
 
 export function MovieCard({
@@ -174,10 +267,18 @@ export function MovieCard({
     const parsed = movie.created ? new Date(movie.created).getFullYear() : undefined;
     return !Number.isNaN(parsed) ? parsed : undefined;
   }, [movie.created]);
-  const episodeLabel = formatEpisodeLabel(movie.current_episode);
-  const qualityLabel = movie.quality ? movie.quality.toUpperCase() : "";
   const shouldShowPopup = variant !== "portrait";
   const imdbScore = useMemo(() => getImdbScore(movie), [movie]);
+  /** Tooltip gốc (mobile / hover): chất lượng + phụ đề — không dán lên poster. */
+  const cardTooltipSummary = useMemo(() => {
+    const parts: string[] = [];
+    const q = getQualityStatusLabel(movie.quality);
+    const lang = getPopupLanguageLine(movie.language, movie.lang_keys);
+    if (q) parts.push(`Chất lượng: ${q}`);
+    if (lang) parts.push(`Phụ đề / thoại: ${lang}`);
+    return parts.length ? parts.join(" · ") : undefined;
+  }, [movie.quality, movie.language, movie.lang_keys]);
+  const episodeBadgeText = getMovieCardEpisodeBadgeText(movie);
 
   const selectFirstEpisodeSlug = (detail?: FilmDetail | null) => {
     const eps = detail?.episodes || [];
@@ -424,6 +525,8 @@ export function MovieCard({
   const popupContent = useMemo(() => {
     if (!isHovered || !popupPosition || !shouldShowPopup) return null;
     const episodeInfo = parseEpisodeInfo(movie.current_episode);
+    const popupLangLine = getPopupLanguageLine(movie.language, movie.lang_keys);
+    const popupQuality = getQualityStatusLabel(movie.quality);
     const isActive = isHovered && !!popupPosition;
 
     return (
@@ -485,12 +588,12 @@ export function MovieCard({
                   {year}
                 </span>
               )}
-              {episodeInfo.part && (
+              {!isPhimLeMovie(movie) && episodeInfo.part && (
                 <span className="inline-flex items-center rounded-sm bg-white px-2.5 py-1.5 text-[12px] font-semibold text-black">
                   {episodeInfo.part}
                 </span>
               )}
-              {episodeInfo.episode && (
+              {!isPhimLeMovie(movie) && episodeInfo.episode && (
                 <span className="inline-flex items-center rounded-sm bg-white px-2.5 py-1.5 text-[12px] font-semibold text-black">
                   {episodeInfo.episode}
                 </span>
@@ -507,6 +610,21 @@ export function MovieCard({
                     )}
                   </span>
                 ))}
+              </div>
+            )}
+
+            {(popupLangLine || popupQuality) && (
+              <div className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2.5 text-[12px] leading-relaxed text-gray-200">
+                {popupQuality && (
+                  <p>
+                    <span className="text-gray-500">Chất lượng:</span> {popupQuality}
+                  </p>
+                )}
+                {popupLangLine && (
+                  <p className={popupQuality ? "mt-1" : ""}>
+                    <span className="text-gray-500">Phụ đề / thoại:</span> {popupLangLine}
+                  </p>
+                )}
               </div>
             )}
 
@@ -575,12 +693,37 @@ export function MovieCard({
         </div>
       </div>
     );
-  }, [isHovered, popupPosition, shouldShowPopup, popupBackdropUrl, movie.name, movie.original_name, movie.current_episode, movie.category, year, imdbScore, favorited, favPending, isAuthenticated, toggleFavorite]);
+  }, [
+    isHovered,
+    popupPosition,
+    shouldShowPopup,
+    popupBackdropUrl,
+    variant,
+    movie.name,
+    movie.original_name,
+    movie.current_episode,
+    movie.film_type,
+    movie.category,
+    movie.quality,
+    movie.language,
+    movie.lang_keys,
+    year,
+    imdbScore,
+    favorited,
+    favPending,
+    isAuthenticated,
+    toggleFavorite,
+  ]);
 
   // Top 10 variant - Netflix style with badge
   if (variant === "top10" && rank) {
     return (
-      <Link href={`/phim/${movie.slug}`} className="cursor-pointer" onClick={handleMovieClick}>
+      <Link
+        href={`/phim/${movie.slug}`}
+        className="cursor-pointer"
+        onClick={handleMovieClick}
+        title={cardTooltipSummary}
+      >
         <div className="group relative flex flex-col h-full">
           {/* Poster */}
           <div 
@@ -609,9 +752,6 @@ export function MovieCard({
             <div className="absolute top-0 left-0 w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center rounded-br-md shadow-lg z-20">
               <span className="text-white font-black text-xl md:text-2xl">{rank}</span>
             </div>
-            
-            {/* Language Badges - Bottom Left Corner */}
-            <LanguageBadges language={movie.language} />
             
             {/* Top 10 Badge - Bottom */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-2 z-20">
@@ -662,7 +802,12 @@ export function MovieCard({
   // Portrait variant (vertical poster)
   if (variant === "portrait") {
     return (
-      <Link href={`/phim/${movie.slug}`} className="cursor-pointer" onClick={handleMovieClick}>
+      <Link
+        href={`/phim/${movie.slug}`}
+        className="cursor-pointer"
+        onClick={handleMovieClick}
+        title={cardTooltipSummary}
+      >
         <div 
           className="group relative flex flex-col h-full"
           onMouseEnter={() => setIsHovered(true)}
@@ -681,17 +826,15 @@ export function MovieCard({
               sizes="(max-width: 640px) 150px, (max-width: 1024px) 200px, 250px"
               {...(priority ? { priority: true } : { loading: "lazy" })}
             />
-            {/* Language Badges - Bottom Left Corner */}
-            <LanguageBadges language={movie.language} />
-            {movie.current_episode && (
+            {episodeBadgeText && (
               <Badge className="absolute bottom-2 right-2 bg-gradient-to-r from-red-500 to-orange-500 text-white border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg z-20">
-                {formatEpisodeLabel(movie.current_episode)}
+                {episodeBadgeText}
               </Badge>
             )}
             
             {/* Play Button - Center on Hover */}
             <div className="absolute inset-0 flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-all duration-500 ease-in-out">
-              <div className="relative transform scale-0 group-hover:scale-100 transition-transform duration-500 ease-in-out">
+                <div className="relative transform scale-0 group-hover:scale-100 transition-transform duration-500 ease-in-out">
                 <div className="absolute inset-0 bg-[#F6C453] rounded-full blur-lg opacity-50 group-hover:opacity-70 transition-opacity duration-500 ease-in-out" />
                 <button
                   type="button"
@@ -743,7 +886,13 @@ export function MovieCard({
           (typeof window !== "undefined"
             ? createPortal(popupContent, document.body)
             : popupContent)}
-        <Link ref={cardRef} href={`/phim/${movie.slug}`} className="relative block cursor-pointer" onClick={handleMovieClick}>
+        <Link
+          ref={cardRef}
+          href={`/phim/${movie.slug}`}
+          className="relative block cursor-pointer"
+          onClick={handleMovieClick}
+          title={cardTooltipSummary}
+        >
           <div
             className="group relative flex flex-col items-start h-full pt-4 sm:pt-5"
             onMouseEnter={handleMouseEnterWithDelay}
@@ -779,11 +928,9 @@ export function MovieCard({
               sizes="(max-width: 640px) 150px, (max-width: 1024px) 200px, 250px"
               {...(priority ? { priority: true } : { loading: "lazy" })}
             />
-              {/* Language Badges - Bottom Left Corner */}
-              <LanguageBadges language={movie.language} />
-              {movie.current_episode && (
+              {episodeBadgeText && (
                 <Badge className="absolute bottom-2 right-2 bg-gradient-to-r from-red-500 to-orange-500 text-white border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg z-20">
-                  {formatEpisodeLabel(movie.current_episode)}
+                  {episodeBadgeText}
                 </Badge>
               )}
               
@@ -843,7 +990,12 @@ export function MovieCard({
           (typeof window !== "undefined"
             ? createPortal(popupContent, document.body)
             : popupContent)}
-        <Link ref={cardRef} href={`/phim/${movie.slug}`} className="cursor-pointer">
+        <Link
+          ref={cardRef}
+          href={`/phim/${movie.slug}`}
+          className="cursor-pointer"
+          title={cardTooltipSummary}
+        >
           <div
             className="group relative flex flex-col items-start h-full"
             onMouseEnter={handleMouseEnterWithDelay}
@@ -869,11 +1021,9 @@ export function MovieCard({
               sizes="(max-width: 640px) 150px, (max-width: 1024px) 200px, 250px"
               {...(priority ? { priority: true } : { loading: "lazy" })}
             />
-            {/* Language Badges - Bottom Left Corner */}
-            <LanguageBadges language={movie.language} />
-            {movie.current_episode && (
+            {episodeBadgeText && (
               <Badge className="absolute bottom-2 right-2 bg-gradient-to-r from-red-600 via-orange-500 to-orange-400 text-white border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg z-20">
-                {formatEpisodeLabel(movie.current_episode)}
+                {episodeBadgeText}
               </Badge>
             )}
             
@@ -919,7 +1069,7 @@ export function MovieCard({
     const backdropUrl = getImageUrl(movie.poster_url);
     const thumbUrl = getImageUrl(movie.thumb_url);
     const shortDescription = getShortDescription(movie.description, 110);
-    const qualityLabel = movie.quality ? movie.quality.toUpperCase() : "";
+    const cinemaBadgeText = getCinemaCardBadgeText(movie.quality);
 
     const year =
       movie.created && !Number.isNaN(new Date(movie.created).getFullYear())
@@ -937,6 +1087,7 @@ export function MovieCard({
           href={`/phim/${movie.slug}`}
           className="relative block cursor-pointer"
           onClick={handleMovieClick}
+          title={cardTooltipSummary}
         >
           <div
             className="group relative w-full max-w-full h-full flex flex-col"
@@ -957,10 +1108,13 @@ export function MovieCard({
                 loading="lazy"
               />
 
-              {qualityLabel && (
-                <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex items-center gap-1 z-20">
+              {cinemaBadgeText && (
+                <div
+                  className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex items-center gap-1 z-20"
+                  title={cardTooltipSummary}
+                >
                   <Badge className="bg-white/15 text-white border border-white/20 text-[10px] sm:text-[11px] font-semibold px-2 py-0.5">
-                    {qualityLabel}
+                    {cinemaBadgeText}
                   </Badge>
                 </div>
               )}
@@ -1019,7 +1173,12 @@ export function MovieCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Link href={`/phim/${movie.slug}`} className="cursor-pointer" onClick={handleMovieClick}>
+      <Link
+        href={`/phim/${movie.slug}`}
+        className="cursor-pointer"
+        onClick={handleMovieClick}
+        title={cardTooltipSummary}
+      >
         <div
           className={`relative rounded-[10px] overflow-hidden bg-muted transition-all duration-200 sm:duration-300 ease-out flex-shrink-0 border border-transparent ${
             isHovered
@@ -1049,14 +1208,11 @@ export function MovieCard({
               loading="lazy"
             />
 
-            {/* Language Badges - Top Right Corner */}
-            {!isHovered && <LanguageBadges language={movie.language} />}
-
             {/* Episode badge */}
-            {!isHovered && movie.current_episode && (
+            {!isHovered && episodeBadgeText && (
               <div className="absolute bottom-2 right-2">
                 <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg">
-                  {formatEpisodeLabel(movie.current_episode)}
+                  {episodeBadgeText}
                 </Badge>
               </div>
             )}

@@ -25,6 +25,10 @@ export interface FilmItem {
   time: string;
   quality: string;
   language: string;
+  /** OPhim: mã nguồn phụ đề/thoại, ví dụ vs + tm = Vietsub + Thuyết minh */
+  lang_keys?: string[];
+  /** OPhim `type`: `single` = phim lẻ, `series` = phim bộ / TV */
+  film_type?: string;
   // Optional rating fields (not always present in API)
   imdb?: number | string;
   tmdb?: number | string;
@@ -113,6 +117,8 @@ interface OPhimItem {
   quality?: string;
   lang?: string;
   language?: string;
+  /** OPhim: ["vs","tm","lt"] — đủ loại phụ đề/thoại có trên phim */
+  lang_key?: string[];
   year?: number;
   imdb?: { id?: string } | string | number;
   tmdb?: { id?: string; vote_average?: number; vote_count?: number } | string | number;
@@ -219,6 +225,7 @@ function convertOPhimItemToFilmItem(item: OPhimItem): FilmItem {
   const casts = Array.isArray(item.actor) ? item.actor.join(", ") : (item.casts || "");
   const language = item.lang || item.language || "";
   const totalEpisodes = item.episode_total || item.total_episodes || 0;
+  const langKeys = Array.isArray(item.lang_key) ? item.lang_key.filter((k) => typeof k === "string") : [];
 
   return {
     id: item._id,
@@ -236,6 +243,8 @@ function convertOPhimItemToFilmItem(item: OPhimItem): FilmItem {
     time: item.time || "",
     quality: item.quality || "",
     language: language,
+    ...(langKeys.length > 0 ? { lang_keys: langKeys } : {}),
+    ...(item.type ? { film_type: item.type } : {}),
     imdb,
     tmdb,
     vote_average: item.vote_average,
@@ -1105,6 +1114,8 @@ export const CATEGORIES = {
   PHIM_LE: "phim-le",
   PHIM_BO: "phim-bo",
   PHIM_DANG_CHIEU: "phim-dang-chieu",
+  /** OPhim: /v1/api/danh-sach/phim-chieu-rap (không nằm trong /v1/api/the-loai) */
+  PHIM_CHIEU_RAP: "phim-chieu-rap",
   TV_SHOWS: "tv-shows",
 } as const;
 
