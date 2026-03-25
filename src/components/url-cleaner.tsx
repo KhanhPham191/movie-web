@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 /**
  * Component để clean URL sau khi OAuth callback
@@ -9,16 +9,17 @@ import { useRouter, useSearchParams } from 'next/navigation';
  */
 export function URLCleaner() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   
   useEffect(() => {
     // Nếu có code parameter (từ OAuth callback), xóa nó
     const code = searchParams.get('code');
-    if (code) {
-      // Replace URL mà không có query params
-      router.replace('/', { scroll: false });
+    if (code && pathname) {
+      // Replace URL không query nhưng giữ nguyên path hiện tại
+      router.replace(pathname, { scroll: false });
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, pathname]);
   
   return null;
 }

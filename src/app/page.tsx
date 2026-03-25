@@ -1,9 +1,11 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { CategoryPills } from "@/components/category-pills";
 import { Footer } from "@/components/footer";
+import { HomeCatalogGrid } from "@/components/home-catalog-grid";
 import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import { HeroSectionWrapper } from "@/components/home-sections/hero-section-wrapper";
+import { TrendingSection } from "@/components/home-sections/trending";
+import { CinemaSection } from "@/components/home-sections/cinema";
 import { CurrentlyWatchingSection } from "@/components/home-sections/currently-watching";
 import { Top10PhimLe } from "@/components/home-sections/top10-phim-le";
 import { Top10PhimBo } from "@/components/home-sections/top10-phim-bo";
@@ -104,7 +106,7 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   return (
-    <main className="min-h-screen bg-[#191b24] relative overflow-x-hidden">
+    <main className="min-h-screen bg-[#151823] relative overflow-x-hidden">
       {/* Hero - Priority load (full-width) */}
       <div className="w-full max-w-full overflow-hidden">
         <Suspense fallback={<div className="h-[60vh] bg-[#191b24]" />}>
@@ -114,7 +116,7 @@ export default async function Home() {
 
       <div className="mx-auto max-w-[1800px] px-3 sm:px-4 md:px-8 lg:px-12">
         {/* Content Rows - Premium Layout */}
-        <div className="relative z-20 -mt-4 sm:-mt-12 md:-mt-18 lg:-mt-24 pb-20 sm:pb-24">
+        <div className="relative z-20 -mt-4 sm:-mt-10 md:-mt-16 lg:-mt-20 pb-20 sm:pb-24">
           {/* Premium Background Effects - Hidden on mobile for performance */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden hidden sm:block">
             {/* Gradient orbs */}
@@ -125,11 +127,28 @@ export default async function Home() {
           </div>
 
           {/* Giảm khoảng cách dọc giữa các section để đỡ trống hơn nữa */}
-          <div className="relative z-10 space-y-2 sm:space-y-3 lg:space-y-4">
-            {/* Category Section - Genres, Countries, Quick filters */}
-            <div className="relative pt-10 sm:pt-16 md:pt-20 lg:pt-24 mb-2 sm:mb-4 px-1 sm:px-2">
-              <CategoryPills />
-            </div>
+          <div className="relative z-10 space-y-3 sm:space-y-4 lg:space-y-5 pt-9 sm:pt-14 md:pt-18 lg:pt-22">
+            <ScrollReveal variant="fade-up" duration={700} desktopDisabled>
+              <div className="rounded-xl p-1 sm:p-2">
+                <HomeCatalogGrid />
+              </div>
+            </ScrollReveal>
+
+            <ScrollReveal variant="fade-up" duration={700} desktopDisabled>
+              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
+                <Suspense fallback={<MovieSectionSkeleton />}>
+                  <TrendingSection />
+                </Suspense>
+              </div>
+            </ScrollReveal>
+
+            <ScrollReveal variant="fade-up" duration={700} desktopDisabled>
+              <div className="rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">
+                <Suspense fallback={<MovieSectionSkeleton />}>
+                  <CinemaSection />
+                </Suspense>
+              </div>
+            </ScrollReveal>
 
             {/* Currently Watching - Render ngay (above fold) */}
             <div className="-mt-1 sm:-mt-2 rounded-xl p-3 sm:p-5 bg-[#191b24]/50 md:backdrop-blur-sm">

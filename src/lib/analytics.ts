@@ -58,12 +58,13 @@ export function trackEvent(eventName: string, params?: Record<string, any>) {
  * Uses gtag('event', 'page_view') instead of gtag('config') to avoid
  * reinitializing the tag and losing client_id
  */
-export function trackPageView(url: string) {
+export function trackPageView(url: string, pageLocation?: string) {
   if (process.env.NODE_ENV !== 'production') return;
   if (typeof window !== 'undefined' && window.gtag) {
     // Send page_view event (NOT gtag config — that would reinitialize and lose client_id)
     window.gtag('event', 'page_view', {
       page_path: url,
+      page_location: pageLocation || window.location.href,
       page_title: document.title,
     });
   }

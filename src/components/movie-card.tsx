@@ -914,13 +914,10 @@ export function MovieCard({
     );
   }
 
-  // Cinema / US-UK variant - wide backdrop + small poster + info (layout giống hình bạn gửi)
+  // Cinema / US-UK variant - wide backdrop + small poster + info; popup hover giống newRelease/series
   if (variant === "cinema") {
-    // Cinema variant:
-    // - backdrop dùng poster_url (wide image)
-    // - poster nhỏ bên dưới dùng thumb_url (portrait thumbnail)
-    const backdropUrl = getImageUrl(movie.thumb_url || movie.poster_url);
-    const thumbUrl = getImageUrl(movie.thumb_url || movie.poster_url);
+    const backdropUrl = getImageUrl(movie.poster_url);
+    const thumbUrl = getImageUrl(movie.thumb_url);
     const shortDescription = getShortDescription(movie.description, 110);
     const qualityLabel = movie.quality ? movie.quality.toUpperCase() : "";
 
@@ -928,116 +925,90 @@ export function MovieCard({
       movie.created && !Number.isNaN(new Date(movie.created).getFullYear())
         ? new Date(movie.created).getFullYear()
         : undefined;
-    const episodeLabel = formatEpisodeLabel(movie.current_episode);
 
     return (
-      <Link href={`/phim/${movie.slug}`} className="cursor-pointer" onClick={handleMovieClick}>
-        <div className="group relative w-full max-w-full h-full flex flex-col">
-          {/* Glow frame */}
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#F6C453]/20 via-transparent to-[#DB2777]/15 blur-xl opacity-0 group-hover:opacity-100 transition duration-500" />
+      <>
+        {popupContent &&
+          (typeof window !== "undefined"
+            ? createPortal(popupContent, document.body)
+            : popupContent)}
+        <Link
+          ref={cardRef}
+          href={`/phim/${movie.slug}`}
+          className="relative block cursor-pointer"
+          onClick={handleMovieClick}
+        >
+          <div
+            className="group relative w-full max-w-full h-full flex flex-col"
+            onMouseEnter={handleMouseEnterWithDelay}
+            onMouseLeave={handleMouseLeaveWithCancel}
+          >
+            <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-[#0a0a0a] flex-shrink-0 border border-white/5 md:transition-transform md:duration-300 md:group-hover:scale-[1.02] md:group-hover:shadow-xl md:group-hover:border-[rgba(246,196,83,0.35)]">
+              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#F6C453] via-[#DB2777] to-[#6D28D9] opacity-70" />
 
-          {/* Wide backdrop */}
-          <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-[#0a0a0a] transition-all duration-200 sm:duration-300 sm:group-hover:scale-[1.02] sm:group-hover:shadow-2xl flex-shrink-0 border border-white/5 sm:group-hover:border-[rgba(246,196,83,0.35)]">
-            {/* Top accent bar */}
-            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#F6C453] via-[#DB2777] to-[#6D28D9] opacity-70" />
+              <div className="absolute inset-0 bg-[rgba(246,196,83,0.08)] opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 md:duration-300 pointer-events-none z-10" />
 
-            {/* Overlay vàng khi hover */}
-            <div className="absolute inset-0 bg-[rgba(246,196,83,0.12)] opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 sm:duration-300 pointer-events-none z-10" />
+              <Image
+                src={backdropUrl}
+                alt={movie.name}
+                fill
+                className="object-cover object-center"
+                sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 33vw"
+                loading="lazy"
+              />
 
-            <Image
-              src={backdropUrl}
-              alt={movie.name}
-              fill
-              className="object-cover object-center"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              loading="lazy"
-            />
+              {qualityLabel && (
+                <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex items-center gap-1 z-20">
+                  <Badge className="bg-white/15 text-white border border-white/20 text-[10px] sm:text-[11px] font-semibold px-2 py-0.5">
+                    {qualityLabel}
+                  </Badge>
+                </div>
+              )}
 
-            {/* Language Badges - Bottom Left Corner */}
-            <LanguageBadges language={movie.language} />
-            {/* Episode Badge - Bottom Right Corner */}
-            {episodeLabel && (
-              <Badge className="absolute bottom-2 right-2 bg-gradient-to-r from-red-600 via-orange-500 to-orange-400 text-white border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg z-20">
-                {episodeLabel}
-              </Badge>
-            )}
-            {qualityLabel && (
-              <div className="absolute top-2 left-2 flex items-center gap-1 z-20">
-                <Badge className="bg-white/15 text-white border border-white/20 text-[10px] font-semibold">
-                  {qualityLabel}
-                </Badge>
-              </div>
-            )}
+              <div className="absolute inset-x-0 bottom-0 h-[104px] sm:h-[120px] md:h-[128px] bg-gradient-to-t from-[#050505] via-[#050505e6] to-transparent" />
 
-            {/* Dark gradient bar at bottom */}
-            <div className="absolute inset-x-0 bottom-0 h-[96px] sm:h-[108px] bg-gradient-to-t from-[#050505] via-[#050505e6] to-transparent" />
+              <div className="absolute left-3 right-3 sm:left-4 sm:right-4 bottom-3 sm:bottom-4 flex items-end gap-2.5 sm:gap-3.5">
+                <div className="relative aspect-[2/3] w-14 xs:w-16 sm:w-24 md:w-28 rounded-md overflow-hidden shadow-2xl shadow-black/80 border border-white/10 bg-black/60 flex-shrink-0">
+                  <Image
+                    src={thumbUrl}
+                    alt={movie.name}
+                    fill
+                    className="object-cover object-center"
+                    sizes="(max-width: 640px) 72px, 112px"
+                    loading="lazy"
+                  />
+                </div>
 
-            {/* Poster + text overlay on bottom bar */}
-            <div className="absolute left-3 right-3 sm:left-4 sm:right-4 bottom-3 flex items-end gap-2 sm:gap-3">
-              {/* Small vertical poster */}
-              <div className="relative aspect-[2/3] w-12 xs:w-14 sm:w-20 rounded-md overflow-hidden shadow-2xl shadow-black/80 border border-white/10 bg-black/60 flex-shrink-0">
-                <Image
-                  src={thumbUrl}
-                  alt={movie.name}
-                  fill
-                  className="object-cover object-center"
-                  sizes="56px"
-                  loading="lazy"
-                />
-              </div>
-
-              {/* Text & badges */}
-              <div className="flex-1 min-w-0">
-                <div className="mb-0.5 sm:mb-1 flex flex-wrap items-center gap-1">
-                  {movie.language && (
-                    <Badge className="bg-white text-black text-[9px] xs:text-[10px] font-semibold px-1.5 sm:px-2 py-0.5 border-0">
-                      {movie.language}
-                    </Badge>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm xs:text-base sm:text-lg font-semibold text-white line-clamp-1">
+                    {movie.name}
+                  </h3>
+                  {movie.original_name && movie.original_name !== movie.name && (
+                    <p className="text-xs sm:text-sm text-gray-100 font-medium leading-snug line-clamp-1">
+                      {movie.original_name}
+                    </p>
                   )}
-                  {episodeLabel && (
-                    <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg border-0">
-                      {episodeLabel}
-                    </Badge>
+                  {shortDescription && (
+                    <p className="mt-0.5 text-[11px] xs:text-xs sm:text-sm text-gray-300 line-clamp-2">
+                      {shortDescription}
+                    </p>
                   )}
-                  {qualityLabel && (
-                    <Badge className="bg-white/10 text-white text-[9px] xs:text-[10px] font-semibold border border-white/20">
-                      {qualityLabel}
-                    </Badge>
+                  {(year || isValidTime(movie.time)) && (
+                    <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm md:text-base text-gray-200 flex flex-wrap items-center gap-x-1.5 sm:gap-x-2 gap-y-0.5">
+                      {year && <span>{year}</span>}
+                      {isValidTime(movie.time) && (
+                        <span className="font-semibold text-white">
+                          {movie.time}
+                        </span>
+                      )}
+                    </p>
                   )}
                 </div>
-                <h3 className="text-xs xs:text-sm sm:text-base font-semibold text-white line-clamp-1">
-                  {movie.name}
-                </h3>
-                {movie.original_name && movie.original_name !== movie.name && (
-                  <p className="text-xs xs:text-sm text-gray-100 font-medium leading-snug line-clamp-1">
-                    {movie.original_name}
-                  </p>
-                )}
-                {shortDescription && (
-                  <p className="mt-0.5 text-[10px] xs:text-xs text-gray-300 line-clamp-2">
-                    {shortDescription}
-                  </p>
-                )}
-                {(year || isValidTime(movie.time) || episodeLabel) && (
-                  <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-200 flex flex-wrap items-center gap-x-1.5 sm:gap-x-2 gap-y-0.5">
-                    {year && <span>{year}</span>}
-                    {isValidTime(movie.time) && (
-                      <span className="font-semibold text-white">
-                        {movie.time}
-                      </span>
-                    )}
-                    {episodeLabel && (
-                      <span className="px-1 py-0.5 rounded bg-white/10 border border-white/10 text-[9px] xs:text-[10px]">
-                        {episodeLabel}
-                      </span>
-                    )}
-                  </p>
-                )}
               </div>
             </div>
           </div>
-        </div>
-      </Link>
+        </Link>
+      </>
     );
   }
 

@@ -18,6 +18,7 @@ export function GoogleAnalytics({ gaId }: { gaId: string }) {
           __html: `
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
+            window.gtag = gtag;
             gtag('js', new Date());
             
             // Persist client_id in localStorage as fallback for cookie loss
@@ -67,14 +68,8 @@ export function GoogleAnalytics({ gaId }: { gaId: string }) {
               user_type: isReturning ? 'returning' : 'new',
             });
 
-            // Trang xem phim: page_view do WatchFilmTracker gửi (kèp tham số phim/tập), tránh đếm đôi
-            if (!window.location.pathname.startsWith('/xem-phim/')) {
-              gtag('event', 'page_view', {
-                page_path: window.location.pathname,
-                page_title: document.title,
-                user_type: isReturning ? 'returning' : 'new',
-              });
-            }
+            // page_view events are handled by client trackers (PageViewTracker/WatchFilmTracker)
+            // to ensure consistent SPA route tracking and avoid duplicate page_view events.
           `,
         }}
       />

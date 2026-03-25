@@ -382,6 +382,8 @@ export async function getFilmsByGenre(
     sort_type?: string;
     sort_lang?: string;
     limit?: number;
+    /** Lọc phim chiếu rạp (nếu API hỗ trợ) */
+    chieurap?: boolean;
   }
 ): Promise<FilmListResponse> {
   try {
@@ -401,6 +403,9 @@ export async function getFilmsByGenre(
     }
     if (options?.year) {
       params.append('year', String(options.year));
+    }
+    if (typeof options?.chieurap === "boolean") {
+      params.append("chieurap", options.chieurap ? "1" : "0");
     }
     
     // OPhim endpoint: /v1/api/the-loai/{slug}
@@ -1318,9 +1323,10 @@ export async function getMultiplePages(
 // Get films by genre - multiple pages
 export async function getFilmsByGenreMultiple(
   slug: string,
-  pages: number = 3
+  pages: number = 3,
+  options?: Parameters<typeof getFilmsByGenre>[2]
 ): Promise<FilmItem[]> {
-  return getMultiplePages((page) => getFilmsByGenre(slug, page), pages);
+  return getMultiplePages((page) => getFilmsByGenre(slug, page, options), pages);
 }
 
 // NguonC API functions removed

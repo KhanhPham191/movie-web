@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
-import { Noto_Sans, Noto_Sans_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { FavoritesProvider } from "@/contexts/favorites-context";
@@ -18,18 +18,11 @@ const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
   "https://www.movpey.xyz";
 
-const notoSans = Noto_Sans({
+const inter = Inter({
   variable: "--font-geist-sans",
-  subsets: ["latin", "vietnamese"],
+  subsets: ["latin"],
   display: "swap",
   weight: ["400", "500", "600", "700", "800"],
-});
-
-const notoSansMono = Noto_Sans_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin", "vietnamese"],
-  display: "swap",
-  weight: ["400", "700"],
 });
 
 export const viewport: Viewport = {
@@ -179,7 +172,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${notoSans.variable} ${notoSansMono.variable} font-sans antialiased`}
+        className={`${inter.variable} font-sans antialiased`}
       >
         <SplashOverlay />
         {gaId && <GoogleAnalytics gaId={gaId} />}
