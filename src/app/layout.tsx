@@ -176,7 +176,9 @@ export default function RootLayout({
       >
         <SplashOverlay />
         {gaId && <GoogleAnalytics gaId={gaId} />}
-        <PageViewTracker />
+        <Suspense fallback={null}>
+          <PageViewTracker />
+        </Suspense>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
