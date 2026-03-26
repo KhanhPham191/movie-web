@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import type React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Play, Info, Star } from "lucide-react";
+import { Play, Info, Star, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { FilmItem } from "@/lib/api";
 import { getImageUrl } from "@/lib/api";
@@ -25,6 +25,13 @@ function formatEpisodeLabel(episode?: string) {
   const match = episode.match(/Hoàn tất\s*\(([^)]+)\)/i);
   if (match) return match[1];
   return episode;
+}
+
+function getDiff(index: number, current: number, length: number) {
+  let diff = index - current;
+  if (diff < -Math.floor(length / 2)) diff += length;
+  if (diff > Math.floor(length / 2)) diff -= length;
+  return diff;
 }
 
 export function HeroSection({ movies }: HeroSectionProps) {
@@ -52,8 +59,8 @@ export function HeroSection({ movies }: HeroSectionProps) {
       setContentVisible(false);
       setIsTransitioning(true);
 
-      const fadeOutDelay = isMobile ? 120 : 180;
-      const fadeInDelay = isMobile ? 350 : 450;
+        const fadeOutDelay = isMobile ? 0 : 180;
+        const fadeInDelay = isMobile ? 300 : 450;
 
       setTimeout(() => {
         setPrevIndex(currentIndex);
@@ -171,7 +178,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
   return (
     <section
-      className="hero-section-root relative w-full max-w-full overflow-hidden rounded-none lg:rounded-xl select-none"
+      className="hero-section-root relative w-full max-w-full overflow-hidden rounded-none lg:rounded-xl select-none max-sm:!h-[75vh] max-sm:!min-h-[550px]"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -184,7 +191,8 @@ export function HeroSection({ movies }: HeroSectionProps) {
       style={{ width: "100%", maxWidth: "100%" }}
     >
       {/* ===== Background Images ===== */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 max-sm:blur-lg max-sm:scale-110 transition-all duration-700">
+        <div className="absolute inset-0 sm:hidden bg-black/60 z-[2]" />
         {featuredMovies.map((m, index) => {
           // Chỉ render slide hiện tại + slide đang fade out
           const shouldRender = index === currentIndex || index === prevIndex;
@@ -236,7 +244,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
       {/* ===== Movie Info Content ===== */}
       <div
-        className="absolute z-10 bottom-0 left-0 right-0 sm:bottom-[6%] md:bottom-[8%] lg:bottom-[10%] sm:left-6 md:left-12 lg:left-14 sm:right-[38%] md:right-[42%] px-4 sm:px-0 pb-5 sm:pb-0"
+        className="hidden sm:block absolute z-10 bottom-0 left-0 right-0 sm:bottom-[6%] md:bottom-[8%] lg:bottom-[10%] sm:left-6 md:left-12 lg:left-14 sm:right-[38%] md:right-[42%] px-4 sm:px-0 pb-5 sm:pb-0"
         style={{
           opacity: contentVisible ? 1 : 0,
           transform: contentVisible ? "translateY(0)" : "translateY(10px)",
@@ -402,14 +410,115 @@ export function HeroSection({ movies }: HeroSectionProps) {
         </div>
       )}
 
-      {/* ===== Slide Counter (mobile, top-right) ===== */}
-      {featuredMovies.length > 1 && (
-        <div className="absolute z-20 top-3 right-3 sm:hidden">
-          <span className="px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm text-[10px] text-white/60 font-medium tabular-nums">
-            {currentIndex + 1}/{featuredMovies.length}
-          </span>
+      {/* ===== MOBILE Cover Flow & Info ===== */}
+      <div className="block sm:hidden absolute inset-0 z-20 flex flex-col pt-12 pb-6 px-4">
+        
+        {/* Carousel / Cover Flow */}
+        <div className="relative flex-1 flex items-center justify-center -mt-6">
+          <div className="absolute inset-0 flex items-center justify-center perspective-1000">
+            {featuredMovies.map((m, i) => {
+              const diff = getDiff(i, currentIndex, featuredMovies.length);
+              // diff range [-2, 2] for 5 items
+              const zIndex = 10 - Math.abs(diff);
+              const isCenter = diff === 0;
+              const scale = isCenter ? 1 : 0.8;
+              const translateX = diff * 65; // %
+              const opacity = Math.abs(diff) > 1 ? 0 : isCenter ? 1 : 0.6;
+              const rotateY = diff === 0 ? 0 : diff > 0 ? -15 : 15;
+              
+              return (
+                <div
+                  key={`mobile-thumb-${m.id || i}`}
+                  onClick={(e) => {
+                    if (!isCenter) {
+                      e.stopPropagation();
+                      goToSlide(i);
+                    }
+                  }}
+                  className="absolute w-[50%] max-w-[200px] aspect-[2/3] rounded-xl overflow-hidden shadow-2xl transition-all duration-300 ease-out cursor-pointer"
+                  style={{
+                    transform: `translateX(${translateX}%) scale(${scale}) rotateY(${rotateY}deg)`,
+                    zIndex,
+                    opacity,
+                    pointerEvents: Math.abs(diff) > 1 ? 'none' : 'auto'
+                  }}
+                >
+                  <Image
+                    src={getImageUrl(m.thumb_url || m.poster_url)}
+                    alt={m.name}
+                    fill
+                    className="object-cover"
+                    sizes="50vw"
+                  />
+
+                  {/* Highlight current item */}
+                  <div className={`absolute inset-0 ring-2 ring-white/20 transition-opacity duration-300 ${isCenter ? 'opacity-100' : 'opacity-0'}`} />
+                </div>
+              );
+            })}
+          </div>
         </div>
-      )}
+
+        {/* Info */}
+        <div 
+          className="flex flex-col items-center text-center mt-auto"
+          style={{
+            opacity: contentVisible ? 1 : 0,
+            transform: contentVisible ? "translateY(0)" : "translateY(10px)",
+            transition: "opacity 0.4s ease, transform 0.4s ease",
+          }}
+        >
+          <h2 className="text-white text-3xl font-black mb-1 drop-shadow-lg line-clamp-2 leading-tight">
+            {movie.name}
+          </h2>
+          {movie.original_name && movie.original_name !== movie.name && (
+            <p className="text-gray-400 text-xs font-medium tracking-widest uppercase mb-6 drop-shadow-md">
+              {movie.original_name}
+            </p>
+          )}
+
+          <div className="flex gap-3 w-full justify-center px-2 mb-4">
+            <Link href={`/phim/${movie.slug}`} className="flex-1 max-w-[160px]">
+              <Button
+                size="lg"
+                className="w-full bg-[#F6C453] hover:bg-[#FFD76E] text-black font-bold text-sm h-11 rounded-lg active:scale-95 transition-all"
+              >
+                <Play className="w-4 h-4 mr-2 fill-black" />
+                Xem phim
+              </Button>
+            </Link>
+            <Link href={`/phim/${movie.slug}`} className="flex-1 max-w-[160px]">
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full bg-white hover:bg-gray-100 text-black border-none font-bold text-sm h-11 rounded-lg active:scale-95 transition-all"
+              >
+                <Heart className="w-4 h-4 mr-2" />
+                Yêu thích
+              </Button>
+            </Link>
+          </div>
+
+          {movie.description && (
+            <p
+              className="text-[13px] text-gray-300/90 line-clamp-3 leading-relaxed max-w-[90%]"
+              dangerouslySetInnerHTML={{
+                __html: movie.description.replace(/<[^>]*>/g, "").slice(0, 150) + "...",
+              }}
+            />
+          )}
+
+          {/* Simple Slide Indicators (Optional, looks nice to show there are 5 slides) */}
+          <div className="flex items-center gap-1.5 mt-5">
+            {featuredMovies.map((_, i) => (
+              <div 
+                key={i} 
+                className={`h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-4 bg-white' : 'w-1.5 bg-white/30'}`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
     </section>
   );
 }
