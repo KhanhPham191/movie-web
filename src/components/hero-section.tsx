@@ -178,7 +178,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
   return (
     <section
-      className="hero-section-root relative w-full max-w-full overflow-hidden rounded-none lg:rounded-xl select-none max-lg:!h-[75vh] max-lg:!min-h-[550px]"
+      className="hero-section-root relative w-full max-w-full overflow-hidden select-none max-lg:!h-[75vh] max-lg:!min-h-[550px]"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -231,13 +231,13 @@ export function HeroSection({ movies }: HeroSectionProps) {
         <div
           className="absolute inset-0 z-[3]"
           style={{
-            background: `linear-gradient(180deg, rgba(13,13,13,0.1) 0%, transparent 18%, transparent 42%, rgba(13,13,13,0.55) 68%, rgba(13,13,13,0.93) 89%, rgba(13,13,13,1) 100%)`,
+            background: `linear-gradient(180deg, rgba(21,24,35,0.1) 0%, transparent 18%, transparent 42%, rgba(21,24,35,0.55) 68%, rgba(21,24,35,0.93) 89%, rgba(21,24,35,1) 100%)`,
           }}
         />
         <div
           className="absolute inset-0 z-[3] hidden lg:block"
           style={{
-            background: `linear-gradient(90deg, rgba(13,13,13,0.55) 0%, rgba(13,13,13,0.15) 30%, transparent 55%)`,
+            background: `linear-gradient(90deg, rgba(21,24,35,0.65) 0%, rgba(21,24,35,0.2) 30%, transparent 55%)`,
           }}
         />
       </div>
