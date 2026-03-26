@@ -178,7 +178,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
   return (
     <section
-      className="hero-section-root relative w-full max-w-full overflow-hidden rounded-none lg:rounded-xl select-none max-sm:!h-[75vh] max-sm:!min-h-[550px]"
+      className="hero-section-root relative w-full max-w-full overflow-hidden rounded-none lg:rounded-xl select-none max-lg:!h-[75vh] max-lg:!min-h-[550px]"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -191,8 +191,8 @@ export function HeroSection({ movies }: HeroSectionProps) {
       style={{ width: "100%", maxWidth: "100%" }}
     >
       {/* ===== Background Images ===== */}
-      <div className="absolute inset-0 max-sm:blur-lg max-sm:scale-110 transition-all duration-700">
-        <div className="absolute inset-0 sm:hidden bg-black/60 z-[2]" />
+      <div className="absolute inset-0 max-lg:blur-lg max-lg:scale-110 transition-all duration-700">
+        <div className="absolute inset-0 lg:hidden bg-black/60 z-[2]" />
         {featuredMovies.map((m, index) => {
           // Chỉ render slide hiện tại + slide đang fade out
           const shouldRender = index === currentIndex || index === prevIndex;
@@ -235,16 +235,16 @@ export function HeroSection({ movies }: HeroSectionProps) {
           }}
         />
         <div
-          className="absolute inset-0 z-[3] hidden sm:block"
+          className="absolute inset-0 z-[3] hidden lg:block"
           style={{
             background: `linear-gradient(90deg, rgba(13,13,13,0.55) 0%, rgba(13,13,13,0.15) 30%, transparent 55%)`,
           }}
         />
       </div>
 
-      {/* ===== Movie Info Content ===== */}
+      {/* ===== Movie Info Content (Desktop only) ===== */}
       <div
-        className="hidden sm:block absolute z-10 bottom-0 left-0 right-0 sm:bottom-[6%] md:bottom-[8%] lg:bottom-[10%] sm:left-6 md:left-12 lg:left-14 sm:right-[38%] md:right-[42%] px-4 sm:px-0 pb-5 sm:pb-0"
+        className="hidden lg:block absolute z-10 bottom-0 left-0 right-0 sm:bottom-[6%] md:bottom-[8%] lg:bottom-[10%] sm:left-6 md:left-12 lg:left-14 sm:right-[38%] md:right-[42%] px-4 sm:px-0 pb-5 sm:pb-0"
         style={{
           opacity: contentVisible ? 1 : 0,
           transform: contentVisible ? "translateY(0)" : "translateY(10px)",
@@ -253,7 +253,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
       >
         {/* Original Title */}
         {movie.original_name && movie.original_name !== movie.name && (
-          <p className="hidden sm:block text-sm text-gray-400 mb-1.5 line-clamp-1 font-medium tracking-wide">
+          <p className="hidden lg:block text-sm text-gray-400 mb-1.5 line-clamp-1 font-medium tracking-wide">
             {movie.original_name}
           </p>
         )}
@@ -310,8 +310,8 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
           {movie.language && (
             <>
-              <span className="text-gray-600 text-[8px] sm:text-[10px] hidden sm:inline">•</span>
-              <span className="hidden sm:inline text-gray-400 text-[13px]">
+              <span className="text-gray-600 text-[8px] sm:text-[10px] hidden lg:inline">•</span>
+              <span className="hidden lg:inline text-gray-400 text-[13px]">
                 {movie.language}
               </span>
             </>
@@ -321,7 +321,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
         {/* Description — 2 dòng trên desktop */}
         {movie.description && (
           <p
-            className="hidden sm:block text-[13px] md:text-sm text-gray-300/80 line-clamp-2 mb-4 sm:mb-5 max-w-lg leading-relaxed"
+            className="hidden lg:block text-[13px] md:text-sm text-gray-300/80 line-clamp-2 mb-4 sm:mb-5 max-w-lg leading-relaxed"
             style={{
               opacity: contentVisible ? 1 : 0,
               transition: "opacity 0.35s ease 0.2s",
@@ -360,7 +360,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
       {/* ===== Thumbnail Navigation — Rophim style ===== */}
       {featuredMovies.length > 1 && (
         <div
-          className="absolute z-20 bottom-5 md:bottom-8 lg:bottom-6 right-4 sm:right-6 md:right-10 lg:right-14 hidden sm:flex items-end gap-2 md:gap-2.5"
+          className="absolute z-20 bottom-5 md:bottom-8 lg:bottom-6 right-4 sm:right-6 md:right-10 lg:right-14 hidden lg:flex items-end gap-2 md:gap-2.5"
         >
           {featuredMovies.map((m, i) => {
             const isActive = i === currentIndex;
@@ -410,8 +410,8 @@ export function HeroSection({ movies }: HeroSectionProps) {
         </div>
       )}
 
-      {/* ===== MOBILE Cover Flow & Info ===== */}
-      <div className="block sm:hidden absolute inset-0 z-20 flex flex-col pt-12 pb-6 px-4">
+      {/* ===== MOBILE & IPAD Cover Flow & Info ===== */}
+      <div className="block lg:hidden absolute inset-0 z-20 flex flex-col pt-12 pb-6 px-4">
         
         {/* Carousel / Cover Flow */}
         <div className="relative flex-1 flex items-center justify-center -mt-6">
