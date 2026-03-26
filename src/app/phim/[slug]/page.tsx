@@ -585,7 +585,7 @@ async function MovieDetail({ slug, serverParam }: { slug: string; serverParam?: 
         <p className="text-destructive text-lg font-semibold">Có lỗi xảy ra. Vui lòng thử lại sau.</p>
         {process.env.NODE_ENV === "development" && (
           <div className="mt-4 p-4 bg-red-900/20 border border-red-500 rounded text-left text-sm text-red-300 max-w-2xl mx-auto">
-            <p className="font-mono">
+            <p className="font-sans">
               <strong>Error:</strong> {error instanceof Error ? error.message : String(error)}
             </p>
             {error instanceof Error && error.stack && (

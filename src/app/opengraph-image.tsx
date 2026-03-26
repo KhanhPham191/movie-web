@@ -6,6 +6,15 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default async function OgImage() {
+  const [interRegular, interBlack] = await Promise.all([
+    fetch(new URL("./_og/Inter-Regular.ttf", import.meta.url)).then((res) =>
+      res.arrayBuffer()
+    ),
+    fetch(new URL("./_og/Inter-Black.ttf", import.meta.url)).then((res) =>
+      res.arrayBuffer()
+    ),
+  ]);
+
   return new ImageResponse(
     (
       <div
@@ -17,7 +26,7 @@ export default async function OgImage() {
           alignItems: "center",
           justifyContent: "center",
           background: "linear-gradient(135deg, #0D0D0D 0%, #191b24 50%, #0D0D0D 100%)",
-          fontFamily: "sans-serif",
+          fontFamily: "Inter",
         }}
       >
         {/* Gold accent line */}
@@ -70,6 +79,22 @@ export default async function OgImage() {
         />
       </div>
     ),
-    { ...size }
+    {
+      ...size,
+      fonts: [
+        {
+          name: "Inter",
+          data: interRegular,
+          weight: 400,
+          style: "normal",
+        },
+        {
+          name: "Inter",
+          data: interBlack,
+          weight: 900,
+          style: "normal",
+        },
+      ],
+    }
   );
 }

@@ -19,7 +19,7 @@ const siteUrl =
   "https://www.movpey.xyz";
 
 const inter = Inter({
-  variable: "--font-geist-sans",
+  variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
   weight: ["400", "500", "600", "700", "800"],

@@ -11,8 +11,7 @@ export async function AnimeSection() {
     const res = await getFilmsByCategory("hoat-hinh", 1, {
       sort_field: "_id",
       sort_type: "desc",
-      category: "hanh-dong",
-      year: 2025,
+      country: "nhat-ban",
       limit: 10,
     }).catch(() => ({
       status: "error",
