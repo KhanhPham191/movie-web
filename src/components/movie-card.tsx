@@ -27,6 +27,10 @@ interface MovieCardProps {
   disableTilt?: boolean;
   /** Mark image as priority (above-fold, first 3 cards) */
   priority?: boolean;
+  // Used by movie sections that implement horizontal drag; helps prevent accidental click.
+  // MovieCard itself may not use these refs directly, but the props must exist for type safety.
+  hasDraggedRef?: React.RefObject<boolean>;
+  dragDistanceRef?: React.RefObject<number>;
 }
 
 // Chuẩn hoá text số tập: "Hoàn tất (20/20)" -> "20/20"

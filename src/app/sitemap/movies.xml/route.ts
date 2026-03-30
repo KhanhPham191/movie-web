@@ -1,5 +1,7 @@
 import { getMovieSitemapEntries, toSitemapXml } from "@/lib/sitemap-data";
 
+export const revalidate = 86400; // 24h
+
 export async function GET() {
   const entries = await getMovieSitemapEntries(new Date());
   const xml = toSitemapXml(entries);
