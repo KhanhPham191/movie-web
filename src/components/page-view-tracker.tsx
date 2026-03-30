@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { trackPageView } from '@/lib/analytics';
 
 /**
@@ -10,29 +10,23 @@ import { trackPageView } from '@/lib/analytics';
  */
 export function PageViewTracker() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const lastTrackedPathRef = useRef<string>('');
+  const lastTrackedPathRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!pathname) return;
-    const query = searchParams?.toString();
-    const pagePath = `${pathname}${query ? `?${query}` : ''}`;
-    const pageLocation = typeof window !== 'undefined'
-      ? `${window.location.origin}${pagePath}`
-      : pagePath;
 
-    // Trang xem phim: page_view (kèm movie/episode) do WatchFilmTracker gửi — tránh 2 page_view.
-    if (pathname.startsWith('/xem-phim/')) {
-      lastTrackedPathRef.current = pagePath;
+    // Initial page_view is already sent in GoogleAnalytics script.
+    // This tracker should only handle SPA route changes to avoid duplicates.
+    if (lastTrackedPathRef.current === null) {
+      lastTrackedPathRef.current = pathname;
       return;
     }
 
-    // Track both first render and SPA route/query changes.
-    if (lastTrackedPathRef.current !== pagePath) {
-      trackPageView(pagePath, pageLocation);
-      lastTrackedPathRef.current = pagePath;
+    if (lastTrackedPathRef.current !== pathname) {
+      trackPageView(pathname);
+      lastTrackedPathRef.current = pathname;
     }
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   return null; // This component doesn't render anything
 }

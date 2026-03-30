@@ -95,7 +95,7 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-5">
+          <nav className="hidden 2xl:flex items-center gap-5">
             {mainNav.map((item) => (
               <Link
                 key={item.name}
@@ -110,7 +110,7 @@ export function Header() {
 
           {/* Mobile Menu Dropdown */}
           {isMounted && (
-            <div className="lg:hidden">
+            <div className="2xl:hidden">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -162,7 +162,7 @@ export function Header() {
               {isAuthenticated ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="hidden lg:flex items-center gap-1 sm:gap-2 group shrink-0">
+                    <button className="hidden 2xl:flex items-center gap-1 sm:gap-2 group shrink-0">
                       <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-[linear-gradient(135deg,#F6C453,#D3A13A)] flex items-center justify-center">
                         <span className="text-xs sm:text-sm font-bold">
                           {(
@@ -176,7 +176,7 @@ export function Header() {
                             .toUpperCase()}
                         </span>
                       </div>
-                      <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-white group-hover:rotate-180 transition-transform hidden lg:block" />
+                      <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-white group-hover:rotate-180 transition-transform hidden 2xl:block" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
@@ -215,7 +215,7 @@ export function Header() {
               ) : (
                 <Button
                   variant="outline"
-                  className="hidden lg:flex items-center gap-2 bg-white/5 border-white/20 text-white hover:bg-white/10"
+                  className="hidden 2xl:flex items-center gap-2 bg-white/5 border-white/20 text-white hover:bg-white/10"
                   onClick={() => router.push("/dang-nhap")}
                 >
                   <LogIn className="w-4 h-4" />

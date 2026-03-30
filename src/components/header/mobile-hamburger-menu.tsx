@@ -50,7 +50,7 @@ export function MobileHamburgerMenu({ onOpenLogin, onOpenChange }: MobileHamburg
     <>
       {/* Trigger button */}
       <button
-        className="lg:hidden p-1.5 hover:text-gray-300 transition-colors"
+        className="2xl:hidden p-1.5 hover:text-gray-300 transition-colors"
         onClick={() => setIsOpen(true)}
         aria-label="Menu"
       >
@@ -62,11 +62,11 @@ export function MobileHamburgerMenu({ onOpenLogin, onOpenChange }: MobileHamburg
         <>
           {/* Backdrop */}
           <div
-            className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] animate-fade-in-backdrop"
+            className="2xl:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] animate-fade-in-backdrop"
             onClick={() => setIsOpen(false)}
           />
           {/* Menu Panel */}
-          <div className="lg:hidden fixed top-0 right-0 bottom-0 h-[100vh] w-80 max-w-[85vw] bg-[#0f0f0f] border-l border-white/10 z-[201] overflow-y-auto animate-slide-in-from-right">
+          <div className="2xl:hidden fixed top-0 right-0 bottom-0 h-[100vh] w-80 max-w-[85vw] bg-[#0f0f0f] border-l border-white/10 z-[201] overflow-y-auto animate-slide-in-from-right">
             <div className="flex flex-col h-full min-h-[100vh]">
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-white/10">
