@@ -20,18 +20,26 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "img.ophim.live",
-        port: "",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
         hostname: "**.googleusercontent.com",
         port: "",
         pathname: "/**",
       },
     ],
     dangerouslyAllowSVG: true,
+  },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Strict-Transport-Security",
+            // 2 years HSTS + includeSubDomains. Avoid "preload" unless you are sure.
+            value: "max-age=63072000; includeSubDomains",
+          },
+        ],
+      },
+    ];
   },
 };
 

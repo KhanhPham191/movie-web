@@ -1,56 +1,16 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Facebook, Instagram, Twitter, Youtube } from "lucide-react";
+import { GENRES, COUNTRIES } from "@/lib/api";
 
-const footerLinks = [
-  { name: "Mô tả âm thanh", href: "#" },
-  { name: "Trung tâm trợ giúp", href: "#" },
-  { name: "Thẻ quà tặng", href: "#" },
-  { name: "Trung tâm đa phương tiện", href: "#" },
-  { name: "Quan hệ với nhà đầu tư", href: "#" },
-  { name: "Việc làm", href: "#" },
-  { name: "Điều khoản sử dụng", href: "#" },
-  { name: "Quyền riêng tư", href: "#" },
-  { name: "Thông báo pháp lý", href: "#" },
-  { name: "Tùy chọn cookie", href: "#" },
-  { name: "Thông tin doanh nghiệp", href: "#" },
-  { name: "Liên hệ", href: "#" },
-];
-
-const socialLinks = [
-  { name: "Facebook", icon: Facebook, href: "#" },
-  { name: "Instagram", icon: Instagram, href: "#" },
-  { name: "Twitter", icon: Twitter, href: "#" },
-  { name: "Youtube", icon: Youtube, href: "#" },
-];
-
-const seoKeywords = [
-  "xem phim online",
-  "phim lẻ",
-  "phim bộ",
-  "phim vietsub",
-  "phim hd",
-  "phim miễn phí",
-  "phim Hàn Quốc",
-  "phim Trung Quốc",
-  "phim Âu Mỹ",
-  "phim Thái Lan",
-  "phim Hong Kong",
-  "anime",
-  "phim thuyết minh",
-  "phim lồng tiếng",
-  "phim chất lượng cao",
-  "phim full hd",
-  "phim 4k",
-  "phim online miễn phí",
-  "xem phim trực tuyến",
-  "phim truyền hình",
-  "phim điện ảnh",
-  "phim bom tấn",
-  "phim hay",
-  "phim mới",
-  "xem phim không quảng cáo",
-];
+const catalogLinks = [
+  { name: "Phim lẻ", href: "/danh-sach/phim-le" },
+  { name: "Phim bộ", href: "/danh-sach/phim-bo" },
+  { name: "Đang chiếu", href: "/danh-sach/phim-dang-chieu" },
+  { name: "Phim chiếu rạp", href: "/danh-sach/phim-chieu-rap" },
+  { name: "TV Shows", href: "/danh-sach/tv-shows" },
+  { name: "Mới cập nhật", href: "/danh-sach/phim-moi-cap-nhat" },
+  { name: "Cập nhật hàng ngày", href: "/danh-sach/phim-cap-nhat-hang-ngay" },
+] as const;
 
 export function Footer() {
   return (
@@ -76,23 +36,59 @@ export function Footer() {
           </div>
         </div>
 
-        {/* SEO Keywords Section */}
-        <div className="mb-6">
-          <div className="flex flex-wrap gap-2">
-            {seoKeywords.map((keyword, index) => (
-              <span
-                key={index}
-                className="text-[10px] text-gray-500 hover:text-gray-300 transition-colors"
-                itemProp="keywords"
+        <nav
+          aria-label="Danh mục phim"
+          className="mb-8 space-y-2 border-t border-gray-800/80 pt-8"
+        >
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+            Danh mục
+          </h2>
+          <div className="flex flex-wrap gap-x-3 gap-y-2">
+            {catalogLinks.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-xs text-gray-400 transition-colors hover:text-[#F6C453] underline-offset-2 hover:underline"
               >
-                {keyword}
-                {index < seoKeywords.length - 1 && (
-                  <span className="mx-1 text-gray-600">•</span>
-                )}
-              </span>
+                {item.name}
+              </Link>
             ))}
           </div>
-        </div>
+        </nav>
+
+        <nav aria-label="Thể loại phim" className="mb-8 space-y-2">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+            Thể loại
+          </h2>
+          <div className="flex flex-wrap gap-x-3 gap-y-2">
+            {GENRES.map((genre) => (
+              <Link
+                key={genre.slug}
+                href={`/the-loai/${genre.slug}`}
+                className="text-xs text-gray-400 transition-colors hover:text-[#F6C453] underline-offset-2 hover:underline"
+              >
+                {genre.name}
+              </Link>
+            ))}
+          </div>
+        </nav>
+
+        <nav aria-label="Phim theo quốc gia" className="mb-8 space-y-2">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+            Quốc gia / khu vực
+          </h2>
+          <div className="flex flex-wrap gap-x-3 gap-y-2">
+            {COUNTRIES.map((country) => (
+              <Link
+                key={country.slug}
+                href={`/quoc-gia/${country.slug}`}
+                className="text-xs text-gray-400 transition-colors hover:text-[#F6C453] underline-offset-2 hover:underline"
+              >
+                Phim {country.name}
+              </Link>
+            ))}
+          </div>
+        </nav>
 
         <div className="border-t border-gray-800 pt-6 mt-6">
           <p className="text-xs text-gray-500">

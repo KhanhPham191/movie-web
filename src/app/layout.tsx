@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
-import { Noto_Sans, Noto_Sans_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { FavoritesProvider } from "@/contexts/favorites-context";
@@ -16,20 +16,13 @@ import "./globals.css";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
+  "https://www.movpey.xyz";
 
-const notoSans = Noto_Sans({
-  variable: "--font-geist-sans",
-  subsets: ["latin", "vietnamese"],
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
   display: "swap",
   weight: ["400", "500", "600", "700", "800"],
-});
-
-const notoSansMono = Noto_Sans_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin", "vietnamese"],
-  display: "swap",
-  weight: ["400", "700"],
 });
 
 export const viewport: Viewport = {
@@ -161,14 +154,16 @@ export default function RootLayout({
   
   return (
     <html lang="vi" suppressHydrationWarning>
+      {/* Chỉ resource hints trong <head>: Next vẫn merge metadata (canonical, robots, OG, …) vào cùng <head>.
+          Không đặt next/script hay ads trong <head> — tránh lỗi thứ tự/stream khiến validator báo canonical/meta ngoài <head>.
+          Không đặt <link rel="preconnect"> trong <body> — một số công cụ SEO báo nhầm hoặc flag link ngoài head. */}
       <head>
         <link rel="preconnect" href="https://img.ophim.live" />
         <link rel="dns-prefetch" href="https://img.ophim.live" />
-        <Script
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9880216034435046"
-          crossOrigin="anonymous"
-          strategy="lazyOnload"
-        />
+      </head>
+      <body
+        className={`${inter.variable} font-sans antialiased`}
+      >
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteStructuredData) }}
@@ -177,13 +172,16 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationStructuredData) }}
         />
-      </head>
-      <body
-        className={`${notoSans.variable} ${notoSansMono.variable} font-sans antialiased`}
-      >
+        <Script
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9880216034435046"
+          crossOrigin="anonymous"
+          strategy="lazyOnload"
+        />
         <SplashOverlay />
         {gaId && <GoogleAnalytics gaId={gaId} />}
-        <PageViewTracker />
+        <Suspense fallback={null}>
+          <PageViewTracker />
+        </Suspense>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
