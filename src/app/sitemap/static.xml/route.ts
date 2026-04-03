@@ -1,7 +1,5 @@
 import { getStaticSitemapEntries, toSitemapXml } from "@/lib/sitemap-data";
 
-export const revalidate = 86400; // 24h
-
 export async function GET() {
   const xml = toSitemapXml(getStaticSitemapEntries(new Date()));
   return new Response(xml, {

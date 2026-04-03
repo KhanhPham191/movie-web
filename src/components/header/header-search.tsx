@@ -339,7 +339,7 @@ export function HeaderSearch({ isScrolled, onMobileSearchOpenChange }: HeaderSea
         <div className="relative hidden sm:block mr-2">
           <form
             onSubmit={handleSearch}
-            className="flex items-center bg-white/5 backdrop-blur-md border border-white/20 rounded-full px-3 py-1.5 w-56 md:w-72 2xl:w-96 transition-all duration-300 outline-none focus-visible:outline-none focus-within:outline-none focus-within:ring-0"
+            className="flex items-center bg-white/5 backdrop-blur-md border border-white/20 rounded-full px-3 py-1.5 w-56 md:w-72 lg:w-96 transition-all duration-300 outline-none focus-visible:outline-none focus-within:outline-none focus-within:ring-0"
           >
             <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mr-2 shrink-0" />
             <input
@@ -376,7 +376,7 @@ export function HeaderSearch({ isScrolled, onMobileSearchOpenChange }: HeaderSea
             </button>
           )}
           <div
-            className={`absolute right-0 top-1/2 z-50 w-56 md:w-72 2xl:w-96 -translate-y-1/2 origin-right transition-all duration-200 ${
+            className={`absolute right-0 top-1/2 z-50 w-56 md:w-72 lg:w-96 -translate-y-1/2 origin-right transition-all duration-200 ${
               isSearchOpen ? "scale-100 opacity-100" : "scale-95 opacity-0 pointer-events-none"
             }`}
           >

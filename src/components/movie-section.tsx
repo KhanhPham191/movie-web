@@ -1,14 +1,10 @@
 "use client";
 
 import React, { useRef, useState, useCallback, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { MovieCard } from "@/components/movie-card";
-import { getImageUrl } from "@/lib/api";
 import type { FilmItem } from "@/lib/api";
-import { isValidTime } from "@/lib/utils";
 
 interface MovieSectionProps {
   title: string;
@@ -17,60 +13,6 @@ interface MovieSectionProps {
   variant?: "default" | "portrait" | "top10" | "newRelease" | "series" | "cinema";
   /** Number of first cards to load with priority (above-fold) */
   priorityCount?: number;
-}
-
-// Chuẩn hoá nhãn tập giống bên movie-card
-function formatEpisodeLabel(episode?: string) {
-  if (!episode) return "";
-  const match = episode.match(/Hoàn tất\s*\(([^)]+)\)/i);
-  if (match) return match[1];
-  return episode;
-}
-
-// Kiểm tra có Vietsub không
-function hasVietsub(language?: string): boolean {
-  if (!language) return false;
-  const lang = language.toLowerCase();
-  return lang.includes("viet") || lang.includes("vs") || lang.includes("vietsub");
-}
-
-// Kiểm tra có Thuyết minh không
-function hasThuyetMinh(language?: string): boolean {
-  if (!language) return false;
-  const lang = language.toLowerCase();
-  return lang.includes("thuyết minh") || lang.includes("tm") || lang.includes("thuyet minh");
-}
-
-// Kiểm tra có Lồng tiếng không
-function hasLongTieng(language?: string): boolean {
-  if (!language) return false;
-  const lang = language.toLowerCase();
-  return lang.includes("lồng") || lang.includes("lt") || lang.includes("long") || lang.includes("lồng tiếng") || lang.includes("long tieng");
-}
-
-// Helper component để render language badges nhất quán
-function LanguageBadges({ language }: { language?: string }) {
-  const hasVS = hasVietsub(language);
-  const hasTM = hasThuyetMinh(language);
-  const hasLT = hasLongTieng(language);
-  
-  if (!hasVS && !hasTM && !hasLT) return null;
-  
-  // Tạo label kết hợp
-  const labels: string[] = [];
-  if (hasVS) labels.push("Vietsub");
-  if (hasTM) labels.push("TM");
-  if (hasLT) labels.push("LT");
-  
-  const badgeText = labels.join(" + ");
-  
-  return (
-    <div className="absolute bottom-2 left-2 z-30">
-      <Badge className="bg-gradient-to-r from-[#F6C453] via-[#F6C453] to-[#FAF9F6] text-black border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg">
-        {badgeText}
-      </Badge>
-    </div>
-  );
 }
 
 export function MovieSection({ title, movies, href, variant = "default", priorityCount = 0 }: MovieSectionProps) {
@@ -101,10 +43,6 @@ export function MovieSection({ title, movies, href, variant = "default", priorit
       scrollRef.current.scrollLeft = 0;
     }
   }, [title]);
-
-  if (!movies || movies.length === 0) {
-    return null;
-  }
 
   // Smooth scroll với momentum
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -212,6 +150,10 @@ export function MovieSection({ title, movies, href, variant = "default", priorit
     dragState.current.lastTime = 0;
   }, [isDragging]);
 
+  if (!movies || movies.length === 0) {
+    return null;
+  }
+
   // Touch handlers đã bị tắt - để browser tự xử lý scroll trên iPad
 
   // Get card width based on variant
@@ -226,6 +168,8 @@ export function MovieSection({ title, movies, href, variant = "default", priorit
         return "w-[clamp(180px,16vw,270px)] xl:w-[clamp(210px,13vw,300px)]";
       case "series":
         return "w-[clamp(190px,16vw,285px)] xl:w-[clamp(220px,13vw,315px)]";
+      case "cinema":
+        return "w-[clamp(152px,15.5vw,238px)] xl:w-[clamp(178px,12.5vw,260px)]";
       default:
         return "w-[clamp(200px,17vw,320px)] xl:w-[clamp(230px,14vw,360px)]";
     }
@@ -331,9 +275,9 @@ export function MovieSection({ title, movies, href, variant = "default", priorit
               key={`${movie.slug}-${index}`}
               className={`shrink-0 flex flex-col ${
                 variant === "cinema"
-                  ? "w-[clamp(240px,18vw,360px)] xl:w-[clamp(280px,14vw,420px)]"
-                  : getCardWidth()
-              } lg:basis-[calc((100%-64px)/5)] lg:max-w-[calc((100%-64px)/5)] 2xl:basis-[calc((100%-80px)/5)] 2xl:max-w-[calc((100%-80px)/5)]`}
+                  ? `${getCardWidth()} lg:basis-[calc((100%-64px)/5)] lg:max-w-[calc((100%-64px)/5)] 2xl:basis-[calc((100%-80px)/5)] 2xl:max-w-[calc((100%-80px)/5)]`
+                  : `${getCardWidth()} lg:basis-[calc((100%-64px)/5)] lg:max-w-[calc((100%-64px)/5)] 2xl:basis-[calc((100%-80px)/5)] 2xl:max-w-[calc((100%-80px)/5)]`
+              }`}
               onClick={(e) => {
                 // Prevent click nếu đã drag
                 if (hasDragged.current || dragDistance.current > 5) {
@@ -349,98 +293,20 @@ export function MovieSection({ title, movies, href, variant = "default", priorit
                 }
               }}
             >
-              {variant === "cinema" ? (
-                <CinemaCard movie={movie} />
-              ) : (
-                <MovieCard
-                  movie={movie}
-                  index={index}
-                  variant={variant}
-                  rank={variant === "top10" || variant === "newRelease" ? index + 1 : undefined}
-                  priority={index < priorityCount}
-                />
-              )}
+              <MovieCard
+                movie={movie}
+                index={index}
+                variant={variant}
+                rank={variant === "top10" || variant === "newRelease" ? index + 1 : undefined}
+                priority={index < priorityCount}
+                hasDraggedRef={hasDragged}
+                dragDistanceRef={dragDistance}
+              />
             </div>
           ))}
         </div>
       </div>
     </section>
-  );
-}
-
-// Cinema card UI theo thiết kế mới
-function CinemaCard({ movie }: { movie: FilmItem }) {
-  const primaryImage = getImageUrl(movie.thumb_url || movie.poster_url);
-  const posterImage = getImageUrl(movie.thumb_url || movie.poster_url);
-  const year =
-    movie.created && !Number.isNaN(new Date(movie.created).getFullYear())
-      ? new Date(movie.created).getFullYear()
-      : undefined;
-  const episodeLabel = formatEpisodeLabel(movie.current_episode);
-
-  return (
-    <Link href={`/phim/${movie.slug}`} className="group block h-full cursor-pointer">
-      <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/5 bg-[#0b0b0f] shadow-[0_15px_35px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:-translate-y-1">
-        {/* Top artwork */}
-        <div className="relative aspect-[4/5] w-full overflow-hidden">
-          <Image
-            src={primaryImage}
-            alt={movie.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 25vw"
-            loading="lazy"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/25 to-[#0b0b0f] opacity-70" />
-          {/* Language Badges - Bottom Left Corner */}
-          <LanguageBadges language={movie.language} />
-          {/* Episode Badge - Bottom Right Corner */}
-          {episodeLabel && (
-            <Badge className="absolute bottom-2 right-2 bg-gradient-to-r from-red-600 via-orange-500 to-orange-400 text-white border-0 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 shadow-lg z-20">
-              {episodeLabel}
-            </Badge>
-          )}
-        </div>
-
-        {/* Info panel */}
-        <div className="relative -mt-12 rounded-t-2xl bg-[#0f111a] px-3 pb-3 pt-4 shadow-[0_-10px_30px_rgba(0,0,0,0.55)]">
-          <div className="flex items-start gap-3">
-            <div className="relative aspect-[2/3] w-14 overflow-hidden rounded-lg border border-white/10 bg-black/60 shadow-lg shadow-black/60">
-              <Image src={posterImage} alt={movie.name} fill className="object-cover" sizes="64px" loading="lazy" />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <h3 className="text-base font-semibold text-white line-clamp-1">{movie.name}</h3>
-              {movie.original_name && movie.original_name !== movie.name && (
-                <p className="text-xs text-gray-300 line-clamp-1">{movie.original_name}</p>
-              )}
-              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-gray-200">
-                {year && <span>{year}</span>}
-                {isValidTime(movie.time) && (
-                  <>
-                    <span className="text-white/30">•</span>
-                    <span>{movie.time}</span>
-                  </>
-                )}
-                {episodeLabel && (
-                  <>
-                    <span className="text-white/30">•</span>
-                    <span>{episodeLabel}</span>
-                  </>
-                )}
-              </div>
-              <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                {movie.quality && (
-                  <Badge className="bg-[#FF2EBC]/20 text-[#FF2EBC] border border-[#FF2EBC]/40 text-[10px] font-semibold">
-                    {movie.quality.toUpperCase()}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Link>
   );
 }
 
@@ -473,8 +339,6 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
       scrollRef.current.scrollLeft = 0;
     }
   }, [title]);
-
-  if (!movies || movies.length === 0) return null;
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging || !scrollRef.current) return;
@@ -580,6 +444,8 @@ export function Top10Section({ title, movies, href }: { title: string; movies: F
     dragState.current.lastX = 0;
     dragState.current.lastTime = 0;
   }, [isDragging]);
+
+  if (!movies || movies.length === 0) return null;
 
   // Touch handlers đã bị tắt - để browser tự xử lý scroll trên iPad
 

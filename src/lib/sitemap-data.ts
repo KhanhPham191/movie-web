@@ -9,9 +9,7 @@ import {
 
 const DEFAULT_SITE_URL = "https://www.movpey.xyz";
 
-// Keep this conservative to avoid sitemap generation timeouts in crawlers.
-// (Also reduces the amount of upstream OPhim calls we need to assemble URLs.)
-const MAX_MOVIES_IN_SITEMAP = 500;
+const MAX_MOVIES_IN_SITEMAP = 1000;
 const MAX_MOVIES_FOR_WATCH_SITEMAP = 120;
 const MAX_EPISODES_PER_MOVIE_IN_SITEMAP = 10;
 const MAX_WATCH_URLS_IN_SITEMAP = 1500;
@@ -37,20 +35,12 @@ export function getSiteUrl(): string {
   return url || DEFAULT_SITE_URL;
 }
 
-function safeToISOString(date: Date, fallback: Date): string {
-  const t = date?.getTime?.() ?? NaN;
-  if (Number.isNaN(t)) return fallback.toISOString();
-  return date.toISOString();
-}
-
 export function toSitemapXml(entries: SitemapEntry[]): string {
-  const fallback = new Date();
   const urlset = entries
-    .filter((e) => typeof e.url === "string" && e.url.trim().startsWith("http"))
     .map((entry) => {
       const parts = [
         `<loc>${entry.url}</loc>`,
-        `<lastmod>${safeToISOString(entry.lastModified, fallback)}</lastmod>`,
+        `<lastmod>${entry.lastModified.toISOString()}</lastmod>`,
       ];
       if (entry.changeFrequency) parts.push(`<changefreq>${entry.changeFrequency}</changefreq>`);
       if (typeof entry.priority === "number") parts.push(`<priority>${entry.priority.toFixed(1)}</priority>`);
@@ -99,13 +89,13 @@ export function getStaticSitemapEntries(now = new Date()): SitemapEntry[] {
   ];
 }
 
-export async function getMoviesForSitemap(maxMovies: number = MAX_MOVIES_IN_SITEMAP): Promise<FilmItem[]> {
+export async function getMoviesForSitemap(): Promise<FilmItem[]> {
   try {
     const movies: FilmItem[] = [];
     let page = 1;
-    const maxPages = Math.ceil(maxMovies / 24);
+    const maxPages = Math.ceil(MAX_MOVIES_IN_SITEMAP / 24);
 
-    while (movies.length < maxMovies && page <= maxPages) {
+    while (movies.length < MAX_MOVIES_IN_SITEMAP && page <= maxPages) {
       const response = await getNewlyUpdatedFilms(page);
       if (response.status === "error" || !response.items || response.items.length === 0) break;
 
@@ -114,7 +104,7 @@ export async function getMoviesForSitemap(maxMovies: number = MAX_MOVIES_IN_SITE
       page++;
     }
 
-    return movies.slice(0, maxMovies);
+    return movies.slice(0, MAX_MOVIES_IN_SITEMAP);
   } catch (error) {
     console.error("[Sitemap] Error fetching movies:", error);
     return [];
@@ -123,22 +113,19 @@ export async function getMoviesForSitemap(maxMovies: number = MAX_MOVIES_IN_SITE
 
 export async function getMovieSitemapEntries(now = new Date()): Promise<SitemapEntry[]> {
   const siteUrl = getSiteUrl();
-  const movies = await getMoviesForSitemap(MAX_MOVIES_IN_SITEMAP);
-  return movies
-    .filter((movie) => typeof movie.slug === "string" && movie.slug.trim().length > 0)
-    .map((movie) => ({
-      url: `${siteUrl}/phim/${movie.slug}`,
-      lastModified: movie.modified ? new Date(movie.modified) : now,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    }));
+  const movies = await getMoviesForSitemap();
+  return movies.map((movie) => ({
+    url: `${siteUrl}/phim/${movie.slug}`,
+    lastModified: movie.modified ? new Date(movie.modified) : now,
+    changeFrequency: "weekly",
+    priority: 0.8,
+  }));
 }
 
 export async function getWatchSitemapEntries(now = new Date()): Promise<SitemapEntry[]> {
   try {
     const siteUrl = getSiteUrl();
-    // Only fetch as many movies as we actually need for the watch sitemap.
-    const movies = await getMoviesForSitemap(MAX_MOVIES_FOR_WATCH_SITEMAP);
+    const movies = (await getMoviesForSitemap()).slice(0, MAX_MOVIES_FOR_WATCH_SITEMAP);
     const watchRoutes: SitemapEntry[] = [];
 
     const BATCH_SIZE = 8;
@@ -151,7 +138,6 @@ export async function getWatchSitemapEntries(now = new Date()): Promise<SitemapE
       for (const result of details) {
         if (result.status !== "fulfilled") continue;
         const { movie, detail } = result.value;
-        if (typeof movie.slug !== "string" || movie.slug.trim().length === 0) continue;
         const episodeGroups = detail.movie?.episodes || [];
 
         const slugs = new Set<string>();

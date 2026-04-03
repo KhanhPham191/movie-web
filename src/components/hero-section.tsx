@@ -47,8 +47,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const slideStartTimeRef = useRef<number>(0);
   const lastProgressUpdateRef = useRef<number>(0);
-  /** Dùng 2xl (1536px) làm ranh giới desktop — iPad dọc/ngang (thường dưới 1536px) vẫn dùng UI mobile */
-  const isMobile = useIsMobile(1536);
+  const isMobile = useIsMobile();
 
   // Cả mobile lẫn desktop đều render 5 slide
   const featuredMovies = movies.slice(0, 5);
@@ -179,7 +178,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
   return (
     <section
-      className="hero-section-root relative w-full max-w-full overflow-hidden select-none max-2xl:!h-[75vh] max-2xl:!min-h-[550px]"
+      className="hero-section-root relative w-full max-w-full overflow-hidden select-none max-lg:!h-[75vh] max-lg:!min-h-[550px]"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -192,8 +191,8 @@ export function HeroSection({ movies }: HeroSectionProps) {
       style={{ width: "100%", maxWidth: "100%" }}
     >
       {/* ===== Background Images ===== */}
-      <div className="absolute inset-0 max-2xl:blur-lg max-2xl:scale-110 transition-all duration-700">
-        <div className="absolute inset-0 2xl:hidden bg-black/60 z-[2]" />
+      <div className="absolute inset-0 max-lg:blur-lg max-lg:scale-110 transition-all duration-700">
+        <div className="absolute inset-0 lg:hidden bg-black/60 z-[2]" />
         {featuredMovies.map((m, index) => {
           // Chỉ render slide hiện tại + slide đang fade out
           const shouldRender = index === currentIndex || index === prevIndex;
@@ -236,7 +235,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
           }}
         />
         <div
-          className="absolute inset-0 z-[3] hidden 2xl:block"
+          className="absolute inset-0 z-[3] hidden lg:block"
           style={{
             background: `linear-gradient(90deg, rgba(21,24,35,0.65) 0%, rgba(21,24,35,0.2) 30%, transparent 55%)`,
           }}
@@ -245,7 +244,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
       {/* ===== Movie Info Content (Desktop only) ===== */}
       <div
-        className="hidden 2xl:block absolute z-10 bottom-0 left-0 right-0 sm:bottom-[6%] md:bottom-[8%] 2xl:bottom-[10%] sm:left-6 md:left-12 2xl:left-14 sm:right-[38%] md:right-[42%] px-4 sm:px-0 pb-5 sm:pb-0"
+        className="hidden lg:block absolute z-10 bottom-0 left-0 right-0 sm:bottom-[6%] md:bottom-[8%] lg:bottom-[10%] sm:left-6 md:left-12 lg:left-14 sm:right-[38%] md:right-[42%] px-4 sm:px-0 pb-5 sm:pb-0"
         style={{
           opacity: contentVisible ? 1 : 0,
           transform: contentVisible ? "translateY(0)" : "translateY(10px)",
@@ -254,13 +253,13 @@ export function HeroSection({ movies }: HeroSectionProps) {
       >
         {/* Original Title */}
         {movie.original_name && movie.original_name !== movie.name && (
-          <p className="hidden 2xl:block text-sm text-gray-400 mb-1.5 line-clamp-1 font-medium tracking-wide">
+          <p className="hidden lg:block text-sm text-gray-400 mb-1.5 line-clamp-1 font-medium tracking-wide">
             {movie.original_name}
           </p>
         )}
 
         {/* Main Title */}
-        <h1 className="text-xl sm:text-3xl md:text-4xl 2xl:text-[2.75rem] min-[1920px]:text-5xl font-extrabold text-white mb-2 sm:mb-3.5 drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)] line-clamp-2 leading-[1.15] tracking-tight">
+        <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-[2.75rem] xl:text-5xl font-extrabold text-white mb-2 sm:mb-3.5 drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)] line-clamp-2 leading-[1.15] tracking-tight">
           {movie.name}
         </h1>
 
@@ -311,8 +310,8 @@ export function HeroSection({ movies }: HeroSectionProps) {
 
           {movie.language && (
             <>
-              <span className="text-gray-600 text-[8px] sm:text-[10px] hidden 2xl:inline">•</span>
-              <span className="hidden 2xl:inline text-gray-400 text-[13px]">
+              <span className="text-gray-600 text-[8px] sm:text-[10px] hidden lg:inline">•</span>
+              <span className="hidden lg:inline text-gray-400 text-[13px]">
                 {movie.language}
               </span>
             </>
@@ -322,7 +321,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
         {/* Description — 2 dòng trên desktop */}
         {movie.description && (
           <p
-            className="hidden 2xl:block text-[13px] md:text-sm text-gray-300/80 line-clamp-2 mb-4 sm:mb-5 max-w-lg leading-relaxed"
+            className="hidden lg:block text-[13px] md:text-sm text-gray-300/80 line-clamp-2 mb-4 sm:mb-5 max-w-lg leading-relaxed"
             style={{
               opacity: contentVisible ? 1 : 0,
               transition: "opacity 0.35s ease 0.2s",
@@ -361,7 +360,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
       {/* ===== Thumbnail Navigation — Rophim style ===== */}
       {featuredMovies.length > 1 && (
         <div
-          className="absolute z-20 bottom-5 md:bottom-8 2xl:bottom-6 right-4 sm:right-6 md:right-10 2xl:right-14 hidden 2xl:flex items-end gap-2 md:gap-2.5"
+          className="absolute z-20 bottom-5 md:bottom-8 lg:bottom-6 right-4 sm:right-6 md:right-10 lg:right-14 hidden lg:flex items-end gap-2 md:gap-2.5"
         >
           {featuredMovies.map((m, i) => {
             const isActive = i === currentIndex;
@@ -375,8 +374,8 @@ export function HeroSection({ movies }: HeroSectionProps) {
                 className={`
                   relative overflow-hidden rounded-md sm:rounded-lg transition-all duration-300 cursor-pointer group/thumb flex-shrink-0
                   ${isActive
-                    ? "w-[40px] h-[56px] sm:w-[56px] sm:h-[78px] md:w-[72px] md:h-[100px] 2xl:w-[64px] 2xl:h-[90px] ring-2 ring-[#F6C453] shadow-[0_0_10px_rgba(246,196,83,0.2)]"
-                    : "w-[32px] h-[44px] sm:w-[44px] sm:h-[62px] md:w-[58px] md:h-[80px] 2xl:w-[52px] 2xl:h-[72px] ring-1 ring-white/10 opacity-50 hover:opacity-85 hover:ring-white/30"
+                    ? "w-[40px] h-[56px] sm:w-[56px] sm:h-[78px] md:w-[72px] md:h-[100px] lg:w-[64px] lg:h-[90px] ring-2 ring-[#F6C453] shadow-[0_0_10px_rgba(246,196,83,0.2)]"
+                    : "w-[32px] h-[44px] sm:w-[44px] sm:h-[62px] md:w-[58px] md:h-[80px] lg:w-[52px] lg:h-[72px] ring-1 ring-white/10 opacity-50 hover:opacity-85 hover:ring-white/30"
                   }
                 `}
                 aria-label={m.name}
@@ -412,7 +411,7 @@ export function HeroSection({ movies }: HeroSectionProps) {
       )}
 
       {/* ===== MOBILE & IPAD Cover Flow & Info ===== */}
-      <div className="block 2xl:hidden absolute inset-0 z-20 flex flex-col pt-12 pb-6 px-4">
+      <div className="block lg:hidden absolute inset-0 z-20 flex flex-col pt-12 pb-6 px-4">
         
         {/* Carousel / Cover Flow */}
         <div className="relative flex-1 flex items-center justify-center -mt-6">

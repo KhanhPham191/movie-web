@@ -8,6 +8,7 @@ import { MovieSectionSkeleton } from "@/components/movie-skeleton";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getFilmsByCategory, getNewlyUpdatedFilms, getDailyUpdatedFilms, getAvailableGenres } from "@/lib/api";
+import { isTrailerEpisode } from "@/lib/trailer";
 
 // ISR: Revalidate every 30 seconds for real-time updates
 export const revalidate = 30;
@@ -16,6 +17,7 @@ const CATEGORY_NAMES: Record<string, string> = {
   "phim-le": "Phim lẻ",
   "phim-bo": "Phim bộ",
   "phim-dang-chieu": "Phim đang chiếu",
+  "phim-chieu-rap": "Phim chiếu rạp",
   "tv-shows": "TV Shows",
   "phim-moi-cap-nhat": "Phim mới cập nhật",
   "phim-cap-nhat-hang-ngay": "Cập nhật hàng ngày",
@@ -77,6 +79,9 @@ async function CategoryContent({
       movies = response.items || [];
       totalPages = response.paginate?.total_page || 1;
     }
+
+    // Loại bỏ phim đang ở trạng thái trailer/sắp chiếu khỏi danh mục
+    movies = (movies || []).filter((movie) => !isTrailerEpisode(movie?.current_episode));
 
     if (movies.length === 0) {
       return (
@@ -249,13 +254,18 @@ export default async function CategoryPage({
   );
 }
 
-export async function generateMetadata({ params }: CategoryPageProps) {
+export async function generateMetadata({ params, searchParams }: CategoryPageProps) {
   const { slug } = await params;
+  const { page: pageParam } = await searchParams;
+  const page = Number.parseInt(pageParam || "1", 10);
+  const normalizedPage = Number.isFinite(page) && page > 1 ? page : 1;
   const categoryName = CATEGORY_NAMES[slug] || "Danh sách phim";
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://movpey.example.com");
-  const categoryUrl = `${siteUrl}/danh-sach/${slug}`;
+    "https://www.movpey.xyz";
+  const categoryBaseUrl = `${siteUrl}/danh-sach/${slug}`;
+  const categoryUrl =
+    normalizedPage > 1 ? `${categoryBaseUrl}?page=${normalizedPage}` : categoryBaseUrl;
   
   return {
     title: `${categoryName} - Xem phim online Vietsub | MovPey`,
